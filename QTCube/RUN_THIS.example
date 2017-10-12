@@ -1,0 +1,8 @@
+export CMAKE_FORTRAN_COMPILER=ifort
+export FC=ifort
+export CC=gcc
+export CXX=g++
+export LIBTBB="/data/sep/bob/TBB/lib/libtbb.a"
+export CFLAGS="-I/data/sep/bob/TBB/include"
+export genericIO_DIR=/usr/local/SEP/8.0_gc5_i/lib
+cmake  -DgenericIO_DIR=/usr/local/SEP/8.0_gc5_i/lib -DLIBTBB="/data/sep/bob/TBB/lib/libtbb.so"  -DCMAKE_INSTALL_PREFIX=//usr/local/SEP/8.0_gc5_i    ../qtcube_src

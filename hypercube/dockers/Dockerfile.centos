@@ -1,0 +1,10 @@
+From centos:7
+MAINTAINER Bob Clapp <bob@sep.stanford.edu>
+RUN yum -y install gcc gcc-c++ make git cmake && \
+   yum -y clean all
+RUN git clone http://zapad.Stanford.EDU/bob/hypercube.git   /opt/hypercube/src && \
+    mkdir /opt/hypercube/build && \
+    cd /opt/hypercube/build &&\
+    cmake -DCMAKE_INSTALL_PREFIX=/opt/hypercube  ../src &&\
+    make install &&\
+    rm -rf /opt/hypercube/build

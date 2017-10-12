@@ -1,0 +1,92 @@
+#!/usr/bin/env python
+import re
+import os
+import subprocess
+import sys
+#ASSUMES SEP IN PATH
+
+def doc():
+   print  "SEP2JSON in.H\n" 
+   sys.exit(-1);
+
+def getParam(fle,str):
+        myinput=open(fle)
+	p=subprocess.Popen(["Get","parform=n ",str],stdin=myinput,stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p.wait()
+        myinput.close()
+ 	lines=p.stdout.readlines() 	
+	return lines[0].strip()
+  
+def AxisToJSON(blob,i,n,o,d,label):
+   blob+='  "n%d":%d,\n'%(i,n)
+   blob+='  "o%d":%f,\n'%(i,o)
+   blob+='  "d%d":%f,\n'%(i,d)
+   blob+='  "label%d":"%s"'%(i,label)
+   return blob;
+  
+
+  
+
+def getAxis(sep,i):
+  n=getParam(sep,"n"+str(i))
+  o=getParam(sep,"o"+str(i))
+  d=getParam(sep,"d"+str(i))
+  label=getParam(sep,"label"+str(i))
+  if not n: 
+    n=1;
+  else:
+    n=int(n)
+  if not o: 
+    o=0.;
+  else:
+    o=float(o)
+  if not d: 
+    d=1.;
+  else:
+    d=float(d)
+  if not label: 
+    label="";
+  return n,o,d,label
+
+
+
+def createJSON(sep):
+  if not os.path.isfile(sep):
+    print "Trouble opening %s"%sep
+    doc()
+  inp=getParam(sep,"in")
+  format=getParam(sep,"data_format")
+  json='"%s": { \n  "filename":"%s",\n'%(os.path.basename(sep),inp)
+  if format=="xdr_float":
+	json+="\"swapBytes\": true,\n"
+
+  found=0;
+  i=9; 
+  while i>0:
+    n,o,d,label=getAxis(sep,i)
+    if found==1 or n>1:
+      json=AxisToJSON(json,i,n,o,d,label)
+      if i!=1:
+        json+=",\n";
+      else:
+        json+="\n";
+      found=1; 
+    i=i-1
+  json+="}\n";
+  return json
+
+
+
+
+
+
+if len(sys.argv)!=2:
+   doc()
+
+print createJSON(sys.argv[1]);
+
+
+
+
+
+

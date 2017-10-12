@@ -1,0 +1,153 @@
+#!/usr/bin/env python
+import re
+import os
+import subprocess
+import sys
+import tempfile
+#ASSUMES SEP IN PATH
+
+def doc():
+   print  'JSONIZE "prog < in >out  args"\n' 
+   sys.exit(-1);
+
+
+def parseArgs():
+  if len(sys.argv) !=2: doc()
+  args,prog=findProgram(sys.argv[1]);
+  args,stdin=findStdin(args.strip())
+  args,stdout=findStdout(args.strip());
+  args=findArgs(args.strip()); 
+  args["in"]=stdin;
+  args["out"]=stdout;
+  return prog, args
+
+def findArgs(com):
+  coms=splitList(com);
+  args={}
+  files={}
+  for com in coms:
+    k,v=splitItem(com)
+    if k:
+      args[k]=v;
+  return args
+
+def splitList(com):
+  list=[]
+  while len(com)>0:
+    quote=getIndex(com,"'",0)
+    quote2=getIndex(com,'"',0)
+    space=getIndex(com," ",0)
+    while quote2 < space or quote < space:
+      if quote < quote2:
+        x=getIndex(com,"'",quote+1)
+        if x>900: print "Quote problem",com; doc()
+        beg=x+1;
+      else:
+        x=getIndex(com,'"',quote2+1)
+        if x>900: print "Quote problem",com; doc();
+        beg=x+1
+      quote1=getIndex(com,"'",beg)
+      quote2=getIndex(com,'"',beg)
+    list.append(com[0:space])
+    if space>999: 
+      com=""
+    else:
+      com=com[space+1:].strip();
+  return list      
+
+def getIndex(com,char,beg):
+    equal=com.find(char,beg); 
+    if equal==-1: 
+      equal=9999
+    return equal;
+    
+def splitItem(com):
+  equal=getIndex(com,"=",0)
+  quote1=getIndex(com,"'",0)
+  quote2=getIndex(com,'"',0)
+  if equal < quote1 and equal < quote2 and equal >0:
+    return com[0:equal],com[equal+1:]
+  
+
+
+
+def findProgram(com):
+#  a=re.compile("\s*(\S+)([\s|\>|\<].+)");
+  a=re.compile("\s*(\S+)([\s|>|<].+)")
+  b=a.search(com);
+  if not b:
+     print "can not find program name"
+     doc()
+  return b.group(2),b.group(1)
+
+def findStdin(com):
+  a=re.compile("^(.*)<\s*(\S+)\s+(.*)$")
+  b=a.search(com)
+  if not b:
+    a=re.compile("^(.*)<\s*(\S+)\s*$")
+    b=a.search(com)
+    if not b:
+      return com,None
+    return b.group(1),b.group(2)
+  return b.group(1)+" "+b.group(3),b.group(2)
+
+
+def findStdout(com):
+  a=re.compile("^(.*)>\s*(\S+)\s+(.*)$")
+  b=a.search(com)
+  if not b:
+    a=re.compile("^(.*)>\s*(\S+)\s*$")
+    b=a.search(com)
+    if not b:
+      return com,None
+    return b.group(1),b.group(2)
+  return b.group(1)+" "+b.group(3),b.group(2)
+
+
+def runCommand(com):
+  p=subprocess.Popen(com,stderr=subprocess.PIPE)
+  for line in iter(p.stderr.readline, b''):
+    print(">>> " + line.rstrip())
+
+  
+
+
+
+def buildJSON(prog,args):
+  lines=[]
+  for k,v in args.items():
+    if v:
+      num=0
+      try:
+        v=float(v)
+        num=1
+      except ValueError:
+        num=0
+      try:
+        v=int(v)
+      except ValueError:
+        num=0
+      if isinstance(v, basestring):
+        lines.append("\"%s\":\"%s\""%(k,v))
+      else:
+         lines.append("\"%s\":%s"%(k,v))
+
+  (fd, filename) = tempfile.mkstemp()
+  tfile = os.fdopen(fd, "w")
+  tfile.write("{\n")
+  last=lines.pop()
+  for line in lines:
+    tfile.write("%s,\n"%line)
+  tfile.write("%s\n}\n"%last)
+  tfile.close()
+  com=[prog, "json=%s"%filename]
+  return com,filename
+    
+  
+
+
+prog,args = parseArgs();
+com,filename=buildJSON(prog,args)
+runCommand(com)
+
+

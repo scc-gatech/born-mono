@@ -1,0 +1,24 @@
+From centos:7
+MAINTAINER Bob Clapp <bob@sep.stanford.edu>
+RUN yum -y  install  cmake tbb-devel qt-devel gcc-c++ git install make libX11-devel libXt-devel gcc wget; yum -y clean all
+#GENERIC IO
+RUN git clone http://zapad.Stanford.EDU/bob/hypercube.git   /opt/hypercube/src && \
+    mkdir /opt/hypercube/build && \
+    cd /opt/hypercube/build &&\
+    cmake -DCMAKE_INSTALL_PREFIX=/opt/hypercube ../src &&\
+    make install &&\
+    rm -rf /opt/hypercube/build
+RUN git clone http://zapad.Stanford.EDU/bob/genericIO.git  /opt/genericIO/src && \
+    mkdir /opt/genericIO/build &&\
+    cd /opt/genericIO/build &&\
+    cmake  -Dhypercube_DIR=/opt/hypercube/lib  -DCMAKE_INSTALL_PREFIX=/opt/genericIO ../src &&\
+    make install && \
+    rm -rf /opt/genericIO/build
+RUN yum -y install tbb-devel qt-devel &&yum -y clean all
+RUN mkdir -p /opt/qtcube/build
+RUN git clone http://bob@zapad.Stanford.EDU/bob/QTCube.git /opt/qtcube/src &&\
+   cd /opt/qtcube/build &&\
+   cmake  -Dhypercube_DIR=/opt/hypercube/lib  -DgenericIO_DIR=/opt/genericIO/lib -DCMAKE_INSTALL_PREFIX=/opt/qtcube    ../src  && \
+   make install &&\
+   rm -rf /opt/qtcube/build
+    

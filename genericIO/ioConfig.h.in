@@ -1,0 +1,3 @@
+#cmakedefine USE_SEP
+#cmakedefine USE_RSF
+#define DEFAULTIO "@DEFAULTIO@"

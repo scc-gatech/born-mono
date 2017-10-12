@@ -1,0 +1,45 @@
+\hypertarget{class_json_1_1_our_reader}{}\section{Json\+:\+:Our\+Reader Class Reference}
+\label{class_json_1_1_our_reader}\index{Json\+::\+Our\+Reader@{Json\+::\+Our\+Reader}}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{struct_json_1_1_our_reader_1_1_structured_error}{Structured\+Error}
+\end{DoxyCompactItemize}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_json_1_1_our_reader_a0cd0bab4caa66594ab843ccd5f9dc239}\label{class_json_1_1_our_reader_a0cd0bab4caa66594ab843ccd5f9dc239}} 
+typedef char {\bfseries Char}
+\item 
+\mbox{\Hypertarget{class_json_1_1_our_reader_a1bdc7bbc52ba87cae6b19746f2ee0189}\label{class_json_1_1_our_reader_a1bdc7bbc52ba87cae6b19746f2ee0189}} 
+typedef const Char $\ast$ {\bfseries Location}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_json_1_1_our_reader_a48a850914b9c8d7781be172930c478e5}\label{class_json_1_1_our_reader_a48a850914b9c8d7781be172930c478e5}} 
+{\bfseries Our\+Reader} (\hyperlink{class_json_1_1_our_features}{Our\+Features} const \&features)
+\item 
+\mbox{\Hypertarget{class_json_1_1_our_reader_aba4f8749aab7f02ec17f107e392caf80}\label{class_json_1_1_our_reader_aba4f8749aab7f02ec17f107e392caf80}} 
+bool {\bfseries parse} (const char $\ast$begin\+Doc, const char $\ast$end\+Doc, \hyperlink{class_json_1_1_value}{Value} \&root, bool collect\+Comments=true)
+\item 
+\mbox{\Hypertarget{class_json_1_1_our_reader_a00407481fa5910e46ea157bc6b7dc95f}\label{class_json_1_1_our_reader_a00407481fa5910e46ea157bc6b7dc95f}} 
+std\+::string {\bfseries get\+Formatted\+Error\+Messages} () const
+\item 
+\mbox{\Hypertarget{class_json_1_1_our_reader_a0eb2420a6bef89a3f3256191e6e3de6d}\label{class_json_1_1_our_reader_a0eb2420a6bef89a3f3256191e6e3de6d}} 
+std\+::vector$<$ \hyperlink{struct_json_1_1_our_reader_1_1_structured_error}{Structured\+Error} $>$ {\bfseries get\+Structured\+Errors} () const
+\item 
+\mbox{\Hypertarget{class_json_1_1_our_reader_aef7aa4ca22ffaa38c401b16951d20e1e}\label{class_json_1_1_our_reader_aef7aa4ca22ffaa38c401b16951d20e1e}} 
+bool {\bfseries push\+Error} (const \hyperlink{class_json_1_1_value}{Value} \&value, const std\+::string \&message)
+\item 
+\mbox{\Hypertarget{class_json_1_1_our_reader_ad43315cbb0d6804e3b7177e84a1ec53d}\label{class_json_1_1_our_reader_ad43315cbb0d6804e3b7177e84a1ec53d}} 
+bool {\bfseries push\+Error} (const \hyperlink{class_json_1_1_value}{Value} \&value, const std\+::string \&message, const \hyperlink{class_json_1_1_value}{Value} \&extra)
+\item 
+\mbox{\Hypertarget{class_json_1_1_our_reader_a63c7d874fa379397e0a5fa65f0843845}\label{class_json_1_1_our_reader_a63c7d874fa379397e0a5fa65f0843845}} 
+bool {\bfseries good} () const
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+cpp/jsoncpp.\+cpp\end{DoxyCompactItemize}

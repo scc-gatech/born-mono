@@ -1,0 +1,6 @@
+export CMAKE_FORTRAN_COMPILER=ifort
+export CWP_ROOT=/opt/SU
+export FC=ifort
+export CC=gcc
+export SEPlib_DIR=/usr/local/SEP/8.0_gc5_i/lib
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local/SEP/8.0_gc5_i  ../genericIO_src

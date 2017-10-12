@@ -1,0 +1,6 @@
+#define IOTYPE @IOTYPE@
+
+#if IOTYPE==SEP
+#include <sep_params.h>
+#include <sep_reg_file.h>
+#endif

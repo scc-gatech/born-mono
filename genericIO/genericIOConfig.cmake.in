@@ -1,0 +1,30 @@
+# - Config file for the FooBar package
+# It defines the following variables
+
+@PACKAGE_INIT@
+
+  INCLUDE(${CMAKE_CURRENT_LIST_DIR}/genericIOExports.cmake)
+
+
+
+set_and_check(genericIO_DIRNAME_include "@PACKAGE_genericIO_DIRNAME_include@")
+set(GENERIC_EXPORT_INC_DIRS @GENERIC_EXPORT_INC_DIRS@)
+set(GENERIC_EXPORT_LIB_DIRS @GENERIC_EXPORT_LIB_DIRS@)
+set(GENERIC_EXPORT_LIBS @GENERIC_EXPORT_LIBS@)
+FOREACH(inc ${GENERIC_EXPORT_INC_DIRS})
+  INCLUDE_DIRECTORIES(${inc})
+ENDFOREACH(inc)
+
+set_target_properties(genericCpp PROPERTIES
+IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
+)
+FOREACH(libd ${GENERIC_EXPORT_LIB_DIRS})
+  link_directories(${libd})
+ENDFOREACH(libd)
+
+
+
+
+
+
+

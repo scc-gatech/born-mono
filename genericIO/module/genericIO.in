@@ -1,0 +1,24 @@
+#%Module1.0#####################################################################
+##
+## SEPlib
+##
+##  V7
+##
+proc ModulesHelp { } {
+        global version
+
+        puts stderr "\tThis module add SEPlib to your environment"
+}
+
+module-whatis "(Category_______) Seismic software"
+module-whatis "(Name___________) genericIO"
+module-whatis "(Version________) 0.8"
+module-whatis "(Authorship_____) Bob Clapp"
+
+
+# for Tcl script use only
+set     version      "3.2.10"
+
+set genericIO @CMAKE_INSTALL_PREFIX@
+append-path PATH $sep/bin
+prepend-path LD_LIBRARY_PATH $sep/lib
