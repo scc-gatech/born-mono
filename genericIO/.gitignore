@@ -1,5 +1,0 @@
-build/
-*.sw*
-lib
-include
-RUN_THIS
