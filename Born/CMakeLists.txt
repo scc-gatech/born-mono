@@ -22,6 +22,8 @@ FIND_PACKAGE(hypercube NO_MODULE REQUIRED)
 INCLUDE_DIRECTORIES(${hypercube_DIRNAME_include})
 message("The hypercube package is ${hypercube_DIRNAME_include}")
 
+FIND_PACKAGE(SEPlib NO_MODULE REQUIRED)
+INCLUDE_DIRECTORIES(${SEPlib_DIRNAME_include})
 
 FIND_PACKAGE(genericIO NO_MODULE REQUIRED)
 INCLUDE_DIRECTORIES(${genericIO_DIRNAME_include})
