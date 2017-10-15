@@ -1,0 +1,58 @@
+=head1 NAME
+
+
+sep_copy_header_keys - copy keys from one SEP3d file to another
+
+=head1 SYNOPSIS
+
+
+#include <sep3d.h>
+
+C<int sep_copy_header_keys(char *tag_in, char *tag_out)>
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item    char* - tag_in  
+
+         tag of input History File
+
+=item    char* - tag_out 
+
+         tag of output History File
+
+=back
+
+=head1 RETURN VALUE
+
+
+ 0 if successful
+
+ +1 if tag_history is an Sep77 History File
+
+ -1 if fails for other reasons
+
+=head1 DESCRIPTION
+
+
+    copy keys from one SEP3d file to another  
+
+=head1 KEYWORDS
+
+
+   header keys
+
+=head1 SEE ALSO
+
+
+   sep3d
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

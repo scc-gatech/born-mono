@@ -1,0 +1,125 @@
+=head1 NAME
+
+
+Tpow - scales on the time axis
+
+=head1 SYNOPSIS
+
+
+Tpow par= < in.H > out.H
+
+=head1 DESCRIPTION
+
+
+   Select a power of t for seismogram scaling
+   out(t)  =  data(t)* t**tpow
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  n1,n2,n3 - int 
+
+       [nt],[nx],[11] usual seismic data t inner
+
+=item  d1,d2     -float 
+
+       [dt],[dx] samplinginterval
+
+=item  o1,o2     -float 
+
+       [ot],[ox] [first sample time]
+
+=item  tpow      -float  
+
+       power of time
+
+=item  panel     -char* 
+
+       [1]: (default) 1st panel is used for estimating tpow.
+       When panel=all, all panels are used.
+
+=item  tmin      -float 
+
+			[o1]:   time of the first sample to be used in estimating tpow. 
+
+=item  tmax      -float 
+
+       [4.]: end of region used on time axis
+
+=item  ofdep     -char* 
+
+       [unknown]      unknown: automatic picking of first
+         arrivals will be applied to compute the muting parameters
+       no:  data are offset-independent 
+       yes: data are offset-dependent 
+
+=item  v0-  float      
+
+       (km/s) apparent |dx/dt|. muting 
+        before first arrival time will 
+        be applied in estimating the 
+        medians. when no v0 is given
+        and ofdep is not 'no', automatic
+        picking will be applied 
+
+=item  nxmin - int    
+
+       [1]: the first trace used for Tpow 
+
+=item  nxmax=nx       
+
+       the last trace used. For 3-d data,
+       trace nxmin to trace nxmax are 
+       used on each plane if panel=all.
+
+=item  eps  - float   
+
+       [0.05]: (default) iteration of estimating dtpow stops
+       when abs(dtpow) < eps.
+
+=item  idt  - integer 
+
+       [2]: subsample rate (integer) of time for tpow
+       estimating
+
+=item  idx  - integer 
+
+       [1]: subsample rate (integer) of trace for tpow estimating
+
+=item  iwind - integer 
+
+       [9]: window length used for calculating L-1 energy in autopicking
+
+=item  perc  - float   
+
+       [10.]: when L-1 norm of present window exceeds
+       that of the previous one by 
+       'perc', first arrival is picked 
+
+=back
+
+=head1 COMMENTS
+
+
+=head2 METHOD
+
+  m02 * (.25*tmax)**(dtpow) = m24 * (.75*tmax)**(dtpow)
+  tpow = tpow + dtpow
+  where 
+    m02 --- median over (0, tmax/2)    of | data(t) | * t**tpow
+    m24 --- median over (tmax/2, tmax) of | data(t) | * t**tpow
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=head1 COMPILE LEVEL
+
+
+DISTR
+
+=cut
+

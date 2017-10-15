@@ -1,0 +1,888 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$Nmo3d - NMO in sep3d datasets
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Nmo3d  <in.H >out.H pars
+!!$Nmo3dM  intag=in.H outtag=out.H pars
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item  verb   -  integer
+!!$
+!!$       [0] Whether (1) or not(0) to be verbose
+!!$
+!!$=item  linear -  integer
+!!$
+!!$       [1] Do linear interpolation NMO, [0] Nearest neighbor
+!!$
+!!$=item  adj    -  integer
+!!$
+!!$       [0] Perform adjoint opperation(1), forward(0)
+!!$
+!!$=item  inv    -  integer
+!!$
+!!$       [0] Perform inverse(1), else forward(0)
+!!$
+!!$=item  pct_master-  real
+!!$
+!!$       [2] Pct to print progress on master thread
+!!$
+!!$=item  pct_slave-  real
+!!$
+!!$       [10] Pct to print progress on slave thread
+!!$
+!!$=item  maxsize-  integer
+!!$
+!!$       [10]Number of megabytes of traces to hold
+!!$
+!!$=item  slowfile- sepfile
+!!$
+!!$       Slowness file (regular cube or sep3d with headers)
+!!$
+!!$=item  velfile-  sepfile
+!!$
+!!$       Velocity file (regular cube or sep3d with headers)
+!!$
+!!$=item  slow   -  float
+!!$
+!!$       Slowness to do NMO on
+!!$
+!!$=item  vel    -  float
+!!$
+!!$       [1.5] Velocity to do constant velocity NMO
+!!$
+!!$=item  off_keys- integer(:)
+!!$
+!!$       Offset float key(s) describing
+!!$
+!!$=item  off_axes- integer(:)
+!!$
+!!$       Offset axes
+!!$
+!!$=item  vel_key-  integer
+!!$
+!!$       Key that relates SEP3d velocity file to SEP3d data
+!!$
+!!$=item  data_keys- integer
+!!$
+!!$       Key that relate SEP3d data file file velocity file
+!!$
+!!$=item  data_axes int*
+!!$
+!!$       Axes that relate SEP3d data file file velocity file
+!!$
+!!$=item  vel_axes- int*
+!!$
+!!$       Offset axis/axes that relate to the off_axes or
+!!$       offkeys of the dataset.
+!!$
+!!$=item  master_data- int
+!!$
+!!$       Whether or not the master trace has any of the data sections (only
+!!$       valid for Nmo3dM)
+!!$
+!!$=back
+!!$
+!!$
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$  Performs NMO, adjoint NMO, pseudoinverse NMO
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<NMO>, L<Velan3d>
+!!$
+!!$=head1 COMMENTS
+!!$
+!!$ off_keys and off_axes, are somewhat optional
+!!$ If none of these are suplied checks keys and then axes for
+!!$ aoffset, offset_x, and offset_y.
+!!$
+!!$ If you supply a key number > key number of data_record_number subtract 1
+!!$ to the parameter (data_record_number is not stored with the headers)
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/velan>
+!!$
+!!$=cut
+!Author: Robert Clapp, ESMB 463, 7230253
+!
+!Date Created:Mon Jul 4 16:41:21 1998
+!Purpose:
+!
+!
+program NMO3d 
+  use nmo_mod
+  use sep
+  use sep_aux_mod
+  use sep3d_struct_mod
+  use helixcartmod
+!DATA VARIABLES
+  implicit none
+  type(sep3d)         ::  in,out
+  real,allocatable    ::  input(:,:),output(:,:)
+  integer,allocatable ::  n_data(:)
+  real,allocatable    ::  o_data(:),d_data(:)
+  real,allocatable    ::  offset(:)
+  real,allocatable    ::  data_keyvals(:,:)
+!VELOCITY
+  type(sep3d)         ::  slow
+  real,allocatable    ::  slowness(:,:,:)
+  logical             ::  slowfile,havefile,first,first_nmo
+  integer             ::  ns(3)
+  real                ::  os(3),ds(3),maxi,pct,ipct
+  real,allocatable    ::  vel_keyvals(:,:),slowtemp(:,:)
+  integer             ::  nvel_tr
+  real,allocatable    ::  slow_tr(:)
+!PARAMETERS
+  logical             ::  verbose,inverse,adjoint,linear,debug
+  integer             ::  maxsize
+  integer             ::  n_off_keys,off_keys(9)
+  integer             ::  n_off_axes,off_axes(9)
+  integer             ::  n_vel_axes,vel_axes(9)
+  integer             ::  n_vel_key,vel_key(9)
+  integer             ::  n_data_axes,data_axes(9)
+  integer             ::  n_data_keys,data_keys(9)
+  integer             ::  ncompare,i3
+  real                :: pct_print,ipct_print
+!EXTERNALS
+!COUNTING,TEMPS
+  integer             ::  tempi,temp2i
+  integer             ::  i1,i2,b2,e2                   
+  !counting variable
+  integer             ::  ierr                          
+  !error checking
+  integer             ::  nh,nhelix(2),read,ntr,block,tot  
+  !size references
+  integer             :: nread(2) ,i,stat,iverb,n,master_data
+  integer, parameter  :: dp=selected_int_kind(16)
+  integer(kind=dp)             :: mybig,ndobig
+  integer,allocatable ::  ipos(:)
+  real                ::  tempr,current(2)
+  real,allocatable    ::  tempra(:)
+  logical             ::  run_it,vel1d
+  character(len=128) :: intag,outtag
+  integer, pointer    :: nwind(:),fwind(:),coords(:,:)
+!INITIALIZE
+
+
+  vel1d=.true.
+  intag="in"
+  outtag="out"
+  call SEP_ADD_DOC()
+  call sep_init('')
+  call sep_begin_prog()
+  call init_3d()
+!###################
+!generic parameters#
+!###################
+  call from_param("verb",verbose,.false.)
+  call from_param("inv",inverse,.false.)
+  call from_param("debug",debug,.false.)
+  call from_param("adj",adjoint,.false.)
+  call from_param("linear",linear,.true.)
+  call from_param("maxsize",maxsize,10)
+  if(sep_thread_num()==0) then
+    call from_param("pct_master",pct_print,2.)
+  else 
+    call from_param("pct_slave",pct_print,10.)
+  end if
+
+  if (verbose) then
+    if (linear) then
+      write(0,*) "Performing linear interpolation"
+    else
+      write(0,*) "Performing nearest neighnbor"
+    end if 
+    if (adjoint) then
+      write(0,*) "Using adjoint calculation"
+    else
+      write(0,*) "Using forward calculation"
+    end if 
+    if (inverse) then
+      write(0,*) "Perform inverse operation"
+    else
+      write(0,*) "Not inverse operation"
+    end if
+  end if
+!##########################
+!LETS FIGURE OUT THE INPUT#
+!##########################
+  call init_sep3d(intag,in,"INPUT")  !Initialize structure
+  if (in%data_format(1:5).ne."FLOAT") then
+    call erexit("only know how to handle float data")
+  end if
+!FIGURE OUT HOW OFFSET IS DESCRIBED
+!If it isn't a ragular dataset check for user specified offset keys
+  if (in%file_format(1:7).ne."REGULAR") then
+    n_off_keys=getch("off_keys","d",off_keys)
+  else
+    n_off_keys=0
+  end if
+  !If the user didn't specify offset keys see if they specified offset axes
+  if (n_off_keys.eq.0) then
+    !try to get the offset from the axes
+    n_off_axes=getch("off_axes","d",off_axes)
+    if (n_off_axes.eq.0) then
+      !still haven't got the axes information, check for
+      !offset_x, offset_y, and aoffset in the headers
+      if (in%file_format(1:7).ne."REGULAR") then
+        !see if we can find offset_x
+        if (sep3d_key_index(in,"offset_x",off_keys(1))) then
+          if (sep3d_key_index(in,"offset_y",off_keys(2))) then
+            n_off_keys=2
+          else
+            n_off_keys=1
+          end if
+        else if (sep3d_key_index(in,"offset_y",off_keys(1))) then
+          n_off_keys=1
+        else if (sep3d_key_index(in,"aoffset",off_keys(1))) then
+          n_off_keys=1
+        end if
+        if (n_off_keys>0 .and. verbose) then
+          write(0,*) "Guessing offset keys as ",off_keys(1:n_off_keys)
+        end if
+      end if
+      if (n_off_keys.eq.0) then
+        !check for offset_x, offset_y, and aoffset in the axes label
+        if (sep3d_axis_index(in,"offset_x",off_axes(1))) then
+          if (sep3d_axis_index(in,"offset_y",off_axes(2))) then
+            n_off_axes=2
+          else
+            n_off_axes=1
+          end if
+        else if (sep3d_axis_index(in,"offset_y",off_axes(1))) then
+          n_off_axes=1
+        else if (sep3d_axis_index(in,"aoffset",off_axes(1))) then
+          n_off_axes=1
+        end if
+        if (n_off_axes>0 .and. verbose) then
+          write(0,*) "Guessing offset axes as ",off_axes(1:n_off_axes)
+        end if
+      end if
+      if (in%file_format.eq."REGULAR") then
+        !Default to Stretch behavior
+        off_axes(1)=2
+        n_off_axes=1
+        if (verbose) then
+          write(0,*) "Regular dataset using offset axes 2"
+        end if
+      ! Give up, can't figure out how offset is described
+      else if (n_off_axes.eq.0 .and. n_off_keys.eq.0) then
+        call seperr("I can not figure out offset use off_keys or off_axes"&
+          &)
+      end if
+    else
+      !we were supplied offset axes
+      if (any(off_axes(1:n_off_axes) <1) .or.   any(off_axes(1:n_off_axes&
+        &) >in%ndims)) then
+        write(0,*) "ndims=",in%ndims," off_axes=",off_axes(1:n_off_axes&
+          &)
+        call seperr("Invalid offset axes")
+      end if
+      if (verbose) then
+        write(0,*) "Using offset axes=",off_axes(1:n_off_axes)
+      end if
+    end if
+  else
+    !offset keys supplied
+    if (any(off_keys(1:n_off_keys) <1) .or.   any(off_keys(1:n_off_keys&
+      &) >in%nkeys)) then
+      write(0,*) "nkeys=",in%nkeys," off_keys=",off_keys(1:n_off_keys)
+      call seperr("Invalid offset keys")
+    end if
+    if (verbose) then
+      write(0,*) "Offset described by keys:",off_keys(1:n_off_keys)
+    end if
+  end if
+!OFFSET SHOULD BE SPECIFIED BY A KEY FOR A GRID FILE (irregular causes
+!problem for helix loop)
+  if (n_off_axes>0 .and. in%file_format.eq."GRID") then
+    call erexit("Must supply offset key if file format is grid")
+  end if
+!#####################################
+!FIGURE OUT HOW VELOCITY IS DESCRIBED#
+!#####################################
+  slowfile=.false.
+  havefile=.false.
+  if (-1.ne.auxin("slowfile")) then
+  !velocity is contained in a slowness file
+    slowfile=.true.
+    havefile=.true.
+    call init_sep3d("slowfile",slow,"INPUT")
+    if (verbose) then
+      write(0,*) "Found slowness file"
+    end if
+    if (slow%n(1).ne.in%n(1) .or. slow%d(1).ne.in%d(1) .or. slow%o(1&
+      &).ne.in%o(1)) then
+      call seperr("slowness and input must have same time sampling for&
+        & now")
+    end if
+  else if (-1.ne.auxin("velfile")) then
+    vel1d=.false. 
+    !velocity is contained in a velocity file
+    havefile=.true.
+    call init_sep3d("velfile",slow,"INPUT")
+    if (verbose) then
+      write(0,*) "Found velocity file"
+    end if
+    if (slow%n(1).ne.in%n(1) .and. slow%d(1).ne.in%d(1) .and. slow%o(1&
+      &).ne.in%o(1)) then
+      call seperr("velocity and input must have same time sampling for&
+        & now")
+    end if
+  end if
+  if (havefile) then
+    !VELOCIY IS PROVIDED BY A SEPFILE
+    n_vel_axes=0
+    n_vel_key=0
+    n_data_keys=0
+    n_data_axes=0
+    if (sep3d_ndims(slow)>1) then
+      !THE VELOCITY IS MORE THAN SIMPLE V(Z)
+      !We need to figure out how to realte the velocity to the data
+      !First check to see if there is key (such as cdp)
+      !that relates the velocity and data files
+      if (slow%file_format(1:7).ne."REGULAR") then
+        n_vel_key=getch("vel_key","d",vel_key)
+      else
+        n_vel_key=0
+      end if 
+      if (in%file_format(1:7).ne."REGULAR") then
+        n_data_keys=getch("data_keys","d",data_keys)
+      else
+        n_vel_key=0
+      end if 
+			!Next check to see if there is/are axis/axes relating the velocity
+			!First check the velocity file (eg cmp)
+      if (n_vel_key.eq.0) then
+        n_vel_axes=getch("vel_axes","d",vel_axes)
+      else if (any(vel_key(1:n_vel_key)<1) .or.  any(vel_key(1:n_vel_key&
+        &)>slow%nkeys)) then
+        call erexit("invalid vel_key (out of range")
+      else if (verbose) then
+        write(0,*) "Using vel_key:",vel_key(1)
+      end if
+      if (n_vel_axes.eq.0 .and. n_vel_key.eq.0) then
+        call erexit("Must supply vel_key or vel_axes")
+      else if (any(vel_axes(1:n_vel_axes)<1) .or.  any(vel_axes(1:n_vel_axes&
+        &)>slow%ndims)) then
+        call erexit("invalid vel_axes ")
+      else if (n_vel_axes>1 .and. verbose) then
+        write(0,*) "Using vel axis/axes:",vel_axes(1:n_vel_axes)
+      end if
+			!Next check for data axes relating to the velocity field (eg cmp)
+      if (n_data_keys.eq.0) then
+        n_data_axes=getch("data_axes","d",data_axes)
+      else if (any(data_keys(1:n_data_keys)<1) .or.  any(data_keys&
+        &(1:n_data_keys)>in%nkeys)) then
+        call erexit("invalid data_keys ")
+      else if (verbose) then
+        write(0,*) "Using data_keys",data_keys(1:n_data_keys)
+      end if
+      if (n_data_axes.eq.0 .and. n_data_keys.eq.0) then
+        call erexit("Must supply data_keys or data_axes")
+      else if (any(data_axes(1:n_data_axes)<1) .or.  any(data_axes&
+        &(1:n_data_axes)>in%ndims)) then
+        call erexit("invalid data_axes ")
+      else if (verbose.and.n_data_axes>0) then
+        write(0,*) "Using data_axes",data_axes(1:n_data_axes)
+      end if
+			!It doesn't make sense to use vel_axes if n_vel_axes != slow%ndims-1
+      if (n_vel_axes>0 .and. n_vel_axes .ne. sep3d_ndims(slow)-1) then
+        write(0,*) "vel axes asize", sep3d_ndims(slow),"n_vel_axes"&
+          &,n_vel_axes
+        call erexit("the n_vel_axes must equal ndims-1 of slowness file"&
+          &)
+      end if
+			!Now it is time to construct a relationship matrix that
+			!will be used to grab the appropriate slowness trace for the
+			!appropriate cmp location
+      if (n_vel_axes>0) then
+        if (sep3d_ndims(slow) >3) then
+          write(0,*) "NUMBER OF SLOWNESS DIMENSIONS",sep3d_ndims(slow)
+          call erexit("don't understand velocity ndims >3")
+        else if (sep3d_ndims(slow).eq.3) then
+          ns=slow%n
+          os=slow%o
+          ds=slow%d
+        else
+          ns=(/slow%n(1),slow%n(2),1/)
+          os=(/slow%o(1),slow%o(2),1./)
+          ds=(/slow%d(1),slow%d(2),1./)
+        end if 
+        if (slow%file_format(1:4).eq."GRID") then
+          call erexit("file format can not be grid when using vel_axes"&
+            &)
+        else if (slow%file_format(1:7).eq."HEADERS") then
+          call sep3d_grab_headers(slow%tag,slow,nh)
+        end if
+        nhelix(1)=product(slow%n(2:))
+			!HANDLE BIGGER THEN 2GB GRIDS
+        allocate(vel_keyvals(nhelix(1),n_vel_axes),ipos(slow%ndims)&
+          &,stat=ierr)
+        do i2=1,nhelix(1)
+          call helix2cart(slow%n(2:),i2,ipos(2:))
+          do i1=1,n_vel_axes 
+            vel_keyvals(i2,i1)=slow%o(vel_axes(i1))+(ipos(vel_axes(i1)&
+              &)-1)*slow%d(vel_axes(i1))
+          end do
+        end do 
+        ncompare=n_vel_axes
+        nvel_tr=nhelix(1)
+        deallocate(ipos)
+      else
+			!relationship described by keys. Grab the given key, right
+			!now we can only handle one, and store it
+        os=slow%o(1)
+        ds=slow%d(1)
+        if (ierr.ne.0) then
+          call erexit("trouble allocating slowness keyvals")
+        end if
+        call sep3d_grab_headers(slow%tag,slow,nh)
+        allocate(vel_keyvals(nh,n_vel_key),stat=ierr)
+        ns=(/slow%n(1),nh,1/)
+        do i1=1,n_vel_key
+          call sep3d_grab_key_vals(slow,vel_key(i1),vel_keyvals(:,i1))
+        end do 
+			!Store the number of things we are comparing and the total
+			!number of velocity headers, more superfulous stuff
+        ncompare=n_vel_key
+        nvel_tr=nh
+      end if
+    else
+			!We have a single slowness or velocity trace [v(z)]
+      if (verbose) then
+        write(0,*) "Doing v(z) NMO"
+      end if
+      os=(/slow%o(1),0.,0./)
+      ds=(/slow%d(1),1.,1./)
+      ns=(/slow%n(1),1,1/)
+      ncompare=0
+      allocate(vel_keyvals(1,1))
+      nvel_tr=1
+    end if 
+		!READ IN THE SLOWNESS FIELD
+    allocate(slowtemp(ns(1),ns(2)*ns(3)),stat=ierr)
+    allocate(slowness(ns(1),ns(2),ns(3)),stat=ierr)
+    if (ierr.ne.0) then
+      call erexit("trouble allocating slowness model")
+    end if
+    if (slowfile) then
+      call sep3d_grab_headers("slowfile",slow,nh)
+      if(.not. sep3d_read_data("slowfile",slow,slowtemp)) &
+        call seperr("trouble reading slowness")
+    else
+      if(.not. sep3d_read_data("velfile",slow,slowtemp)) &
+        call seperr("trouble reading slowness")
+      slowtemp=1./slowtemp
+    end if 
+    i=0
+    do i3=1,ns(3)
+      do i2=1,ns(2)
+        i=i+1
+        do i1=1,ns(1)
+          slowness(i1,i2,i3)=slowtemp(i1,i)
+        end do
+      end do
+    end do
+    deallocate(slowtemp)
+    if (verbose) then
+      write(0,*) "Min:Max of slowness field",minval(slowness),maxval&
+        &(slowness)
+    end if
+  else
+		!we are doing a constant velocity op
+    if (0.eq.getch("slow","f",tempr)) then
+      if (0.eq.getch("vel","f",tempr)) then
+        tempr=1./1.5
+      else
+        tempr=1./tempr
+      end if
+    end if
+    os=-1
+    ds=-1
+    ns=(/in%n(1),1,1/)
+    allocate(slowness(ns(1),ns(2),ns(3)),stat=ierr)
+    if (ierr.ne.0) then
+      call erexit("trouble allocating slowness array")
+    end if
+    slowness=tempr
+    ncompare=-1
+    nvel_tr=1
+    allocate(vel_keyvals(1,1))
+    if (verbose) then
+      write(0,*) "Doing constant slowness NMO:",tempr
+    end if
+  end if 
+  if (in%file_format.ne."REGULAR" .and.  n_data_axes.ne.0 .and. .not. vel1d) then
+    call erexit("must supply key based correlation when running on&
+      & irregular dataset")
+  end if
+!To handle arbirtrary size we are going to treat the dataset as
+!a series of traces, or helixize axes 2 or greater (depending 2GB grid files) ...
+  mybig=1
+  do i=2,sep3d_ndims(in)
+    mybig=mybig*in%n(i)
+  end do 
+  nhelix(1)=1
+  i=2
+  do while (mybig > 1000000000)
+    nhelix(1)=in%n(i)*nhelix(1)
+    mybig=mybig/in%n(i)
+    i=i+1
+  end do 
+  nhelix(2)=mybig
+  allocate(n_data(in%ndims),o_data(in%ndims),d_data(in%ndims),ipos&
+    &(in%ndims))
+  n_data=in%n
+  d_data=in%d
+  o_data=in%o
+!Figure out the maximum block of traces we want to process at once
+!  maxi=maxsize/real(product(in%n(1:2)))/8.
+!  maxsize=maxi*1000000.
+!  ntr=min(maxsize,product(in%n(2:3)))
+
+   maxi=maxsize/in%n(1)/8.
+   maxsize=maxi*1000000.
+   ntr=min(maxsize,1000)
+
+  if (ntr .eq.0) then
+    write(0,*) "MINIMUM MAXSIZE",real(product(in%n(1:2)))*8./1000.&
+      &/1000.
+    call erexit("ntr=0 increase memory")
+  end if
+  if (verbose) then
+    write(0,*) "I SET MY  READ SIZE TO ",in%n," I CAN READ=",ntr
+  end if
+!Allocate the input, output, comparison array, and temporary storage
+  if (in%file_format.eq."REGULAR") then
+    allocate(input(in%n(1),ntr*in%n(2)),output(in%n(1),in%n(2)*ntr))
+  else
+    allocate(input(in%n(1),1),output(in%n(1),1))
+  end if 
+  allocate(slow_tr(in%n(1)))
+!  allocate(tempra(ntr*in%n(2)),offset(ntr*in%n(2)))
+  allocate(tempra(ntr),offset(ntr))
+!  allocate(data_keyvals(ntr*in%n(2),max(ncompare,1)))
+  allocate(data_keyvals(ntr,max(ncompare,1)))
+  data_keyvals=1
+  current=1
+  call init_sep3d(in,out,"OUTPUT",ctag="outtag")  !Initialize SEP
+  call sep3d_inorder(out)
+  call sep3d_write_description(outtag,out)
+  allocate(nwind(in%ndims),fwind(in%ndims))
+  if(0/=init_loop_calc(in%ndims,in%n,"MAIN",ntr*in%n(1))) &
+     call seperr("trouble initing loop")
+
+  allocate(coords(in%ndims-1,1))
+
+!###############################
+!##        THE LOOP         ####
+!###############################
+  read=0
+  first=.true.
+  tot=0
+  first_nmo=.true.
+  ipct_print=0.
+  do while(0==do_sep_loop("MAIN",nwind,fwind))
+!loop until we are done
+    call sep3d_grab_headers(intag,in,nh,fwind=fwind(2:),nwind=nwind(2:))
+    if (nh.ne.0) then
+        if (nh>size(input,2)) then
+          deallocate(input,output)
+          allocate(input(in%n(1),nh),output(in%n(1),nh))
+        end if
+        if (.not. sep3d_read_data(intag,in,input(:,:nh))) then
+          call erexit("trouble reading data")
+        end if
+      end if
+    tot=		tot+nh
+    if (debug) then
+      write(0,*) "working from ",read," tot traces ",block," tr=",nh,"&
+        & tot=",tot,"thread=",sep_thread_num()
+    end if
+    pct=100.*(1.*read)/(1.*in%ntraces)
+    ipct=nint(100.*pct)/100.
+    if (verbose .and.  ipct >= ipct_print ) then
+      ipct_print=ipct+pct_print
+      write(0,*) pct,"=pct finish traces processed=",tot," of "&
+        &,in%ntraces
+    end if
+    !now we need to read in our mapping for this block
+    if (nh.ne.0) then
+      if (ncompare>0) then
+        if (n_data_keys>0) then
+          do i1=1,n_data_keys
+            call sep3d_grab_key_vals(in,data_keys(i1),data_keyvals(:,i1&
+              &))
+          end do
+        else
+         !comparison described by axes
+         if(nh > size(coords,2)) then
+           deallocate(coords)
+           allocate(coords(in%ndims-1,nh))
+         end if
+         if(.not. sep3d_grab_coords(in,coords)) &
+           call seperr("trouble grabbing coords")
+          do i2=1,nh 
+            do i1=1,n_data_axes	 
+              data_keyvals(i2,i1)=o_data(data_axes(i1))+&
+               (coords(data_axes(i1)-1,i2)-1)*d_data(data_axes(i1))
+            end do
+          end do
+        end if
+      end if
+!now time to get the offset
+      offset=0.
+      if (n_off_keys>0) then
+!offset described by keys
+        do i1=1,n_off_keys 
+          call sep3d_grab_key_vals(in,off_keys(i1),tempra)
+          offset=offset+tempra**2
+        end do 
+        offset=sqrt(offset)
+      else
+!offset described by axes
+        do i2=1,nh 
+          call helix2cart(n_data(2:),i2+read,ipos(2:))
+          do i1=1,n_off_axes 
+            offset(i2)=						offset(i2)+(o_data(off_axes(i1))+(ipos&
+              &(off_axes(i1))-1)*d_data(off_axes(i1)))**2
+          end do
+        end do 
+        offset=sqrt(offset)
+      end if 
+      output=0.
+!NOW LOOP OVER TRACES
+      i2=1
+      b2=1
+      do while (i2<=nh)
+        if (first .or. any(current(1:ncompare) .ne. data_keyvals(i2&
+          &,1:ncompare))) then
+!we are at a different location, grab the appropriate slowness trace
+          call grab_slow_tr(n_vel_axes,vel_axes,n_vel_key,max(1,ncompare&
+            &),ns(1),ns(2),ns(3),ns,os,ds,slowness,nvel_tr, data_keyvals&
+            &(i2,:),o_data(1),d_data(1),vel_keyvals,in%n(1),slow_tr)
+          if (.not. first .and. i2.ne.1) then
+            run_it=.true.
+          else
+            run_it=.false.
+          end if 
+          first=.false.
+          current(1:ncompare)=data_keyvals(i2,1:ncompare)
+        else if (i2.eq.nh) then
+          run_it=.true.
+        else
+          run_it=.false.
+        end if 
+        if (run_it) then
+          if (i2.eq.nh) then
+            e2=nh
+          else
+            e2=i2-1
+          end if 
+          call nmo_init(slow_tr,offset(b2:e2),o_data(1),d_data(1),inverse&
+            &,first_nmo)			
+!					ierr= srite("check.H",slow_tr,size(slow_tr)*4)
+          if (linear) then
+            if ((adjoint .and. inverse) .or. (.not. adjoint .and. .not.&
+              & inverse)) then
+              call nmo_linear(adjoint,input(:,b2:e2),output(:,b2:e2))
+            else
+              call nmo_linear(adjoint,output(:,b2:e2),input(:,b2:e2))
+            end if
+          else
+            if ((adjoint .and. inverse) .or. (.not. adjoint .and. .not.&
+              & inverse)) then
+              call nmo_nearest(adjoint,input(:,b2:e2),output(:,b2:e2))
+            else
+              call nmo_nearest(adjoint,output(:,b2:e2),input(:,b2:e2))
+            end if
+          end if 
+          b2=e2+1
+        end if
+        i2=				i2+1
+      end do 
+      if(out%file_format(1:1).ne."R") call sep3d_header_copy(in,out)
+      call sep3d_coord_copy(in,out)
+      call sep3d_inorder(out)
+      if(.not. sep3d_write_data(outtag,out,output,nwind=nwind,fwind=fwind)) then
+        call seperr("trouble writing out ")
+      end if
+    else
+      if(.not. sep3d_write_data(outtag,in,nwind=nwind,fwind=fwind)) then
+        call seperr("trouble writing out ")
+      end if
+    end if
+    read=		read+nh
+  end do
+   if(.not. sep3d_update_ntraces(out)) call seperr("trouble updating ntraces")
+   call sep3d_rite_num_traces(outtag,out)
+
+
+
+call sep_end_prog()
+end program 
+subroutine grab_slow_tr(naxes,axis,nkeys,nelem,nz,nx,ny,ns,os,ds,slow&
+  &,nvel,find,o1,d1,keyvals,n1,slow_out)
+use sep_mod
+  implicit none
+  integer :: naxes,nkeys,nz,nx,ny,ns(3),nvel,n1,nelem,axis(nelem)
+  real :: os(3),ds(3),slow(nz,nx,ny),keyvals(nvel,nelem)
+  real :: slow_out(n1),o1,d1,maxim
+  real :: fract(nelem),tempr(nz),find(nelem),distance(4)
+  integer :: ipos(nelem),i1,iloc(4),i2
+  logical :: run_interp
+  run_interp=.true.
+  if (nkeys.eq.0.and. naxes.eq.0) then
+!we only have a single trce
+    if (n1.eq.ns(1)) then
+      slow_out=slow(:,1,1)
+      run_interp=.false.
+    else
+      tempr=slow(:,1,1)
+    end if
+  else if (naxes.ne.0) then
+!location described by axes
+    if (ns(3).eq.1) then
+      fract(1)=(find(1)-os(2))/ds(2)+1
+      ipos(1)=fract(1)
+      fract(1)= fract(1)-ipos(1)
+      if (ipos(1)<1) then
+        ipos(1)=1
+        fract=0.
+      else if (ipos(1)>=ns(2)) then
+        ipos(1)=ns(2)-1
+        fract=1.
+      end if
+      if (n1.eq.ns(1)) then
+        slow_out=slow(:,ipos(1),1)*(1.-fract(1))+slow(:,ipos(1)+1,1)&
+          &*fract(1)
+        run_interp=.false.
+      else
+        tempr=slow(:,ipos(1),1)*(1.-fract(1))+slow(:,ipos(1)+1,1)*fract&
+          &(1)
+      end if
+    else
+      fract(1)=(find(1)-os(axis(1)))/ds(axis(1))+1
+      ipos(1)=fract(1)
+      fract(1)= fract(1)-ipos(1)
+      fract(2)=(find(2)-os(axis(2)))/ds(axis(2))+1
+      ipos(2)=fract(2)
+      fract(2)= fract(2)-ipos(2)
+      if (ipos(1)<1) then
+        ipos(1)=1
+        fract(1)=0.
+      else if (ipos(1)>=ns(axis(1))) then
+        ipos(1)=ns(axis(1))-1
+        fract(1)=1.
+      end if
+      if (ipos(2)<1) then
+        ipos(2)=1
+        fract(2)=0.
+      else if (ipos(2)>=ns(axis(2))) then
+        ipos(2)=ns(axis(2))-1
+        fract(2)=1.
+      end if
+      if (axis(1).eq.2) then
+        tempr=slow(:,ipos(1),ipos(2))*(1.-fract(1))*(1.-fract(2))+slow&
+          &(:,ipos(1+1),ipos(2))*(fract(1))*(1.-fract(2))+slow(:,ipos&
+          &(1),ipos(2)+1)*(1.-fract(1))*(fract(2))+slow(:,ipos(1)+1&
+          &,ipos(2)+1)*(fract(1))*(fract(2))
+      else
+        tempr=slow(:,ipos(2),ipos(1))*(1.-fract(2))*(1.-fract(1))+slow&
+          &(:,ipos(2+1),ipos(1))*(fract(2))*(1.-fract(1))+slow(:,ipos&
+          &(2),ipos(1)+1)*(1.-fract(2))*(fract(1))+slow(:,ipos(2)+1&
+          &,ipos(1)+1)*(fract(2))*(fract(1))
+      end if 
+      if (n1.eq.ns(1)) then
+        slow_out=tempr
+        run_interp=.false.
+      end if
+    end if
+  else
+!we are doing it by keys
+!we are going to find the closest traces and do a 1/distance thing
+    maxim=maxval(keyvals)
+    distance=maxim
+    if (nelem.eq.1) then
+      do i2=1,nvel 
+        if (keyvals(i2,1) < find(1)) then
+          if (distance(1) > find(1)-keyvals(i2,1)) then
+            distance(1)=find(1)-keyvals(i2,1)
+            iloc(1)=i2
+          end if
+        else if (distance(2)>keyvals(i2,1)-find(2)) then
+          distance(2)=keyvals(i2,1)-find(2)
+          iloc(2)=i2
+        end if
+      end do 
+      if (distance(1) < maxim) then
+        if (distance(2)<maxim) then
+          tempr=(slow(:,iloc(1),1)*(1./(distance(1)+.00001))+slow(:,iloc&
+            &(2),1)*(1./distance(2)+.00001))/  (1/(distance(1)+.00001&
+            &)+(1./distance(2)+.00001))
+        else
+          tempr=slow(:,iloc(1),1) !edge condition 1
+        end if
+      else
+        tempr=slow(:,iloc(2),1) !edge condition 2
+      end if 
+      if (n1.eq.ns(1)) then
+        slow_out=tempr
+        run_interp=.false.
+      end if
+    else
+      call erexit("can only deal with one element for now")
+    end if
+  end if 
+  if (run_interp) then
+    call interp(ns(1),os(1),ds(1),n1,o1,d1,tempr,slow_out)
+  end if
+end subroutine 
+subroutine interp(nin,oin,din,nout,oout,dout,input,output)
+use sep_mod
+  implicit none
+  integer :: nin,nout
+  real    :: input(nin),output(nout)
+  real    :: oin,din,oout,dout
+  integer :: i1,bi_in,ia
+  real    :: fract,loc_out,loc_in
+  i1=1
+  if (oout<oin) then
+!extend the velocity up
+    loc_out=oout
+    i1=1
+    do while (loc_out < oin .and. i1 <= nout)
+      output(i1)=input(1)
+      i1=		i1+1
+      loc_out=		loc_out+dout
+    end do
+  else
+    loc_out=oout
+  end if 
+  bi_in=1
+  loc_in=oin
+  do while (bi_in<nin .and. i1<= nout)
+    if (loc_in<=loc_out .and. loc_in+din > loc_out) then
+      fract=(loc_out-loc_in)/din
+      output(i1)=input(bi_in)*(1.-fract)+ input(bi_in+1)*fract
+      i1=		i1+1
+      loc_out=		loc_out+dout
+    else
+      bi_in=		bi_in+1
+      loc_in=		loc_in+din
+    end if
+  end do 
+  if (i1 <= nout) then
+    output(i1:nout)=input(nin) !extend the velocity down
+  end if
+end subroutine  

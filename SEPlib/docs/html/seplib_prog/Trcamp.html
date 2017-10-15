@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Trcamp - Calculate total energy in a tapered time window</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Trcamp - Calculate total energy in a tapered time window</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Trcamp &lt; in.H  isum=1 itaper=0  &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_isum__2d_integer">isum - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [1]: type of sum in time gate
+          1: RMS sum
+          2: sum of squares
+          3:  LOG_{10} of sum of squares</pre>
+</dd>
+<dt><strong><a name="item_t1__2d_real">t1   -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [t0]: start of time gate</pre>
+</dd>
+<dt><strong><a name="item_t2__2d_real">t2   -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [tmax]: end of time gate</pre>
+</dd>
+<dt><strong><a name="item_itaper__2dinteger">itaper -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: symmetric triangle taper in window: (0-1-0).</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Calculate total amplitude/energy in a (tapered) time window</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+        Trcamp &lt; in.H  isum=2 itaper=0  &gt; out.H</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

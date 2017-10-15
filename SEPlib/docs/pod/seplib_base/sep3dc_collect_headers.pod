@@ -1,0 +1,45 @@
+=head1 NAME
+
+
+sep3dc_collect_headers - Collect headers from various secitons
+
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3dc_collect_headers(sep3dc *space1, sep3dc *space2)>
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  space1  -  sep3d
+
+     structure 
+
+=item  space2 -  sep3d
+
+      structure
+
+=back
+
+=head1 DESCRIPTION
+
+
+Collect the headers from a section tag (space1) to a non-sectioned tag (space2)
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

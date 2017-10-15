@@ -1,0 +1,50 @@
+=head1 NAME
+
+
+sep3dc_grab_key_vals - Grab header values based on keyname
+
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3dc_grab_key_vals(sep3dc *space1, char *key, flaot *headers)>
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  space1  -  sep3d
+
+     structure 
+
+=item  key  -  char*
+
+     The keyname
+
+=item  headers  -  float*
+
+     Header values
+
+=back
+
+=head1 DESCRIPTION
+
+
+
+Grab header values based on the keyname
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

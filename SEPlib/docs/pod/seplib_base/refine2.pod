@@ -1,0 +1,67 @@
+=head1 NAME
+
+
+refine2 - refine mesh
+
+=head1 SYNOPSIS
+
+
+C<call refine2_init(co1,cd1,co2,cd2,m1,m2,fo1,fd1,fo2,fd2,n1,n2)>
+
+C<ierr= refine2_lop(adj,model,data)>
+
+C<call refine2_close()>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item co1,co2 - real
+
+      Coarse grain origin
+
+=item cd1,cd2 - real
+
+      Coarse grain sampling
+
+=item ro1,ro2 - real
+
+      Refined grain origin
+
+=item rd1,rd2 - real
+
+      Refined grain sampling
+
+=item m1,m2   - integer
+
+      Size of coarse grain input
+
+=item n1,n2   - integer
+
+      Size of fine grain output
+
+=item adj,add,model,data -
+
+      Standard operator interface
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Refine a mesh by linear interpolation
+
+=head1 SEE ALSO
+
+
+L<lint2>
+
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

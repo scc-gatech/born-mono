@@ -1,0 +1,148 @@
+module wei_sll
+  !! WEI slowness operator
+  !! for FK-FX downward continuation
+  !! includes salt logic
+!  use lloyd_mod
+  use wei_wavespace_mod
+  use wei_slow_mod
+  use wei_z_mod
+  !---------------
+  implicit none
+  type(sep3d), private,save :: schoice
+  real, pointer,private :: bounds(:,:) 
+  real, pointer,private :: sref(:,:) 
+
+contains
+!!$
+!!$=head1 NAME
+!!$
+!!$ weisll_init - Initialize multiple  slowness  lloyd operator
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ ierr=weisll_init()
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Initialize multiple slowness operator lloyd
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<weisloN_init> L<weislo1> L<weislsN>
+!!$
+!!$=head1 LIBRARY
+!!$
+!!$ sepweif90
+!!$
+!!$=cut
+!!$
+
+  !----------------------------------------------------------------
+  !! N reference slownesses
+  integer function weisll_init() result(st)
+    integer :: er,i
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weisll_init'
+    if(my_debug()) call in(unit)
+#endif
+    type(sep3d) :: wsep
+    real,allocatable :: junk(:,:,:)
+  
+
+    call init_sep3d("schoice",schoice,"INPUT")
+    call grab_current_wave_space_pad(wsep)
+    if(sep3d_ndims(schoice)/=3 .and. wsep%n(5)/=1) &
+        call seperr("expecting schoice to be 3-D")
+    if(schoice%n(3)/=wsep%n(5)) call seperr("schoice(n3) /= az__n")
+    if(schoice%n(2)/=2) call seperr("schoice(n2) /=2")
+    allocate(bounds(schoice%n(1),schoice%n(3)))
+    allocate(junk(schoice%n(1),schoice%n(2),schoice%n(3)))
+    allocate(sref(schoice%n(1),schoice%n(3)))
+    if(4*size(junk)/=sreed("schoice",junk,size(junk)*4)) &
+      call seperr("trouble reading schoice")
+    sref=junk(:,1,:)
+    bounds=junk(:,2,:)
+    deallocate(junk)
+ 
+
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+    st=0
+  end function weisll_init
+!!$
+!!$=head1 NAME
+!!$
+!!$ weisll - Multiple  slowness operator lloyd vel/find
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ ierr=weisll()
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$  multiple slowness operator lloyd
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<weisloN_init> L<weislo1> L<weislsN_init>
+!!$
+!!$=head1 LIBRARY
+!!$
+!!$ sepweif90
+!!$
+!!$=cut
+!!$
+  !----------------------------------------------------------------  
+  !! N reference slownesses
+  integer function weisll() result(st)
+    integer :: izs,ifk,i4,i3,i2,i1
+    real    :: ds, so, sz
+    real    :: sl,su
+    real    :: smin,smax
+    integer :: imx, imy,iz,iout
+    real    :: ssalt_true
+    real    :: ssalt_mean,ssalt_sum
+    real    :: slocal
+    real, pointer :: slow(:,:,:)
+    real, pointer :: bound_z(:,:),slice(:),slow_z(:,:)
+    integer, pointer :: nrefs(:),i_z(:)
+    integer :: ins,ndo,ierr,n,i,ifirst,istep,ilast
+    type(sep3d) :: wsep
+
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weisll'
+    if(my_debug()) call in(unit)
+#endif
+
+   call grab_current_iz(i_z)
+   allocate(bound_z(schoice%n(1),size(i_z)))
+   allocate(slow_z(schoice%n(1),size(i_z)))
+   allocate(nrefs(size(i_z)))
+   ifirst=1; ilast=size(i_z); istep=1
+   if(i_z(size(i_z))<i_z(1)) then
+     ilast=1; ifirst=size(i_z); istep=-1
+   end if
+   iout=0
+!   do iz=ifirst,ilast,istep
+   do iz=1,size(i_z)
+     iout=iout+1
+     nrefs(iout)=0
+     do i=1, schoice%n(1)
+       if(sref(i,i_z(iz))>0.) then
+         nrefs(iout)=nrefs(iout)+1
+         slow_z(nrefs(iout),iout)=sref(i,i_z(iz))
+         bound_z(nrefs(iout),iout)=bounds(i,i_z(iz))
+       end if
+     end do
+     if(nrefs(iout)==0) call seperr("Didn't find any reference velocities")
+!     write(0,*) "CHECK SLOW SET",iout,iz,i_z(iz),slow_z(1:nrefs( iout),iout),nrefs(iout)
+   end do
+   call store_slowness_refs(nrefs,slow_z,bound_z)
+   deallocate(slow_z,bound_z,nrefs)
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+    st=0
+  end function weisll
+end module wei_sll

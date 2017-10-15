@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>MCvfit - Monte Carlo automatic velocity picks</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>MCvfit - Monte Carlo automatic velocity picks (fit)</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>MCvfit  &lt; in.H  par=    &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_stdin__2d_sepfile">stdin -  sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+       input vscan(t,vel), can be n3&gt;1</pre>
+</dd>
+<dt><strong><a name="item_f_vint_2d_sepfile">f_vint-  sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+       optional interval vel file ( = vint.H )</pre>
+</dd>
+<dt><strong><a name="item_f_verr_2d_sepfile">f_verr-  sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+       optional vel misfit error file ( = verr.H )</pre>
+</dd>
+<dt><strong><a name="item_f_grms_2d_sepfile">f_grms-  sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+       optional rms vel guess file ( = grms.H )</pre>
+</dd>
+<dt><strong><a name="item_f_gint_2d_sepfile">f_gint-  sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+       optional interval vel guess file ( = gint.H )</pre>
+</dd>
+<dt><strong><a name="item_a__2d_real">a     -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Vrms intercept at t0</pre>
+</dd>
+<dt><strong><a name="item_b__2d_real">b     -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Vrms &quot;gradient&quot;</pre>
+</dd>
+<dt><strong><a name="item_c__2d_real">c     -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Vrms  &quot;power&quot; function.</pre>
+</dd>
+<dt><strong><a name="item_nvdiv__2d_integer">nvdiv -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       nlayers per second.  ~20 good.</pre>
+</dd>
+<dt><strong><a name="item_dvzmax_2d_real">dvzmax-  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       max allowed MCvint contrast between 2 adjacent layers</pre>
+</dd>
+<dt><strong><a name="item_v1bnd__2d_integer">v1bnd -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Don`t allow trial MCvint(t) &lt; v1bnd*Vint(t)</pre>
+</dd>
+<dt><strong><a name="item_v2bnd__2d_integer">v2bnd -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Don`t allow trial MCvint(t) &gt; v2bnd*Vint(t)</pre>
+</dd>
+<dt><strong><a name="item_vmina__2d_real">vmina -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Global min a value</pre>
+</dd>
+<dt><strong><a name="item_vminb__2d_real">vminb -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Global min b value</pre>
+</dd>
+<dt><strong><a name="item_vminc__2d_real">vminc -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Global min c value</pre>
+</dd>
+<dt><strong><a name="item_vmax__2d_real">vmax  -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       global max MCvint value</pre>
+</dd>
+<dt><strong><a name="item_vsurf__2d_real">vsurf -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       near surface constant velocity</pre>
+</dd>
+<dt><strong><a name="item_tsurf__2d_real">tsurf -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       time thickness of near surface constant velocity layer</pre>
+</dd>
+<dt><strong><a name="item_dtsurfdx_2dreal">dtsurfdx-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       allows a dipping water bottom:
+       tsurf(x) = tsurf + (x-x0)*dtsurfdx.</pre>
+</dd>
+<dt><strong><a name="item_sigma__2d_real">sigma -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       variance of random velocity perturbations.</pre>
+</dd>
+<dt><strong><a name="item_nwalk__2d_integer">nwalk -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       number of random walks.  A &quot;random walk&quot; starts
+       with one initial model and tries many random
+       steps away from that same initial model.
+       The best model from one walk is used as the
+       starting model for the next walk.</pre>
+</dd>
+<dt><strong><a name="item_nrand__2d_integer">nrand -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       number of random steps per walk.</pre>
+</dd>
+<dt><strong><a name="item_nconv__2d_integer">nconv -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       If fit is unchanged for nconv steps, go to a new walk.
+       If the fit remains unchanged for nconv walks: stop.</pre>
+</dd>
+<dt><strong><a name="item_toler__2d_real">toler -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       If fit changes &lt; toler, consider that no change.
+       Note, a perfect fit is 1.0 (100%).
+       The most critical parameters to try and optimize to get
+       a better fit are:
+       vmin*, nvdiv~10/20, dvzmax~0.6, sigma~dvzmax/2</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Monte Carlo fit parameters...
+This part randomly perturbs the starting <code>Vint(t)</code> model corresponding
+to the starting <code>Vrms(t)</code> model found above.
+These parameters refer to *interval* velocity, not Vrms!</p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/velan</strong></p>
+
+</body>
+
+</html>

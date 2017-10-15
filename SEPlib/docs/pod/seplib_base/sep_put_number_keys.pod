@@ -1,0 +1,47 @@
+=head1 NAME
+
+
+sep_put_number_keys - put number of keys
+
+=head1 SYNOPSIS
+
+
+   int sep_put_number_keys(tag_history,n_keys)
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item   char*- tag_history 
+
+        tag of History File
+
+=item   int* - n_keys       
+
+        number of Header Keys 
+
+=back
+
+=head1 RETURN VALUE
+
+
+ -1 = if fails for other reasons
+
+ 0 = if successful
+
+ +1 = if tag_history is an Sep77 History File
+
+=head1 DESCRIPTION
+
+
+auxputch nh1 to Header Format File
+
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

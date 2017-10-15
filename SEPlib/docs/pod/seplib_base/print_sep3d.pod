@@ -1,0 +1,36 @@
+=head1 NAME
+
+
+print_sep3d - print info about the sep3d struct
+
+=head1 SYNOPSIS
+
+
+C<call print_sep3d(struct,level)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure to get info about
+
+=item level   -  int
+
+      level of verbosity
+
+=back
+
+=head1 DESCRIPTION
+
+
+Get info about strucut
+
+head1 LIBRARY
+
+B<supersetf90>
+
+=cut
+

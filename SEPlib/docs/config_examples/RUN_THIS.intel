@@ -1,0 +1,12 @@
+#!/bin/csh
+
+#COMPILE SCRIPT FOR INTEL
+rm */config.cache config.cache
+setenv MPI_FCLD "-L/net/okok/cluster/mpi/lib -lmpichf90  -lfmpich  -lmpich"
+setenv MPI_FLAGS "-I/net/okok/cluster/mpi/include"
+setenv PERL "/usr/bin/perl"
+setenv FC "ifc -O3 -tpp6  -xK"  #INTEL COMPILER OPTIONS
+setenv FFTW_F90LD "-L/net/koko/bob/FFTW/lib/ -lfftw -lrfftw"  #FFTW location
+./configure --with-local --with-su=/usr/local/SU -prefix=/usr/local/SEP6_I_P3/ --with-mpi  --with-fftw 
+gmake 
+gmake install

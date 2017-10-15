@@ -1,0 +1,27 @@
+
+
+=head1 NAME
+
+sepvelanf - F77 functions that deal with velocity
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+F77 functions that deal with velocity
+
+=head1 FUNCTIONS
+
+
+
+L<rms2int> -  convert to and from rms/interval velocity
+
+
+
+L<velsimp> - simple velocity transfrom
+
+L<veltran> - velocity transform with anti-aliasing and sqrt(  i omega)
+
+=cut 

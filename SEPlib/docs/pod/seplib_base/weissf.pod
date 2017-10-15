@@ -1,0 +1,57 @@
+=head1 NAME
+
+
+weissf - Split step operator
+
+=head1 SYNOPSIS
+
+
+ ierr=weissf_init(iws,izs,ifk,ith,wfld)
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item iws - integer
+
+  Current frequency slice
+
+=item izs - integer
+
+  Current depth slice
+
+=item ifk - integer
+
+  Current fk operation
+
+=item ith - integer
+
+  Current thread
+
+=item wfld - complex(:,:,:,:,:)
+
+ Wavefield
+
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Split step operator. Apply first order slowness correction
+  to wthe wavefield given difference between velocity at
+  location and reference velocity.
+
+=head1 SEE ALSO
+
+!
+L<weissf_init>
+
+=head1 LIBRARY
+
+
+ sepweif90
+
+=cut
+

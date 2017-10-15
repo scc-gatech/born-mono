@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>OFF2ANG - Conversion from offset to angle and back</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#keywords">KEYWORDS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>OFF2ANG - Conversion from offset to angle and back</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>OFF2ANG par=parfile.P &lt; input.H &gt; output.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_inverse_3d_2efalse_2e__28logical_29">inverse=.false. (logical)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Whether to do forward (offset to  angle) 
+                 or inverse ( angle to offset) transformation</pre>
+</dd>
+<dt><strong><a name="item_maxmem_3d100_2e__28real_29">maxmem=100. (real)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Maximum in-core memory (in Mbytes)</pre>
+</dd>
+<dt><strong><a name="item_0">eps=1.0 (real)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Epsilon parameter used by the radial trace transform</pre>
+</dd>
+<dt><strong><a name="item_push_3d_2efalse_2e__28logical_29">push=.false. (logical)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      push=.false. means pull transformation</pre>
+</dd>
+<dt><strong><a name="item_verb_3d_2efalse_2e__28verb_29">verb=.false. (verb)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Verbose execution</pre>
+</dd>
+<dt><strong><a name="item_n1">nzpad=n1 (int)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Pading on the depth axis</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Conversion from angle to offset and back.
+ Uses radial trace transforms in the Fourier domain.
+ Theory in Sava &amp; Fomel(2000) - SEP103</pre>
+<pre>
+ real input/output</pre>
+<pre>
+  forward transformation
+  input  is z-hx-hy-mx-my(-ro)
+  output is z-ax-ay-mx-my(-ro)</pre>
+<pre>
+  inverse transformation
+  input  is z-ax-ay-mx-my(-ro)
+  output is z-hx-hy-mx-my(-ro)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="keywords">KEYWORDS</a></h1>
+<pre>
+  angle-domain, wave-equation</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/image</strong></p>
+
+</body>
+
+</html>

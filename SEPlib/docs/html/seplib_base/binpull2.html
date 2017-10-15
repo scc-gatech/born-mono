@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>binpull2 - nearest neighbor interpolation, 2D</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>binpull2 - nearest neighbor interpolation, 2D</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Initializer : <code>call binpull2_init(m1,m2,o1,d1,o2,d2,xy)</code></p>
+<p>Operator    : <code>ierr=binpull2_lop(adj,add,model,data)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_m1__2d_integer">m1   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of model points, axis 1</pre>
+</dd>
+<dt><strong><a name="item_m2__2d_integer">m2   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of model points, axis 2</pre>
+</dd>
+<dt><strong><a name="item_o1__2d_real">o1 -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      first sample of model space, axis 1</pre>
+</dd>
+<dt><strong><a name="item_d1__2d_real">d1 -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      sampling of model space, axis 1</pre>
+</dd>
+<dt><strong><a name="item_o2__2d_real">o2 -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      first sample of model space, axis 2</pre>
+</dd>
+<dt><strong><a name="item_d2__2d_real">d2 -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      sampling of model space, axis 2</pre>
+</dd>
+<dt><strong><a name="item_real">xy - <code></code><code>real(:,2)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      location of data</pre>
+</dd>
+<dt><strong><a name="item_adj_2cadd_2cmodel_2cdata__2d">adj,add,model,data -</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard operator</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>2-D nearest neighbor interpolation</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/binpull1.html">the binpull1 manpage</a>,<a href="./../seplib_base/lint1.html">the lint1 manpage</a>,<a href="./../seplib_base/lint2.html">the lint2 manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

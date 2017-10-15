@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>make_unpipe - unpipe a seplib file</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>make_unpipe - unpipe a seplib file (therefore back seakable)</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>make_unpipe(tag)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_tag__2d_char_2a">tag - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      tag to unpipe</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Make sure that a seplib input dataset is not a pipe.
+If it isn't a pipe we do nothing.
+If it is we make a temporary dataset and then
+copy the data to a new file which is made temporary by
+unlinking it after it has been created. This ensures that it
+will disappear when the job ends.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>WARNING DO NOT CLOSE THE FILE AFTER <code>make_unpipe()</code> has been called</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep</strong></p>
+
+</body>
+
+</html>

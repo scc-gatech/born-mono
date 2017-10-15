@@ -1,0 +1,143 @@
+=head1 NAME
+
+
+MCvfit - Monte Carlo automatic velocity picks (fit)
+
+
+
+=head1 SYNOPSIS
+
+
+MCvfit  < in.H  par=    > out.H
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  stdin -  sepfile
+
+       input vscan(t,vel), can be n3>1
+
+=item 	f_vint-  sepfile
+
+       optional interval vel file ( = vint.H )
+
+=item 	f_verr-  sepfile
+
+       optional vel misfit error file ( = verr.H )
+
+=item 	f_grms-  sepfile
+
+       optional rms vel guess file ( = grms.H )
+
+=item 	f_gint-  sepfile
+
+       optional interval vel guess file ( = gint.H )
+
+=item  a     -  real
+
+       Vrms intercept at t0
+
+=item  b     -  real
+
+       Vrms "gradient"
+
+=item  c     -  real
+
+       Vrms  "power" function.
+
+=item  nvdiv -  integer
+
+       nlayers per second.  ~20 good.
+
+=item  dvzmax-  real
+
+       max allowed MCvint contrast between 2 adjacent layers
+
+=item  v1bnd -  integer
+
+       Don`t allow trial MCvint(t) < v1bnd*Vint(t)
+
+=item  v2bnd -  integer
+
+       Don`t allow trial MCvint(t) > v2bnd*Vint(t)
+
+=item  vmina -  real
+
+       Global min a value
+
+=item  vminb -  real
+
+       Global min b value
+
+=item  vminc -  real
+
+       Global min c value
+
+=item  vmax  -  real
+
+       global max MCvint value
+
+=item  vsurf -  real
+
+       near surface constant velocity
+
+=item  tsurf -  real
+
+       time thickness of near surface constant velocity layer
+
+=item  dtsurfdx-real
+
+       allows a dipping water bottom:
+       tsurf(x) = tsurf + (x-x0)*dtsurfdx.
+
+=item  sigma -  real
+
+       variance of random velocity perturbations.
+
+=item  nwalk -  integer
+
+       number of random walks.  A "random walk" starts
+       with one initial model and tries many random
+       steps away from that same initial model.
+       The best model from one walk is used as the
+       starting model for the next walk.
+
+=item  nrand -  integer
+
+       number of random steps per walk.
+
+=item  nconv -  integer
+
+       If fit is unchanged for nconv steps, go to a new walk.
+       If the fit remains unchanged for nconv walks: stop.
+
+=item  toler -  real
+
+       If fit changes < toler, consider that no change.
+       Note, a perfect fit is 1.0 (100%).
+       The most critical parameters to try and optimize to get
+       a better fit are:
+       vmin*, nvdiv~10/20, dvzmax~0.6, sigma~dvzmax/2
+
+=back
+
+
+=head1 DESCRIPTION
+
+
+Monte Carlo fit parameters...
+This part randomly perturbs the starting Vint(t) model corresponding
+to the starting Vrms(t) model found above.
+These parameters refer to *interval* velocity, not Vrms!
+
+
+=head1 CATEGORY
+
+
+B<seis/velan>
+
+=cut
+

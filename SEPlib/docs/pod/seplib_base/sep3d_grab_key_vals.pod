@@ -1,0 +1,56 @@
+=head1 NAME
+
+
+sep3d_grab_key_vals - grab header values from C structure
+
+=head1 SYNOPSIS
+
+
+C<call sep3d_grab_key_vals(struct, locate, values)>
+   must have already made a call to C<sep3d_grab_headers('in',input,nh)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct   -    sep3d
+
+      structure to grab from
+
+=item locate   -    (char*/int)
+
+      locate through keyname or keyindex
+
+=back
+
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item values   -    (float*/int*)
+
+              array of header values
+
+=back
+
+=head1 DESCRIPTION
+
+
+Grab header values
+
+=head1 SEE ALSO
+
+
+L<sep3d_set_key_vals>
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

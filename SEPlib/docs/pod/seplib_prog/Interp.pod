@@ -1,0 +1,94 @@
+=head1 NAME
+
+
+Interp - Interpolate dataset using sinc, linearm or nearest neighbor
+
+=head1 SYNOPSIS
+
+
+Interp < in.H o1 pars > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item lsinc - integer 
+
+	[10]: length of interpolation operator 
+      (recommend < 20; MUST BE EVEN)
+
+=item type  - int     
+
+	 [2]: Type of interpolation,0 nearest neighbor,1-linear,2-sinc
+
+=item o1out - float   
+
+	[o1]: First sample on axis1
+
+=item o2out - float   
+
+	[o2]: First sample on axis2
+
+=item o3out - float   
+
+	[o3]: First sample on axis3
+
+=item d1out - float   
+
+	[d1]: Sampling of the output axis 1
+
+=item d2out - float   
+
+	[d2]: Sampling of the output axis 2
+
+=item d3out - float   
+
+	[d3]: Sampling of the output axis 3
+
+=item n1out - int     
+
+	[max in/dout]: Number of samples in axis 1
+
+=item n2out - int     
+
+	[max in/dout]: Number of samples in axis 2
+
+=item n3out - int     
+
+	[max in/dout]: Number of samples in axis 3
+
+=item maxsize-int     
+
+	[20]:  Amount of memory to use in megabytes
+
+=item ntab  - int     
+
+	[101]: Interpolation table size (aka if outspace
+      corresponds to inspace .012 .01 table will be chosen)
+
+=back
+
+=head1 DESCRIPTION
+
+
+Interpolate dataset using sinc, linear, or nearest neighbor,
+up to 3 dimensions(if it can be held in memory). If any of the
+n1out,n2out,n3out, o1out,o2out,o3out or d1out,d2out,d3out is
+omitted the corresponding value in the input data is used.
+
+=head1 EXAMPLE
+
+
+	Interp < in.H lsinc=12 type=2 > out.H
+	conputes a 12-point sinc-interpolator on the input data.
+	All of the standard n's, d's and o's are taken from the
+	input data
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

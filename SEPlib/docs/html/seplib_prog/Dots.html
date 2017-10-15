@@ -1,0 +1,224 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Dots - plots data as 'lollipops'</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+	<li><a href="#compile_level">COMPILE LEVEL</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Dots - plots data as 'lollipops'</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>&lt;in.H  Dots  [options]  | Tube</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Plots a data plane, like 'Wiggle,' but lollipops on strings.
+Adapts default data format to values of n1,n2.
+Can put a separate label on each trace.  (see labels=)
+Data area fills screen when title= label1= labels= 
+are undefined.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>A program somewhat like Wiggle, but better in some ways because
+it tries to be smarter. The output style depends on the input
+n1 and n2. For loosely packed traces with only a few data 
+points Dots plots the data as lollipops on strings, showing
+each data point clearly. There are also options for separately
+labeling each trace, omitting dead traces, making bar graphs,
+etc. As n1 and n2 increase Dots by default simplifies the
+output and eventually behaves almost the same as Wiggle.
+Unfortunately Dots does not use the axis drawing and plotting
+routines shared by Wiggle, Contour, Graph and Ta2vplot, and
+so Dots' options and ouput plot size, position, and axes 
+are currently incompatible with those for other plot programs.</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_seemean_2dint">seemean-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] draw axes lines (=0 means don't)
+      0  default not to when n2&gt;30 to avoid clutter</pre>
+</dd>
+<dt><strong><a name="item_strings_2dint">strings-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]  draw strings from axis to balloons
+      0  default not to when n1&gt;400 since too slow</pre>
+</dd>
+<dt><strong><a name="item_wantaxis_2dint">wantaxis-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]  draw  bottom axis</pre>
+</dd>
+<dt><strong><a name="item_dots__2dint">dots   -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] draw the balloons
+      0 default not to when n1&gt;130 since dots are small
+      2 draw dots only where signal is not zero.</pre>
+</dd>
+<dt><strong><a name="item_corners_2dint">corners-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [6] corners on area-filled polygon dots.</pre>
+</dd>
+<dt><strong><a name="item_connect_2dint">connect-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      1 connect the dots on diagonal lines.
+      2 connect the dots as a bar graph.
+      3 bar graph with only horizontal bars.
+      4 connect dots only where signal is not zero.
+      0 don't connect adjacent values in any way.</pre>
+</dd>
+<dt><strong><a name="item_clip__2dfloat">clip  -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      your chosen clip value.</pre>
+</dd>
+<dt><strong><a name="item_overlap_2dfloat">overlap-float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.90]  trace overlap at clip value</pre>
+</dd>
+<dt><strong><a name="item_gaineach__2d_int">gaineach - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      1 gain each trace independently (=0 gain all together)</pre>
+</dd>
+<dt><strong><a name="item_constsep__2d_int">constsep - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      0 trace separations depend on both max and min.
+      1 trace separation depends on max abs value.</pre>
+</dd>
+<dt><strong><a name="item_seedead__2d_int">seedead -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      0 plot dead traces as zero traces or don't plot them.</pre>
+</dd>
+<dt><strong><a name="item_silk__2d_int">silk    -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] wiggle traces
+      1 silk screen variable area(see SEP CD-ROM platter plot)</pre>
+</dd>
+<dt><strong><a name="item_title_2clabel1_2d_char_2a">title,label1- char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      usual meaning</pre>
+</dd>
+<dt><strong><a name="item_labels__2d_char_2a">labels - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      trace labels, i.e. labels=in:filt:out</pre>
+</dd>
+<dt><strong><a name="item_labelsz__2dint">labelsz -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [8] label size</pre>
+</dd>
+<dt><strong><a name="item_yreverse__2d_int">yreverse - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] =1, reverse order of channels.</pre>
+</dd>
+<dt><strong><a name="item_transp__2d_int">transp - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] flip axes.   (Buggy for title and label1).</pre>
+</dd>
+<dt><strong><a name="item_xxscale__2d_float">xxscale - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.] &lt;1. for smaller plots, narrow plots, etc.</pre>
+</dd>
+<dt><strong><a name="item_yyscale__2d_float">yyscale - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.] &lt;1. for smaller plots, narrow plots, etc.</pre>
+</dd>
+<dt><strong><a name="item_radius__2d_float">radius  - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      radius of the dot to be plotted. Defaults to 
+      some fraction of the screen width.</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>xtpen</em>, <a href="./../seplib_prog/Graph.html">the Graph manpage</a>, <a href="./../seplib_prog/Histogram.html">the Histogram manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<pre>
+ Needs pclip, you must preprocess for unusual clip needs.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="compile_level">COMPILE LEVEL</a></h1>
+<pre>
+ DISTR</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+
+</body>
+
+</html>

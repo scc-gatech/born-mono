@@ -1,0 +1,72 @@
+#!@PERL@
+#<
+#Author: Robert Clapp, ESMB 463, 7230253
+#
+#Date Created:Tue May  8 10:59:32 PDT 2001
+#
+
+$selfdoc="Rick_multi data1.H data2.H \n \n";
+
+&parse_args;
+&build_command;
+
+
+print STDERR "RUNNING:\n$command \n";
+
+system($command);
+
+
+sub parse_args{
+
+if($#ARGV==-1) { system("Ricksep"); print STDERR "$selfdoc"; die;}
+
+
+$outlist="";
+$data="none";
+$ndat=0;
+
+foreach $arg (@ARGV){
+  if($arg =~ /(.+)=(.+)/){ $option=$1; $command=$2;
+	 $outlist.=" $arg"; 
+	}
+ 	elsif($arg =~/\.H/){$data[$ndat]=$arg;$ndat++;}
+  elsif($arg =~/\.T/){$data[$ndat]=$arg;$ndat++;}
+  elsif($arg =~/\.A/){$data[$ndat]=$arg;$ndat++;}
+  elsif($arg =~/\.h/){$data[$ndat]=$arg;$ndat++;}
+	else{ $outlist.=" $arg"; }
+}
+
+if($ndat == 0){ system("Ricksep"); print STDERR  "$selfdoc \nNo dataset provided/recognized \n"; die;}
+
+}
+
+sub check_dim{
+
+system("In3d $data 2>/tmp/abcdefg");
+open(AA,"/tmp/abcdefg");
+while(<AA>){ $in.=$_;} 
+close(AA);
+system("rm /tmp/abcdefg");
+@lines=split(/\n/,$in);
+foreach $line (@lines){
+	if($line=~/^n1=(\S+)\s+/){$ndim=1;}
+	elsif($line=~/^n2=(\S+)\s+/){$ndim=2;}
+	elsif($line=~/^n3=(\S+)\s+/){$ndim=3;}
+	elsif($line=~/^n4=(\S+)\s+/){$ndim=4;}
+	elsif($line=~/^n5=(\S+)\s+/){$ndim=5;}
+}
+}
+
+sub  build_command{
+
+$command="Ricksep < $data[0]  nview=$ndat ";
+for($i=1; $i < $ndat; $i++){
+  $command.=" data$i=$data[$i] view".$i."_data=data$i ";
+}
+
+$command.=" $outlist";
+
+
+}
+
+

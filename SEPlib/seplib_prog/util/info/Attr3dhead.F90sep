@@ -1,0 +1,289 @@
+!!$=head1 NAME
+!!$
+!!$Attr3dhead  - Info on header keys
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Attr3d  <in.H pars
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item  nkeys -  integer
+!!$
+!!$       [nkeys]number of  keys to calculate parameters on.
+!!$
+!!$=item  key_  -  character
+!!$
+!!$       name of key to calc parameters on (only
+!!$       necessary if nkeys < less than nkeys in dataset
+!!$
+!!$=item  key_list -  character  *
+!!$
+!!$       string containing keys to print  (can use instead
+!!$       of nkeys, keys_). The list should be separeted by :
+!!$
+!!$=item  max_size -  integer
+!!$
+!!$       [1000000] maximum amount of memory for Attr to use.
+!!$
+!!$=item  verbose -  integer
+!!$
+!!$       [1] 0-print only min,max, and non-zero
+!!$        1-print above plust rms,mean, and norm
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Calculates statistics for header values of SEP3d dataset
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Attr>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<util/info>
+!!$
+!!$=cut
+!>
+!
+!-------------------------------------------------
+!
+!Author: Robert Clapp, ESMB 463, 7230253
+!Date Created:Saturday Mar 15 12:32:35 1997
+! Modified: Bob Switched to new sepf90 (5/99)
+!
+! Modified: Morgan (5/02) - Minor I/O formatting update.
+!
+!Purpose:
+!
+program Attr90 
+  use sep_aux_mod
+  use sep_3d_mod
+  use sep
+  use aux_string_mod
+  use sep3d_struct_mod
+  implicit none
+  integer :: nkeys,max_size
+  integer,parameter :: big=selected_real_kind(10,50)
+  integer :: verbose,ignore_grid,ndim,debug,nsz
+  type(sep3d) :: in     !holder for sepdata (see sepf90 docs)
+  integer,dimension(:),pointer :: int_hold  !holding array for
+  real,dimension(:),pointer :: real_hold  !holding array for
+  real(kind=big),dimension(:),allocatable :: maxv,minv,mean,sqrs,liven
+  integer,dimension(:),allocatable :: nzero,type,read_in
+  integer,dimension(:,:),allocatable :: max_loc,min_loc
+  integer :: ncount,ik,drn
+!sorting headers
+  integer,dimension(:),pointer :: n,fwind,nwind,jwind
+  real,dimension(:),pointer :: o,d
+  character(len=128),dimension(:),pointer :: label,key
+  character(len=4096) :: key_list
+  logical :: found
+  integer  :: i1,i2,tempi,ierr
+  integer  :: memory,nin
+  character(len=128) :: temp_ch
+  logical :: usegrid,read_more,list_keys
+  
+  call SEP_ADD_DOC()
+
+  call sep_init('')
+
+  call init_3d()
+!             GET PRELIMINARY PARAMETERS, SET SOME PROGRAM VARIABLES,
+!                   CHECK DATA, DO SOME PRELIMINARY ALLOCATION
+  call getch_add_string("head=/dev/null")
+    if (0>= getch('max_size','d',max_size )) then
+      max_size = 1000000
+    end if
+    if (0.ne.putch('Read  from param: #max_size ','d',max_size)) then
+      call erexit('Trouble writing max_size to history')
+    end if
+    if (0>= getch('verbose','d',verbose )) then
+      verbose = 0
+    end if
+    if (0.ne.putch('Read  from param: #verbose ','d',verbose)) then
+      call erexit('Trouble writing verbose to history')
+    end if
+    if (0>= getch('debug','d',debug )) then
+      debug = 0
+    end if
+    if (0.ne.putch('Read  from param: #debug ','d',debug)) then
+      call erexit('Trouble writing debug to history')
+    end if
+  call getch_add_string("noheader=y")
+  call getch_add_string('gff_in="-1"')
+  call hclose()
+  list_keys=.false.
+  do i1=1,4096
+    key_list(i1:i1)=" "
+  end do 
+  if (0.ne.sep_get_number_keys("in",nin)) then
+    call erexit("unable to obtain number of keys")
+  end if
+  if (0.ne.sep_get_key_index("in","data_record_number",drn)) then
+    drn=0
+  else
+    drn=1
+    nin=	nin-1
+  end if 
+  if (0.eq.getch("nkeys","d",nkeys)) then
+    if (0.eq.getch("key_list","s",key_list)) then
+      nkeys=nin
+    else
+      call decode_list(key_list,key,nkeys)
+      list_keys=.true.
+    end if
+  end if
+  if (debug.eq.1) then
+    write(0,*) "after read keys"
+  end if
+  call init_sepf90()
+  call init_sep3d("in",in,"INPUT")
+  ndim=in%ndims
+!getting windowing information
+!get key information
+  allocate(type(nkeys))
+  if (.not. list_keys) then
+    allocate(key(nkeys))
+  end if
+  if (nin.ne.nkeys) then
+  write(0,*) "IN THE IF "
+    do i1=1,nkeys 
+      if (.not. list_keys) then
+        call parcat("key",i1,temp_ch);
+        if (0.eq.getch(temp_ch,"s",key(i1))) then;
+          call erexit("trouble obtaining key from command line")
+        end if
+      end if
+      ik=1
+      found=.false.
+      do while (ik <= in%nkeys .and. .not. found)
+        if (in%keyname(ik)(1:len_trim(key(i1))).eq.key(i1)(1:len_trim&
+          &(key(i1)))  .and. in%keyname(ik)(1:len_trim(in%keyname(ik&
+          &))).eq.  key(i1)(1:len_trim(in%keyname(ik)))) then
+          found=.true.
+        else
+          ik=  ik+1
+        end if
+      end do 
+      if (.not. found) then
+        write(0,*) "key",i1,key(i1)
+        call erexit("could not find specified key in header file")
+      end if
+      if (in%keytype(ik).eq."scalar_float") then
+        type(i1)=1
+      else if (in%keytype(ik).eq."scalar_int") then
+        type(i1)=0
+      else
+        write(0,*) "keytpe",in%keytype(ik)
+        call erexit("unaceptable key type")
+      end if
+    end do
+  else
+    do i1=1,in%nkeys 
+      key(i1)=in%keyname(i1)
+      if (in%keytype(i1).eq."scalar_float") then
+        type(i1)=1
+      else if (in%keytype(i1).eq."scalar_int") then
+        type(i1)=0
+      else
+        write(0,*) "key type",i1,trim(in%keytype(i1))
+        call erexit("unaceptable key type")
+      end if
+    end do
+  end if 
+  if (debug.eq.1) then
+    write(0,*) "after key check"
+  end if
+!allocate  memory for things we are going to calcuate
+  allocate(mean(nkeys),nzero(nkeys),liven(nkeys),maxv(nkeys),minv(nkeys&
+    &))
+  allocate(sqrs(nkeys),min_loc(ndim,nkeys),max_loc(ndim,nkeys))
+  mean=0
+  ncount=0
+  nzero=0
+  liven=0
+  minv=huge(minv)
+  maxv=-1*minv
+  max_size=max_size/in%nkeys/2
+  allocate(fwind(ndim),jwind(ndim),nwind(ndim))
+  i2=product(in%n(2:))
+  fwind=0
+  nwind=1
+  in%n(2)=i2
+  in%n(3:)=1
+  call sep3d_set_sep3d(in)
+  fwind(2)=0
+  do while (fwind(2)<in%n(2))
+    nwind(2)=min(in%n(2)-fwind(2),max_size)
+    if (verbose>0) then
+      write(0,*) "working on",fwind(2),"(",nwind(2),") of ",in%n(2)
+    end if
+        call sep3d_grab_headers("in",in,nsz,fwind=fwind(2:), nwind=nwind(2:&
+      &))
+    if (nsz>0) then
+      do i1=1,nkeys 
+        if (type(i1).eq.1) then
+          allocate(real_hold(nsz))
+          call sep3d_grab_key_vals(in,key(i1),real_hold)
+          if (i1.eq.1) then
+            ncount= ncount+size(real_hold)
+          end if
+          do i2=1,size(real_hold)
+            mean(i1)=			mean(i1)+real_hold(i2)
+            sqrs(i1)=			sqrs(i1)+real_hold(i2)**2
+            if (real_hold(i2) > maxv(i1)) then
+              maxv(i1)=real_hold(i2)
+            end if
+            if (real_hold(i2) < minv(i1)) then
+              minv(i1)=real_hold(i2)
+            end if
+            if (real_hold(i2) .ne.0) then
+              nzero(i1)= nzero(i1)+1
+            end if
+          end do 
+          deallocate(real_hold)
+        else
+          allocate(int_hold(nsz))
+          call sep3d_grab_key_vals(in,key(i1),int_hold)
+          if (i1.eq.1) then
+            ncount= ncount+size(int_hold)
+          end if
+          do i2=1,size(int_hold)
+            mean(i1)=			mean(i1)+int_hold(i2)
+            sqrs(i1)=			sqrs(i1)+int_hold(i2)**2
+            if (int_hold(i2) > maxv(i1)) then
+              maxv(i1)=int_hold(i2)
+            end if
+            if (int_hold(i2) < minv(i1)) then
+              minv(i1)=int_hold(i2)
+            end if
+            if (int_hold(i2) .ne.0) then
+              nzero(i1)= nzero(i1)+1
+            end if
+          end do 
+          deallocate(int_hold)
+        end if
+      end do
+    end if
+    fwind(2)=fwind(2)+nwind(2)
+  end do 
+  1 format(a3,15x,a3,7x,a3,9x,a4,5x,a5,8x,a3,9x,a4)
+  2 format(1x,a11,1x,g11.4,1x,g11.4,1x,g11.4,1x,i8,1x,g11.4,1x,g11.2)
+!write(0,1) "key","min","max","mean","nzero","rms","norm"
+  write(0,*) "KEY           MINVAL     MAXVAL      MEANVAL       NZERO&
+    &  RMS           NORM"
+  write(0,*) "--------------------------------------------------------&
+    &------------------------"
+  if (debug.eq.1) then
+    write(0,*) "about to write values"
+  end if
+  do i1=1,nkeys 
+    write(0,2) key(i1),real(minv(i1)),real(maxv(i1)),real(mean(i1)/ncount&
+      &),nzero(i1),sqrt(sqrs(i1)/ncount),sqrt(sqrs(i1))
+  end do 
+end program  

@@ -1,0 +1,122 @@
+module wei_imaging_mod
+  !! WEI imaging condition
+  use wei_wavespace_mod
+  implicit none
+  integer, private, save:: nw_tot
+  complex, pointer, private :: imwf(:,:,:,:,:)
+contains
+  !----------------------------------------------------------------  
+  subroutine weiimage_init()
+    integer :: er
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weiimage_init'
+    if(my_debug()) call in(unit)
+#endif
+    call set_imaging_space(1)
+    call from_param("nw_tot",nw_tot)
+
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+  end subroutine weiimage_init
+  !----------------------------------------------------------------  
+  subroutine weiimgW2R(izs,iws,ith,image,wfld,IGop)
+    integer, intent(in) :: izs,iws,ith
+    complex, dimension(:,:,:,:,:), pointer :: wfld, image
+    integer :: st
+    type(sep3d) :: wsep
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weiimgW2R'
+#endif
+    interface !!-------------------------
+       integer function IGop(wfld,iws,ith) result(st)
+         complex, dimension(:,:,:,:,:), pointer :: wfld
+         integer, intent(in) :: iws,ith
+       end function IGop
+    end interface !!---------------------
+    integer :: i1,i2,i3,i4
+#ifdef DEBUG
+    if(my_debug()) call in(unit)
+#endif
+
+    call grab_current_wave_space_pad(wsep)
+    call assign_imaging_space(imwf)
+                                                                                                 
+  do i4=1,size(image,4)
+  do i3=1,size(image,3)
+  do i2=1,size(image,2)
+  do i1=1,size(image,1)
+    imwf(i1,i2,i3,i4,ith) = wfld(i1,i2,i3,i4,iws)
+  end do
+  end do
+  end do
+  end do
+    st = IGop(imwf,iws,ith) !! CIG h->h or h->ph
+                                                                                                 
+    do i4=1,size(image,4)
+      do i3=1,size(image,3)
+	      do i2=1,size(image,2)
+ 		       do i1=1,size(image,1)
+             !$OMP ATOMIC
+             image(i1,i2,i3,i4,izs) = &
+             image(i1,i2,i3,i4,izs) + &
+             imwf (i1,i2,i3,i4,ith)/nw_tot
+           end do
+       end do
+     end do
+   end do
+   call clear_imaging_space()
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+  end subroutine weiimgW2R
+  !----------------------------------------------------------------
+  subroutine weiimgR2W(izs,iws,ith,image,wfld,IGop)
+    integer, intent(in) :: izs,iws,ith 
+    integer :: i1,i2,i3,i4
+    complex, dimension(:,:,:,:,:), pointer :: wfld, image
+    integer :: st
+    type(sep3d) :: wsep
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weiimgR2W'
+#endif
+    interface !!-------------------------
+       integer function IGop(wfld,iws,ith) result(st)
+         complex, dimension(:,:,:,:,:), pointer :: wfld
+         integer, intent(in) :: iws,ith
+       end function IGop
+    end interface !!---------------------
+#ifdef DEBUG
+    if(my_debug()) call in(unit)
+#endif
+
+    call assign_imaging_space(imwf)
+    call grab_current_wave_space_pad(wsep)
+   do i4=1,size(imwf,4)
+   do i3=1,size(imwf,3)
+   do i2=1,size(imwf,2)
+   do i1=1,size(imwf,1)
+    imwf(i1,i2,i3,i4,ith) = image(i1,i2,i3,i4,izs)
+end do
+end do
+end do
+end do
+    st = IGop(imwf,iws,ith) !! CIG: h->h or ph->h
+                                                                                                 
+                                                                                                 
+   do i4=1,size(imwf,4)
+   do i3=1,size(imwf,3)
+   do i2=1,size(imwf,2)
+   do i1=1,size(imwf,1)
+    wfld(i1,i2,i3,i4,iws) = wfld(i1,i2,i3,i4,iws) + imwf(i1,i2,i3,i4,ith)/nw_tot
+end do
+end do
+end do
+end do
+    call clear_imaging_space()
+                                                                                                 
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+  end subroutine weiimgR2W
+end module 

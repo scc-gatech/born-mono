@@ -1,0 +1,48 @@
+
+
+=head1 NAME
+
+seis/filter - Filtering programs 
+
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Filtering programs 
+
+
+=head1 PROGRAMS
+
+
+L<Ft3d> - Filtering programs 
+
+
+
+
+L<Balance> - Perform trace balancing
+
+L<Lpfilt> - Bandpass dataset
+
+L<Filter> - filter a dataset
+
+L<Interp> - Interpolate dataset using sinc, linearm or nearest neighbor
+
+L<Agc> - Automatic gain control with first arrival detection
+
+L<Tpow> - scales on the time axis
+
+L<Spectra> - Calculate amplitude spectrum
+
+L<Trcamp> - Calculate total energy in a tapered time window
+
+L<Smooth> - 2-D smoothing
+
+L<Energy> - Calculate energy in running windows
+
+L<Scale> - compute clip on a dataset and apply it if requested
+
+
+=cut 

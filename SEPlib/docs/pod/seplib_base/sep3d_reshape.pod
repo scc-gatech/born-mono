@@ -1,0 +1,53 @@
+=head1 NAME
+
+
+sep3d_reshape - reshape a dataset
+
+
+=head1 SYNOPSIS
+
+
+C<call  sep3d_reshape(struct)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure
+
+=item n  -  int*
+
+      axis remapping
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Change the dimensions of a dataset
+
+=head1 EXAMPLES
+
+
+ Given data%n=(/10,20,10/)  n=(/1,2,3,3/) --> data%n(/10,20,10,1/)
+
+ Given data%n=(/10,20,10/)  n=(/1,3/) --> data%n(/10,200/)
+
+ Given data%n=(/10,20,10/)  n=(/1,2,2,3/) --> data%n(/10,1,20,10/)
+
+
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

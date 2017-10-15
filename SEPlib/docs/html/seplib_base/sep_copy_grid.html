@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sep_copy_grid - copy a grid  from one tag to another</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#return_values">RETURN VALUES</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sep_copy_grid - copy a grid  from one tag to another</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>ierr=sep_copy_grid( intag, outtag)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_intag__2d_char_2a">intag - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      input tag</pre>
+</dd>
+<dt><strong><a name="item_outtag__2d_char_2a">outtag - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      output tag</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_values">RETURN VALUES</a></h1>
+<pre>
+ 0= if sucessfully copies the grid</pre>
+<pre>
+ 1= if the grid doesn't exist in the intag</pre>
+<pre>
+ -1= fails for some other reason</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>When the grid exists, copies contents from intag to outtag</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep3d</strong></p>
+
+</body>
+
+</html>

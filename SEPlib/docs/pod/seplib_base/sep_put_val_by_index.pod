@@ -1,0 +1,69 @@
+=head1 NAME
+
+
+sep_put_val_by_index - get key value by index
+
+=head1 SYNOPSIS
+
+
+C<int sep_put_val_by_index(tag_history,record_number,key_index,n_values,values)>
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item   char*   -tag_history    
+
+        tag of History File
+
+=item   int*    -record_number  
+
+        Header Record Number computed using sep_get_subspace_pointers
+
+=item   int*    -key_index     
+
+        Key Index of Header Key
+
+=item   int*    -n_values       
+
+        Number of Values to be written in contiguos records
+
+=item   void*   -values         
+
+        Header Values of type Key Type
+
+=back
+
+=head1 DESCRIPTION
+
+
+	Puts header value into header values file
+
+=head1 COMMENTS
+
+
+   return=sep_get_header_bytes(char *tag_history, int *n_bytes)
+   i_byte=(record_number-1)*n_bytes+(key_index-1)*n_bytes_value
+   sseek into the Header Format File at position i_byte
+   srite2 into Header Format File from values
+
+=head1 RETURN VALUE
+
+
+ -1= if fails for other reasons
+
+ 0= if successful
+
+ +1= if tag_history is a Sep77 History File
+
+ +2= if tag_history is a Sep3d History File but
+      no matching Key Index is in Header Format File
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

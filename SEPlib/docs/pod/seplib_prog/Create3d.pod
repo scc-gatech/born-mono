@@ -1,0 +1,51 @@
+=head1 NAME
+
+
+
+Create3d - Create a SEPlib3d dataset
+
+=head1 SYNOPSIS
+
+
+ Create3d <in.H >out.H  [headers= ] [keyname1= keyname2 ....)
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+
+=item  headers  - sepfile
+
+       file containing headers
+
+=item  keyname_ -  int
+
+       defaults to key number (nkeys must equal n1 
+       of headers)
+
+=item  verb -  int
+
+       [0]  whether or not to be verbose
+
+=back
+
+=head1 DESCRIPTION
+
+
+Program that creates a SEPLIB3d file 
+from either two S77 files or a single s77 file
+
+WARNING!
+The input file headers must NOT be out.H@@
+
+
+=head1 CATEGORY
+
+
+B<util/headers>
+
+=cut
+

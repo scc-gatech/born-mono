@@ -1,0 +1,8 @@
+project(SEPLIB-prog)
+cmake_minimum_required(VERSION 2.8)
+add_subdirectory(cube)
+add_subdirectory(header)
+add_subdirectory(info)
+#add_subdirectory(par)
+add_subdirectory(unix)
+add_subdirectory(vector)

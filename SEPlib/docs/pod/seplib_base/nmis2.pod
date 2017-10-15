@@ -1,0 +1,55 @@
+=head1 NAME
+
+
+nmis2 - Fill in missing data using non-stationary filter
+
+=head1 SYNOPSIS
+
+
+C<call mis1(niter,xx,aa,known,doprec)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item  niter - integer
+
+       number of iterations
+
+=item  xx    -real
+
+       fitting variable
+
+=item  aa    -type(nfilter)
+
+       filter to apply
+
+=item  known -C<logical(:)>
+
+       Known data
+
+=item  doprec -logical
+
+       Whether or not to run preconditioning
+
+=back
+
+=head1 DESCRIPTION
+
+
+fill in missing data by minimizing power out of a given non-stationary filter
+ by helix magic works in any number of dimensions
+
+=head1 SEE ALSO
+
+
+L<mis2>,L<msmis>,L<mask1>,L<helicon>,L<solver>,L<nhelix>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

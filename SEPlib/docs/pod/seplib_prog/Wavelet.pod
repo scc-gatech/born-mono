@@ -1,0 +1,119 @@
+=head1 NAME
+
+
+Wavelet - wavelet generation
+
+=head1 SYNOPSIS
+
+
+Wavelet parameters [ < in.H ] > out.H
+
+=head1 DESCRIPTION
+
+
+Wavelet generation program usually used for modeling programs
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  nt,n1  - integer 
+
+dimension of time axis
+parameter n1wavelet = n1out also output to header
+
+=item  nx,n2  -integer 
+
+[1] number of input traces to use (see wavelet=data)
+
+=item  np,n3  -integer 
+
+[1]  number of input planes to use (see wavelet=data)
+
+=item  dt     -real    
+
+[.004] sample rate
+(parameter d1wavelet = d1out also output to header)
+
+=item  domain -char*    
+
+[time]  domain option: time,ctime,frequency,spectrum
+time      = nt real values representing the wavelet
+ctime     = nt complex values representing the wavelet
+frequency = nt/2+1 complex values representing frequency domain wavelet
+spectrum  = nt+2 real values, first half are normalized
+            spectrum, second half are normalized phase
+            angle which is the phase angle divided by
+            pi. Usually used for quick check plots.
+(parameter domainwavelet = domain also output to header)
+
+=item  wavelet  -char*  
+
+[spike]  type of wavelet
+spike   = spike in time domain equals white spectrum
+bandpass= butterworth bandpass filter, sharpness of
+           frequency cutoffs is controlled by the order
+ricker0 = gaussian curve
+ricker1 = first derivative of gaussian curve
+ricker2 = second derivative of gaussian curve
+data    = amplitude spectrum is average of
+          nx*np input traces from the in file
+zero    = null wavelet (ie: all zeroes)
+
+=item phase -char*    
+
+[none]      phase options: none,minimum,degrees
+none    = no modification of phase
+minimum = minimum phase
+min2zero = minimum to zero phase conversion
+degrees = numerical value representing degrees of
+          constant phase shift from specified wavelet
+
+=item  fund -real      
+
+[40]     fundamental frequency of ricker wavelet
+         (actually relates to gaussian half-width)
+=item  flow -real      
+
+[10]   low  cutoff frequency of butterworth filter
+
+=item fhigh -real      
+
+[60]   high cutoff frequency of butterworth filter
+
+=item  order-integer   
+
+[1]    order of butterworth filter
+       (1 is average sharpness, > 1 is sharper, < 1 is smoother)
+       (sets both high and low frequency cutoffs)
+
+=item   orderlow-integer 
+
+[1] low  cut order of butterworth filter (overrides order)
+
+=item  orderhigh-integer 
+
+[1] high cut order of butterworth filter (overrides order)
+
+=item  tdelay - real    
+
+additional time delay
+
+=item  bell -real       
+
+[nt/4*dt]    bell window half width, < dt/2 for no bell window
+
+=item  boxcar -integer  
+
+[pnt*dt]    boxcar window width
+
+=back
+
+=head1 CATEGORY
+
+
+B<seis/model>
+
+=cut
+

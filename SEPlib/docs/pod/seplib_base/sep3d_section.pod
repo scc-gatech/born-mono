@@ -1,0 +1,42 @@
+=head1 NAME
+
+
+sep3d_section - check the section of a given index of shared axis
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3d_section(struct,index)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure
+
+=item index  -  int
+
+      index along spread axis
+
+=back
+
+=head1 DESCRIPTION
+
+
+Check the section of a given index
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

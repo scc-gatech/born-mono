@@ -1,0 +1,59 @@
+							SETTING UP THE SEP ENVIRONMENT
+
+
+Before running SEPlib do the following:
+----------------------
+create ~/.datapath
+
+SEPlib files are composed of ascii/binary pairs.  The ascii portion describes
+the data (the size, the type, and the location of the binary). The binary
+portion is the actual data.  The two are separated to allow processing to be
+done in a centralized location (a home directory for example) while the data
+is written where ever there is space.
+The datapath file tells SEPlib where to put binary data and should look
+something like this:
+
+-------------------------
+datapath=/scrka3/bob/;/scrka2/bob/
+spur     datapath=/scrka2/bob/
+oas      datapath=/scrsa1/bob/
+vesuvio  datapath=/SDA/bob/
+santorin datapath=/scrsa4/bob/
+--------------------------------------
+
+By default SEPlib first checks the command line for  datapath=,
+then the directory where the program is run for a  .datapath file,
+and finaly the home directory.  The above  .datapath files tells SEPlib
+to put binary data by default in  /scrka3/bob and if it runs out of space
+in  /scrka2/bob, but when on the computer "santorin"
+to put the data in  /scrsa4/bob.
+
+
+setenv VPLOTSPOOLDIR  /tmp
+
+The next step is to tell SEPlib where to put temporary vplot files.  It
+is best to put these in a location such as  /tmp/
+which is periodically cleaned.
+
+setenv SEPINC includedir 
+The final step is only necessary if you want to compile and run programs
+from SEP reports, theses, or books.  This environmental variable is needed
+by our  Makefile's to find out its compile and install rules. 
+It should be set to the location of the SEP include files.
+
+
+setenv VPLOTFONTDIR includedir/
+The location of the vplot fonts.  Again set this to the location
+of the SEP include files.
+
+In Europe you migt want to set
+
+setenv DEFAULT_PAPER_SIZE  The default paper size (a3)
+
+setenv DEFAULTS_PAPER_UNITS 'c' For centimeters rather than inches
+
+
+Add the mandir and the bindir you specified to your
+MANPATH and PATH variables.
+
+If you prefer you can use the HTML version of the documentation in docs/html

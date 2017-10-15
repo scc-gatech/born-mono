@@ -1,0 +1,807 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$MCvfit -Monte Carlo automatic velocity picks (fit)
+!!$
+!!$
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$MCvfit  < in.H  par=    > out.H
+!!$
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item  stdin -  sepfile
+!!$
+!!$       input vscan(t,vel), can be n3>1
+!!$
+!!$=item 	f_vint-  sepfile
+!!$
+!!$       optional interval vel file ( = vint.H )
+!!$
+!!$=item 	f_verr-  sepfile
+!!$
+!!$       optional vel misfit error file ( = verr.H )
+!!$
+!!$=item 	f_grms-  sepfile
+!!$
+!!$       optional rms vel guess file ( = grms.H )
+!!$
+!!$=item 	f_gint-  sepfile
+!!$
+!!$       optional interval vel guess file ( = gint.H )
+!!$
+!!$=item  a     -  real
+!!$
+!!$       Vrms intercept at t0
+!!$
+!!$=item  b     -  real
+!!$
+!!$       Vrms 'gradient'
+!!$
+!!$=item  c     -  real
+!!$
+!!$       Vrms  'power' function.
+!!$
+!!$=item  nvdiv -  integer
+!!$
+!!$       nlayers per second.  ~20 good.
+!!$
+!!$=item  dvzmax-  real
+!!$
+!!$       max allowed MCvint contrast between 2 adjacent layers
+!!$
+!!$=item  v1bnd -  integer
+!!$
+!!$       Don`t allow trial MCvint(t) < v1bnd*Vint(t)
+!!$
+!!$=item  v2bnd -  integer
+!!$
+!!$       Don`t allow trial MCvint(t) > v2bnd*Vint(t)
+!!$
+!!$=item  vmina -  real
+!!$
+!!$       Global min a value
+!!$
+!!$=item  vminb -  real
+!!$
+!!$       Global min b value
+!!$
+!!$=item  vminc -  real
+!!$
+!!$       Global min c value
+!!$
+!!$=item  vmax  -  real
+!!$
+!!$       global max MCvint value
+!!$
+!!$=item  vsurf -  real
+!!$
+!!$       near surface constant velocity
+!!$
+!!$=item  tsurf -  real
+!!$
+!!$       time thickness of near surface constant velocity layer
+!!$
+!!$=item  dtsurfdx-real
+!!$
+!!$       allows a dipping water bottom:
+!!$       tsurf(x) = tsurf + (x-x0)*dtsurfdx.
+!!$
+!!$=item  sigma -  real
+!!$
+!!$       variance of random velocity perturbations.
+!!$
+!!$=item  nwalk -  integer
+!!$
+!!$       number of random walks.  A 'random walk' starts
+!!$       with one initial model and tries many random
+!!$       steps away from that same initial model.
+!!$       The best model from one walk is used as the
+!!$       starting model for the next walk.
+!!$
+!!$=item  nrand -  integer
+!!$
+!!$       number of random steps per walk.
+!!$
+!!$=item  nconv -  integer
+!!$
+!!$       If fit is unchanged for nconv steps, go to a new walk.
+!!$       If the fit remains unchanged for nconv walks: stop.
+!!$
+!!$=item  toler -  real
+!!$
+!!$       If fit changes < toler, consider that no change.
+!!$       Note, a perfect fit is 1.0 (100%).
+!!$       The most critical parameters to try and optimize to get
+!!$       a better fit are:
+!!$       vmin*, nvdiv~10/20, dvzmax~0.6, sigma~dvzmax/2
+!!$
+!!$=back
+!!$
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Monte Carlo fit parameters...
+!!$This part randomly perturbs the starting Vint(t) model corresponding
+!!$to the starting Vrms(t) model found above.
+!!$These parameters refer to *interval* velocity, not Vrms!
+!!$
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/velan>
+!!$
+!!$=cut
+!>
+! 	David E. Lumley		9/18/92
+!
+!	modified to handle t0 != 0 case properly;  david; 11/21/93
+!
+! 	keyword Monte Carlo nonlinear velocity pick fit
+!
+program aa 
+use sep
+  implicit none
+  integer		n1, n2, n3
+ call SEP_ADD_DOC()
+ call SEP_INIT('')
+    if (0>= hetch('n1','d',n1 )) then
+      call erexit('Trouble reading  n1 from history  ')
+    end if
+    if (0>= hetch('n2','d',n2 )) then
+      call erexit('Trouble reading  n2 from history  ')
+    end if
+    if (0>= fetch('n3','d',n3 )) then
+      n3 = 1
+    end if
+  call sep_begin_prog()
+  call submain( n1,n2,n3)
+  call sep_end_prog()
+end program 
+subroutine submain( n1,n2,n3)
+  use sep_mod
+  implicit none
+  integer ierr,	i1,i3, n1,n2,n3,esize, nt,nv, nn2,nn3
+  real		vscan(n1,n2),vrms(n1),vint(n1),verr(n3),grms(n1),gint(n1)
+  real		o1,d1,o2,d2,o3,d3, t0,dt, v0,dv, oo2,oo3,dd2,dd3
+  real		a0,da, b0,db, c0,dc
+  real		gpar(3,3), mcpar(20)
+  integer		na,nb,nc, nvdiv,nwalk,nrand,nconv, i,j, nx
+  real		dvzmax,v1bnd,v2bnd,vsurf,tsurf,dtsurfdx,tsurf0
+  real		vmina,vminb,vminc,vmax,sigma,toler,err, x0,dx,xx
+  character*80 	filename
+! write(0,*) 'entered submain...'
+!
+!
+    if (0>= hetch('esize','d',esize )) then
+      esize = 4
+    end if
+    if (0>= hetch('n1','d',n1 )) then
+      call erexit('Trouble reading  n1 from history  ')
+    end if
+    if (0>= hetch('n2','d',n2 )) then
+      call erexit('Trouble reading  n2 from history  ')
+    end if
+    if (0.ne. putch('n1','d',n1 )) then
+      call erexit('Trouble writing  n1 to history  ')
+    end if
+    if (0.ne. putch('n2','d',n2 )) then
+      call erexit('Trouble writing  n2 to history  ')
+    end if
+    if (0>= hetch('o1','f',o1 )) then
+      call erexit('Trouble reading  o1 from history  ')
+    end if
+    if (0>= hetch('d1','f',d1 )) then
+      call erexit('Trouble reading  d1 from history  ')
+    end if
+    if (0>= hetch('o2','f',o2 )) then
+      call erexit('Trouble reading  o2 from history  ')
+    end if
+    if (0>= hetch('d2','f',d2 )) then
+      call erexit('Trouble reading  d2 from history  ')
+    end if
+    if (0>= hetch('o3','f',o3 )) then
+      o3 = 0
+    end if
+    if (0>= hetch('d3','f',d3 )) then
+      d3 = 1.
+    end if
+    if (0>= getch('a0','f',a0 )) then
+      a0 = 1.4
+    end if
+    if (0.ne.putch('Read  from param: #a0 ','f',a0)) then
+      call erexit('Trouble writing a0 to history')
+    end if
+    if (0>= getch('da','f',da )) then
+      da = .05
+    end if
+    if (0.ne.putch('Read  from param: #da ','f',da)) then
+      call erexit('Trouble writing da to history')
+    end if
+    if (0>= getch('b0','f',b0 )) then
+      b0 = 0.1
+    end if
+    if (0.ne.putch('Read  from param: #b0 ','f',b0)) then
+      call erexit('Trouble writing b0 to history')
+    end if
+    if (0>= getch('db','f',db )) then
+      db = 0.1
+    end if
+    if (0.ne.putch('Read  from param: #db ','f',db)) then
+      call erexit('Trouble writing db to history')
+    end if
+    if (0>= getch('c0','f',c0 )) then
+      c0 = 0.1
+    end if
+    if (0.ne.putch('Read  from param: #c0 ','f',c0)) then
+      call erexit('Trouble writing c0 to history')
+    end if
+    if (0>= getch('dc','f',dc )) then
+      dc = 0.1
+    end if
+    if (0.ne.putch('Read  from param: #dc ','f',dc)) then
+      call erexit('Trouble writing dc to history')
+    end if
+    if (0>= getch('na','d',na )) then
+      na = 5
+    end if
+    if (0.ne.putch('Read  from param: #na ','d',na)) then
+      call erexit('Trouble writing na to history')
+    end if
+    if (0>= getch('nb','d',nb )) then
+      nb = 5
+    end if
+    if (0.ne.putch('Read  from param: #nb ','d',nb)) then
+      call erexit('Trouble writing nb to history')
+    end if
+    if (0>= getch('nc','d',nc )) then
+      nc = 10
+    end if
+    if (0.ne.putch('Read  from param: #nc ','d',nc)) then
+      call erexit('Trouble writing nc to history')
+    end if
+  gpar(1,1)= a0
+  gpar(1,2)= da
+  gpar(1,3)= float(na)
+  gpar(2,1)= b0
+  gpar(2,2)= db
+  gpar(2,3)= float(nb)
+  gpar(3,1)= c0
+  gpar(3,2)= dc
+  gpar(3,3)= float(nc)
+    if (0>= getch('nvdiv','d',nvdiv )) then
+      nvdiv = 20
+    end if
+    if (0.ne.putch('Read  from param: #nvdiv ','d',nvdiv)) then
+      call erexit('Trouble writing nvdiv to history')
+    end if
+    if (0>= getch('nwalk','d',nwalk )) then
+      nwalk = 100
+    end if
+    if (0.ne.putch('Read  from param: #nwalk ','d',nwalk)) then
+      call erexit('Trouble writing nwalk to history')
+    end if
+    if (0>= getch('nrand','d',nrand )) then
+      nrand = 100
+    end if
+    if (0.ne.putch('Read  from param: #nrand ','d',nrand)) then
+      call erexit('Trouble writing nrand to history')
+    end if
+    if (0>= getch('nconv','d',nconv )) then
+      nconv = 10
+    end if
+    if (0.ne.putch('Read  from param: #nconv ','d',nconv)) then
+      call erexit('Trouble writing nconv to history')
+    end if
+    if (0>= getch('dvzmax','f',dvzmax )) then
+      dvzmax = 0.1
+    end if
+    if (0.ne.putch('Read  from param: #dvzmax ','f',dvzmax)) then
+      call erexit('Trouble writing dvzmax to history')
+    end if
+    if (0>= getch('v1bnd','f',v1bnd )) then
+      v1bnd = 0.8
+    end if
+    if (0.ne.putch('Read  from param: #v1bnd ','f',v1bnd)) then
+      call erexit('Trouble writing v1bnd to history')
+    end if
+    if (0>= getch('v2bnd','f',v2bnd )) then
+      v2bnd = 1.2
+    end if
+    if (0.ne.putch('Read  from param: #v2bnd ','f',v2bnd)) then
+      call erexit('Trouble writing v2bnd to history')
+    end if
+    if (0>= getch('sigma','f',sigma )) then
+      sigma = 0.1
+    end if
+    if (0.ne.putch('Read  from param: #sigma ','f',sigma)) then
+      call erexit('Trouble writing sigma to history')
+    end if
+    if (0>= getch('vsurf','f',vsurf )) then
+      vsurf = 1.5
+    end if
+    if (0.ne.putch('Read  from param: #vsurf ','f',vsurf)) then
+      call erexit('Trouble writing vsurf to history')
+    end if
+    if (0>= getch('tsurf','f',tsurf )) then
+      tsurf = 0.1
+    end if
+    if (0.ne.putch('Read  from param: #tsurf ','f',tsurf)) then
+      call erexit('Trouble writing tsurf to history')
+    end if
+    if (0>= getch('dtsurfdx','f',dtsurfdx )) then
+      dtsurfdx = 0
+    end if
+    if (0.ne.putch('Read  from param: #dtsurfdx ','f',dtsurfdx)) then
+      call erexit('Trouble writing dtsurfdx to history')
+    end if
+    if (0>= getch('vmax','f',vmax )) then
+      vmax = 3.0
+    end if
+    if (0.ne.putch('Read  from param: #vmax ','f',vmax)) then
+      call erexit('Trouble writing vmax to history')
+    end if
+    if (0>= getch('toler','f',toler )) then
+      toler = 0.01
+    end if
+    if (0.ne.putch('Read  from param: #toler ','f',toler)) then
+      call erexit('Trouble writing toler to history')
+    end if
+    if (0>= getch('vmina','f',vmina )) then
+      vmina = 1.4
+    end if
+    if (0.ne.putch('Read  from param: #vmina ','f',vmina)) then
+      call erexit('Trouble writing vmina to history')
+    end if
+    if (0>= getch('vminb','f',vminb )) then
+      vminb = 0
+    end if
+    if (0.ne.putch('Read  from param: #vminb ','f',vminb)) then
+      call erexit('Trouble writing vminb to history')
+    end if
+    if (0>= getch('vminc','f',vminc )) then
+      vminc = 0
+    end if
+    if (0.ne.putch('Read  from param: #vminc ','f',vminc)) then
+      call erexit('Trouble writing vminc to history')
+    end if
+  t0 = o1
+  dt = d1
+  nt = n1
+  v0 = o2
+  dv = d2
+  nv = n2
+  x0 = o3
+  dx = d3
+  nx = n3
+  tsurf0= tsurf
+  mcpar(1)= float(nvdiv)
+  mcpar(2)= dvzmax
+  mcpar(3)= v1bnd
+  mcpar(4)= v2bnd
+  mcpar(5)= float(nwalk)
+  mcpar(6)= float(nrand)
+  mcpar(7)= vsurf
+  mcpar(8)= tsurf
+  mcpar(9)= vmina
+  mcpar(10)= vmax
+  mcpar(11)= float(nconv)
+  mcpar(12)= sigma
+  mcpar(13)= toler
+  mcpar(14)= vminb
+  mcpar(15)= vminc
+    if (0 .ne. putch ( 'n1','i',n1)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ( 'n2','i',n3)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ( 'n3','i',1)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ( 'o2','f',o3)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ( 'd2','f',d3)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ( 'o3','f',0)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ( 'd3','f',1.0)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ( 'label2','s','midpoint (km)')) then
+      call erexit('trouble writing to file ')
+    end if
+! write(0,*) 'done out.H putches'
+  if ( getch('f_vint','s',filename) .ne. 0) then
+    ierr= auxputch( 'n1','i',n1, 'f_vint')
+    ierr= auxputch( 'n2','i',n3, 'f_vint')
+    ierr= auxputch( 'n3','i',1,  'f_vint')
+    ierr= auxputch( 'o1','f',o1, 'f_vint')
+    ierr= auxputch( 'd1','f',d1, 'f_vint')
+    ierr= auxputch( 'o2','f',o3, 'f_vint')
+    ierr= auxputch( 'd2','f',d3, 'f_vint')
+    ierr= auxputch( 'o3','f',0, 'f_vint')
+    ierr= auxputch( 'd3','f',1.0, 'f_vint')
+    ierr= auxputch( 'esize','i',esize, 'f_vint')
+    ierr= auxputch( 'label2','s','midpoint (km)','f_vint')
+  end if
+  if ( getch('f_verr','s',filename) .ne. 0) then
+    ierr= auxputch( 'n1','i',n3, 'f_verr')
+    ierr= auxputch( 'n2','i',1, 'f_verr')
+    ierr= auxputch( 'n3','i',1,  'f_verr')
+    ierr= auxputch( 'o1','f',o3, 'f_verr')
+    ierr= auxputch( 'd1','f',d3, 'f_verr')
+    ierr= auxputch( 'o2','f',0, 'f_verr')
+    ierr= auxputch( 'd2','f',1.0, 'f_verr')
+    ierr= auxputch( 'o3','f',0, 'f_verr')
+    ierr= auxputch( 'd3','f',1.0, 'f_verr')
+    ierr= auxputch( 'esize','i',esize, 'f_verr')
+    ierr= auxputch( 'label1','s','midpoint (km)','f_verr')
+    ierr= auxputch( 'label2','s','relative error','f_verr')
+  end if
+  if ( getch('f_gint','s',filename) .ne. 0) then
+    ierr= auxputch( 'n1','i',n1, 'f_gint')
+    ierr= auxputch( 'n2','i',n3, 'f_gint')
+    ierr= auxputch( 'n3','i',1,  'f_gint')
+    ierr= auxputch( 'o1','f',o1, 'f_gint')
+    ierr= auxputch( 'd1','f',d1, 'f_gint')
+    ierr= auxputch( 'o2','f',o3, 'f_gint')
+    ierr= auxputch( 'd2','f',d3, 'f_gint')
+    ierr= auxputch( 'o3','f',0, 'f_gint')
+    ierr= auxputch( 'd3','f',1.0, 'f_gint')
+    ierr= auxputch( 'esize','i',esize, 'f_gint')
+    ierr= auxputch( 'label2','s','midpoint (km)','f_gint')
+  end if
+  if ( getch('f_grms','s',filename) .ne. 0) then
+    ierr= auxputch( 'n1','i',n1, 'f_grms')
+    ierr= auxputch( 'n2','i',n3, 'f_grms')
+    ierr= auxputch( 'n3','i',1,  'f_grms')
+    ierr= auxputch( 'o1','f',o1, 'f_grms')
+    ierr= auxputch( 'd1','f',d1, 'f_grms')
+    ierr= auxputch( 'o2','f',o3, 'f_grms')
+    ierr= auxputch( 'd2','f',d3, 'f_grms')
+    ierr= auxputch( 'o3','f',0, 'f_grms')
+    ierr= auxputch( 'd3','f',1.0, 'f_grms')
+    ierr= auxputch( 'esize','i',esize, 'f_grms')
+    ierr= auxputch( 'label2','s','midpoint (km)','f_grms')
+  end if
+  call hclose()	
+  do i3= 1, n3  
+    xx= (i3-1)*dx + x0
+    tsurf= tsurf0 + dtsurfdx*(xx-x0)
+    mcpar(8)= tsurf
+    ierr= sreed( 'in', vscan, 4*n1*n2)
+! write(0,*) 'done reading vscan', i3
+!write(0,*) ((gpar(i,j),i=1,3),j=1,3)
+!write(0,*) (mcpar(i),i=1,13)
+!write(0,*) t0,dt,v0,dv,nt,nv
+    call mcvfit( gpar,mcpar, t0,dt, v0,dv, vscan,nt,nv, vrms,vint,err&
+      &,grms,gint)
+    verr(i3)= err
+    ierr= srite( 'out' , vrms, 4*n1)
+    if ( getch('f_vint','s',filename) .ne. 0) then
+      ierr= srite( 'f_vint', vint,  4*n1)
+    end if
+    if ( getch('f_gint','s',filename) .ne. 0) then
+      ierr= srite( 'f_gint', gint,  4*n1)
+    end if
+    if ( getch('f_grms','s',filename) .ne. 0) then
+      ierr= srite( 'f_grms', grms,  4*n1)
+    end if
+! write(0,*) '  done writing vfit', i3
+  end do 
+  if ( getch('f_verr','s',filename) .ne. 0) then
+    ierr= srite( 'f_verr', verr,  4*n3)
+  end if
+! write(0,*) '  done writing verror'
+  close(6)
+end subroutine 
+subroutine mcvfit(gpar,mcpar, t0,dt, v0,dv, vscan,nt,nv, vrmsg,vintg&
+  &,verr,grms,gint)
+use sep_mod
+  implicit none
+  integer	nt, nv,ierr
+  real	t0,dt, v0,dv
+  real	gpar(3,3), mcpar(20), vscan(nt,nv), vrmsg(nt), vintg(nt)
+  real	verr,grms(nt),gint(nt)
+  real	a,a0,da,b,b0,db,c,c0,dc,eps,smax,sum,amax,bmax,cmax,toler
+  real	vsum,ssum,c1,c2,c3,vold,fmax,arg,gmax,err,e1,e2,gerr,g1,g2
+  real	gold,dvzmax, urand, tt,v1bnd,v2bnd,v,vsurf,tsurf,vmax,sigma
+  real	vv1,vv2, tt1,tt2, df, vlast, scale
+  real	vmina,vminb,vminc
+  integer	na,nb,nc,iv,ia,ib,ic, it,itsurf, j, it1,it2,ntri
+  integer	irand,nrand,iwalk,nwalk,nvdiv,iconv,nconv, iseed
+  real	vrms1(nt), vint1(nt), vwalk(nt), t(nt) 
+  real	semb(nt),sembx(nt),semb1(nt),sembg(nt), vmin(nt)
+  real	vrms(nt), vint(nt), vrand(nt), v1(nt), v2(nt), temp(nt)
+  a0= gpar(1,1)
+  da= gpar(1,2)
+  na= nint(gpar(1,3))
+  b0= gpar(2,1)
+  db= gpar(2,2)
+  nb= nint(gpar(2,3))
+  c0= gpar(3,1)
+  dc= gpar(3,2)
+  nc= nint(gpar(3,3))
+  nvdiv= nint(mcpar(1))
+  dvzmax= mcpar(2)
+  v1bnd= mcpar(3)
+  v2bnd= mcpar(4)
+  nwalk= nint(mcpar(5))
+  nrand= nint(mcpar(6))
+  vsurf= mcpar(7)
+  tsurf= mcpar(8)
+  vmina= mcpar(9)
+  vmax= mcpar(10)
+  nconv= nint(mcpar(11))
+  sigma= mcpar(12)
+  toler= mcpar(13)
+  vminb= mcpar(14)
+  vminc= mcpar(15)
+  eps= 1.0e-12
+  nvdiv= (1./dt)/nvdiv + 1.5
+  tsurf= max(tsurf,t0)
+  itsurf= (tsurf-t0)/dt+1.5
+  iseed= 1234567
+  df= 1./dt
+  ntri= 0.1/dt + 1.5
+  ntri= min( max(1,ntri), nt/10 )
+  ntri= (ntri+1)/2*2
+  scale= 1./float(ntri/2+1)**2
+  do it=1,nt  
+    t(it)= (it-1)*dt + t0
+  end do 
+  do it=1,nt  
+    tt= t(it)-tsurf
+    if (t(it).le.tsurf) then
+      vmin(it)= 0.9*vsurf
+    else
+      vmin(it)= vmina + vminb*(tt**vminc)
+    end if
+  end do 
+! Make sure scan values positive...
+  smax= 0.
+  do iv=1,nv  
+    do it=1,nt  
+      vscan(it,iv)= abs(vscan(it,iv))
+      smax= max(vscan(it,iv), smax)
+    end do
+  end do 
+! Scale to unit magnitude...
+  do iv=1,nv  
+    do it=1,nt  
+      vscan(it,iv)= vscan(it,iv)/(smax+eps)
+    end do
+  end do 
+! Calc max semblance integral in vscan...
+  ssum= 0.
+  do it=1,nt  
+    smax= 0.
+    do iv=1,nv  
+      smax= max(vscan(it,iv),smax)
+    end do 
+    sembx(it)= max(0.1,smax)
+    ssum= smax + ssum
+  end do 
+  fmax= ssum
+! Find best parametric fit...
+  smax= 0.  
+  do ia= 1,na  
+    a= a0+(ia-1)*da
+    do ib= 1,nb  
+      b= b0+(ib-1)*db
+      do ic= 1,nc  
+        c= c0+(ic-1)*dc
+        sum= 0.
+        do it= 1,nt   
+          tt= t(it) - t0
+          v= a + b * tt**c 
+          iv= (v-v0)/dv + 1.5
+          iv= max(1, min(iv,nv))
+          semb(it)= vscan(it,iv)
+          sum= vscan(it,iv) + sum
+        end do 
+        if ( sum .gt. smax ) then
+          smax= sum
+          amax= a
+          bmax= b
+          cmax= c
+          do j=1,nt  
+            sembg(j)= semb(j)
+          end do
+        end if
+      end do
+    end do
+  end do 
+  arg= (1.-smax/(fmax+eps))
+! write(6,*) 'Initial misfit = ',arg
+! Parametric Vrms estimate...
+  do it=1,nt  
+    grms(it)= amax + bmax * (t(it)-t0)**cmax
+  end do 
+! Smooth Vrms by triangles, especially near tsurf...
+! double integration...
+! do it=1,nt { temp(it)= grms(it) }
+! do it=2,nt { temp(it)= temp(it) + temp(it-1) }
+! do it=nt-1,1,-1 { temp(it)= temp(it) + temp(it+1) }
+! Apply triangle...
+! do it=1,nt {
+! it1= it-ntri/2-1;  it2=it+ntri/2+1
+! if((it1.ge.1).and.(it2.le.nt)) {
+! grms(it)= ( 2*temp(it) - temp(it1) - temp(it2) )*scale
+! }
+! }
+! Parametric Vint estimate and v1, v2 bounds...
+! c1= amax**2;	c2= (1+cmax)*2*amax*bmax;	c3= (1+2*cmax)*bmax**2;
+  gint(1)= grms(1)
+  do it=2,nt  
+    it1= it-1 
+    it2= it
+    tt2= t(it2) 
+    tt1= t(it1) 
+    vv2= (grms(it2))**2 
+    vv1= (grms(it1))**2
+    gint(it)= sqrt( (vv2*tt2 - vv1*tt1)*df )
+! gint(it)= sqrt( c1 + c2*tt**cmax + c3*tt**(2*cmax) ) # CHECK THIS t0 !!
+  end do 
+  gmax= smax 
+  g2= 1.
+  g1= 1.
+  gerr= 1.-gmax/fmax
+  do it=1,nt  
+    vintg(it)= gint(it)
+  end do 
+  do it=1,nt  
+    vrmsg(it)= grms(it)
+  end do 
+! for all random walks...
+  iconv= 0
+! write(6,*) 'nwalk=',nwalk
+! write(6,*) 'nrand=',nrand
+  do iwalk=1,nwalk  
+    do it=1,nt  
+      vwalk(it)= vintg(it)
+      v1(it)= max( v1bnd*vintg(it), vmin(it) )
+      v2(it)= min( v2bnd*vintg(it), vmax )
+    end do 
+! write(6,*) 'NEW RANDOM WALK'
+! write(6,*) 'gmax=',gmax
+! for each random walk...
+    err= 1.-smax/fmax
+    e1= 1.
+    e2=1.
+    do irand=1,nrand   
+      ssum= 0.
+      v= vsurf 
+      vsum= 0.
+      vsum= v*v*t0
+! 11/21/93
+! try a random perturbation to Vint...
+      do it=1,nt  
+        tt= t(it)
+! itsurf=10
+        if ( it .le. itsurf) then
+          v= vsurf
+          vrand(it)= v
+        else
+          vold= v
+          sigma=0.1
+          if ( (it/nvdiv*nvdiv .ne. it) ) then
+            v= vold
+          else
+            v= ( 1. - 2*sigma*(urand(iseed)-0.5) )*vwalk(it)
+          end if 
+          v= min( v2(it), max(v,v1(it)) )
+          vrand(it)= v
+          do while  ( abs(vrand(it)-vrand(it-1)) .gt. dvzmax*sembx(it)&
+            & )
+            vrand(it)= 0.5*(vrand(it)+vrand(it-1))
+            v= vrand(it)
+          end do
+        end if 
+! write(6,*) '    vrand= ',v
+! compute Vrms equiv of Vrand (interval)...
+        vsum= v*v*dt + vsum
+        vrms(it)= sqrt(vsum/(tt+dt)) 
+        iv= (vrms(it)-v0)/dv + 1.5
+        iv= max(1, min(iv,nv))
+        semb(it)= vscan(it,iv)
+        ssum= vscan(it,iv) + ssum
+      end do 
+! end it loop
+! write(6,*) '  Finished a random STEP, ssum=',ssum
+! DEBUG: Check Vrms printout
+! do it=1,nt { vrmsg(it)= vrms(it) }
+! do it=1,nt { vintg(it)= vrand(it) }
+! goto 999
+! Check for a local maximum...
+      if ( ssum .gt. smax ) then
+        e2= e1
+        e1= err
+        err= 1.-ssum/fmax
+        smax= ssum
+        do it=1,nt  
+          vrms1(it)= vrms(it)
+        end do 
+        do it=1,nt  
+          vint1(it)= vrand(it)
+        end do 
+        do it=1,nt  
+          semb1(it)= semb(it)
+        end do 
+! write(6,*) '  Updated local misfit = ',(1.-smax/(fmax+eps))
+! write(6,*) '  smax = ssum =',smax
+! toler= 0.01
+        if ( (e2-err) .lt. toler ) then
+          goto 101
+        end if
+      end if
+! do it=1,nt { vwalk(it)= vrand(it) }
+    end do 
+    101 continue
+! Check for a global maximum...
+    gold= gmax
+    if ( smax .gt. gmax ) then
+      g2= g1
+      g1=gerr
+      gerr= 1.-smax/fmax
+      gmax= smax
+      do it=1,nt  
+        vrmsg(it)= vrms1(it)
+      end do 
+      do it=1,nt  
+        vintg(it)= vint1(it)
+      end do 
+      do it=1,nt  
+        sembg(it)= semb1(it)
+      end do 
+! write(6,*) 'updated GLOBAL misfit = ',(1.-smax/(fmax+eps))
+! write(6,*) '  gmax = smax =',gmax
+! toler=0.01
+      if ( (g2-gerr) .lt. toler) then
+        goto 201
+      end if
+    end if
+    if ( (gmax .eq. gold) ) then
+      iconv= iconv+1
+    else
+      iconv= 0
+    end if 
+! nconv=10
+    if ( iconv .gt. nconv ) then
+      goto 201
+    end if
+  end do 
+  201 continue
+  verr= 1. - gmax/(fmax+eps)
+  999 continue
+! close(6)
+end subroutine 
+function URAND(iseed)
+!	Generates UNIFORM distribution of random numbers on the
+!	range (0,1). Reference: Nyhoff and Leestma, Fortran77, p.294
+!	iseed	the seed should be a large odd integer value
+!	-- David Lumley.
+  implicit none
+  integer	iseed,m,const1
+  real*4	urand,const2	
+  parameter (const1= 2147483647, const2=0.4656613e-09)
+  save
+  data	m /0/
+  if (m.eq.0) then
+    m= iseed
+  end if
+  m= m*65539
+  if (m< 0) then
+    m= (m+1)+const1
+  end if
+  urand= m*const2
+  return
+end function  

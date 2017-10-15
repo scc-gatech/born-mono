@@ -1,0 +1,45 @@
+=head1 NAME
+
+
+sep3dc_set_number_headers - Set the number of headers in memory
+
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3dc_set_number_headers(sep3dc *space1, int num)>
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  space1  -  sep3d
+
+     structure 
+
+=item  num  -  int
+
+     number of headers
+
+=back
+
+=head1 DESCRIPTION
+
+
+Set the number of headers
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

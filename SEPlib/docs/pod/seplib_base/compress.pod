@@ -1,0 +1,33 @@
+=head1 NAME
+
+
+compress - compress a helix filter
+
+=head1 SYNOPSIS
+
+
+C<call resize(aa)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item aa  - type(filter)
+
+      helix filter
+
+=back
+
+=head1 DESCRIPTION
+
+
+Compress a helix filter, remove all filter coefs < epsilon
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

@@ -1,0 +1,18 @@
+#!/usr/bin/env perl
+# A short little Perl script to get around the problems Merge and Cat
+# sometimes have without input redirection.
+unless (-f STDIN) {
+        # STDIN is not a file so, open the first file argument as stdin.
+        undef $file;
+        foreach $i (0 .. $#ARGV) {
+                unless ($ARGV[$i] =~ /(.*)=(.*)/) {
+                        $file = $ARGV[$i];
+                        splice(@ARGV, $i, 1);
+                        last;
+                }
+        }
+        die("No input?") unless defined($file);
+        die("Couldn't open $file") unless open(STDIN, $file);
+}
+$cmd='Merge';
+exec $cmd ($0, @ARGV);                  # exec the real command

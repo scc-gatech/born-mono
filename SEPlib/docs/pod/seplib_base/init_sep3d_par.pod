@@ -1,0 +1,58 @@
+=head1 NAME
+
+
+init_sep3d_par - Initialize a structure from parameters
+
+
+=head1 SYNOPSIS
+
+
+C<logic= init_sep3d_par(sep3d *sep3dc,char *usage,char *data_type,char *file_type,int ndim,int nkeys)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item sep3c  -  sep3d
+
+     structure to create
+
+=item usage  -  char*
+
+      usage for tag ('INPUT','OUTPUT','SCRATCH')
+
+=item data_type - char*
+
+     datatype ("FLOAT","COMPLEX","BYTE")
+
+=item file_type - char*
+
+     filetype ("REGULAR","HEADERS","GRID")
+
+=item ndim - int
+
+     number of dimensions
+
+=item nkeys - int
+
+     number of keys
+
+=back
+
+=head1 DESCRIPTION
+
+
+Create a sep3d structure from another structure
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

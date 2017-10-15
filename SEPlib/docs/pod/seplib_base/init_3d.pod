@@ -1,0 +1,27 @@
+=head1 NAME
+
+
+init_3d - initialize sep3d i/o
+
+=head1 SYNOPSIS
+
+
+init_3d()
+
+=head1 DESCRIPTION
+
+
+Initiates sep3d dataset
+
+=head1 SEE ALSO
+
+
+L<sep_3d_close>
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

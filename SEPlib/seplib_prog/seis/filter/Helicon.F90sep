@@ -1,0 +1,157 @@
+!!$=head1 NAME
+!!$
+!!$Helicon - Helix convolution and deconvolution (N-dimensional!)
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Helicon < in.H filt= adj=0 div=0 > out.H
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Applies helix convolution (polynomial multiplication) or deconvolution
+!!$(polynomial division). One is the exact inverse of the other. Watch
+!!$for helical boundary conditions.
+!!$
+!!$=head1 PARAMETERS
+!!$
+!!$=over 3
+!!$
+!!$=item from history
+!!$
+!!$B<integer array> I<n> - reads I<n1>, I<n2>, I<n3>, ... 
+!!$
+!!$=item from par
+!!$
+!!$B<filename> I<filt> - helix filter file
+!!$
+!!$B<integer> I<adj>=0 - apply adjoint (backward) filtering
+!!$
+!!$B<integer> I<div>=0 - apply inverse recursive filtering (polynomial division)
+!!$
+!!$B<logical> I<regrid>=1 - regrid the filter
+!!$
+!!$B<logical> I<regrid>=0 - bound the filter
+!!$
+!!$
+!!$=item from aux (filt)
+!!$
+!!$B<integer array> I<h> - helix grid (can be I<h1>, I<h2>, ...)
+!!$;
+!!$B<integer array> I<lag>=1,...,n1 - comma separated list of filter lags
+!!$
+!!$B<real> I<a0>=1 - zero-lag filter coefficient
+!!$
+!!$=back
+!!$
+!!$=head1 EXAMPLES
+!!$
+!!$F<gee/hlx/helderiv/>, F<gee/hlx/helicon90/>, F<gee/hlx/helocut90/>,
+!!$F<gee/mda/morgan/>, F<gee/prc/sep95/>
+!!$
+!!$=head1 MODULES
+!!$
+!!$F<helicon.lop>, F<polydiv.lop>, F<regrid.r90>, F<helix.r90>
+!!$
+!!$=cut
+!%
+
+program Helico
+	use sep
+	use helix
+	use helicon
+	use polydiv
+	use regrid
+	use bound
+
+	implicit none
+
+	integer                             :: ia, na, nx, stat, dim,icenter,i
+	real                                :: a0
+	logical                             :: adj, add = .false., div
+	logical                             :: myregrid,mybound
+	real, dimension (:), allocatable    :: pp, qq
+	integer, dimension (:), allocatable :: n, m,n_a,imid,ismall,ibig,ii
+	type(filter)                        :: aa
+
+        call SEP_ADD_DOC()
+	call sep_init ('')
+        call sep_begin_prog()
+	dim = sep_dimension()
+	allocate (n (dim), m (dim))
+	call from_history (n)
+	call from_aux ("filt","na",na)
+	call allocatehelix (aa, na)
+
+	! get parameters
+	call from_aux ("filt", "a0", a0, 1.)
+	call from_aux ("filt", "lag", aa%lag, (/ (ia, ia = 1, na) /))
+	call from_param("regrid",myregrid,.true.)
+	call from_param("bound",mybound,.false.)
+
+	! set grid dimensions
+	if(myregrid) then
+		call from_aux ("filt", "n", m)
+	else
+		m=n
+	end if
+	call regridn (m, n, aa)
+
+	! get flags
+	call from_par ("adj",adj,.false.)
+	call from_par ("div",div,.false.)
+	call hclose ()
+
+	! allocate space for data
+	nx = product (n)
+	allocate (pp (nx), qq (nx))
+
+	! read in data
+	if (adj) then
+		call sep_read (qq)
+	else
+		call sep_read (pp)
+	end if
+
+	! check and allocate space for bounds, convert data to cartesian from helix
+	if(mybound) then
+		allocate (n_a (dim), imid (dim),ismall(dim),ibig(dim),ii(dim))
+		ibig=0; ismall=0
+		imid=ceiling(float(n)/2.)
+		call cart2line(n,imid,icenter)
+
+		do ia=1,size(aa%flt) 
+			call line2cart(n,icenter+aa%lag(ia),ii)
+			do i=1,dim
+				ismall(i)=min(ismall(i),imid(i)-ii(i))
+				ibig(i)=max(ibig(i),imid(i)-ii(i)) 
+			end do
+		end do
+		allocate(aa%mis(product(n))); aa%mis=.false.
+		call boundn(n,n,ibig,aa)
+!     call boundn(n,n,ibig-ismall,aa)
+	end if
+
+	! read in filter coefficients and do the filtering
+	call sep_read (aa%flt, "filt"); aa%flt = aa%flt/a0
+	if (div) then
+		call polydiv_init (nx, aa)
+		stat = polydiv_lop (adj,add,pp,qq)
+		call polydiv_close()
+	else
+		call helicon_init (aa)
+		stat = helicon_lop (adj,add,pp,qq)
+	end if
+
+	! write data out
+	if (adj) then
+		call sep_write (pp)
+	else
+		call sep_write (qq)
+	end if
+
+	! clean up 
+	deallocate (n, m, pp, qq)
+	call deallocatehelix (aa)
+	call sep_end_prog()
+
+end program Helico

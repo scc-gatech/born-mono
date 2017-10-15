@@ -1,0 +1,62 @@
+=head1 NAME
+
+
+npef - find non stationary prediction error filter
+
+=head1 SYNOPSIS
+
+
+C<call find_pef(dd,aa,rr,niter,eps,nh)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item dd  -  C<real(:)>
+
+      Input data
+
+=item niter - integer
+
+      Number of itterations
+
+=item rr   - type(nfilter)
+
+      Filter (aa) regularizer
+
+=item eps  -  real
+
+      Epsilon to apply to filter estimation problem
+      larger mean more regularized
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item  aa - type(filter)
+
+       output filter
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Find a non-stationary prediction-error filter (helix magic)
+
+=head1 SEE ALSO
+
+
+L<pef>,L<nhconest>,L<solver>,L<cgstep>,L<nhelix>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

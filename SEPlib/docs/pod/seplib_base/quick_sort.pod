@@ -1,0 +1,50 @@
+=head1 NAME
+
+
+quick_sort - quick sort
+
+=head1 SYNOPSIS
+
+
+C<call quick_sort(rarray,key,n1,n2)>
+
+C<call quick_sort(iarray,key,n1,n2)>
+
+C<call quick_sort(rarray,key,n1)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item array - C<real(:,:)>
+
+       input array
+
+=item key   - integer
+
+      key to sort off of
+
+=item n1 - integer
+
+      size of data, first axis
+
+=item n2 - integer
+
+      size of data, second axis
+
+=back
+
+=head1 DESCRIPTION
+
+
+ In place quick sort routine for a variety of different data configurations
+
+
+=head1 LIBRARY
+
+
+B<sepauxf90>
+
+=cut
+

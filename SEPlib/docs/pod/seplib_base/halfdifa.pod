@@ -1,0 +1,55 @@
+=head1 NAME
+
+
+halfdifa - half causal derivative
+
+=head1 SYNOPSIS
+
+
+ call halfdifa(adj,add,n,xx,yy)
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item adj - integer
+
+      1=adjoint, 0=forward
+
+=item add - integer
+
+       1=add to output, 0=erase output
+
+=item n - integer
+
+      size of data
+
+=item xx - real(n)
+
+      model
+
+=item yy - real(n)
+
+      data
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Half order causal derivative.  OK to equiv(xx,yy)
+
+
+=head1 SEE ALSO
+
+
+L<Halfint>
+
+=head1 LIBRARY
+
+
+B<sepfilterf90>
+
+=cut
+

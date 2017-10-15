@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Get - Simple operations on parameters</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Get - Simple operations on parameters</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Get par=parfile parform=y &lt; Input.h parameter1 parameter2 parameter3 ...</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_parform__2d_char">parform  -   char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [y]-Returns 'parameter1=whatever 
+       parameter2=whatever' etc
+       according to their values in the input header / parfiles.
+       n-Returns the values of the parameters separated by spaces.</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Simple operations on parameters</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+   Example:  Here is a shell to make   n1 = n1 / 2
+                 #/bin/csh -f
+                 set n1 = `Get &lt;junk.H parform=n n1`
+                 @ nh = $n1 / 2
+                 echo n1=$nh</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Headermath.html">the Headermath manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/info</strong></p>
+
+</body>
+
+</html>

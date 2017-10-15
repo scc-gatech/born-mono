@@ -1,0 +1,23 @@
+
+
+=head1 NAME
+
+sepfilter - Functions that deal with filtering
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Functions that deal with filtering
+
+=head1 FUNCTIONS
+
+
+
+L<energy> -  calculate energy
+
+
+
+=cut 

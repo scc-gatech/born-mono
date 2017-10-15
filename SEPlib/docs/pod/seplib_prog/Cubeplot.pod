@@ -1,0 +1,232 @@
+=head1 NAME
+
+
+Cubeplot - plot seismic data cube
+
+=head1 SYNOPSIS
+
+
+Cubeplot movie=0 frame1=0 frame2=0 frame3=0 point1=0.5 point2=0.5                        wantcoordlabel=1 wantaxes=y popup=n < in.T > out.V
+
+=head1 DESCRIPTION
+
+
+Cubeplot - 3D raster plot of seismic data cube
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item movie	 - int    
+
+      0 output is single cube plot
+      1 output is movie over 1 axis
+      2 output is movie over 2 axis
+      3 output is movie over 3 axis
+
+=item nframe-  int    
+
+      number of frames in movie
+
+=item dframe-  float  
+
+      increment between input frames for movie (must be positive)
+
+=item frame1-	 int    
+
+      frame numbers for cube faces that display
+
+=item frame2-  int    
+
+      a single frame. For faces that display a movie,
+
+=item frame3-  int    
+
+      this is the starting frame number.
+
+=item center- int
+
+      [0] default the frames to the center of the cube
+
+=item point1- float   
+
+      front face of cube takes up this fraction of 1 axis
+
+=item point2- float   
+
+      front face of cube takes up this fraction of 2 axis
+
+=item flat	- char    
+
+      if flat=y, the three faces are displayed flat rather
+      that in a perspective view.
+
+=item wantcoordlabel- int 	
+
+      By default (wantcoordlabel=1), lines are drawn to 
+      indicate where in the cube the three slices are taken 
+      from, and the coordinate values of the three cube
+      slices shown are plotted. If you want the frame numbers
+      instead of the coordinates, specify wantcoordlabel=0.
+      If you want lines to be drawn with no labeling,
+      specify -1. For no lines to be drawn specify -2. 
+
+=item wantaxes	- char 
+
+      Axes are drawn by default. Specify wantaxes=n to skip them.
+
+=item wantoutline	- char
+
+      By default, lines are drawn to outline each face of the
+      cube. Specify wantoutline=n to override.
+
+=item n1pix	 - int     
+
+      number of pixels on 1 axis of vplot raster
+      default is 2*n1. Using fewer reduces memory requirements,
+      but makes a coarser image.
+
+=item n2pix	-  int     
+
+      number of pixels on 2 axis of vplot raster
+      default is 2*n2.
+
+=item popup -  char    
+
+      Specifying popup=y brings up an xtpanel 
+      (if you have xtpanel
+      installed) with three sliders. Moving these sliders changes
+      the frames plotted on the three cube faces. If you pipe
+      the output of Cubeplot to 'Xtpen cachepipe=n' you will see
+      the display update as the sliders are moved.
+      You can specify your own xtpanel script file by doing
+      popup_file=filename.
+
+
+=item  wantscalebar - char
+
+       [0] (0,1,n,y) turns on scale bar
+
+=item  bartype      - char
+
+       [h]  (v)   horizontaly or verticaly aligned bar
+
+=item  barwidth     - float
+
+       [.4]     (inches)
+
+=item  barreverse   - int
+
+       [0]   (0,1,n,y)  reverse the scale
+
+=item  barlabel     - char
+
+       label for the scale bar
+
+
+=item screenht - float  
+
+      [10.24] sets screen height
+
+=item screenwd - float  
+
+      [13.75] sets screen width
+
+=item screenratio-float 
+
+      [.75] sets screen height to width ratio
+
+=item xinch,yinch  -    float 
+
+      [10.24],[7.5] 
+
+=item crowd,crowd1,crowd2  - float 
+
+      [.75][crowd1=crowd][crowd2=crowd] 
+      (.75< crowd < 1.) crowds labels off the screen 
+      by expanding data on 1 or 2 axis.
+
+=item xll,yll,xur,yur - int 
+
+      sets Lower Left and Upper Right coordinates
+
+=item wheretitle- char 
+
+      [t] (t,b,l,r) where to put title (top, bottom, left, right)
+
+=item titlefat -int   
+
+      [0] makes the title fat
+
+=item title - char* 
+
+      title for plot 
+
+=item titlesz - int   
+
+      [10] font size for title  
+
+=item backcol - float*  
+
+      [0,0,0] background color (R,G,B) between 0 and 1
+
+=item fillcol - float*  
+
+      [backcol] fill color (R,G,B) between 0 and 1
+
+=item color  - char*   
+
+      [I] (esize=1) or  color=332(esize=3)(triplets) color table
+
+=item polarity- int    
+
+      [1] white is high by default
+
+=item nreserve - int
+
+      [8] number of colors to reserve
+
+=item movish - char    
+
+      [n] if y,halves the color table like movie does (0,1 n,y)
+
+=item hurry - char     
+
+      [1]   (0,1 n,y) 
+
+=back
+
+
+
+=head1 COMMENTS
+
+
+    color= one of {I,i,F,R,W,G,T} just like in Movie. You may also append
+    a 'C' to make clipped values show up Red (ie color=IC is like color=I
+    but with clipped values flagged). You will need to have nreserve at least
+    3 for this option to work, since you have to leave the normal vplot 'Red'
+    (vplot default color 2) as a possibility.
+    If color=T, colfile= should give the name of a color-table file (just
+    like Movie).  Optionally, you may also specify a color of the format RGB,
+    (ie color=332) where each of R,G, and B is the integer number of bits
+    to allot to that primary. This is meant for esize=3, but it also makes
+    funky color tables when esize=1.
+
+=head1 SEE ALSO
+
+
+L<Grey>,L<Rickmovie>,L<xtpen>
+
+=head1 COMPILE LEVEL
+
+
+ DISTR
+
+=head1 CATEGORY
+
+
+B<sep_graphics>
+
+=cut
+

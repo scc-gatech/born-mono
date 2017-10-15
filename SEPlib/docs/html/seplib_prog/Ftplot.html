@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Ftplot - plots the input time-series and output FT</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#input_parameters">INPUT  PARAMETERS</a></li>
+	<li><a href="#compile_level">COMPILE LEVEL</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Ftplot - plots the input time-series and output FT</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Ftplot par= &lt; in.H | Xtpen</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Outputs vplot commands to plot an input time-series 
+and its Fourier amplitude or phase spectrum.</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT  PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_f2__2d_int">f2 - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]  number of traces to skip before reading from in</pre>
+</dd>
+<dt><strong><a name="item_fmin__2dfloat">fmin -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.] minimum frequencies to plot</pre>
+</dd>
+<dt><strong><a name="item_fmax_2d_int">fmax- int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1/2dt] maximum frequencies to plot</pre>
+</dd>
+<dt><strong><a name="item_plot_2d_char_2a">plot- char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [amp ] -to plot AMPLITUDE (NORMALIZED) spectrum.
+      db     - to plot AMPLITUDE (DB) spectrum.
+      pha    - to plot PHASE (DEGREES) spectrum.
+      upha   - to plot unwrapped PHASE (DEGREES) spectrum.</pre>
+</dd>
+<dt><strong><a name="item_lfft_2dint">lfft-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      length of fft used to compute spectrum
+      input padded with zeros if lfft &gt; nt</pre>
+</dd>
+<dt><strong><a name="item_wate_2dchar_2a">wate-char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [no] -weighting to apply to input before Fourier 
+      transforming for rectangular weighting
+      ham -for Hamming weighting</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2__2dint">n1,n2  -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard seplib parameters</pre>
+</dd>
+<dt><strong><a name="item_o1_2cd2__2dfloat">o1,d2  -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      cube dimensions</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="compile_level">COMPILE LEVEL</a></h1>
+<p>DISTR</p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+
+</body>
+
+</html>

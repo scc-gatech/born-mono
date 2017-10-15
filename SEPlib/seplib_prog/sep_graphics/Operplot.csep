@@ -1,0 +1,407 @@
+
+ /*$
+
+=head1 NAME
+
+Operplot - plots set of samples
+
+=head1 DESCRIPTION
+Plots a one-, two- or, three-dimensional set of samples.
+The samples are represented as shaded boxes and plotted
+numerical values.  The input is a float dataset, not the output of Taplot 
+or Byte.
+
+=head1 SYNOPSIS
+
+<in.H  Operplot  [options]  | Tube
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item outline - int 
+
+      [0] =plot outlines on boxes with pure 1.0 and 0.0 values
+      1=do not plot outlines
+      If outline=0, pure 0.0 values are plotted transparently.
+      This option is used for displaying fixed values of 
+      calculated filters.
+
+=item numbers   - int 
+
+      [0] -plot the values of the samples on the tops of the box
+      1 - do not plot the sample values
+
+=item boxes     - int 
+
+      [0]-plot the boxes with the sample values indicated with
+      shading.
+      1-plot only the sample values without the shaded box.
+
+=item title     - char*  
+
+      plot title
+
+=item label1,label2,label3 -char*    
+
+      axes labels
+
+=item labelsz- int      
+
+      [8]  label size
+
+=item hival  - float   
+
+      highest amplitude to plot, defaults to highest value
+      on the input
+
+=item loval  - float   
+
+      lowest amplitude to plot, defaults to lowest value 
+      on the input
+
+=item xscale  - float   
+
+      [1.]  <1. for smaller plots, narrow plots, etc.
+
+=item yscale - float   
+
+      [1.]  <1. for smaller plots, narrow plots, etc.
+
+=back
+
+ 
+
+=head1 COMMENTS
+
+   Convert to postscript with color=y force=y to maintain the shading of
+   the boxes.  While this routine used Ta2vplot's raster color set, it 
+   does not use the raster calls that are converted to PostScript rasters,
+   thus the color=y is required.
+
+=head1 CATEGORY
+
+B<sep_graphics>
+
+=head1 COMPILE LEVEL
+
+DISTR
+
+=cut
+
+>*/
+
+/*
+KEYWORDS   3d cube color operator display box vplot plot
+
+WHERE
+  ./cube/plot/Operplot.c
+
+*/
+/*
+ * EDIT HISTORY:
+ * Author: Ray Abma, with help from Steve Cole and Jon Claerbout, August 1993
+ *               Started from Dots.
+*/
+        
+
+
+ADD_DEF_SEP_DOC
+
+#include <stdlib.h>
+#include <sep.main>
+#include <vplot.h>
+#include <math.h>
+#include "glplot.h" 
+static  int  i1,n1, i2,n2, i3,n3;
+static  int    labelsz;
+static  float  *data, xxscale, yyscale;
+static  char  tosee[100], label1[100], title[256];
+static  char  label2[100], label3[100];
+static  float  screenhigh, screenwide, epsilon,  axis;
+static  float   xlenbox,ylenbox,textsize,ymax,xmax;
+static  float  marginl, marginr, margint, marginb, x, y, radius;
+static  float   xlast, ylast;
+static  float  o1,d1;
+static  float  o2,d2;
+static  float  o3,d3;
+static  float   value;
+static  char    cvalue[100];
+static  float   datahi,datalow;
+static  int     outline,numbers,boxes;
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void samplebox(float x,float y, float xlen, float ylen, float  value);
+void boxplot(void);
+void my_text(float x,float y,int  size,int  orient,char *label);
+_XFUNCPROTOEND
+#else
+void samplebox();
+void boxplot();
+void my_text();
+#endif
+
+
+int MAIN (void)
+{
+ vp_filep(outstream); /* tell plotting routines where to stick it */
+
+if( hetch("n1","i",&n1) == 0 ) seperr("n1");
+n2=1;   hetch("n2","i",&n2);
+n3=1;   hetch("n3","i",&n3);
+o1=0;  hetch("o1","f",&o1);
+d1=1;  hetch("d1","f",&d1);
+o2=0;  hetch("o2","f",&o2);
+d2=1;  hetch("d2","f",&d2);
+o3=0;  hetch("o3","f",&o3);
+d3=1;  hetch("d3","f",&d3);
+ 
+datahi = 0.0; getch("hival","f",&datahi);
+datalow= 0.0; getch("loval","f",&datalow);
+
+data = (float *) alloc ( n1*n2*n3*sizeof (float));
+sreed("in", data, 0);
+labelsz=8;  getch("labelsz", "i",&labelsz);
+label1[0]='\0';  fetch("label1",  "s",label1);
+label2[0]='\0';  fetch("label2",  "s",label2);
+label3[0]='\0';  fetch("label3",  "s",label3);
+title[0]='\0';  fetch("title",   "s",title);
+xxscale=1.;  getch("xxscale", "f",&xxscale);
+yyscale=1.;  getch("yyscale", "f",&yyscale);
+outline=0;      getch("outline", "i",&outline);
+numbers=0;      getch("numbers", "i",&numbers);
+boxes=0;        getch("boxes", "i",&boxes);
+
+{ int n1= -1; putch("n1","i",&n1);}
+set_format("out","vplot");
+hclose();
+screenwide =  10.24/.75 * xxscale;
+screenhigh =  10.24  * yyscale;  epsilon = .0002 * screenhigh;
+#define EMPTY(X) ( X[0] == '\0' || ( X[0]==' ' && X[1]=='\0') )
+if( EMPTY(title))
+  margint = screenhigh * .03;
+else
+  margint = screenhigh * (.04 + .03);
+if( EMPTY(label1))
+  marginl = screenhigh * .03;
+else
+        marginl = marginl + (screenhigh * .12);
+if( EMPTY(label2))
+        marginb = screenhigh * .03;
+else
+        marginb = marginb + (screenhigh * .12);
+if( EMPTY(label3))
+        marginb = marginb;
+else
+        marginb = marginb + (screenhigh * .12);
+
+
+marginr = screenwide * .03;
+ymax = screenhigh - marginb - margint;
+xmax = screenwide - marginl - marginr;
+
+textsize = 5.0;
+if (n1 >7 | n2>7 | n3>5 ) textsize = 2.0;
+
+xlenbox = xmax / (n2 * 2.0);
+
+if (numbers ==0) {
+   ylenbox = ymax/n1 - ((n3-1) * (textsize+4.0))/33.0;
+}
+else {
+    ylenbox = ymax/( n1 * (1+(n3-1.0)/2.0) );
+}
+
+
+sreed( "in", data, 4*n1*n2*n3);
+vp_erase();
+
+
+   boxplot();
+
+
+  if (numbers == 0)
+   gl_simpleaxis(marginl-0.2 ,marginb+(n1-1)*(ylenbox+(n3-1)*(textsize+4)/33.0)
+                              + ylenbox/2.0,
+                 marginl-0.2 , marginb + ylenbox/2.0, 
+                 o1, o1+(n1-1)*d1, d1, 0., .25, label1, (int)(66*labelsz),0,0,-1,-1.,-1. );
+  else
+   gl_simpleaxis(marginl-0.2 , marginb+(n1-1)*( ylenbox + (n3-1)* ylenbox/2.0 )
+                              + ylenbox/2.0,
+                 marginl-0.2 , marginb + ylenbox/2.0,
+                 o1, o1+(n1-1)*d1, d1, 0., .25, label1, (int)(.66*labelsz),0,0,-1,-1.,-1. );
+
+   gl_simpleaxis(marginl+xlenbox/2, marginb-0.2 ,
+                 marginl+xlenbox/2+(n2-1)*xlenbox*2,
+                                    marginb-0.2,
+                 o2, o2+(n2-1)*d2, d2, 0., .25, label2, (int)(.66*labelsz),0,0,-1,-1.,-1. );
+
+if (n3 > 1) {
+   gl_simpleaxis(marginl+xlenbox/2+(n2-1)*(xlenbox*2),
+   marginb-1.0,
+   marginl+xlenbox/2+(n2-1)*(xlenbox*2) + (n3-1) * (xlenbox/(n3-0.8)),
+   marginb-1.0+(n3-1)*((textsize+2)/33.0),
+                 o3, o3+(n3-1)*d3, d3, 0., .25, label3, (int)(.66*labelsz),0,0,-1,-1.,-1. );
+}
+
+if( !EMPTY( title)) {
+  int newsize;
+  newsize = 1.2 *labelsz;
+  x = marginl + .5*( screenwide-marginl-marginr);
+  y = screenhigh - margint;
+  vp_color( 9);
+      vp_tjust(TH_CENTER,TV_NORMAL);
+      my_text (  x,             y, newsize, 0, title);
+      vp_tjust(TH_NORMAL,TV_NORMAL);
+  }
+vp_endplot ();
+return(EXIT_SUCCESS);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void samplebox(float x,float y, float xlen, float ylen, float  value)
+_XFUNCPROTOBEGIN
+#else
+void samplebox( x,y, xlen, ylen, value)
+float x,y, xlen, ylen,value;
+#endif
+{
+float dx,dy, vx[5],vy[5];
+float vxt[5],vyt[5];
+int i;
+sprintf(cvalue," %-5.3f",value);
+
+   vx[0] = x;      vy[0] = y;
+   vx[1] = x+xlen; vy[1] = y;
+   vx[2] = x+xlen; vy[2] = y+ylen;
+   vx[3] = x;      vy[3] = y+ylen;
+   vx[4] = x;      vy[4] = y;
+   vxt[0] = x;     vyt[0]=y+ylen-((textsize+2)/33.0);
+   vxt[1] =x+xlen; vyt[1]=y+ylen-((textsize+2)/33.0);
+   vxt[2] =x+xlen; vyt[2]=y+ylen;
+   vxt[3] =x;      vyt[3]=y+ylen;
+   vxt[4] = x;     vyt[4]=y+ylen-((textsize+2)/33.0);
+
+i = ( 256.0*(value -datalow)/(datahi-datalow)+256) ;
+if (i < 256) i=256;
+if (i > 511) i=511;
+
+if (boxes == 0 && outline != 0 ){
+   vp_color( i);
+   vp_area( vx,vy,5,1,1,1);
+}
+if (boxes == 0 && outline == 0 ){
+   vp_color( i);
+   if (value != 0.0)
+   vp_area( vx,vy,5,1,1,1);
+}
+   
+  if (numbers == 0) {
+   vp_color( 0);
+   vp_area( vxt,vyt,5,1,1,1);
+   vp_color( 7);
+   vp_text( x, y+ylen-((textsize+1)/33.0), 5, 0, cvalue);
+  }
+
+   
+  if (numbers == 0) {
+   vp_color( 0);
+   vp_area( vxt,vyt,5,1,1,1);
+   vp_color( 7);
+   vp_text( x, y+ylen-((textsize+1)/33.0), 5, 0, cvalue);
+  }
+   
+  if (outline == 0) {
+   vp_color( 2);
+   if (value == 0.0 | value == 1.0 ) vp_color( 1);
+   vp_area( vx,vy,5,9,0,0);
+  }
+   
+  if (numbers == 0) {
+   vp_color( 0);
+   vp_area( vxt,vyt,5,1,1,1);
+   vp_color( 7);
+   vp_text( x, y+ylen-((textsize+1)/33.0), 5, 0, cvalue);
+  }
+}
+
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void boxplot(void)
+_XFUNCPROTOEND
+#else
+void boxplot()
+#endif
+  {
+int nreserve;
+int i1aux, i2aux, i3aux;
+char            color[10];
+
+if (datahi == 0.0 && datalow == 0.0) {
+   datahi = data[0];
+   datalow= data[0];
+   for( i3=0; i3<n3; i3++) {
+   for( i1=0; i1<n1; i1++) {
+   for( i2=0; i2<n2; i2++) {
+    if (datahi <  data[i1+n1*i2+n1*n2*i3] )
+       datahi =   data[i1+n1*i2+n1*n2*i3] ;
+    if (datalow > data[i1+n1*i2+n1*n2*i3] )
+       datalow =  data[i1+n1*i2+n1*n2*i3] ;
+   }}}
+}
+
+nreserve = 8;
+strcpy(color,"I");
+vp_rascoltab (nreserve, color);
+
+for( i3=0; i3<n3; i3++) {
+i3aux = n3-i3-1;
+for( i1=0; i1<n1; i1++) {
+i1aux = n1-i1-1;
+for( i2=0; i2<n2; i2++) {
+i2aux = n2-i2-1;
+
+ if (numbers == 0)
+  y = marginb + i1aux*(ylenbox + (n3-1)*(textsize+4)/33.0 )
+                              + i3aux * (textsize+2)/33.0;
+ else
+  y = marginb + i1aux*( ylenbox + (n3-1)* ylenbox/2.0 )
+                                + i3aux * 0.8 * ylenbox/2.0;
+
+ x = marginl + i2 * (xlenbox*2) + i3aux * (xlenbox/(n3-0.8));
+
+   value = data[ i1 + n1*i2 + n2*n1*i3aux ];
+   samplebox( x, y, xlenbox ,ylenbox,value) ;
+}
+}
+}
+
+}
+
+
+#define XOF(Y) screenwide *       (Y) / screenhigh
+#define YOF(X) screenhigh * (1. - (X) / screenwide)
+
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void my_text(float x,float y,int  size,int  orient,char *label)
+_XFUNCPROTOEND
+#else
+void my_text( x, y, size, orient, label)
+int size, orient;
+char *label;
+float x, y;
+#endif
+{
+vp_text(     x,      y , size, orient, label);
+}

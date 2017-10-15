@@ -1,0 +1,60 @@
+=head1 NAME
+
+
+tgettr - read a specified  trace from a SEP3d dataset
+
+=head1 SYNOPSIS
+
+
+C<ierr= tgettr("in", trace,itr)>
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item sep3dname    -  char*  
+
+      tag of sep_3d structure
+
+=item trace        -  segy*  
+
+      trace to read in
+
+=item itr          -  int    
+
+      trace number
+
+=back
+
+=head1 RETURN VALUES
+
+
+=over 4
+
+=item returns 0 at end of traces
+
+=item nread  =  
+
+      number of bytes read
+
+=back
+
+=head1 DESCRIPTION
+
+
+Read in  a given trace specified by itr
+
+=head1 SEE ALSO
+
+
+L<tgettr>, L<tputtr>
+
+=head1 LIBRARY
+
+
+B<sepsu>
+
+=cut
+

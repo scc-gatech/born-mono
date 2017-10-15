@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>putch - put argument in output history file</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#return_value">RETURN VALUE</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#diagnostics">DIAGNOSTICS</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+	<li><a href="#keywords">KEYWORDS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>putch - put argument in output history file</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+  int putch(name, format, val)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_name__2dchar_2a">name  -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      parameter name</pre>
+</dd>
+<dt><strong><a name="item_format__2d_char">format - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      format of variable (d,f,s)</pre>
+</dd>
+<dt><strong><a name="item_val_2d_void_2a">val- void*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      variable value of variable</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_value">RETURN VALUE</a></h1>
+<p>0 = if sucessful</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>This function is a seplib companion to the input routines fetch,
+getch, and hetch that appends values to the output history file with
+expressions of the form `name=value'.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>Possible format conversions are
+``d'' (or ``i''), ``f'' (or ``r''), ``g'' and ``s'' for integer, floating point,
+double precision, and strings respectively.</p>
+<p>These values may be diverted from the default history file on standard
+output with the command line parameter `head=filename'.</p>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<p>From C:</p>
+<p>putch ( ``intpar'', ``i'', &amp;int);</p>
+<p>putch ( ``intpar2'', ``d'', &amp;int);</p>
+<p>putch ( ``float'', ``f'', &amp;float);</p>
+<p>putch ( ``floatpar'', ``r'', &amp;float);</p>
+<p>putch ( ``somename'', ``s'', ``name'');</p>
+<p>From Fortran:</p>
+<p>call putch ( 'intpar', 'i', int)</p>
+<p>call putch ( 'intpar2', 'd', int)</p>
+<p>call putch ( 'floatpar', 'f', float)</p>
+<p>call putch ( 'float', 'r', float)</p>
+<p>call putch ( 'somename', 's', 'name')</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/getch.html">the getch manpage</a>, <a href="./../seplib_base/fetch.html">the fetch manpage</a>, <a href="./../seplib_base/hetch.html">the hetch manpage</a>, <a href="./../seplib_base/puthead.html">the puthead manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="diagnostics">DIAGNOSTICS</a></h1>
+<p>Program execution is terminated when an invalid format is passed.</p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<p>It is not presently possible to specify multiple output names in one
+call as can presently be done on input with fetch, etc.</p>
+<p>
+</p>
+<hr />
+<h1><a name="keywords">KEYWORDS</a></h1>
+<p>parameter output</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep</strong></p>
+
+</body>
+
+</html>

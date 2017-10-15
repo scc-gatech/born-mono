@@ -1,0 +1,1221 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$ Vel - Make velocity model
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$	Vel  >out.H pars
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item    n1,n2,n3,o1,o2,o3
+!!$
+!!$         Standard SEPlib
+!!$
+!!$=item vc -       real
+!!$
+!!$      [2000.] Background velocity
+!!$
+!!$=item  hgrad-     real
+!!$
+!!$       [0.] Horizontal velocity gradient
+!!$
+!!$=item slow -  integer
+!!$
+!!$      [0] velocity, 1-slowness
+!!$
+!!$=item transp-    integer
+!!$
+!!$      [0] regular, 1-transpose axis 1 and 2
+!!$
+!!$=item  xa_   -    real
+!!$
+!!$      [o2] left edge of plane reflector
+!!$
+!!$=item xb_   -    real
+!!$
+!!$      [o2+(n2-1)*d2] left edge of plane reflector
+!!$
+!!$=item alfa_ -    real
+!!$
+!!$      [0.] dip in degress
+!!$
+!!$=item z_    -    real
+!!$
+!!$      [o1+(n1-1)*d1] depth at xa
+!!$
+!!$=item vr_   -    real
+!!$
+!!$      velocity below reflector
+!!$
+!!$=item const_-    integer
+!!$
+!!$      [0] grad, 1= velocity is constant below reflector
+!!$
+!!$=item smooth-    real
+!!$
+!!$      linear velocity under reflector from vr_ to smooth_
+!!$
+!!$=item  sin_period-real
+!!$
+!!$       [10*d2] period of sinusoid
+!!$
+!!$=item sin_amp-   real
+!!$
+!!$      amplitude of sinusoid
+!!$
+!!$=item sin_vel_up-real
+!!$
+!!$      [0.] velocity perturbation above reflector
+!!$
+!!$=item sin_vel_down-real
+!!$
+!!$      [0.] velocity perturbation below reflectr
+!!$
+!!$=item sin_z_x0-   real
+!!$
+!!$      [o2] zero crossing of sine
+!!$
+!!$=item sinz  -    real
+!!$
+!!$      [-o1] depth at sin_z_x0
+!!$
+!!$=item xan   -    real
+!!$
+!!$      [0.] coordinate center of anomaly
+!!$
+!!$=item  zan   -    real
+!!$
+!!$       [0.] coordinate center of anomaly
+!!$
+!!$=item ranx  -    real
+!!$
+!!$      [-1.] coordinate center of anomaly
+!!$
+!!$=item  ranz  -    real
+!!$
+!!$       [-1.] coordinate center of anomaly
+!!$
+!!$=item exan  -    real
+!!$
+!!$      [1] sharpness of anomaly
+!!$
+!!$=item  rankx -    real
+!!$
+!!$       [-1.]  differential sharpness of in x
+!!$
+!!$=item rankz -    real
+!!$
+!!$     [-1.]  differential sharpness of in z
+!!$
+!!$=item  exank -    real
+!!$
+!!$       [exan] differential sharpness of anomaly
+!!$
+!!$=item widthan-   real
+!!$
+!!$      [1] scale width of anomaly
+!!$
+!!$=item dvan   -   real
+!!$
+!!$      [0] Maximum value of anomaly at (xan,zan)
+!!$
+!!$=item  dvank  -   real
+!!$
+!!$      [dvan] For flat-topped anomalies
+!!$
+!!$=back
+!!$
+!!$
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$	Makes velocity models in  2-D and 2.5-D
+!!$ (i.e. 2-D models replicated alonb the 3rd axis)
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Gauss>, L<Spike>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/model>
+!!$
+!!$=cut
+!>
+!
+! Author - Biondo Biondi 12/4/97
+!
+program zyxabc
+use sep
+implicit none
+real, allocatable, dimension (:,:) :: vel
+real, allocatable, dimension (:,:) :: velt
+integer nz,nx,ny,big,dir,transp,slow,esize
+real dz,dx,dy,z0,x0,y0,xa1,xa2,xb1,xb2,z1,z2
+real xa3,xb3,z3,xa4,xb4,z4,xa5,xb5,z5,xa6,xb6,z6,xa7,xb7,z7,xa8,xb8,z8
+real zmax,xmax,xasmo,xbsmo,z1smo,z2smo
+call SEP_ADD_DOC()
+call SEP_INIT('')
+call initpar()
+call sep_begin_prog()
+  if (0>= getch('n1','d',nz )) then
+    call erexit('Trouble reading  n1 from param  ')
+  end if
+  if (0.ne.putch('Read  from param: #n1 ','d',nz)) then
+    call erexit('Trouble writing nz to history')
+  end if
+  if (0>= getch('n2','d',nx )) then
+    call erexit('Trouble reading  n2 from param  ')
+  end if
+  if (0.ne.putch('Read  from param: #n2 ','d',nx)) then
+    call erexit('Trouble writing nx to history')
+  end if
+  if (0>= getch('n3','d',ny )) then
+    call erexit('Trouble reading  n3 from param  ')
+  end if
+  if (0.ne.putch('Read  from param: #n3 ','d',ny)) then
+    call erexit('Trouble writing ny to history')
+  end if
+  if (0>= getch('big','d',big )) then
+    big = 0
+  end if
+  if (0.ne.putch('Read  from param: #big ','d',big)) then
+    call erexit('Trouble writing big to history')
+  end if
+  if (0>= getch('dir','d',dir )) then
+    dir = 0
+  end if
+  if (0.ne.putch('Read  from param: #dir ','d',dir)) then
+    call erexit('Trouble writing dir to history')
+  end if
+  if (0>= getch('transp','d',transp )) then
+    transp = 0
+  end if
+  if (0.ne.putch('Read  from param: #transp ','d',transp)) then
+    call erexit('Trouble writing transp to history')
+  end if
+  if (0>= getch('slow','d',slow )) then
+    slow = 0
+  end if
+  if (0.ne.putch('Read  from param: #slow ','d',slow)) then
+    call erexit('Trouble writing slow to history')
+  end if
+  if (0>= getch('d1','f',dz )) then
+    call erexit('Trouble reading  d1 from param  ')
+  end if
+  if (0.ne.putch('Read  from param: #d1 ','f',dz)) then
+    call erexit('Trouble writing dz to history')
+  end if
+  if (0>= getch('d2','f',dx )) then
+    call erexit('Trouble reading  d2 from param  ')
+  end if
+  if (0.ne.putch('Read  from param: #d2 ','f',dx)) then
+    call erexit('Trouble writing dx to history')
+  end if
+  if (0>= getch('d3','f',dy )) then
+    call erexit('Trouble reading  d3 from param  ')
+  end if
+  if (0.ne.putch('Read  from param: #d3 ','f',dy)) then
+    call erexit('Trouble writing dy to history')
+  end if
+  if (0>= getch('o1','f',z0 )) then
+    z0 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #o1 ','f',z0)) then
+    call erexit('Trouble writing z0 to history')
+  end if
+  if (0>= getch('o2','f',x0 )) then
+    x0 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #o2 ','f',x0)) then
+    call erexit('Trouble writing x0 to history')
+  end if
+  if (0>= getch('o3','f',y0 )) then
+    y0 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #o3 ','f',y0)) then
+    call erexit('Trouble writing y0 to history')
+  end if
+  if (0.ne. putch('n1','d',nz )) then
+    call erexit('Trouble writing  n1 to history  ')
+  end if
+  if (0.ne. putch('n2','d',nx )) then
+    call erexit('Trouble writing  n2 to history  ')
+  end if
+  if (0.ne. putch('n3','d',ny )) then
+    call erexit('Trouble writing  n3 to history  ')
+  end if
+  if (0.ne. putch('d1','f',dz )) then
+    call erexit('Trouble writing  d1 to history  ')
+  end if
+  if (0.ne. putch('d2','f',dx )) then
+    call erexit('Trouble writing  d2 to history  ')
+  end if
+  if (0.ne. putch('d3','f',dy )) then
+    call erexit('Trouble writing  d3 to history  ')
+  end if
+  if (0.ne. putch('o1','f',z0 )) then
+    call erexit('Trouble writing  o1 to history  ')
+  end if
+  if (0.ne. putch('o2','f',x0 )) then
+    call erexit('Trouble writing  o2 to history  ')
+  end if
+  if (0.ne. putch('o3','f',y0 )) then
+    call erexit('Trouble writing  o3 to history  ')
+  end if
+xmax=x0+(nx-1)*dx
+zmax=z0+(nz)*dz
+  if (0>= getch('xa1','f',xa1 )) then
+    xa1 = x0
+  end if
+  if (0.ne.putch('Read  from param: #xa1 ','f',xa1)) then
+    call erexit('Trouble writing xa1 to history')
+  end if
+  if (0>= getch('xb1','f',xb1 )) then
+    xb1 = xmax
+  end if
+  if (0.ne.putch('Read  from param: #xb1 ','f',xb1)) then
+    call erexit('Trouble writing xb1 to history')
+  end if
+  if (0>= getch('xa2','f',xa2 )) then
+    xa2 = x0
+  end if
+  if (0.ne.putch('Read  from param: #xa2 ','f',xa2)) then
+    call erexit('Trouble writing xa2 to history')
+  end if
+  if (0>= getch('xb2','f',xb2 )) then
+    xb2 = xmax
+  end if
+  if (0.ne.putch('Read  from param: #xb2 ','f',xb2)) then
+    call erexit('Trouble writing xb2 to history')
+  end if
+  if (0>= getch('xa3','f',xa3 )) then
+    xa3 = x0
+  end if
+  if (0.ne.putch('Read  from param: #xa3 ','f',xa3)) then
+    call erexit('Trouble writing xa3 to history')
+  end if
+  if (0>= getch('xb3','f',xb3 )) then
+    xb3 = xmax
+  end if
+  if (0.ne.putch('Read  from param: #xb3 ','f',xb3)) then
+    call erexit('Trouble writing xb3 to history')
+  end if
+  if (0>= getch('xa4','f',xa4 )) then
+    xa4 = x0
+  end if
+  if (0.ne.putch('Read  from param: #xa4 ','f',xa4)) then
+    call erexit('Trouble writing xa4 to history')
+  end if
+  if (0>= getch('xb4','f',xb4 )) then
+    xb4 = xmax
+  end if
+  if (0.ne.putch('Read  from param: #xb4 ','f',xb4)) then
+    call erexit('Trouble writing xb4 to history')
+  end if
+  if (0>= getch('xa5','f',xa5 )) then
+    xa5 = x0
+  end if
+  if (0.ne.putch('Read  from param: #xa5 ','f',xa5)) then
+    call erexit('Trouble writing xa5 to history')
+  end if
+  if (0>= getch('xb5','f',xb5 )) then
+    xb5 = xmax
+  end if
+  if (0.ne.putch('Read  from param: #xb5 ','f',xb5)) then
+    call erexit('Trouble writing xb5 to history')
+  end if
+  if (0>= getch('xa6','f',xa6 )) then
+    xa6 = x0
+  end if
+  if (0.ne.putch('Read  from param: #xa6 ','f',xa6)) then
+    call erexit('Trouble writing xa6 to history')
+  end if
+  if (0>= getch('xb6','f',xb6 )) then
+    xb6 = xmax
+  end if
+  if (0.ne.putch('Read  from param: #xb6 ','f',xb6)) then
+    call erexit('Trouble writing xb6 to history')
+  end if
+  if (0>= getch('xa7','f',xa7 )) then
+    xa7 = x0
+  end if
+  if (0.ne.putch('Read  from param: #xa7 ','f',xa7)) then
+    call erexit('Trouble writing xa7 to history')
+  end if
+  if (0>= getch('xb7','f',xb7 )) then
+    xb7 = xmax
+  end if
+  if (0.ne.putch('Read  from param: #xb7 ','f',xb7)) then
+    call erexit('Trouble writing xb7 to history')
+  end if
+  if (0>= getch('xa8','f',xa8 )) then
+    xa8 = x0
+  end if
+  if (0.ne.putch('Read  from param: #xa8 ','f',xa8)) then
+    call erexit('Trouble writing xa8 to history')
+  end if
+  if (0>= getch('xb8','f',xb8 )) then
+    xb8 = xmax
+  end if
+  if (0.ne.putch('Read  from param: #xb8 ','f',xb8)) then
+    call erexit('Trouble writing xb8 to history')
+  end if
+  if (0>= getch('z1','f',z1 )) then
+    z1 = zmax
+  end if
+  if (0.ne.putch('Read  from param: #z1 ','f',z1)) then
+    call erexit('Trouble writing z1 to history')
+  end if
+  if (0>= getch('z2','f',z2 )) then
+    z2 = zmax
+  end if
+  if (0.ne.putch('Read  from param: #z2 ','f',z2)) then
+    call erexit('Trouble writing z2 to history')
+  end if
+  if (0>= getch('z3','f',z3 )) then
+    z3 = zmax
+  end if
+  if (0.ne.putch('Read  from param: #z3 ','f',z3)) then
+    call erexit('Trouble writing z3 to history')
+  end if
+  if (0>= getch('z4','f',z4 )) then
+    z4 = zmax
+  end if
+  if (0.ne.putch('Read  from param: #z4 ','f',z4)) then
+    call erexit('Trouble writing z4 to history')
+  end if
+  if (0>= getch('z5','f',z5 )) then
+    z5 = zmax
+  end if
+  if (0.ne.putch('Read  from param: #z5 ','f',z5)) then
+    call erexit('Trouble writing z5 to history')
+  end if
+  if (0>= getch('z6','f',z6 )) then
+    z6 = zmax
+  end if
+  if (0.ne.putch('Read  from param: #z6 ','f',z6)) then
+    call erexit('Trouble writing z6 to history')
+  end if
+  if (0>= getch('z7','f',z7 )) then
+    z7 = zmax
+  end if
+  if (0.ne.putch('Read  from param: #z7 ','f',z7)) then
+    call erexit('Trouble writing z7 to history')
+  end if
+  if (0>= getch('z8','f',z8 )) then
+    z8 = zmax
+  end if
+  if (0.ne.putch('Read  from param: #z8 ','f',z8)) then
+    call erexit('Trouble writing z8 to history')
+  end if
+  if (0>= getch('xasmo','f',xasmo )) then
+    xasmo = x0
+  end if
+  if (0.ne.putch('Read  from param: #xasmo ','f',xasmo)) then
+    call erexit('Trouble writing xasmo to history')
+  end if
+  if (0>= getch('xbsmo','f',xbsmo )) then
+    xbsmo = xmax
+  end if
+  if (0.ne.putch('Read  from param: #xbsmo ','f',xbsmo)) then
+    call erexit('Trouble writing xbsmo to history')
+  end if
+  if (0>= getch('z1smo','f',z1smo )) then
+    z1smo = zmax
+  end if
+  if (0.ne.putch('Read  from param: #z1smo ','f',z1smo)) then
+    call erexit('Trouble writing z1smo to history')
+  end if
+  if (0>= getch('z2smo','f',z2smo )) then
+    z2smo = zmax
+  end if
+  if (0.ne.putch('Read  from param: #z2smo ','f',z2smo)) then
+    call erexit('Trouble writing z2smo to history')
+  end if
+if (transp.eq.1) then
+    if (0.ne. putch('n1','d',nx )) then
+      call erexit('Trouble writing  n1 to history  ')
+    end if
+    if (0.ne. putch('n2','d',nz )) then
+      call erexit('Trouble writing  n2 to history  ')
+    end if
+    if (0.ne. putch('d1','f',dx )) then
+      call erexit('Trouble writing  d1 to history  ')
+    end if
+    if (0.ne. putch('d2','f',dz )) then
+      call erexit('Trouble writing  d2 to history  ')
+    end if
+    if (0.ne. putch('d3','f',dy )) then
+      call erexit('Trouble writing  d3 to history  ')
+    end if
+    if (0.ne. putch('o1','f',x0 )) then
+      call erexit('Trouble writing  o1 to history  ')
+    end if
+    if (0.ne. putch('o2','f',z0 )) then
+      call erexit('Trouble writing  o2 to history  ')
+    end if
+    if (0.ne. putch('o3','f',y0 )) then
+      call erexit('Trouble writing  o3 to history  ')
+    end if
+end if
+esize=4
+  if (0.ne. putch('esize','d',esize )) then
+    call erexit('Trouble writing  esize to history  ')
+  end if
+allocate (vel(nz,nx),velt(nx,nz))
+call Vels (slow,transp,big,dir,nz,nx,ny,x0,z0,xa1,xb1,xa2,xb2,xa3,xb3&
+  &,xa4,xb4,xa5,xb5,xa6,xb6,xa7,xb7,xa8,xb8,xasmo,xbsmo,z1,z2,z3,z4&
+  &,z5,z6,z7,z8,z1smo,z2smo,dz,dx,vel,velt)
+end program zyxabc 
+subroutine Vels(slow,transp,big,dir,nz,nx,ny,x0,z0,xa1,xb1,xa2,xb2,xa3&
+  &,xb3,xa4,xb4,xa5,xb5,xa6,xb6,xa7,xb7,xa8,xb8,xasmo,xbsmo,z1,z2,z3&
+  &,z4,z5,z6,z7,z8,z1smo,z2smo,dz,dx,vel,velt)
+use sep_mod
+integer nz,nx,ny,iy,ix,iz,ixa1,ixb1,ixa2,ixb2,iz1,iz2,big,iiz,ismooth&
+  &,dir,transp
+integer const1,const2,const3,const4,const5,const6,const7,const8
+integer ixa3,ixb3,ixa4,ixb4,ixa5,ixb5,ixa6,ixb6,ixa7,ixb7,ixa8,ixb8
+integer iz3,iz4,iz5,iz6,iz7,iz8
+integer slow,ixan,izan,iranx,iranz
+real smooth1,smooth2,smooth3,smooth4,smooth5,smooth6,smooth7,smooth8
+real alfa1,alfa2,da1,da2,da3,da4,da5,da6,da7,da8
+real pi,dz,dx,z,vc,xa1,xb1,xa2,xb2,z1,z2,rate
+real vr1,vr2,vr3,vr4,vr5,vr6,vr7,vr8
+real hgrad,dist,difan,xan,zan,ranx,ranz,dvan,dvank,exan,exank,widthan
+real rankx,rankz,smooth
+real xa3,xb3,alfa3,z3,xa4,xb4,alfa4,z4,xa5,xb5,xa6,xb6,xa7,xb7,xa8,xb8
+real alfa5,alfa6,alfa7,alfa8,z5,z6,z7,z8
+real zfol,x0,z0
+real xasmo,xbsmo,z1smo,z2smo,v1smo,v2smo
+real exsmo,alfasmo,dasmo,dvsmo,zz,xx,zza,dxx,dzz,dzepsi
+integer :: ierr
+real sin_period,sin_amp,sin_vel_up,sin_vel_down,sin_z,sin_z_x0
+real z_sin,sin_x,x_sin
+real vel(nz,nx),velt(nx,nz)
+  if (0>= getch('const1','d',const1 )) then
+    const1 = 0
+  end if
+  if (0.ne.putch('Read  from param: #const1 ','d',const1)) then
+    call erexit('Trouble writing const1 to history')
+  end if
+  if (0>= getch('const2','d',const2 )) then
+    const2 = 0
+  end if
+  if (0.ne.putch('Read  from param: #const2 ','d',const2)) then
+    call erexit('Trouble writing const2 to history')
+  end if
+  if (0>= getch('const3','d',const3 )) then
+    const3 = 0
+  end if
+  if (0.ne.putch('Read  from param: #const3 ','d',const3)) then
+    call erexit('Trouble writing const3 to history')
+  end if
+  if (0>= getch('const4','d',const4 )) then
+    const4 = 0
+  end if
+  if (0.ne.putch('Read  from param: #const4 ','d',const4)) then
+    call erexit('Trouble writing const4 to history')
+  end if
+  if (0>= getch('const5','d',const5 )) then
+    const5 = 0
+  end if
+  if (0.ne.putch('Read  from param: #const5 ','d',const5)) then
+    call erexit('Trouble writing const5 to history')
+  end if
+  if (0>= getch('const6','d',const6 )) then
+    const6 = 0
+  end if
+  if (0.ne.putch('Read  from param: #const6 ','d',const6)) then
+    call erexit('Trouble writing const6 to history')
+  end if
+  if (0>= getch('const7','d',const7 )) then
+    const7 = 0
+  end if
+  if (0.ne.putch('Read  from param: #const7 ','d',const7)) then
+    call erexit('Trouble writing const7 to history')
+  end if
+  if (0>= getch('const8','d',const8 )) then
+    const8 = 0
+  end if
+  if (0.ne.putch('Read  from param: #const8 ','d',const8)) then
+    call erexit('Trouble writing const8 to history')
+  end if
+  if (0>= getch('alfa1','f',alfa1 )) then
+    alfa1 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #alfa1 ','f',alfa1)) then
+    call erexit('Trouble writing alfa1 to history')
+  end if
+  if (0>= getch('alfa2','f',alfa2 )) then
+    alfa2 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #alfa2 ','f',alfa2)) then
+    call erexit('Trouble writing alfa2 to history')
+  end if
+  if (0>= getch('alfa3','f',alfa3 )) then
+    alfa3 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #alfa3 ','f',alfa3)) then
+    call erexit('Trouble writing alfa3 to history')
+  end if
+  if (0>= getch('alfa4','f',alfa4 )) then
+    alfa4 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #alfa4 ','f',alfa4)) then
+    call erexit('Trouble writing alfa4 to history')
+  end if
+  if (0>= getch('alfa5','f',alfa5 )) then
+    alfa5 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #alfa5 ','f',alfa5)) then
+    call erexit('Trouble writing alfa5 to history')
+  end if
+  if (0>= getch('alfa6','f',alfa6 )) then
+    alfa6 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #alfa6 ','f',alfa6)) then
+    call erexit('Trouble writing alfa6 to history')
+  end if
+  if (0>= getch('alfa7','f',alfa7 )) then
+    alfa7 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #alfa7 ','f',alfa7)) then
+    call erexit('Trouble writing alfa7 to history')
+  end if
+  if (0>= getch('alfa8','f',alfa8 )) then
+    alfa8 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #alfa8 ','f',alfa8)) then
+    call erexit('Trouble writing alfa8 to history')
+  end if
+  if (0>= getch('vc','f',vc )) then
+    vc = 2000
+  end if
+  if (0.ne.putch('Read  from param: #vc ','f',vc)) then
+    call erexit('Trouble writing vc to history')
+  end if
+  if (0>= getch('vr1','f',vr1 )) then
+    vr1 = vc
+  end if
+  if (0.ne.putch('Read  from param: #vr1 ','f',vr1)) then
+    call erexit('Trouble writing vr1 to history')
+  end if
+  if (0>= getch('vr2','f',vr2 )) then
+    vr2 = vc
+  end if
+  if (0.ne.putch('Read  from param: #vr2 ','f',vr2)) then
+    call erexit('Trouble writing vr2 to history')
+  end if
+  if (0>= getch('vr3','f',vr3 )) then
+    vr3 = vc
+  end if
+  if (0.ne.putch('Read  from param: #vr3 ','f',vr3)) then
+    call erexit('Trouble writing vr3 to history')
+  end if
+  if (0>= getch('vr4','f',vr4 )) then
+    vr4 = vc
+  end if
+  if (0.ne.putch('Read  from param: #vr4 ','f',vr4)) then
+    call erexit('Trouble writing vr4 to history')
+  end if
+  if (0>= getch('vr4','f',vr4 )) then
+    vr4 = vc
+  end if
+  if (0.ne.putch('Read  from param: #vr4 ','f',vr4)) then
+    call erexit('Trouble writing vr4 to history')
+  end if
+  if (0>= getch('vr5','f',vr5 )) then
+    vr5 = vc
+  end if
+  if (0.ne.putch('Read  from param: #vr5 ','f',vr5)) then
+    call erexit('Trouble writing vr5 to history')
+  end if
+  if (0>= getch('vr6','f',vr6 )) then
+    vr6 = vc
+  end if
+  if (0.ne.putch('Read  from param: #vr6 ','f',vr6)) then
+    call erexit('Trouble writing vr6 to history')
+  end if
+  if (0>= getch('hgrad','f',hgrad )) then
+    hgrad = 0.
+  end if
+  if (0.ne.putch('Read  from param: #hgrad ','f',hgrad)) then
+    call erexit('Trouble writing hgrad to history')
+  end if
+  if (0>= getch('vr7','f',vr7 )) then
+    vr7 = vc
+  end if
+  if (0.ne.putch('Read  from param: #vr7 ','f',vr7)) then
+    call erexit('Trouble writing vr7 to history')
+  end if
+  if (0>= getch('vr8','f',vr8 )) then
+    vr8 = vc
+  end if
+  if (0.ne.putch('Read  from param: #vr8 ','f',vr8)) then
+    call erexit('Trouble writing vr8 to history')
+  end if
+  if (0>= getch('xan','f',xan )) then
+    xan = 0.
+  end if
+  if (0.ne.putch('Read  from param: #xan ','f',xan)) then
+    call erexit('Trouble writing xan to history')
+  end if
+  if (0>= getch('zan','f',zan )) then
+    zan = 0.
+  end if
+  if (0.ne.putch('Read  from param: #zan ','f',zan)) then
+    call erexit('Trouble writing zan to history')
+  end if
+  if (0>= getch('ranx','f',ranx )) then
+    ranx = -1.
+  end if
+  if (0.ne.putch('Read  from param: #ranx ','f',ranx)) then
+    call erexit('Trouble writing ranx to history')
+  end if
+  if (0>= getch('ranz','f',ranz )) then
+    ranz = -1.
+  end if
+  if (0.ne.putch('Read  from param: #ranz ','f',ranz)) then
+    call erexit('Trouble writing ranz to history')
+  end if
+  if (0>= getch('exan','f',exan )) then
+    exan = 1.
+  end if
+  if (0.ne.putch('Read  from param: #exan ','f',exan)) then
+    call erexit('Trouble writing exan to history')
+  end if
+  if (0>= getch('dvan','f',dvan )) then
+    dvan = 0.
+  end if
+  if (0.ne.putch('Read  from param: #dvan ','f',dvan)) then
+    call erexit('Trouble writing dvan to history')
+  end if
+  if (0>= getch('widthan','f',widthan )) then
+    widthan = 1.
+  end if
+  if (0.ne.putch('Read  from param: #widthan ','f',widthan)) then
+    call erexit('Trouble writing widthan to history')
+  end if
+  if (0>= getch('rankx','f',rankx )) then
+    rankx = -1.
+  end if
+  if (0.ne.putch('Read  from param: #rankx ','f',rankx)) then
+    call erexit('Trouble writing rankx to history')
+  end if
+  if (0>= getch('rankz','f',rankz )) then
+    rankz = -1.
+  end if
+  if (0.ne.putch('Read  from param: #rankz ','f',rankz)) then
+    call erexit('Trouble writing rankz to history')
+  end if
+  if (0>= getch('dvank','f',dvank )) then
+    dvank = dvan
+  end if
+  if (0.ne.putch('Read  from param: #dvank ','f',dvank)) then
+    call erexit('Trouble writing dvank to history')
+  end if
+  if (0>= getch('exank','f',exank )) then
+    exank = exan
+  end if
+  if (0.ne.putch('Read  from param: #exank ','f',exank)) then
+    call erexit('Trouble writing exank to history')
+  end if
+  if (0>= getch('smooth1','f',smooth1 )) then
+    smooth1 = vr1
+  end if
+  if (0.ne.putch('Read  from param: #smooth1 ','f',smooth1)) then
+    call erexit('Trouble writing smooth1 to history')
+  end if
+  if (0>= getch('smooth2','f',smooth2 )) then
+    smooth2 = vr2
+  end if
+  if (0.ne.putch('Read  from param: #smooth2 ','f',smooth2)) then
+    call erexit('Trouble writing smooth2 to history')
+  end if
+  if (0>= getch('smooth3','f',smooth3 )) then
+    smooth3 = vr3
+  end if
+  if (0.ne.putch('Read  from param: #smooth3 ','f',smooth3)) then
+    call erexit('Trouble writing smooth3 to history')
+  end if
+  if (0>= getch('smooth4','f',smooth4 )) then
+    smooth4 = vr4
+  end if
+  if (0.ne.putch('Read  from param: #smooth4 ','f',smooth4)) then
+    call erexit('Trouble writing smooth4 to history')
+  end if
+  if (0>= getch('smooth5','f',smooth5 )) then
+    smooth5 = vr5
+  end if
+  if (0.ne.putch('Read  from param: #smooth5 ','f',smooth5)) then
+    call erexit('Trouble writing smooth5 to history')
+  end if
+  if (0>= getch('smooth6','f',smooth6 )) then
+    smooth6 = vr6
+  end if
+  if (0.ne.putch('Read  from param: #smooth6 ','f',smooth6)) then
+    call erexit('Trouble writing smooth6 to history')
+  end if
+  if (0>= getch('smooth7','f',smooth7 )) then
+    smooth7 = vr7
+  end if
+  if (0.ne.putch('Read  from param: #smooth7 ','f',smooth7)) then
+    call erexit('Trouble writing smooth7 to history')
+  end if
+  if (0>= getch('smooth8','f',smooth8 )) then
+    smooth8 = vr8
+  end if
+  if (0.ne.putch('Read  from param: #smooth8 ','f',smooth8)) then
+    call erexit('Trouble writing smooth8 to history')
+  end if
+  if (0>= getch('v1smo','f',v1smo )) then
+    v1smo = vc
+  end if
+  if (0.ne.putch('Read  from param: #v1smo ','f',v1smo)) then
+    call erexit('Trouble writing v1smo to history')
+  end if
+  if (0>= getch('v2smo','f',v2smo )) then
+    v2smo = vc
+  end if
+  if (0.ne.putch('Read  from param: #v2smo ','f',v2smo)) then
+    call erexit('Trouble writing v2smo to history')
+  end if
+  if (0>= getch('exsmo','f',exsmo )) then
+    exsmo = 1.
+  end if
+  if (0.ne.putch('Read  from param: #exsmo ','f',exsmo)) then
+    call erexit('Trouble writing exsmo to history')
+  end if
+  if (0>= getch('alfasmo','f',alfasmo )) then
+    alfasmo = 0.
+  end if
+  if (0.ne.putch('Read  from param: #alfasmo ','f',alfasmo)) then
+    call erexit('Trouble writing alfasmo to history')
+  end if
+  if (0>= getch('dzepsi','f',dzepsi )) then
+    dzepsi = 0.
+  end if
+  if (0.ne.putch('Read  from param: #dzepsi ','f',dzepsi)) then
+    call erexit('Trouble writing dzepsi to history')
+  end if
+  if (0>= getch('sin_period','f',sin_period )) then
+    sin_period = 10*dx
+  end if
+  if (0.ne.putch('Read  from param: #sin_period ','f',sin_period))&
+    & then
+    call erexit('Trouble writing sin_period to history')
+  end if
+  if (0>= getch('sin_amp','f',sin_amp )) then
+    sin_amp = sin_period
+  end if
+  if (0.ne.putch('Read  from param: #sin_amp ','f',sin_amp)) then
+    call erexit('Trouble writing sin_amp to history')
+  end if
+  if (0>= getch('sin_z','f',sin_z )) then
+    sin_z = -z0
+  end if
+  if (0.ne.putch('Read  from param: #sin_z ','f',sin_z)) then
+    call erexit('Trouble writing sin_z to history')
+  end if
+  if (0>= getch('sin_x','f',sin_x )) then
+    sin_x = -x0
+  end if
+  if (0.ne.putch('Read  from param: #sin_x ','f',sin_x)) then
+    call erexit('Trouble writing sin_x to history')
+  end if
+  if (0>= getch('sin_z_x0','f',sin_z_x0 )) then
+    sin_z_x0 = x0
+  end if
+  if (0.ne.putch('Read  from param: #sin_z_x0 ','f',sin_z_x0)) then
+    call erexit('Trouble writing sin_z_x0 to history')
+  end if
+  if (0>= getch('sin_vel_up','f',sin_vel_up )) then
+    sin_vel_up = 0.
+  end if
+  if (0.ne.putch('Read  from param: #sin_vel_up ','f',sin_vel_up))&
+    & then
+    call erexit('Trouble writing sin_vel_up to history')
+  end if
+  if (0>= getch('sin_vel_down','f',sin_vel_down )) then
+    sin_vel_down = 0.
+  end if
+  if (0.ne.putch('Read  from param: #sin_vel_down ','f',sin_vel_down))&
+    & then
+    call erexit('Trouble writing sin_vel_down to history')
+  end if
+call hclose()
+ixa1=nint((xa1-x0)/dx)+1
+ixb1=nint((xb1-x0)/dx)+1
+ixa2=nint((xa2-x0)/dx)+1
+ixb2=nint((xb2-x0)/dx)+1
+ixa3=nint((xa3-x0)/dx)+1
+ixb3=nint((xb3-x0)/dx)+1
+ixa4=nint((xa4-x0)/dx)+1
+ixb4=nint((xb4-x0)/dx)+1
+ixa5=nint((xa5-x0)/dx)+1
+ixb5=nint((xb5-x0)/dx)+1
+ixa6=nint((xa6-x0)/dx)+1
+ixb6=nint((xb6-x0)/dx)+1
+ixb7=nint((xb7-x0)/dx)+1
+ixa7=nint((xa7-x0)/dx)+1
+ixb8=nint((xb8-x0)/dx)+1
+ixa8=nint((xa8-x0)/dx)+1
+iz1=nint((z1-z0)/dz)+1
+iz2=nint((z2-z0)/dz)+1
+iz3=nint((z3-z0)/dz)+1
+iz4=nint((z4-z0)/dz)+1
+iz5=nint((z5-z0)/dz)+1
+iz6=nint((z6-z0)/dz)+1
+iz7=nint((z7-z0)/dz)+1
+iz8=nint((z8-z0)/dz)+1
+pi=acos(-1.)
+da1=tan((alfa1/180.)*pi)*(dx/dz)
+da2=tan((alfa2/180.)*pi)*(dx/dz)
+da3=tan((alfa3/180.)*pi)*(dx/dz)
+da4=tan((alfa4/180.)*pi)*(dx/dz)
+da5=tan((alfa5/180.)*pi)*(dx/dz)
+da6=tan((alfa6/180.)*pi)*(dx/dz)
+da7=tan((alfa7/180.)*pi)*(dx/dz)
+da8=tan((alfa8/180.)*pi)*(dx/dz)
+ixan=nint((xan-x0)/dx)+1
+izan=nint((zan-z0)/dz)+1
+iranz=nint(widthan*(ranz)/dz)
+iranx=nint(widthan*(ranx)/dx)
+hgrad=hgrad*dx
+!ismooth=int(smooth/dz)
+do iy=1,ny
+  do ix=1,nx	 
+    do iz=1,nz	 
+      vel(iz,ix)=vc
+    end do
+  end do 
+  if (z1smo < z2smo) then
+    dasmo=tan((alfasmo/180.)*pi)
+    dvsmo=v2smo-v1smo
+    dzepsi=dz*dzepsi
+    do ix=1,nx	 
+      xx=x0+(ix-1)*dx
+      dxx=xx-xasmo
+      do iz=1,nz	 
+        zz=z0+(iz-1)*dz
+        dzz=dxx*dasmo
+        zza=zz-dzz
+        if (zza < (z1smo-dzepsi)) then
+          vel(iz,ix)=v1smo
+        else
+          if (zza > (z2smo+dzepsi)) then
+            vel(iz,ix)=v2smo
+          else
+            vel(iz,ix)=v1smo+(dvsmo)*exp(-exsmo*(z2smo-zza))
+          end if
+        end if
+      end do
+    end do
+  end if
+  if (iz1 <= nz) then
+    do ix=ixa1,ixb1	 
+      vr1=vr1+hgrad
+      z=iz1+(ix-ixa1)*da1
+      iz=int(z)
+      zfol=iz2+(ix-ixa2)*da2
+      ismooth=min(int(zfol),nz)-iz
+      if ((iz>0).and.(iz<=nz)) then
+        vel(iz,ix)=vr1
+        if (big.ne.0) then
+          vel(iz+1,ix)=vr1
+          vel(iz,ix+1)=vr1
+          vel(iz+1,ix+1)=vr1
+        end if
+        if (smooth1 .ne.  vr1) then
+          rate=(smooth1-vr1)/ismooth
+          do iiz=1,ismooth	 
+            vel(iz+iiz,ix)=vr1+iiz*rate
+          end do
+        end if
+        if (const1.ne.0) then
+          do iiz=iz+1,nz	 
+            vel(iiz,ix)=vr1
+          end do
+        end if
+      end if
+    end do
+  end if
+  if (iz2 <= nz) then
+    do ix=ixa2,ixb2	 
+      vr2=vr2+hgrad
+      z=iz2+(ix-ixa2)*da2
+      iz=int(z)
+      zfol=iz3+(ix-ixa3)*da3
+      ismooth=min(int(zfol),nz)-iz
+      if ((iz>0).and.(iz<=nz)) then
+        vel(iz,ix)=vr2
+        if (big.ne.0) then
+          vel(iz+1,ix)=vr2
+          vel(iz,ix+1)=vr2
+          vel(iz+1,ix+1)=vr2
+        end if
+        if (smooth2 .ne.  vr2) then
+          rate=(smooth2-vr2)/ismooth
+          do iiz=1,ismooth	 
+            vel(iz+iiz,ix)=vr2+iiz*rate
+          end do
+        end if
+        if (const2.ne.0) then
+          do iiz=iz+1,nz	 
+            vel(iiz,ix)=vr2
+          end do
+        end if
+      end if
+    end do
+  end if
+  if (iz3 <= nz) then
+    do ix=ixa3,ixb3	 
+      vr3=vr3+hgrad
+      z=iz3+(ix-ixa3)*da3
+      iz=int(z)
+      zfol=iz4+(ix-ixa4)*da4
+      ismooth=min(int(zfol),nz)-iz
+      if ((iz>0).and.(iz<=nz)) then
+        vel(iz,ix)=vr3
+        if (big.ne.0) then
+          vel(iz+1,ix)=vr3
+          vel(iz,ix+1)=vr3
+          vel(iz+1,ix+1)=vr3
+        end if
+        if (smooth3 .ne.  vr3) then
+          rate=(smooth3-vr3)/ismooth
+          do iiz=1,ismooth	 
+            vel(iz+iiz,ix)=vr3+iiz*rate
+          end do
+        end if
+        if (const3.ne.0) then
+          do iiz=iz+1,nz	 
+            vel(iiz,ix)=vr3
+          end do
+        end if
+      end if
+    end do
+  end if
+  if (iz4 <= nz) then
+    do ix=ixa4,ixb4	 
+      vr4=vr4+hgrad
+      z=iz4+(ix-ixa4)*da4
+      iz=int(z)
+      zfol=iz5+(ix-ixa5)*da5
+      ismooth=min(int(zfol),nz)-iz
+      if ((iz>0).and.(iz<=nz)) then
+        vel(iz,ix)=vr4
+        if (big.ne.0) then
+          vel(iz+1,ix)=vr4
+          vel(iz,ix+1)=vr4
+          vel(iz+1,ix+1)=vr4
+        end if
+        if (smooth4 .ne.  vr4) then
+          rate=(smooth4-vr4)/ismooth
+          do iiz=1,ismooth	 
+            vel(iz+iiz,ix)=vr4+iiz*rate
+          end do
+        end if
+        if (const4.ne.0) then
+          do iiz=iz+1,nz	 
+            vel(iiz,ix)=vr4
+          end do
+        end if
+      end if
+    end do
+  end if
+  if (iz5 <= nz) then
+    do ix=ixa5,ixb5	 
+      vr5=vr5+hgrad
+      z=iz5+(ix-ixa5)*da5
+      iz=int(z)
+      zfol=iz6+(ix-ixa6)*da6
+      ismooth=min(int(zfol),nz)-iz
+      if ((iz>0).and.(iz<=nz)) then
+        vel(iz,ix)=vr5
+        if (big.ne.0) then
+          vel(iz+1,ix)=vr5
+          vel(iz,ix+1)=vr5
+          vel(iz+1,ix+1)=vr5
+        end if
+        if (smooth5 .ne.  vr5) then
+          rate=(smooth5-vr5)/ismooth
+          do iiz=1,ismooth	 
+            vel(iz+iiz,ix)=vr5+iiz*rate
+          end do
+        end if
+        if (const5.ne.0) then
+          do iiz=iz+1,nz	 
+            vel(iiz,ix)=vr5
+          end do
+        end if
+      end if
+    end do
+  end if
+  if (iz6 <= nz) then
+    do ix=ixa6,ixb6	 
+      vr6=vr6+hgrad
+      z=iz6+(ix-ixa6)*da6
+      iz=int(z)
+      zfol=iz7+(ix-ixa7)*da7
+      ismooth=min(int(zfol),nz)-iz
+      if ((iz>0).and.(iz<=nz)) then
+        vel(iz,ix)=vr6
+        if (big.ne.0) then
+          vel(iz+1,ix)=vr6
+          vel(iz,ix+1)=vr6
+          vel(iz+1,ix+1)=vr6
+        end if
+        if (smooth6 .ne.  vr6) then
+          rate=(smooth6-vr6)/ismooth
+          do iiz=1,ismooth	 
+            vel(iz+iiz,ix)=vr6+iiz*rate
+          end do
+        end if
+        if (const6.ne.0) then
+          do iiz=iz+1,nz	 
+            vel(iiz,ix)=vr6
+          end do
+        end if
+      end if
+    end do
+  end if
+  if (iz7 <= nz) then
+    do ix=ixa7,ixb7	 
+      vr7=vr7+hgrad
+      z=iz7+(ix-ixa7)*da7
+      iz=int(z)
+      zfol=iz8+(ix-ixa8)*da8
+      ismooth=min(int(zfol),nz)-iz
+      if ((iz>0).and.(iz<=nz)) then
+        vel(iz,ix)=vr7
+        if (big.ne.0) then
+          vel(iz+1,ix)=vr7
+          vel(iz,ix+1)=vr7
+          vel(iz+1,ix+1)=vr7
+        end if
+        if (smooth7 .ne.  vr7) then
+          rate=(smooth7-vr7)/ismooth
+          do iiz=1,ismooth	 
+            vel(iz+iiz,ix)=vr7+iiz*rate
+          end do
+        end if
+        if (const7.ne.0) then
+          do iiz=iz+1,nz	 
+            vel(iiz,ix)=vr7
+          end do
+        end if
+      end if
+    end do
+  end if
+  if (iz8 <= nz) then
+    do ix=ixa8,ixb8	 
+      vr8=vr8+hgrad
+      z=iz8+(ix-ixa8)*da8
+      iz=int(z)
+      zfol=nz
+      ismooth=min(int(zfol),nz)-iz
+      if ((iz>0).and.(iz<=nz)) then
+        vel(iz,ix)=vr8
+        if (big.ne.0) then
+          vel(iz+1,ix)=vr8
+          vel(iz,ix+1)=vr8
+          vel(iz+1,ix+1)=vr8
+        end if
+        if (smooth8 .ne.  vr8) then
+          rate=(smooth8-vr8)/ismooth
+          do iiz=1,ismooth	 
+            vel(iz+iiz,ix)=vr8+iiz*rate
+          end do
+        end if
+        if (const8.ne.0) then
+          do iiz=iz+1,nz	 
+            vel(iiz,ix)=vr8
+          end do
+        end if
+      end if
+    end do
+  end if
+  if ((rankx > 0.).and.(rankz>0.)) then
+    do ix=ixan-iranx,ixan+iranx	 
+      do iz=izan-iranz,izan+iranz	 
+!	dist=((x0+((ix-1)*dx)-xan)/ranx)**2+((z0+((iz-1)*dz)-zan)/ranz)**2
+        dist=((x0+(ix*dx)-xan)/rankx)**2+((z0+(iz*dz)-zan)/rankz)**2
+        if (dist <= 1.) then
+          vel(iz,ix)=vel(iz,ix)+dvan+exp(-(dist)*exank)*dvank
+        else
+          vel(iz,ix)=vel(iz,ix)+exp(-(dist-1.)*exan)*dvan
+        end if
+      end do
+    end do
+  else
+    do ix=ixan-iranx,ixan+iranx	 
+      do iz=izan-iranz,izan+iranz	 
+!	dist=((x0+((ix-1)*dx)-xan)/ranx)**2+((z0+((iz-1)*dz)-zan)/ranz)**2
+        dist=((x0+(ix*dx)-xan)/ranx)**2+((z0+(iz*dz)-zan)/ranz)**2
+        vel(iz,ix)=vel(iz,ix)+exp(-dist*exan)*dvan
+      end do
+    end do
+  end if 
+  if ((sin_vel_up .ne. 0. ) .or. (sin_vel_down .ne. 0.)) then
+    if (sin_z .ne. -z0) then
+      do ix=1,nx	 
+        z_sin=sin_z+sin_amp*sin((2*pi*(sin_z_x0+(ix-1)*dx))/sin_period&
+          &)
+        do iz=1,nz	 
+          zz=z0+(iz-1)*dz
+          if (zz <= z_sin) then
+            vel(iz,ix)=vel(iz,ix)+sin_vel_up
+          else
+            vel(iz,ix)=vel(iz,ix)+sin_vel_down
+          end if
+        end do
+      end do
+    end if
+    if (sin_x .ne. -x0) then
+      do iz=1,nz	 
+        x_sin=sin_x+sin_amp*sin((2*pi*(iz-1)*dz)/sin_period)
+        do ix=1,nx	 
+          xx=x0+(ix-1)*dx
+          if (xx <= x_sin) then
+            vel(iz,ix)=vel(iz,ix)+sin_vel_up
+          else
+            vel(iz,ix)=vel(iz,ix)+sin_vel_down
+          end if
+        end do
+      end do
+    end if
+  end if
+  if (dir.ne.0) then
+    do ix=1,nx
+      do iz=2,nz
+        vel(iz,ix)=vc
+      end do
+    end do
+  end if
+  if (slow.eq.1) then
+    do ix=1,nx
+      do iz=1,nz
+        vel(iz,ix)=1./vel(iz,ix)
+      end do
+    end do
+  end if
+  if (transp.ne.1) then
+    ierr= srite('out',vel,nz*nx*4)
+  else
+    do ix=1,nx
+      do iz=1,nz
+        velt(ix,iz)=vel(iz,ix)
+      end do
+    end do 
+    ierr= srite('out',velt,nz*nx*4)
+  end if
+end do 
+call sep_end_prog()
+return
+end  

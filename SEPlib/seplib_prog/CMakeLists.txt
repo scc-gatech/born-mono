@@ -1,0 +1,7 @@
+project(SEPLIB-prog)
+cmake_minimum_required(VERSION 2.8)
+add_subdirectory(include)
+add_subdirectory(util)
+add_subdirectory(seis)
+add_subdirectory(converters)
+add_subdirectory(sep_graphics)

@@ -1,0 +1,139 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>snap,slice - write to the screen an array</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#return_values">RETURN VALUES</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#files">FILES</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#diagnostics">DIAGNOSTICS</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+	<li><a href="#keywords">KEYWORDS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>snap,slice - write to the screen an array (through Grey etc)</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>int snap(name,n1,n2,matrix)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_char_2a__2d_name">char* - name</a></strong><br />
+</dt>
+<dd>
+<pre>
+      tag of desired output file</pre>
+</dd>
+<dt><strong><a name="item_int__2d_n1">int   - n1</a></strong><br />
+</dt>
+<dd>
+<pre>
+      size of slice in fast dimension</pre>
+</dd>
+<dt><strong><a name="item_int__2d_n2">int   - n2</a></strong><br />
+</dt>
+<dd>
+<pre>
+      size of slice along slow axess</pre>
+</dd>
+<dt><strong><a name="item_void_2a__2d_matrix">void* -  matrix</a></strong><br />
+</dt>
+<dd>
+<pre>
+      matrix value of slice</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_values">RETURN VALUES</a></h1>
+<pre>
+        0 = if successful</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Slice, and snap provide a convenient method of output for
+snapshots of intermediate computations or iterations in a form
+suitable for processing by other seplib functions (such as Window,
+Movie, etc.)  None of the inputs is modified.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>The input tag name is used to locate and update an associated
+auxiliary history file.  The name of the output header is ``name''.
+This may be modified by specifying `name=newtag' on the command line
+when a program is invoked.  Input is an n1 by n2 matrix of floating
+point values containing the snapshot.</p>
+<p>If more than one call to these subroutines is made, the snapshot is
+appended to the file and n3 is updated in the history file.  (This
+frees the user from the chore of counting the number of output frames,
+a special convenience while debugging.)</p>
+<p>The subroutine <code>datapath()</code> is used to generate a name for an output
+data file.</p>
+<p><code>slice()</code> only: esize is the element size, typically 1 or 4.</p>
+<p><code>snap()</code> only: If the output header does not exist no snapshots are written.
+This allows the user to decide whether or not to create snapshots
+on a given run.</p>
+<p>
+</p>
+<hr />
+<h1><a name="files">FILES</a></h1>
+<p>name	auxiliary header</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p>seplib, datapath, srite</p>
+<p>
+</p>
+<hr />
+<h1><a name="diagnostics">DIAGNOSTICS</a></h1>
+<p>Program execution is terminated with an appropriate error message
+if the program attempts to change the snapshot size along the way.
+Also for appropriate I/O related errors.</p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<p>Prexisting snapshot files with the same name are overwritten
+without qualms.</p>
+<p>
+</p>
+<hr />
+<h1><a name="keywords">KEYWORDS</a></h1>
+<p>snapshot slice output</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep</strong></p>
+
+</body>
+
+</html>

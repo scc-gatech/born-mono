@@ -1,0 +1,188 @@
+!HANDLE FFTS
+module wei_fft_mod
+  use wei_flags
+  use wei_wavespace_mod
+#ifdef SEP_MKL
+  use  MKL_DFTI
+#endif
+  implicit none
+  integer*8,pointer,private,save :: planF(:),planI(:),extraF(:),extraI(:)
+#ifdef SEP_MKL
+ type(dfti_type), pointer,private :: dfti(:)
+#endif
+  real, private,save :: in123
+contains
+  !----------------------------------------------------------------
+  !INITIALIZE THE FFT
+  subroutine weifft_init(wfld)
+    complex :: wfld(:,:,:,:,:)
+    integer :: i,j,k
+    type(sep3d) :: wsep 
+    integer :: ierr
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weifft_init'
+    if(my_debug()) call in(unit)
+#endif
+   call grab_current_wave_space_pad(wsep)
+   in123=sqrt(1./real(product(wsep%n(1:4))))
+
+#ifdef SEP_MKL
+   allocate(dfti(size(wfld,5)))
+   do i=1,size(wfld,5)
+     ierr= dfticreatedescriptor(dfti(i)%dft_d,dfti_single,DFTI_COMPLEX,4,wsep%n)
+     ierr= dfticommitdescriptor(dfti(i)%dft_d)
+   end do
+#else
+#ifdef USE_FFTW
+   allocate(planF(size(wfld,5)))
+   allocate(planI(size(wfld,5)))
+   call add_mem(size(planF)+size(planI))
+
+
+
+   do i=1,size(wfld,5)
+     call sfftw_plan_dft(planF(i),4,wsep%n,wfld(1,1,1,1,i),wfld(1,1,1,1,i),&
+       ffTW_FORWARD,fftW_PATIENT)
+     call sfftw_plan_dft(planI(i),4,wsep%n,wfld(1,1,1,1,i),wfld(1,1,1,1,i),&
+       ffTW_BACKWARD,fftW_PATIENT)
+   end do
+#else
+call seperr("no fftw")
+#endif
+#endif
+
+!   if(nextra_fft() >0) then
+!     allocate(extraF(my_nomp()*nextra_fft()))
+!     allocate(extraI(my_nomp()*nextra_fft()))
+!     call add_mem(size(extraF)+size(extraI))
+!     do k=1,nextra_fft()
+!       do j=1,my_nomp()
+!          i=size(tmp_on,5)-k*my_nomp()+j
+!          call sfftw_plan_dft(extraI(j+(k-1)*my_nomp()),4,n,tmp_on(1,1,1,1,i),&
+!            tmp_on(1,1,1,1,i),FFTW_BACKWARD,FFTW_PATIENT)
+!        end do
+!     end do 
+!   end if
+
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+  end subroutine weifft_init
+
+
+
+
+
+  !----------------------------------------------------------------
+  !! forward extra FFT
+  subroutine weifft_e(ith,ipart,data)
+    integer, intent(in) :: ith,ipart
+    complex, dimension(:,:,:,:,:) :: data
+    integer :: imx,imy,ndim
+    integer :: iplan,i3,i1,n1,n2,i2,i4
+    integer :: nd(4),nf(4)
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weifft'
+    if(my_debug()) call in(unit)
+#endif
+    iplan=ith+(ipart-1)*my_nomp()
+    
+  data(:,:,:,:,ith)=data(:,:,:,:,ith)*in123
+ end subroutine
+
+
+  !----------------------------------------------------------------
+  !! inverse FFT
+  subroutine weiift_e(ith,ipart,data)
+    integer, intent(in) ::  ith,ipart
+    complex, dimension(:,:,:,:,:), pointer :: data
+    integer :: imx,imy,iplan,nd(4),i1,i2,i3,i4
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weiift'
+    if(my_debug()) call in(unit)
+#endif
+
+    iplan=ith+(ipart-1)*my_nomp()
+#ifdef USE_FFTW
+    call sfftw_execute(extraI(iplan))
+#else
+call seperr("no fftw")
+#endif
+   data(:,:,:,:,ith)=data(:,:,:,:,ith)*in123
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+  end subroutine weiift_e
+
+
+
+
+  !----------------------------------------------------------------
+  !! forward FFT
+  subroutine weifft(iws,izs,ith,data)
+    integer, intent(in) :: iws,ith,izs
+    complex, dimension(:,:,:,:,:) :: data
+    integer :: imx,imy,ndim
+    integer :: iplan,i3,i1,n1,n2,i2,i4,ierr
+    integer :: nd(4),nf(4)
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weifft'
+    if(my_debug()) call in(unit)
+#endif
+#ifdef SEP_MKL
+ call weifft_internal(iws,izs,ith,size(data)/size(data,5),size(data,5),data)
+#else
+#ifdef USE_FFTW
+    call sfftw_execute(planF(iws))
+#else
+call seperr("no fftw")
+#endif
+#endif
+  data(:,:,:,:,iws)=data(:,:,:,:,iws)*in123
+ end subroutine
+
+
+  !----------------------------------------------------------------
+  !! inverse FFT
+  subroutine weiift(iws,izs,ith,data)
+    integer, intent(in) :: iws, ith,izs
+    complex, dimension(:,:,:,:,:), pointer :: data
+    integer :: imx,imy,iplan,nd(4),i1,i2,i3,i4,ierr
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weiift'
+    if(my_debug()) call in(unit)
+#endif
+
+#ifdef SEP_MKL
+ call weiift_internal(iws,izs,ith,size(data)/size(data,5),size(data,5),data)
+#else
+#ifdef USE_FFTW
+   call sfftw_execute(planI(iws))
+#else
+call seperr("no fftw")
+#endif
+#endif
+   data(:,:,:,:,iws)=data(:,:,:,:,iws)*in123
+
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+  end subroutine weiift
+
+#ifdef SEP_MKL
+  subroutine weifft_internal(iws,izs,ith,n,nw,data)
+    integer, intent(in) :: iws, ith,izs,n,nw
+    complex, dimension(n,nw):: data
+    integer :: imx,imy,iplan,nd(4),i1,i2,i3,i4,ierr
+    ierr=dfticomputeforward(dfti(iws)%dft_d,data(:,iws))
+  end subroutine
+
+  subroutine weiift_internal(iws,izs,ith,n,nw,data)
+    integer, intent(in) :: iws, ith,izs,n,nw
+    complex, dimension(n,nw):: data
+    integer :: imx,imy,iplan,nd(4),i1,i2,i3,i4,ierr
+    ierr=dfticomputebackward(dfti(iws)%dft_d,data(:,iws))
+  end subroutine
+#endif
+
+end module wei_fft_mod

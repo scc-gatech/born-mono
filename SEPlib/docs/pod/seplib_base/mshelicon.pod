@@ -1,0 +1,46 @@
+=head1 NAME
+
+
+mshelicon - convolution using mutli scale helix filters
+
+=head1 SYNOPSIS
+
+
+Initializer - C<call mshelicon_init(aa)>
+
+Operator    - C<ierr=mshelicon_lop(adj,add,xx,yy)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item aa - type(msfilter)
+
+      helix filter to perform convolution with
+
+=item adj,add,xx,yy -
+
+      standard operators parameters
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Multi-scale onvolution, inverse to deconvolution.
+ Requires the filter be causal with an implicit "1." at the onset.
+
+
+=head1 SEE ALSO
+
+
+L<mshelix>,L<mshconest>,L<helicon>,L<nhelicon>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

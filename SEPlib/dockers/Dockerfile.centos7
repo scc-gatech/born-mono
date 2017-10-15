@@ -1,0 +1,22 @@
+From centos:7
+MAINTAINER Bob Clapp <bob@sep.stanford.edu>
+RUN yum -y install make libX11-devel libXt-devel gcc wget &&\
+   yum -y clean all
+RUN mkdir /opt/SU && cd /opt/SU  &&\
+   wget ftp://ftp.cwp.mines.edu/pub/cwpcodes/cwp_su_all_44R1.tgz  &&\
+  cd /opt/SU ; tar xf cwp_su_all_44R1.tgz;cd /opt/SU/src   &&\
+  cd /opt/SU/src ;touch cwp_su_version LICENSE_44_ACCEPTED MAILHOME_44 &&\
+  cd /opt/SU/src;  echo "echo boo"  >chkroot.sh &&\
+  cd /opt/SU/src; chmod 777 chkroot.sh   &&\
+  cd /opt/SU/src; CWPROOT=/opt/SU make install xtinstall &&\
+   rm -rf /opt/SU/cwp_su_all_44R1.tgz /opt/SU/bin
+RUN yum -y install make automake autoconf libtool git libXt-devel \
+   libX11-devel libXaw-devel gcc-c++  gcc gcc-gfortran flex cmake; yum -y clean all
+RUN mkdir  -p /opt/SEP/build
+RUN git clone http://zapad.stanford.edu/bob/SEPlib.git /opt/SEP/src &&\
+    cd /opt/SEP/build &&\
+     cmake -DCMAKE_INSTALL_PREFIX=/opt/SEP ../src &&\
+     cd /opt/SEP/build &&\
+     make &&\
+     make install &&\
+     rm -rf /opt/SEP/build

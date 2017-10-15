@@ -1,0 +1,748 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Rickmovie - displays cubic array of data</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#data_arguments">DATA ARGUMENTS</a></li>
+	<li><a href="#file_formats">FILE FORMATS</a></li>
+	<li><a href="#windows">WINDOWS</a></li>
+	<li><a href="#mouse_usage">MOUSE USAGE</a></li>
+	<li><a href="#interactive_controls">INTERACTIVE CONTROLS</a></li>
+	<li><a href="#main_functions__interface_to_system">MAIN FUNCTIONS: Interface to system</a></li>
+	<li><a href="#style_functions__select_a_style_and_set_attributes">STYLE FUNCTIONS: Select a style and set attributes</a></li>
+	<li><a href="#orient_functions__change_way_axes_point__2d_are_inplane">ORIENT FUNCTIONS: change way axes point; 2-D are in-plane</a></li>
+	<li><a href="#size_functions__set_size_and_shape_policy">SIZE FUNCTIONS: set size and shape policy</a></li>
+	<li><a href="#movie_functions__go_to_part_of_the_cube__run_movies">MOVIE FUNCTIONS: go to part of the cube; run movies</a></li>
+	<li><a href="#color_functions__set_color__contrast__and_transparency">COLOR FUNCTIONS: set color, contrast, and transparency</a></li>
+	<li><a href="#pick_functions__set_picking_behavior">PICK FUNCTIONS: set picking behavior</a></li>
+	<li><a href="#edit_functions__edit_grid_subvolume">EDIT FUNCTIONS: edit grid sub-volume</a></li>
+	<li><a href="#section_function__plot_various_sections_through_the_data">SECTION FUNCTION: plot various sections through the data</a></li>
+	<li><a href="#status_functions__print_parameters_and_state_variables">STATUS FUNCTIONS: print parameters and state variables</a></li>
+	<li><a href="#help_functions__print_self_documentation_from_various_places">HELP FUNCTIONS: print self documentation from various places</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Rickmovie - displays cubic array of data</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Rickmovie in=datafile [ data pars ] [ display pars ]</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Display cubic array of data in XWindows-Motif</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_in__2d_file">in          - file</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [stdin]    name of input file</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3_2e_2e5__2d_integer">n1,n2,n3..5 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      length of 3 dimensions, n1 is fastest, e.g. time</pre>
+</dd>
+<dt><strong><a name="item_o1_2e_2e_2eo5__2d_float">o1...o5     - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.]first sample value in each dimension</pre>
+</dd>
+<dt><strong><a name="item_d1_2e_2e_2ed5__2d_float">d1...d5     - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.]sample increment in each dimension</pre>
+</dd>
+<dt><strong><a name="item_z1_2e_2e_2ez5__2d_integer">z1...z5     - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]relative spacing for true size, z3=3 means wide lines</pre>
+</dd>
+<dt><strong><a name="item_label1_2e_2e5__2d_char_2a">label1..5   - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [n1]...[n5]label for each dimension</pre>
+</dd>
+<dt><strong><a name="item_title__2d_char_2a">title       - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [in]   dataset title</pre>
+</dd>
+<dt><strong><a name="item_script__2d_file">script      - file</a></strong><br />
+</dt>
+<dd>
+<pre>
+      script file with label for every panel (n3 dimension)</pre>
+</dd>
+<dt><strong><a name="item_segy__2d_integer">segy        - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]data format is segy or not</pre>
+</dd>
+<dt><strong><a name="item_vgrid__2d_integer">vgrid       - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      specify vgrid choice</pre>
+</dd>
+<dt><strong><a name="item_esize__2d_integer">esize       - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]  data samples are =1 for bytes or =4 for floats</pre>
+</dd>
+<dt><strong><a name="item_hbytes__2d_integer">hbytes      - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0,3600]header bytes to skip; 3600 for segy=1</pre>
+</dd>
+<dt><strong><a name="item_pclip__2d_integer">pclip       - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [255]  positive clip value; high= and clip= are synonyms</pre>
+</dd>
+<dt><strong><a name="item_nclip__2d_integer">nclip       - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]  negative clip value; low= and clip= are synonyms</pre>
+</dd>
+<dt><strong><a name="item_value__2d_char_2a">value       - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [sample] name for values on colorbar</pre>
+</dd>
+<dt><strong><a name="item_width_2cheight_2dinteger">width,height-integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [600]pixel dimension (&gt; 64) or fraction of screen (&lt;= 1.0)</pre>
+</dd>
+<dt><strong><a name="item_pick__2dfile">pick        -file</a></strong><br />
+</dt>
+<dd>
+<pre>
+      pick line data file</pre>
+</dd>
+<dt><strong><a name="item_npick__2dinteger">npick       -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [2500]maximum number of picks used</pre>
+</dd>
+<dt><strong><a name="item_style__2dchar_2a">style       -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [cube]view is front, side, top, plan, array, picks, cube, 
+      fence, or transparent</pre>
+</dd>
+<dt><strong><a name="item_orient__2dchar_2a">orient      -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [front]    orient is front, side, top</pre>
+</dd>
+<dt><strong><a name="item_origin__2dchar_2a">origin      -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [minimum]   frames set to middle or minimum</pre>
+</dd>
+<dt><strong><a name="item_transp__2dinteger">transp      -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] if 1, transpose down and across</pre>
+</dd>
+<dt><strong><a name="item_shape__2dchar_2a">shape       -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [fit]   shape fits screen, true, or pixel</pre>
+</dd>
+<dt><strong><a name="item_movie__2dchar_2a">movie       -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [off] run movie in up, down, left, right, in, or out direction</pre>
+</dd>
+<dt><strong><a name="item_color__2dchar_2a">color       -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [gray]color is gray, straw, flag, tiger, blue, or rainbow</pre>
+</dd>
+<dt><strong><a name="item_contrast__2dinteger">contrast    -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [50]  contrast is between 0 and 100</pre>
+</dd>
+<dt><strong><a name="item_font__2dchar_2a">font        -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      alternative XWindows font; default bold-courier-20</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="data_arguments">DATA ARGUMENTS</a></h1>
+<dl>
+<dt><strong><a name="item_in_3ddatafile_vgrid_format__2d_bytes_or_float_with">in=datafile       vgrid format - bytes or float with header</a></strong><br />
+</dt>
+<dt><strong><a name="item_in_3ddatafile_n1_3d_n2_3d_n3_3d_segy_3d1_segy_2fsu">in=datafile n1= n2= n3= segy=1  segy/SU format - float traces with headers</a></strong><br />
+</dt>
+<dt><strong><a name="item_format">in=datafile n1= n2= n3=  bytes format (SEPlib) - byte array without header</a></strong><br />
+</dt>
+<dt><strong><a name="item_in_3ddatafile_n1_3d_n2_3d_n3_3d_esize_3d4_float_fo">in=datafile n1= n2= n3= esize=4  float format - float array without header</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="file_formats">FILE FORMATS</a></h1>
+<dl>
+<dt><strong><a name="item_seplib_2c_bytes_input_data_set_3a__28user_supplied">seplib, bytes input data set: (user supplied)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      2-D of 3-D array of unsigned byte integers 0-255.
+      Use segy2movie to convert segy.
+      Use Byte to convert seplib floating point.</pre>
+</dd>
+<dt><strong><a name="item_seplib_2c_float_input_data_set_3a__28user_supplied">seplib, float input data set: (user supplied)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      2-D of 3-D array of float numbers</pre>
+</dd>
+<dt><strong><a name="item_segy_2c_su_input_data_set_3a__28user_supplied_29">segy, su input data set: (user supplied)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Two dataset headers.
+      n2 x n3 segy traces.
+      Each trace 240 bytes + n1 IEEE floating point samples.
+      Use suread to convert tape dataset.</pre>
+</dd>
+<dt><strong><a name="item_vgrid_2c__28read_or_written_by_movie_29_2e">vgrid, (read or written by Movie).</a></strong><br />
+</dt>
+<dd>
+<pre>
+      cubic array of data.
+      100 byte tail describing dimensions.</pre>
+</dd>
+<dt><strong><a name="item_script_file_3a__28user_supplied_29">script file: (user supplied)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Text file.
+      Each line of text annotates an n3 direction frame.</pre>
+</dd>
+<dt><strong><a name="item_pick_file_3a__28generated_by_program_or_user_suppl">pick file: (generated by program or user supplied)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      First line is dataset name.
+      Second line is dataset dimensions.
+      Third line are axes labels.
+      Followed by pick-lines:
+       First line is ID and frame.
+       Following lines are pick points:
+        three coordinates and data value.</pre>
+</dd>
+<dt><strong><a name="item_par_file_3a__28user_supplied_or_generated_by_save_">par file: (user supplied or generated by Save State menu)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      List of parameters in name=value form. Free format.
+      Last of duplicates used.</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="windows">WINDOWS</a></h1>
+<dl>
+<dt><strong><a name="item__281_29_menubar_on_top_2e">(1) Menubar on top.</a></strong><br />
+</dt>
+<dt><strong><a name="item__282_29_message_window_below_menubar_2e">(2) Message window below menubar.</a></strong><br />
+</dt>
+<dt><strong><a name="item__283_29_control_panel_below_message_window_2e">(3) Control panel below message window.</a></strong><br />
+</dt>
+<dt><strong><a name="item__284_29_color_spectrum_below_control_panel_2e_line">(4) Color spectrum below control panel.
+      Line shows relative data sample distribution.
+      Bar shows last pick value or range of values.
+      Mouse click-drag-up specifies a value range.</a></strong><br />
+</dt>
+<dt><strong><a name="item__285_29_resizable_image_window_2e_responds_to_foll">(5) Resizable image window.  Responds to following mouse clicks:</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="mouse_usage">MOUSE USAGE</a></h1>
+<dl>
+<dt><strong><a name="item_left_3a_zoom_3b_middle_3a_navigate_3b_right_3a_pic">LEFT: zoom; MIDDLE: navigate; RIGHT: pick.</a></strong><br />
+</dt>
+<dt><strong><a name="item_left_click_2ddrag_2dup_3a_zoom_window_2e">LEFT click-drag-up: zoom window.</a></strong><br />
+</dt>
+<dt><strong><a name="item_left_click_only_3a_initial_size_2e">LEFT click only: initial size.</a></strong><br />
+</dt>
+<dt><strong><a name="item_left_click_2ddrag_2dup__2b__27h_27_key_3a_zoom_hor">LEFT click-drag-up + 'h' key: zoom horizontal only.</a></strong><br />
+</dt>
+<dt><strong><a name="item_left_click_2ddrag_2dup__2b__27v_27_key_3a_zoom_ver">LEFT click-drag-up + 'v' key: zoom vertical only.</a></strong><br />
+</dt>
+<dt><strong><a name="item_left_click_2ddrag_2dup_in_array_window_3a_those_pa">LEFT click-drag-up in ARRAY window: those panels.</a></strong><br />
+</dt>
+<dt><strong><a name="item_middle_click_3a_select_cross_frames_2e">MIDDLE click: select cross frames.</a></strong><br />
+</dt>
+<dt><strong><a name="item_middle_click_2ddrag_2dup_3a_select_an_animation_ra">MIDDLE click-drag-up: select an animation range.</a></strong><br />
+</dt>
+<dt><strong><a name="item_right_click_3a_pick_a_point_on_the_image_2e">RIGHT click: pick a point on the image.</a></strong><br />
+</dt>
+<dt><strong><a name="item_right_click__2b__27a_27_key_3a_add_a_point_to_end_">RIGHT click + 'a' key: add a point to end of pick line.</a></strong><br />
+</dt>
+<dt><strong><a name="item_right_click__2b__27m_27_key_3a_move_nearest_point_">RIGHT click + 'm' key: move nearest point in pick line.</a></strong><br />
+</dt>
+<dt><strong><a name="item_right_click__2b__27d_27_key_3a_delete_nearest_poin">RIGHT click + 'd' key: delete nearest point in pick line.</a></strong><br />
+</dt>
+<dt><strong><a name="item_right_click_2ddrag_2dup__2b__27s_27_key_3aselect_s">RIGHT click-drag-up + 's' key:select seed point &amp; sub-volume pick bounds.</a></strong><br />
+</dt>
+<dt><strong><a name="item_colorbar_any_click_2ddrag_2dup_3a_replace_sub_2dvo">COLORBAR ANY click-drag-up: replace sub-volume range with this new range.</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="interactive_controls">INTERACTIVE CONTROLS</a></h1>
+<p>
+</p>
+<hr />
+<h1><a name="main_functions__interface_to_system">MAIN FUNCTIONS: Interface to system</a></h1>
+<dl>
+<dt><strong><a name="item__22main_22__22redraw_22__2d_2d_refresh_damaged_scr">``Main''  ``Redraw'' -- refresh damaged screen</a></strong><br />
+</dt>
+<dt><strong><a name="item_file">``Main''  ``Write vgrid file (floats)'' -- save data files as floats in 
+               seplib/vgrid format</a></strong><br />
+</dt>
+<dt><strong>``Main''  ``Write vgrid file (bytes)'' -- save data files as bytes in 
+               seplib/vgrid format</strong><br />
+</dt>
+<dt><strong><a name="item__22main_22__22write_parameter_restart_file_22__2d_">``Main''  ``Write parameter restart file'' -- create a parameter restart file</a></strong><br />
+</dt>
+<dt><strong><a name="item__22main_22__22debug_22__2d_2d_dump_various_arrays_">``Main''  ``Debug'' -- dump various arrays for programmer debugging</a></strong><br />
+</dt>
+<dt><strong><a name="item__22main_22__22quit_22">``Main''  ``Quit''</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="style_functions__select_a_style_and_set_attributes">STYLE FUNCTIONS: Select a style and set attributes</a></h1>
+<dl>
+<dt><strong><a name="item_front">``View''  ``Front (2D)'' -- Front face of data cube</a></strong><br />
+</dt>
+<dt><strong><a name="item_side">``View''  ``Side (2D)'' -- Side face of data cube</a></strong><br />
+</dt>
+<dt><strong><a name="item_top">``View''  ``Top (2D)'' -- Top face of data cube</a></strong><br />
+</dt>
+<dt><strong><a name="item_plan">``View''  ``Plan (2D)'' -- All three cube faces</a></strong><br />
+</dt>
+<dt><strong><a name="item_array">``View''  ``Array (3D) ...'' -- Array of front faces- up to a hundred</a></strong><br />
+</dt>
+<dt><strong><a name="item_pick">``View''  ``Pick (3D) ...'' -- Array of picked faces</a></strong><br />
+</dt>
+<dt><strong><a name="item_cube">``View''  ``Cube (3D)'' -- Cube view</a></strong><br />
+</dt>
+<dt><strong><a name="item_fence">``View''  ``Fence (3D) ...'' -- Show intersecting faces</a></strong><br />
+</dt>
+<dt><strong><a name="item_transparent">``View''  ``Transparent (3D) ...'' -- Transparent volume</a></strong><br />
+</dt>
+<dt><strong><a name="item__22array_panel_22__22direction_22__3cfour_axes_3e_">``Array Panel'' ``Direction'' &lt;four axes&gt; -- Select through direction</a></strong><br />
+</dt>
+<dt><strong><a name="item__22array_panel_22__22down_22__2d_2d_panels_in_down">``Array Panel'' ``Down'' -- Panels in down direction</a></strong><br />
+</dt>
+<dt><strong><a name="item__22array_panel_22__22across_22__2d_2d_panels_in_ac">``Array Panel'' ``Across'' -- Panels in across direction</a></strong><br />
+</dt>
+<dt><strong><a name="item__22array_panel_22__22start_22__2d_2d_first_panel">``Array Panel'' ``Start'' -- First panel</a></strong><br />
+</dt>
+<dt><strong><a name="item__22array_panel_22__22delta_22__2d_2d_panel_increme">``Array Panel'' ``Delta'' -- Panel increment</a></strong><br />
+</dt>
+<dt><strong><a name="item__22array_panel_22__22end_22__2d_2d_last_panel_3b_s">``Array Panel'' ``End'' -- Last panel; sets delta</a></strong><br />
+</dt>
+<dt><strong><a name="item__22array_panel_22__22draw_22__2d_2d_draw_with_new_">``Array Panel'' ``Draw'' -- Draw with new parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22array_panel_22__22close_22__2d_2d_close_control">``Array Panel'' ``Close'' -- Close control panel</a></strong><br />
+</dt>
+<dt><strong><a name="item__22array_panel_22__22left_mouse_selects_panel_rang">``Array Panel'' ``LEFT MOUSE SELECTS PANEL RANGE</a></strong><br />
+</dt>
+<dt><strong><a name="item__22fence_panel_22__22toggle_front_22__2d_2d_toggle">``Fence Panel'' ``Toggle Front'' -- Toggle front plane on</a></strong><br />
+</dt>
+<dt><strong><a name="item__22fence_panel_22__22toggle_side_22__2d_2d_toggle_">``Fence Panel'' ``Toggle Side'' -- Toggle side plane on</a></strong><br />
+</dt>
+<dt><strong><a name="item__22fence_panel_22__22toggle_top_22__2d_2d_toggle_t">``Fence Panel'' ``Toggle Top'' -- Toggle top plane on</a></strong><br />
+</dt>
+<dt><strong><a name="item__22fence_panel_22__22transparency_22__2d_2d_set_tr">``Fence Panel'' ``Transparency'' -- Set transparency threshhold</a></strong><br />
+</dt>
+<dt><strong><a name="item__22fence_panel_22__22draw_22__2d_2d_draw_with_new_">``Fence Panel'' ``Draw'' -- Draw with new parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22fence_panel_22__22close_22__2d_2d_close_control">``Fence Panel'' ``Close'' -- Close control panel</a></strong><br />
+</dt>
+<dt><strong><a name="item__22transparency_panel_22__22min_22__2d_2d_set_mini">``Transparency Panel''  ``Min'' -- Set minimum transparency value</a></strong><br />
+</dt>
+<dt><strong><a name="item__22transparency_panel_22__22max_22__2d_2d_set_maxi">``Transparency Panel''  ``Max'' -- Set maximum transparency value</a></strong><br />
+</dt>
+<dt><strong><a name="item__22transparency_panel_22__22transp_22__2d_2d_set_t">``Transparency Panel''  ``Transp'' -- Set transparency value</a></strong><br />
+</dt>
+<dt><strong><a name="item__22transparency_panel_22__22draw_altogether_22__2d">``Transparency Panel''  ``Draw altogether'' -- Update screen once</a></strong><br />
+</dt>
+<dt><strong><a name="item__22transparency_panel_22__22draw_tenth_blocks_22__">``Transparency Panel''  ``Draw tenth blocks'' -- Update screen ten times</a></strong><br />
+</dt>
+<dt><strong><a name="item__22transparency_panel_22__22draw_each_plane_22__2d">``Transparency Panel''  ``Draw each plane'' -- Update screen continuously</a></strong><br />
+</dt>
+<dt><strong><a name="item__22transparency_panel_22__22draw_22__2d_2d_draw_wi">``Transparency Panel''  ``Draw'' -- Draw with new parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22transparency_panel_22__22close_22__2d_2d_close_">``Transparency Panel''  ``Close'' -- Close control panel</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="orient_functions__change_way_axes_point__2d_are_inplane">ORIENT FUNCTIONS: change way axes point; 2-D are in-plane</a></h1>
+<dl>
+<dt><strong>``Orient''  ``Side&lt;-&gt;Top (2-D)'' -- Rotate axes</strong><br />
+</dt>
+<dt><strong>``Orient''  ``Front&lt;-&gt;Side (3-D)'' -- Rotate axes</strong><br />
+</dt>
+<dt><strong>``Orient''  ``Top&lt;-&gt;Front (3-D)'' -- Rotate axes</strong><br />
+</dt>
+<dt><strong><a name="item_extra">``Orient''  ``Front&lt;-&gt;Extra (4-D)'' -- Rotate axes</a></strong><br />
+</dt>
+<dt><strong>``Orient''  ``Side&lt;-&gt;Extra (4-D)'' -- Rotate axes</strong><br />
+</dt>
+<dt><strong>``Orient''  ``Top&lt;-&gt;Extra (4-D)'' -- Rotate axes</strong><br />
+</dt>
+<dt><strong><a name="item__22orient_22__22_3c_2ddown_2d_3e__282_2dd_29_22__2">``Orient''  ``&lt;-Down-&gt; (2-D)'' -- Reversal</a></strong><br />
+</dt>
+<dt><strong><a name="item__22orient_22__22_3c_2dacross_2d_3e__282_2dd_29_22_">``Orient''  ``&lt;-Across-&gt; (2-D)'' -- Reversal</a></strong><br />
+</dt>
+<dt><strong><a name="item__22orient_22__22_3c_2ddeep_2d_3e__283_2dd_29_22__2">``Orient''  ``&lt;-Deep-&gt; (3-D)'' -- Reversal</a></strong><br />
+</dt>
+<dt><strong><a name="item__22orient_22__22frames_to_origin_22__2d_2d_cross_f">``Orient''  ``Frames to Origin'' -- Cross frames to start of origin of 
+                 each axis</a></strong><br />
+</dt>
+<dt><strong><a name="item__22orient_22__22frames_in_middle_22__2d_2d_cross_f">``Orient''  ``Frames in Middle'' -- Cross frames in middle of each frame</a></strong><br />
+</dt>
+<dt><strong><a name="item__22orient_22__22labels_set__2e_2e_22__2d_2d_contro">``Orient''  ``Labels Set ..'' -- Control panel to adjust labeling</a></strong><br />
+</dt>
+<dt><strong><a name="item__22orient_22__22reset_initial_22">``Orient''  ``Reset Initial''</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="size_functions__set_size_and_shape_policy">SIZE FUNCTIONS: set size and shape policy</a></h1>
+<dl>
+<dt><strong><a name="item__22size_22__22fit_screen_22__2d_2d_front_fills_2_2">``Size''  ``Fit Screen'' -- Front fills 2/3s screen; sides 1/3</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_22__22true_proportions_22">``Size''  ``True Proportions''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_22__22sample_per_pixel_22">``Size''  ``Sample per Pixel''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_22__22interpolate_22__2d_2d_improves_large">``Size''  ``Interpolate'' -- Improves large magnifications</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_22__22size_set__2e_2e_22__2d_2d_launch_siz">``Size''  ``Size Set ..'' -- Launch size setting control panel</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_set_22__22minimum_22__2d_2d_minimum_sample">``Size Set''  ``Minimum'' -- Minimum sample/value along axis</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_set_22__22maximum_22__2d_2d_maximum_sample">``Size Set''  ``Maximum'' -- Maximum sample/value along axis</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_set_22__22frame_22__2d_2d_frame_sample_2fv">``Size Set''  ``Frame'' -- Frame sample/value along axis</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_set_22__22pixels_22__2d_2d_pixels_along_ax">``Size Set''  ``Pixels'' -- Pixels along axis</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_set_22__22draw_22__2d_2d_draw_these_size_s">``Size Set''  ``Draw'' -- Draw these size settings</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_set_22__22current_22__2d_2d_restore_curren">``Size Set''  ``Current'' -- Restore current size settings</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_set_22__22initial_22__2d_2d_fill_in_initia">``Size Set''  ``Initial'' -- Fill in initial settings</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_set_22__22close_22__2d_2d_close_size_setti">``Size Set''  ``Close'' -- Close size settings panel</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_22__22reset_initial_22">``Size''  ``Reset Initial''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_22__22left_mouse_box_zooms_22__2d_2d_inter">``Size''  ``LEFT MOUSE BOX ZOOMS'' -- interactive magnification</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_22__22_2b__27h_27_key_only_horz_22__2d_2d_">``Size''  ``+ 'h' KEY ONLY HORZ'' -- constrain to horizontal</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_22__22_2b__27v_27_key_only_vert_22__2d_2d_">``Size''  ``+ 'v' KEY ONLY VERT'' -- constrain to vertical</a></strong><br />
+</dt>
+<dt><strong><a name="item__22size_22__22left_mouse_click_only_22__2d_2d_init">``Size''  ``LEFT MOUSE CLICK ONLY'' -- initial size</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="movie_functions__go_to_part_of_the_cube__run_movies">MOVIE FUNCTIONS: go to part of the cube; run movies</a></h1>
+<dl>
+<dt><strong><a name="item__22navigate_22__22reset_bounds_22__2d_2d_movie_loo">``Navigate''  ``Reset Bounds'' -- Movie loop traverses full cross face</a></strong><br />
+</dt>
+<dt><strong><a name="item__22navigate_22__22high_speed_22__2d_2d_frames_are_">``Navigate''  ``High Speed'' -- Frames are stored in displat terminal</a></strong><br />
+</dt>
+<dt><strong><a name="item__22navigate_22_button__22go_22__2d_2d_start_movie">``Navigate'' BUTTON ``GO'' -- Start movie</a></strong><br />
+</dt>
+<dt><strong><a name="item__22navigate_22_button__22no_22__2d_2d_stop_movie">``Navigate'' BUTTON ``NO'' -- Stop movie</a></strong><br />
+</dt>
+<dt><strong><a name="item__22navigate_22_button__22_z__22__2d_2d_run_2fstep_">``Navigate'' BUTTON `` z '' -- Run/step in direction</a></strong><br />
+</dt>
+<dt><strong><a name="item__22navigate_22_button__22_z__22__2d_2d_run_2fstep_">``Navigate'' BUTTON `` Z '' -- Run/step out direction</a></strong><br />
+</dt>
+<dt><strong><a name="item__22navigate_22_button__22__3c__22__2d_2d_run_2fste">``Navigate'' BUTTON `` &lt; '' -- Run/step left direction</a></strong><br />
+</dt>
+<dt><strong><a name="item__22navigate_22_button__22__3e__22__2d_2d_run_2fste">``Navigate'' BUTTON `` &gt; '' -- Run/step right direction</a></strong><br />
+</dt>
+<dt><strong><a name="item__22navigate_22_button__22__5e__22__2d_2d_run_2fste">``Navigate'' BUTTON `` ^ '' -- Run/step up direction</a></strong><br />
+</dt>
+<dt><strong><a name="item__22navigate_22_button__22_v__22__2d_2d_run_2fstep_">``Navigate'' BUTTON `` v '' -- Run/step down direction</a></strong><br />
+</dt>
+<dt><strong><a name="item__22navigate_22_slider__22_speed__22__2d_2d_delay_b">``Navigate'' SLIDER `` Speed '' -- Delay between frames</a></strong><br />
+</dt>
+<dt><strong><a name="item__22navigate_22__22middle_mouse_click_reset_cross_f">``Navigate''  ``MIDDLE MOUSE CLICK Reset cross framesFRAMES'' -- X</a></strong><br />
+</dt>
+<dt><strong><a name="item__22navigate_22__22middle_mouse_drag_movie_bounds_2">``Navigate''  ``MIDDLE MOUSE DRAG MOVIE BOUNDS'' -- Set movie range</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="color_functions__set_color__contrast__and_transparency">COLOR FUNCTIONS: set color, contrast, and transparency</a></h1>
+<dl>
+<dt><strong><a name="item__22color_22__22gray_22__2d_2d_grayscale">``Color'' ``Gray'' -- Grayscale</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22__22straw_22__2d_2d_blue_and_yellow">``Color'' ``Straw'' -- Blue and yellow</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22__22flag_22__2d_2d_red_2c_white_and_blu">``Color'' ``Flag'' -- Red, white and blue</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22__22tiger_22__2d_2d_red_2c_white_and_bl">``Color'' ``Tiger'' -- Red, white and black</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22__22blue_22__2d_2d_blue_and_white">``Color'' ``Blue'' -- Blue and white</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22__22rainbow_22__2d_2d_multi_2dcolored">``Color'' ``Rainbow'' -- Multi-colored</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22__22graybow_22__2d_2d_gray_plus_multi_2">``Color'' ``Graybow'' -- Gray plus multi-colored</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22__22overlay_22__3ccolor_2dlist_3e__2d_2">``Color'' ``Overlay'' &lt;color-list&gt; -- Overlay lines and text</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22__22mark_22__3ccolor_2dlist_3e__2d_2d_p">``Color'' ``Mark'' &lt;color-list&gt; -- Pick color</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22__22background_22__3ccolor_2dlist_3e__2">``Color'' ``Background'' &lt;color-list&gt; -- Screen background color</a></strong><br />
+</dt>
+<dt><strong><a name="item_color">``Color'' ``Flip Polarity'' -- of data-&gt; color</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22__22reset_contrast_22__2d_2d_no_skew_or">``Color'' ``Reset Contrast'' -- No skew or zero point contrast</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22_slider__22contrast_22__2d_2d_shift_col">``Color'' SLIDER ``CONTRAST'' -- Shift color table skew</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22_slider__22contrast0_22__2d_2d_shift_co">``Color'' SLIDER ``CONTRAST0'' -- Shift color table zero point</a></strong><br />
+</dt>
+<dt><strong><a name="item__22color_22_button__22reset_22__2d_2d_reset_initia">``Color'' BUTTON ``Reset'' -- Reset initial contrast</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="pick_functions__set_picking_behavior">PICK FUNCTIONS: set picking behavior</a></h1>
+<dl>
+<dt><strong><a name="item__22pick_22__22clear_current_line_22__2d_2d_erase_p">``Pick''  ``Clear Current Line'' -- Erase pick line or sub-volume</a></strong><br />
+</dt>
+<dt><strong><a name="item__22pick_22__22write_pick_file_22__2d_2d_write_to_p">``Pick''  ``Write pick file'' -- Write to pick= now</a></strong><br />
+</dt>
+<dt><strong><a name="item__22pick_22__22read_pick_file_22__2d_2d_read_from_p">``Pick''  ``Read pick file'' -- Read from pick= now</a></strong><br />
+</dt>
+<dt><strong><a name="item__22pick_22__22right_mouse_makes_pick_22__2d_2d_rig">``Pick''  ``RIGHT MOUSE MAKES PICK'' -- right mouse button manipulates picks</a></strong><br />
+</dt>
+<dt><strong><a name="item__22pick_22__22_2b__27a_27_key_adds_point_to_end_of">``Pick''  ``+ 'a' KEY ADDS POINT TO END OF LINE''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22pick_22__22_2b__27i_27_key_inserts_point_betwee">``Pick''  ``+ 'i' KEY INSERTS POINT BETWEEN NEAREST POINTS''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22pick_22__22_2b__27m_27_key_moves_nearest_point_">``Pick''  ``+ 'm' KEY MOVES NEAREST POINT''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22pick_22__22_2b__27d_27_key_deletes_nearest_poin">``Pick''  ``+ 'd' KEY DELETES NEAREST POINT''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22pick_22__22_2b__27s_27_key__2b_dragging_picks_s">``Pick''  ``+ 's' KEY + DRAGGING PICKS SUB-VOLUME''</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="edit_functions__edit_grid_subvolume">EDIT FUNCTIONS: edit grid sub-volume</a></h1>
+<dl>
+<dt><strong><a name="item__22edit_22__22clear_sub_2dvolume_pick_22__2d_2d_cl">``Edit''  ``Clear Sub-volume pick'' -- Clear current subvolume</a></strong><br />
+</dt>
+<dt><strong><a name="item__22edit_22__22smooth_sub_2dvolume_22__2d_2d_smooth">``Edit''  ``Smooth Sub-volume'' -- Smooth sub-volume to boundary value</a></strong><br />
+</dt>
+<dt><strong><a name="item__22edit_22__22undo_smooth_22__2d_2d_restore_sub_2d">``Edit''  ``Undo Smooth'' -- Restore sub-volume</a></strong><br />
+</dt>
+<dt><strong><a name="item__22edit_22__22grade_sub_2dvolume_22__2d_2d_grade_s">``Edit''  ``Grade Sub-volume'' -- Grade sub-volume to boundary plane values</a></strong><br />
+</dt>
+<dt><strong><a name="item__22edit_22__22undo_grade_22">``Edit''  ``Undo grade''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22edit_22__22sub_2dvolume_neighborhood_22__3c6_2c">``Edit''  ``Sub-volume Neighborhood'' &lt;6, 18, 26&gt; -- Cube connectivity of 
+               sub-volume</a></strong><br />
+</dt>
+<dt><strong><a name="item__22edit_22__22color_bar_mouse_sets_smooth_range_22">``Edit''  ``COLOR BAR MOUSE SETS SMOOTH RANGE''</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="section_function__plot_various_sections_through_the_data">SECTION FUNCTION: plot various sections through the data</a></h1>
+<dl>
+<dt><strong><a name="item__22section_22__22on_screen_wiggle_plot__2e_2e_2e_2">``Section'' ``On screen wiggle plot ...'' ``Front, side or top plane''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22section_22__22on_screen_contour_plot__2e_2e_2e_">``Section'' ``On screen contour plot ...''  ``Front, side or top plane''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22section_22__22on_screen_graph_profile__2e_2e_2e">``Section'' ``On screen graph profile ...'' ``Down, across, or deep profile''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22section_22__22print_wiggle_plot__2e_2e_2e_22__2">``Section'' ``Print wiggle plot ...'' ``Front, side or top plane''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22section_22__22print_contour_plot__2e_2e_2e_22__">``Section'' ``Print contour plot ...''  ``Front, side or top plane''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22section_22__22print_graph_profile__2e_2e_2e_22_">``Section'' ``Print graph profile ...'' ``Down, across, or deep profile''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22section_22__22save_section_in_file__2e_2e_2e_22">``Section'' ``Save section in file ...''  ``Front, side or top plane''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22section_22__22save_profile_in_file__2e_2e_2e_22">``Section'' ``Save profile in file ...'' ``Save down, across, or deep profile''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22section_22__22planes_and_profiles_are_selected_">``Section'' ``PLANES AND PROFILES ARE SELECTED AT CROSS-HAIRS''</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="status_functions__print_parameters_and_state_variables">STATUS FUNCTIONS: print parameters and state variables</a></h1>
+<dl>
+<dt><strong><a name="item__22status_22__22dataset_22__2d_2d_dataset_paramete">``Status''  ``Dataset'' -- Dataset parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22data_values_22__2d_2d_data_value_p">``Status''  ``Data Values'' -- Data value parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22data_axis0_22__2d_2d_value_2fcolor">``Status''  ``Data Axis0'' -- Value/color axis</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22data_axis1_22__2d_2d_fast_axis_2c_">``Status''  ``Data Axis1'' -- Fast axis, usually time</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22data_axis2_22__2d_2d_second_data_a">``Status''  ``Data Axis2'' -- Second data axis, usually CDP</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22data_axis3_22__2d_2d_slow_axis_2c_">``Status''  ``Data Axis3'' -- Slow axis, usually section</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22data_axis4_22__2d_2d_slow_axis_2c_">``Status''  ``Data Axis4'' -- Slow axis, usually offset</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22data_axis5_22__2d_2d_slow_axis_2c_">``Status''  ``Data Axis5'' -- Slow axis, unused</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22view_22__2d_2d_view_parameters">``Status''  ``View'' -- View parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22down_axis_22__2d_2d_view_down_axis">``Status''  ``Down Axis'' -- View down axis parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22across_axis_22__2d_2d_view_across_">``Status''  ``Across Axis'' -- View across axis parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22deep_axis_22__2d_2d_view_deep_axis">``Status''  ``Deep Axis'' -- View deep axis parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22extra_axis_22__2d_2d_view_extra_ax">``Status''  ``Extra Axis'' -- View extra axis parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22color_axis_22__2d_2d_colorbar_axis">``Status''  ``Color Axis'' -- Colorbar axis parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22color_22__2d_2d_color_and_contrast">``Status''  ``Color'' -- Color and contrast parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22render_22__2d_2d_rendering_paramet">``Status''  ``Render'' -- Rendering parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22draw_22__2d_2d_draw_screen_paramet">``Status''  ``Draw'' -- Draw screen parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22mouse_buttons_22__2d_2d_mouse_butt">``Status''  ``Mouse Buttons'' -- Mouse button functions</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22navigate_22__2d_2d_movie_parameter">``Status''  ``Navigate'' -- Movie parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22pick_22__2d_2d_pick_parameters">``Status''  ``Pick'' -- Pick parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22pick_list_22__2d_2d_current_pick_l">``Status''  ``Pick List'' -- Current pick line parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22sub_2dvolume_22__2d_2d_current_mar">``Status''  ``sub-volume'' -- Current mark sub-volume</a></strong><br />
+</dt>
+<dt><strong><a name="item__22status_22__22frame_list_22__2d_2d_list_of_scree">``Status''  ``Frame List'' -- List of screen frames</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="help_functions__print_self_documentation_from_various_places">HELP FUNCTIONS: print self documentation from various places</a></h1>
+<dl>
+<dt><strong><a name="item__22help_22__22command_line_args_22">``Help''  ``Command Line Args''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22help_22__22file_formats_22">``Help''  ``File Formats''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22help_22__22windows_22">``Help''  ``Windows''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22help_22__22mouse_usage_22">``Help''  ``Mouse Usage''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22help_22__22main_functions_22">``Help''  ``Main Functions''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22help_22__22view_functions_22">``Help''  ``View Functions''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22help_22__22orient_functions_22">``Help''  ``Orient Functions''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22help_22__22size_functions_22">``Help''  ``Size Functions''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22help_22__22navigate_functions_22">``Help''  ``Navigate Functions''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22help_22__22color_functions_22">``Help''  ``Color Functions''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22help_22__22picking_functions_22">``Help''  ``Picking Functions''</a></strong><br />
+</dt>
+<dt><strong><a name="item__22help_22__22status_functions_22">``Help''  ``Status Functions''</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>interact</strong></p>
+
+</body>
+
+</html>

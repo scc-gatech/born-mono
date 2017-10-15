@@ -1,0 +1,65 @@
+=head1 NAME
+
+
+Spectra - Calculate spectrum
+
+=head1 SYNOPSIS
+
+
+Spectra < in.h [in= out= j1= j2= j3= d1= phase=] > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  n1 - integer   
+
+       on output (n1=(nearest power of two)/(2*j1)+1)
+
+=item  n2,n3   - integer   
+
+       like Window
+
+=item  esize   - integer   
+
+       4=default=real input; 8=optional complex input
+
+=item  j1,j2,j3 -integer   
+
+        like Window but spectra will be added, not subsampled,
+        effectively smoothing the spectra
+
+=item  d1       -real      
+
+       on output will be replaced by j1/2*dt
+
+=item  phase    -file      
+
+       output auxiliary file with phase spectra
+
+=item  mode     -char      
+
+       mode=all defaults j2=n2 & j3=n3 to reproduce 
+       functionality of old Spectrum program (not the default)
+
+=back
+
+=head1 DESCRIPTION
+
+
+Obtain averaged amplitude spectra.
+Spectrum on 1=axis, smoothing on all axes.
+
+=head1 SEE ALSO
+
+
+L<Ftplot>
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

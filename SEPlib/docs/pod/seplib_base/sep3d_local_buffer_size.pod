@@ -1,0 +1,58 @@
+=head1 NAME
+
+
+sep3d_local_buffer_size - Get the size of the data associated with a given window
+
+
+=head1 SYNOPSIS
+
+
+C<ndim= sep3d_local_buffer_size(struct,n,nwind,fwind,jwind)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure
+
+=item n  -  int (2)
+
+      the output window size
+
+=item nwind  -  int*
+
+      [nwind in memory, optional] the number of samples in a window
+
+=item fwind  -  int*
+
+      [fwind in memory, optional] the first sample in a window
+
+=item jwind  -  int*
+
+      [jwind in memory, optional] the sampling of the window
+
+
+=back
+
+=head1 DESCRIPTION
+
+
+Get the size associated with a given window (defaults to the window
+ described by the last read_headers call or the entire dataset)
+ Useful for sectioned tags.
+
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

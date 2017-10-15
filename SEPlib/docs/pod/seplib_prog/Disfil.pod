@@ -1,0 +1,69 @@
+=head1 NAME
+
+
+Disfil - Display data values
+
+=head1 SYNOPSIS
+
+
+Disfil [ type=f,c,d,l,s,b,n col= format=(printf format) number=y ] < in.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  type - char     
+
+      f or r-  4-byte FLOAT    (default if esize=4)
+      n -4-byte NATIVE FLOAT   (doesn't use sreed)
+      c -8-byte COMPLEX  (default if esize=8)
+      d -8-byte FLOAT
+      i-  4-byte INT
+      s- 2-byte INT    (default if esize=2)
+      b- 1-byte INT    (default if esize=1)
+
+=item  col - int       
+
+      number of columns in output.
+      defaults 3,5, or 10 depending on type.
+
+=item format-char*     
+
+      printf-style format for output.
+      defaults '%13.4g ' for float and double.
+      '%4d ' for int, short and byte.
+      '%10.4g,%10.4gi  ' for complex.
+
+=item  number-int      
+
+      y  -do not number elements.
+
+=item  skip  -int      
+
+      [0]  skip this many BYTES before starting processing.
+
+=item  count -int       
+
+      Only print out this many ELEMENTS.
+
+=back
+
+=head1 DESCRIPTION
+
+
+Formatted display of a binary data file
+
+
+=head1 SEE ALSO
+
+
+L<Dd>, L<Dis3dhead>
+
+=head1 CATEGORY
+
+
+B<util/info>
+
+=cut
+

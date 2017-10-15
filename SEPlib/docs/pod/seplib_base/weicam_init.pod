@@ -1,0 +1,29 @@
+=head1 NAME
+
+
+weicam_init - initialize  common azimuth migration
+
+=head1 SYNOPSIS
+
+
+ierr= weicam_init()
+
+=head1 DESCRIPTION
+
+
+Common Azimuth Migration Initialization operator
+
+Grabs kxko=2. and nkxko=2001 from par
+
+=head1 LIBRARY
+
+
+sepweif90
+
+=head1 SEE ALSO
+
+
+ L<weicamo> L<weiwem_init>
+
+=cut
+

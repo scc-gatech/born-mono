@@ -1,0 +1,55 @@
+=head1 NAME
+
+
+cross_wilson - wilson factorization of cross-correlation
+
+=head1 SYNOPSIS
+
+
+C<call cross_factor( niter, s0, ss, a0, aa, b0, bb) >
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item niter  - integer
+
+      maximum number of iteratons
+
+=item s0     - real
+
+      Initial zero lag coef. value
+
+=item ss     - type(filter)
+
+      Input cross correlation
+
+=item a0,b0  - real
+
+      Zero lag coef
+
+=item aa,bb  - type(filter)
+
+      Output minimum phase filters
+
+=back
+
+=head1 DESCRIPTION
+
+
+Factorize a cross correlation
+
+
+=head1 SEE ALSO
+
+
+L<wilson>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

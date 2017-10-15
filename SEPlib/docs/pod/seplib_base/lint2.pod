@@ -1,0 +1,68 @@
+=head1 NAME
+
+
+lint2 - 2-D linear interpolation
+
+=head1 SYNOPSIS
+
+
+Initializer : C<call lint2_init(m1,m2,o1,d1,o2,d2,xy)>
+
+Operator    : C<ierr=binpull1_lop(adj,add,model,data)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item m1   - integer
+
+      number of model points,axis 1
+
+=item m2   - integer
+
+      number of model points,axis 2
+
+=item o1 -  real
+
+      first sample of model space,axis 1
+
+=item d1 -  real
+
+      sampling of model space,axis 1
+
+=item o1 -  real
+
+      first sample of model space,axis 2
+
+=item d1 -  real
+
+      sampling of model space,axis 2
+
+=item xy - C<real(:,2)>
+
+      location of data
+
+=item adj,add,model,data -
+
+      standard operator
+
+=back
+
+=head1 DESCRIPTION
+
+
+2-D linear  interpolation
+
+=head1 SEE ALSO
+
+
+L<binpull2>,L<binpull1>,L<lint1>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

@@ -1,0 +1,61 @@
+=head1 NAME
+
+
+createhelix - create a helix filter
+
+=head1 SYNOPSIS
+
+
+C<aa=createhelix(nd,center,gap,na)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item nd      - C<integer(:)>
+
+      size of data
+
+=item center  - C<integer(:)>
+
+      location of the 1 of the filter within na box
+
+=item gap     - C<integer(:)>
+
+      distance along each axis before filter coef
+
+=item na      - C<integer(:)>
+
+      size of box around filter
+
+=back
+
+=head1 RETURN VALUE
+
+
+=over 4
+
+=item aa       - C<type(filter)>
+
+      Helix filter
+
+=back
+
+=head1 DESCRIPTION
+
+
+Create helix filter
+
+=head1 SEE ALSO
+
+
+L<createnhelix>,L<helix>,L<createmshelix>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

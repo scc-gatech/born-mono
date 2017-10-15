@@ -1,0 +1,94 @@
+=head1 NAME
+
+
+Marine_geom3d - Create marine geometries
+
+
+=head1 SYNOPSIS
+
+
+	Marine_geom3d < in.H  par=   > out.H
+
+
+=head1 INPUT PARAMETERS:
+
+
+=over 4
+
+=item  itype -int
+
+       1 = shot gathers
+       2 = CMP gathers
+
+
+=item  nx3,ox3,dx3-sep_standard
+
+       length, origin, and sampling of
+       shots axis along x
+       (if itype =2 reversed with ny3)
+
+=item  ny3,oy3,dy3-sep_standard
+
+       length, origin, and
+       sampling of shots axis along y
+       (if itype =2 reversed with nx3)
+
+=item  nx2,ox2,dx2-sep_standard
+
+       length, origin, and sampling of
+       receiver axis along x
+
+=item  ny2,oy2,dy2-sep_standard
+
+       length, origin, and sampling of
+       receiver axis along y
+
+=item  azi         -real
+
+       azimuth of the receiver axis with respect
+       to the source axis
+       azi=0 (same grid )
+       azi=90.  xgeo=yshot,ygeo=-xshot
+       az=-90.  xgeo=-yshot,ygeo=xshot
+
+
+=item	stagger-int
+
+      [0] stagger every other line by half in-line
+      shot spacing
+
+=item na2,oa2,da2 -sep_standard
+
+      offset_azimuth in decimal degrees  (itype==2)
+
+=item nr2,or2,dr2 -sep_standard
+
+      offset_radius in km (itype==2)
+      (positive values)
+      ( xshot = xcmp - r*cos(a)
+      ( yshot = ycmp - r*sin(a)
+      ( xgeo  = xcmp + r*cos(a)
+      ( ygeo  = ycmp + r*cos(a)
+
+=back
+
+=head1 DESCRIPTION
+
+
+ 	Make TRACE HEADERS for simple Marine Geometries
+	both in  CMP and SHOT GATHERs sorts
+
+
+
+=head1 SEE ALSO
+
+
+L<Kirmod3d>, L<Gfgradz>, L<Scat3d>
+
+=head1 CATEGORY
+
+
+B<seis/model>
+
+=cut
+

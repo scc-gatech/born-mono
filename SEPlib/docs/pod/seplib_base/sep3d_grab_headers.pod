@@ -1,0 +1,65 @@
+=head1 NAME
+
+
+sep3d_grab_headers - grab headers
+
+=head1 SYNOPSIS
+
+
+C<call sep3d_grab_headers(tag,struct,nh,nwind,fwind,jwind)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item tag   -  char*
+
+      tag to read from
+
+=item struct-  sep3d
+
+      struct to read into
+
+=item nwind -  int*
+
+      number of elements
+
+=item fwind -  int*
+
+      first element
+
+=item jwind -  int*
+
+      sampling of elements
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item nh    -  int
+
+      number of headers read
+
+=back
+
+=head1 DESCRIPTION
+
+
+Read in headers to structure
+
+=head1 SEE ALSO
+
+
+L<sep3d_read_data>
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

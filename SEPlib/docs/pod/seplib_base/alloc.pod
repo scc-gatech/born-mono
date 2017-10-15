@@ -1,0 +1,64 @@
+=head1 NAME
+
+
+alloc - allocate C array with error checking
+
+=head1 SYNOPSIS
+
+
+C<char *alloc(nbytes)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item nbytes - integer 
+
+      Number of bytes to allocate
+
+=back
+
+=head1 DESCRIPTION
+
+
+	Alloc provides dynamic core allocation (via malloc (3))
+	with error checking.
+	Alloc returns a pointer to a block of at least nbytes
+	characters suitably aligned (after possible pointer coercion)
+	for storage of any type of object.
+
+=head1 COMMENTS
+
+
+ 	In order to allocate an array of floating point numbers, use
+ 	the following command in the calling routine:
+
+		float *x;
+		x = (float *) alloc(nx*sizeof(float));
+
+ 	nx is the number of elements needed in the array. 
+
+=head1 SEE ALSO
+
+
+	malloc (3)
+
+=head1 DIAGNOSTICS
+
+
+	Alloc terminates program execution with an appropriate 
+	error message if core could not be allocated.
+
+=head1 KEYWORDS
+
+
+alloc malloc memory allocation
+
+=head1 LIBRARY
+
+
+B<sep>
+
+=cut
+

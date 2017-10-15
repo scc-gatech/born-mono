@@ -1,0 +1,894 @@
+
+ /*$
+
+=head1 NAME
+
+Transp - transpose a SEPlib dataset in plane of choice
+
+=head1 SYNOPSIS
+
+Transp  <in.H >out.H 
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item plane - int 
+
+       [12]  Plane to transpose
+
+=item max_memory/maxsize  -  int 
+
+       [1000]  Maximum memory to use in  megabytes
+
+=item verb - int
+
+       [0]  Whether (1) or not (0) to be verbose
+
+=item  reshape  - int*
+
+       [none] Treat the cube dimensions differently
+
+=back
+
+=head1 DESCRIPTION 
+ 
+Transp- transposes a SEPlib dataset in the plane specified.
+
+
+=head1 COMMENTS
+                                                                                
+  The reshape option allows for transposes that can't be
+  strictly described by a plane.  Think of first reshaping
+  the cube, then transposing one with fewer dimensions.
+  The list of axes in the reshape parameter is composed of
+  the last axes (from the original shape) for each new combined
+  axis.
+                                                                                
+  For example if you
+  want to change 1,2,3,4,5 to 5,3,4,1,2 this is really
+  a transpose of a cube where axes 1 and 2 are combined
+  and axes 3 and 4 are combined. 5 is left alone.  To do
+  this transpose operation you would specify:
+      reshape=2,4,5 plane=13.
+
+
+=head1 CATEGORY
+
+B<util/cube>
+
+=cut
+
+DISTR
+>*/ 
+/*
+-------------------------------------------------
+
+Author: Robert Clapp, ESMB 463, 7230253
+
+Date Created:Fri Feb 18 10:11:05 PST 2000
+
+Purpose: 
+
+*/   
+
+ADD_DEF_SEP_DOC
+#include <stdlib.h>
+#include <unistd.h>
+#include <sep.main> 
+#include<superset.h>
+#define INPUT 0
+#define OUTPUT 0
+#define BLOCK_IO_SIZE 1000000
+
+
+int read_in[5],rite_in[5],read_out[5],rite_out[5],looping;
+char temp_file[1024];
+int esize;
+static int ith=0;
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int transfer_block(char *tagin,char *tagout, int *nin, int f5, int n5, int ntot, char *block_in);
+int read_pars(int *verb, int *plane,int *mem,int *ndim, int *pipe_in, int *pipe_out, int *nreshape_dims, int *reshape_dims);
+int check_pars(int verb,int *plane,int mem, int ndim,int nreshape_dims, int *reshape_dims);
+int rite_pars(int *plane, int mem,int nreshape_dims,int *reshape_dims);
+int standardize_it(int verb, int *plane, int mem, int *nin, int *nout,int ndim,int pipein,int  *pipeout, int nreshape_dim,int *reshape_dims);
+
+int transp_reg_big(char *tagin,char *tagout,int f5in,int f5out,int n5,int *rite_in,int *rite_out,int *nin,int *nout,char ***block_in,char ***block_out,int verb);
+int transp_it(int verb,int *nin, int *nout,int mem,int pipein, int pipeout);
+int transp_reg(char *tagin,char *tagout,int f5in,int f5out,int nread,int *rite_in,int *rite_out,int *nin,int *nout,char *block_in,char *block_out,int verb);
+_XFUNCPROTOEND
+#else
+int read_pars();
+int check_pars();
+int rite_pars();
+int standardize_it();
+int transp_it();
+int transp_reg();
+#endif
+
+ADD_DEF_SEP_DOC
+
+int MAIN(void)
+{
+
+  int n1;
+  int verb,mem,ndim;
+  int plane[2],pipe_in,pipe_out;
+  int nin[5],nout[5];
+  int nreshape_dim,reshape_dims[30];
+  char *array;
+   init_3d();
+   sep_begin_prog();
+
+    
+  if(SUCCESS!=read_pars(&verb,plane,&mem,&ndim,&pipe_in,&pipe_out,
+    &nreshape_dim,reshape_dims))
+    seperr("trouble reading parameters \n");
+  if(SUCCESS!=check_pars(verb,plane,mem,ndim,nreshape_dim,reshape_dims))
+    seperr("trouble checking paramters\n");
+  if(SUCCESS!=rite_pars(plane,mem,nreshape_dim,reshape_dims))
+    seperr("trouble writing parameters \n");
+  if(SUCCESS!=standardize_it(verb,plane,mem,nin,nout,
+    ndim,pipe_in,&pipe_out,nreshape_dim,reshape_dims))
+    seperr("trouble writing parameters \n");
+
+  if(SUCCESS!=transp_it(verb,nin,nout,mem, pipe_in,pipe_out)){
+    seperr("trouble transposing \n");
+  }
+  
+        sep_end_prog();
+  return(EXIT_SUCCESS);
+ 
+ } 
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int read_pars(int *verb,int *plane, int *mem, int *ndim,int *pipein, int *pipeout, int *nreshape_dim, int *reshape_dims)
+_XFUNCPROTOEND
+#else
+int read_pars(verb,plane,mem,ndim,pipein,pipeout,nreshape_dim,reshape_dims)
+int *verb,*plane,*mem,*ndim,*pipein,*pipeout,*nreshape_dim,*reshape_dims;
+#endif
+{
+char pl[3],temp_ch[3];
+
+if(0==getch("verb","d",verb)) *verb=0;
+
+*pipein=sseekable("in");
+*pipeout=sseekable("out");
+if(*verb==1){ 
+  fprintf(stderr,"input seekable=%d output seekable=%d \n",*pipein,*pipeout);
+}
+
+
+if(0==getch("max_memory","d",mem)){
+  if(0==getch("maxsize","d",mem)) *mem=1000;
+}
+
+
+if(SUCCESS!=sep3d_tag_init("in","in","INPUT"))    
+  seperr("trouble initializing tag %s \n","in");
+
+if(SUCCESS!=sep3d_grab_ndims("in",ndim))    
+  seperr("trouble  reading ndim from tag in \n");
+
+if(0==getch("plane","s",pl)) strcpy(pl,"12");
+  sprintf(temp_ch,"%c",pl[0]); plane[0]=atoi(temp_ch);
+  sprintf(temp_ch,"%c",pl[1]); plane[1]=atoi(temp_ch);
+
+*nreshape_dim=getch("reshape","d",reshape_dims);
+
+ 
+return(0);
+
+
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int check_pars(int verb,int *plane, int mem, int ndim,int nre,int *redims)
+_XFUNCPROTOEND
+#else
+int check_pars(verb,plane,mem,ndim,nre,redims)
+int verb,mem,ndim,*plane,nre,*redims;
+#endif
+{
+char temp_ch[1024];
+int tempi,nt[99];
+float o,d;
+char label[128],unit[128];
+int n[2],i;
+int ndim_use;
+
+/* Start with the stupidity checks*/
+if(mem< 1) seperr("memory must be 1 or greater \n");
+
+
+
+/*make first plane smaller axis for convenience*/
+if(plane[0] >plane[1]){ tempi=plane[1]; plane[1]=plane[0];plane[0]=tempi;}
+
+if(plane[0] < 1)
+  seperr("Bad plane argument, plane=%d data limits 0 to %d \n",plane[0],ndim);
+if(plane[1] < 1)
+  seperr("Bad plane argument, plane=%d data limits 0 to %d \n",plane[1],ndim);
+if(plane[0] == plane[1])
+  seperr("Can't transpose a plane with itself \n");
+
+if(SUCCESS!=sep3d_grab_file_type("in",temp_ch))
+    seperr("trouble figuring out file type for tag %s \n","in");
+
+/*RESHAPE WILL BE ARE RESHAPED DIMENSIONS*/
+if(SUCCESS!=sep3d_struct_init("in","reshape","SCRATCH"))
+   seperr("trouble creating reshape structure \n");
+
+if(nre>0){
+    if(SUCCESS!=sep3d_change_dims("reshape",nre,redims))
+      seperr("trouble resetting number of dimensions in reshape structure\n");
+  ndim_use=nre;
+}
+ndim_use=ndim;
+
+if(0!=strcmp(temp_ch,"REGULAR"))
+  seperr("Use Sort3d plane=%c%c for a non-SEP regular dataset\n",plane[0],plane[1]);
+
+if(0==hetch("esize","d",&esize)) esize=4;
+tempi=esize;
+
+
+if(SUCCESS!=sep3d_grab_axis("reshape",plane[0],&n[0],&o,&d,label,unit))
+  seperr("trouble reading axis %d from in \n",plane[0]);
+
+if(nre>0 && plane[1] > ndim)
+  seperr("can't reshape and increase dimensionality\n");
+
+if(plane[1]>ndim_use){
+  for(i=0; i < ndim;i++) nt[i]=i+1; 
+  for(i=ndim; i < plane[1];i++) nt[i]=ndim;
+
+  if(SUCCESS!=sep3d_change_dims("in",plane[1],nt))
+    seperr("trouble resetting number of diemensions \n");
+  if(SUCCESS!=sep3d_change_dims("reshape",plane[1],nt))
+    seperr("trouble resetting number of diemensions \n");
+}
+for(i=ndim; i < plane[1]; i++){
+
+  sprintf(temp_ch,"o%d",i+1); o=0.;hetch(temp_ch,"f",&o);
+  sprintf(temp_ch,"d%d",i+1); d=1.;hetch(temp_ch,"f",&d);
+  sprintf(temp_ch,"label%d",i+1); strcpy(label,"none");hetch(temp_ch,"s",label);
+  sprintf(temp_ch,"unit%d",i+1); strcpy(unit,"none");hetch(temp_ch,"s",unit);
+  if(SUCCESS!=sep3d_set_axis("in",i+1,1,o,d,label,unit))
+     seperr("trouble reading axis %d from in \n",i);
+}
+
+
+if(SUCCESS!=sep3d_grab_axis("reshape",plane[1],&n[1],&o,&d,label,unit))
+  seperr("trouble reading axis %d from in \n",plane[1]);
+
+
+if(verb>0){
+  fprintf(stderr,"Transposing plane %d and %d \n",plane[0],plane[1]);
+  fprintf(stderr,"Using %d megabytes\n",mem);
+}
+
+return(0);
+
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int rite_pars(int *plane, int mem,int nre, int *redims)
+_XFUNCPROTOEND
+#else
+int rite_pars(plane,mem,nre,redims)
+int *plane,mem,nre,*redims;
+#endif
+{
+int i1,ndim,i,ir;
+char label[128],unit[128];
+int  n,ierr,nr;
+float o,d;
+char temp_ch[128];
+int iplane_in[20];
+int ifirst_out[20];
+int icount[20],ifirst_in[20],ndim_max;
+
+puthead("Transposing plane %d and %d \n",plane[0],plane[1]);
+puthead("Using %d megabytes \n",mem);
+
+/*create output dataset */
+if(SUCCESS!=sep3d_struct_init("in","out","OUTPUT"))
+   seperr("trouble creating output structure \n");
+
+
+
+/*FIGURE OUT WHAT INPUT AXIS BELONGS TO THE RESHAPED AXIS*/
+if(SUCCESS!=sep3d_grab_ndims("reshape",&nr))    
+  seperr("trouble  reading ndim from tag in \n");
+if(SUCCESS!=sep3d_grab_ndims("in",&ndim))    
+  seperr("trouble  reading ndim from tag in \n");
+
+
+ndim_max=ndim;
+if(nre !=0) ndim_max=MAX(redims[nre-1],ndim);
+
+if(SUCCESS!=sep3d_set_ndims("out",ndim_max))
+  seperr("trouble setting ndims");
+for(i=0; i < ndim; i++){
+   if(SUCCESS!=sep3d_grab_axis("in",i+1,&n,&o,&d,label,unit))
+     seperr("trouble reading axis %d from in \n",i);
+   if(SUCCESS!=sep3d_set_axis("out",i+1,n,o,d,label,unit))
+     seperr("trouble setting axis %d to out \n",i);
+}
+   
+
+for(i=0; i< 20; i++) icount[i]=0;
+
+/*loop over the input figure out what reshaped space it belongs to*/
+for(i=0; i < ndim_max; i++){
+  if(nre<1) iplane_in[i]=i+1;
+  else{
+    iplane_in[i]=1;
+    ir=0;while(redims[ir] < i+1) ir++;
+    iplane_in[i]=ir+1;
+  }
+  if(icount[iplane_in[i]]==0) ifirst_in[iplane_in[i]]=i+1;
+  icount[iplane_in[i]]++;
+}
+
+/*record the begining output axis for each reshaped portion*/
+for(i=1; i <= plane[0]; i++) ifirst_out[i]=ifirst_in[i];
+for(i=plane[1]; i <= nr; i++) ifirst_out[i]=ifirst_in[i];
+ifirst_out[plane[1]]=ifirst_in[plane[0]];
+if(plane[1]-plane[0] >1 ){
+  ifirst_out[plane[0]+1]=ifirst_in[plane[0]]+icount[plane[1]];
+  for(i=plane[0]+2; i <plane[1] ; i++) ifirst_out[i]=icount[i-1]+ifirst_out[i-1];
+  ifirst_out[plane[0]]=ifirst_out[plane[1]-1]+icount[plane[1]-1];
+}
+else ifirst_out[plane[0]]=ifirst_out[plane[1]]+icount[plane[1]];
+
+
+for(i=0; i < ndim_max; i++){
+   i1=i+1;
+   if(i1<=ndim){
+     if(SUCCESS!=sep3d_grab_axis("in",i1,&n,&o,&d,label,unit))
+     seperr("trouble reading axis %d from in \n",i1);
+   }
+   else{ n=1; o=0.; d=1.;}
+   
+   i1=ifirst_out[iplane_in[i]];
+   if(SUCCESS!=sep3d_set_axis("out",i1,n,o,d,label,unit))
+     seperr("trouble settin axis %d to out \n",i1);
+   ifirst_out[iplane_in[i]]++;  
+}
+
+if(SUCCESS!=sep3d_rite_format("out","out"))
+  seperr("trouble writing out dataset parameters \n");
+return(0);
+}
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int standardize_it(int verb, int *plane, int mem,  int *nin, int *nout,int ndim,int pipein, int *pipeout,int nre,int *redims)
+_XFUNCPROTOEND
+#else
+int standardize_it(verb,plane,mem,nin,nout,ndim,pipein,pipeout,nre,redims)
+int *plane,mem,*nin,*nout,ndim,pipein,*pipeout,nre,*redims;
+#endif
+{
+int n,nr;
+int rc;
+float o,d;
+long long memd;
+int axis[6],tempi,i,itemp;
+long long used,use2,tot[5];
+char label[128], unit[128],temp_ch[128];
+
+
+
+
+/*                                                   */
+/*  Let us reshape the input and output files        */
+/*                                                   */
+axis[0]=plane[0]-1;
+axis[1]=plane[0];
+axis[2]=plane[1]-1;
+axis[3]=plane[1];
+if(nre!=0) axis[4]=MAX(nre,plane[1]);
+else axis[4]=MAX(ndim,plane[1]);
+
+
+
+
+if(SUCCESS!=sep3d_grab_ndims("reshape",&nr))    
+  seperr("trouble  reading ndim from tag in \n");
+for(i=0;i<nr;i++){
+  itemp=i+1;
+  if(SUCCESS!=sep3d_grab_axis("reshape",itemp,&nin[i],&o,&d,label,unit))
+    seperr("trouble grabbing axis %d from tag : in \n",i+1);
+}
+  
+
+if(SUCCESS!=sep3d_change_dims("reshape",5,axis))
+  seperr("trouble resetting dims for tag: in \n");
+
+for(i=0; i < 5; i++){
+  if(SUCCESS!=sep3d_grab_axis("reshape",i+1,&nin[i],&o,&d,label,unit))
+    seperr("trouble grabbing axis %d from tag : in \n",i+1);
+  nout[i]=nin[i];
+}
+nout[3]=nin[1];
+nout[1]=nin[3];
+
+
+
+/*                                                   */
+/*   Now lets see if we have to create a temp file   */
+/*                                                   */
+
+used=esize;
+memd=(long long)mem*1000000.;
+
+tot[0]=(double)nin[0]*used; tot[1]=(double)nin[1]*tot[0]; tot[2]=(double)nin[2]*tot[1];
+tot[3]=(double)nin[3]*tot[2]; tot[4]=(double)nin[4]*tot[3];
+
+
+strcpy(temp_file,"in");
+
+if((tot[3] *2. >memd && pipein==1 && *pipeout==1 )){
+  if(verb>0) fprintf(stderr,"I am going to have create a temporary file \n");
+  itemp=1;
+  strcpy(temp_file,"TEMP_XXXXXX"); rc = mkstemp(temp_file);
+  if(rc == -1) {
+     perror("Transp: mkstemp");
+     seperr("Transp: error creating temp file \"%s\".\n", temp_file);
+  }
+  auxtmp(temp_file); close(rc);
+/*  if(NULL==auxtmp(temp_file))*/
+/*    seperr("trouble creating temporary file \n");*/
+}
+else{
+ if(verb>0) fprintf(stderr,"I don't have to create a temporary file \n");
+  itemp=0;
+  *pipeout=0;
+}
+
+/* The logic is going to be:
+     Given a choice loop the output 
+
+*/
+
+if(pipein==1){ /* if the input is a pipe we need to loop the input */
+  looping=INPUT;
+  if(tot[0]>memd) { 
+    read_in[0]=MAX(1,(int)(memd/used)); 
+    read_in[1]=1; read_in[2]=1; read_in[3]=1; read_in[4]=1;
+  }
+  else if(tot[1] > memd){
+    read_in[0]=nin[0]; read_in[1]=MAX(1,(int)(memd/tot[0])); 
+    read_in[2]=1; read_in[3]=1; read_in[4]=1;
+  }
+  else if(tot[2] > memd){
+    read_in[0]=nin[0]; read_in[1]=nin[1]; 
+    read_in[2]=MAX(1,(int)(memd/tot[1]));
+    read_in[3]=1; read_in[4]=1;
+  }
+  else if(tot[3]*2 > memd){
+    read_in[0]=nin[0]; read_in[1]=nin[1]; 
+    read_in[3]=MIN(MAX(1,(int)(memd/tot[2]/2.)),nin[3]);
+    read_in[2]=nin[2]; read_in[4]=1;
+  }
+  else if(tot[4]*2 > memd){
+    read_in[0]=nin[0]; read_in[1]=nin[1]; 
+    read_in[4]=MAX(1,(int)(memd/tot[3]/2.));
+    read_in[2]=nin[2]; read_in[3]=nin[3];
+  }
+  else{
+    read_in[0]=nin[0]; read_in[1]=nin[1]; 
+    read_in[4]=nin[4];
+    read_in[2]=nin[2]; read_in[3]=nin[3];
+  }
+
+  if(*pipeout==0){
+    read_out[0]=read_in[0]; read_out[1]=read_in[3]; read_out[2]=read_in[2];
+    read_out[3]=read_in[1]; read_out[4]=read_in[4];
+
+    rite_in[0]=read_in[0]; rite_in[1]=read_in[1]; rite_in[2]=read_in[2];
+    rite_in[3]=read_in[3]; rite_in[4]=read_in[4];
+
+    rite_out[0]=read_in[0]; rite_out[1]=read_in[3]; rite_out[2]=read_in[2];
+    rite_out[3]=read_in[1]; rite_out[4]=read_in[4];
+  }
+  else{
+    read_out[0]=read_in[0]; read_out[1]=read_in[1]; read_out[2]=read_in[2];
+    read_out[3]=read_in[3]; read_out[4]=read_in[4];
+  }
+}
+
+tot[0]=(long long)nout[0]*used; tot[1]=(long long)nout[1]*tot[0]; tot[2]=(long long)nout[2]*tot[1];
+tot[3]=(long long)nout[3]*tot[2]; tot[4]=(long long)nout[4]*tot[3];
+
+
+if(!(pipein==1 && *pipeout==0)){ /*if we are looping the output */
+  looping=OUTPUT;
+  if(tot[0]>memd) { 
+    rite_out[0]=MAX(1,(int)(memd/used)); 
+    rite_out[1]=1; rite_out[2]=1; rite_out[3]=1; rite_out[4]=1;
+  }
+  else if(tot[1] > memd){
+    rite_out[0]=nout[0]; rite_out[1]=MAX(1,(int)(memd/tot[0])); 
+    rite_out[2]=1; rite_out[3]=1; rite_out[4]=1;
+  }
+  else if(tot[2] > memd){
+    rite_out[0]=nout[0]; rite_out[1]=nout[1]; 
+    rite_out[2]=MAX(1,(int)(memd/tot[1]));
+    rite_out[3]=1; rite_out[4]=1;
+  }
+  else if(tot[3]*2 > memd){
+    rite_out[0]=nout[0]; rite_out[1]=nout[1]; 
+    rite_out[3]=MIN(MAX(1,(int)(memd/tot[2]/2.)),nout[3]);
+    rite_out[2]=nout[2]; rite_out[4]=1;
+  }
+  else if(tot[4]*2 > memd){
+    rite_out[0]=nout[0]; rite_out[1]=nout[1]; 
+    rite_out[2]=nout[2]; rite_out[3]=nout[3];
+    rite_out[4]=1;
+  }
+  else{
+    rite_out[0]=nout[0]; rite_out[1]=nout[1]; 
+    rite_out[2]=nout[2]; rite_out[3]=nout[3];
+    rite_out[4]=nout[4];
+  }
+
+  rite_in[0]=rite_out[0]; rite_in[1]=rite_out[1]; rite_in[2]=rite_out[2];
+  rite_in[3]=rite_out[3]; rite_in[4]=rite_out[4];
+  
+}
+if(verb>0){
+  fprintf(stderr,"I am doing my block read_in with %d %d %d %d %d \n",read_in[0],read_in[1],read_in[2],read_in[3],read_in[4]);
+  fprintf(stderr,"I am doing my block read_out with %d %d %d %d %d \n",read_out[0],read_out[1],read_out[2],read_out[3],read_out[4]);
+  fprintf(stderr,"I am doing my block rite_in with %d %d %d %d %d \n",rite_in[0],rite_in[1],rite_in[2],rite_in[3],rite_in[4]);
+  fprintf(stderr,"I am doing my block rite_out with %d %d %d %d %d \n",rite_out[0],rite_out[1],rite_out[2],rite_out[3],rite_out[4]);
+}
+
+return(0);
+}
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int transp_it(int verb,int *nin, int *nout,int mem,int pipein, int pipeout)
+_XFUNCPROTOBEGIN
+#else    
+int transp_it(verb,nin,nout, mem,pipein,pipeout)
+int verb,*nin, *nout, mem,pipein,pipeout;
+#endif
+{
+int done,nread,fread;
+int i4,i3,i2,i1,n,frite;
+char read_from[128];
+char *block_in,*block_out;
+char block_io[BLOCK_IO_SIZE];
+long long ntot1,ntot2,ntot;
+int big_io;
+char ***big_block_in,***big_block_out;
+int i,j;
+
+
+  for(i=0, ntot1=esize, ntot2=esize; i < 5; i++){
+    ntot1=ntot1*rite_out[i];
+    if(pipein==1)
+      ntot2=ntot2*read_in[i];
+    else ntot2=0;
+  }
+  
+  ntot=MAX(ntot1,ntot2);
+
+
+
+  big_io=1;
+  if(ntot  < 1000*1000*1000) big_io=0;
+  big_io=0;
+
+
+
+  if(big_io==0){
+    block_in=(char*) malloc(ntot);
+    block_out=(char*) malloc(ntot);
+  }
+  else{
+   big_block_in=(char***)malloc(sizeof(char**)*rite_out[4]);
+   big_block_out=(char***)malloc(sizeof(char**)*rite_out[4]);
+   for(j=0; j < rite_out[4]; j++){
+     big_block_in[j]=(char**)malloc(sizeof(char*)*rite_out[0]*rite_out[1]*esize); 
+     big_block_out[j]=(char**)malloc(sizeof(char*)*rite_out[2]*rite_out[3]); 
+     for(i=0; i < rite_out[0] *rite_out[1]*esize;i++) 
+       big_block_in[j][i]=(char*)malloc(sizeof(char)*rite_out[2]*rite_out[3]);
+     for(i=0; i < rite_out[3] *rite_out[2];i++) 
+       big_block_out[j][i]=(char*)malloc(sizeof(char)*rite_out[0]*rite_out[1]*esize);
+   }
+  }
+
+
+  done=0;
+  while(done < nin[4]){
+    nread=MIN(MAX(read_in[4],rite_out[4]),nin[4]-done);
+    fread=done;
+  
+
+    if(pipein==1 && pipeout==1){
+      if(0!=strcmp(temp_file,"in")){
+  if(SUCCESS!=transfer_block("in",temp_file,nin,fread,nread,BLOCK_IO_SIZE,block_io))
+           seperr("trouble copying temp buffer \n");
+       }
+       if(big_io==0){
+         if(SUCCESS!=transp_reg(temp_file,"out",0,fread,nread,rite_in,rite_out,
+         nin,nout,block_in,block_out,verb))
+           seperr("trouble transposing block \n");
+        }
+        else{
+         if(SUCCESS!=transp_reg_big(temp_file,"out",0,fread,nread,rite_in,rite_out,
+         nin,nout,big_block_in,big_block_out,verb))
+           seperr("trouble transposing block \n");
+
+        }
+       }
+       else if(pipeout==0){
+         if(big_io==0){
+           if(SUCCESS!=transp_reg("in","out",fread,fread,nread,rite_in,rite_out,nin,
+           nout,block_in,block_out,verb))
+            seperr("trouble transposing regular block \n");
+         }
+         else{
+         if(SUCCESS!=transp_reg_big(temp_file,"out",0,fread,nread,rite_in,rite_out,
+         nin,nout,big_block_in,big_block_out,verb))
+           seperr("trouble transposing block \n");
+
+         }
+       }
+       else{
+         if(big_io==0){
+           if(SUCCESS!=transp_reg("in","out",fread,fread,nread,rite_in,rite_out,nin,
+             nout,block_in,block_out,verb)) seperr("trouble transposing regular block \n");
+         }
+         else{
+         if(SUCCESS!=transp_reg_big(temp_file,"out",0,fread,nread,rite_in,rite_out,
+         nin,nout,big_block_in,big_block_out,verb))
+           seperr("trouble transposing block \n");
+         }
+       }
+       done=done+nread;
+       if(verb && nin[4]>1) fprintf(stderr,"Finished block %d of %d \n",done,nin[4]);
+  }
+  return(SUCCESS);
+}
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int transp_reg_big(char *tagin,char *tagout,int f5in,int f5out,int n5,int *rite_in,int *rite_out,int *nin,int *nout,char ***block_in,char ***block_out,int verb)
+_XFUNCPROTOEND
+#endif
+{
+int i1,i2,i3,i4,i5;
+int dn[4];
+int fread[5],frite[5],j[5],nread[5],nrite[5],ipos;
+int n4,n3,n2,n1,in5,in4,in3,in2,in1,out1,out2,out3,out,out5,out4,five;
+int ibeg,ihold,isend,iend;
+int fbig3,nbig3,fbig2,nbig2,fbig4,nbig4;
+float block[100];
+int i,ii,k;
+int ierr;
+
+
+fprintf(stderr,"CEHCK VERB %d \n",verb);
+
+fread[4]=f5in; frite[4]=f5out;five=5;
+nread[4]=n5; nrite[4]=n5;
+j[0]=1; j[1]=1; j[2]=1; j[3]=1; j[4]=1;
+frite[0]=0; frite[1]=0; frite[2]=0; frite[3]=0;
+while(frite[3] < nout[3]){
+  nrite[3]=MIN(rite_out[3],nout[3]-frite[3]);  
+  while(frite[2] < nout[2]){
+    nrite[2]=MIN(rite_out[2],nout[2]-frite[2]);  
+    while(frite[1] < nout[1]){
+      nrite[1]=MIN(rite_out[1],nout[1]-frite[1]);  
+      while(frite[0] < nout[0]){
+        nrite[0]=MIN(rite_out[0],nout[0]-frite[0]);  
+        nread[0]=nrite[0];nread[1]=nrite[3];nread[2]=nrite[2];nread[3]=nrite[1];
+        fread[0]=frite[0];fread[1]=frite[3];fread[2]=frite[2];fread[3]=frite[1];
+        ith++;
+        fbig4=fread[4]; nbig4=nread[4];
+        fbig3=fread[3]; nbig3=nread[3];
+        fbig2=fread[2]; nbig2=nread[2];
+        nread[3]=1; nread[2]=1;nread[4]=1;
+        for(k=0; k < nbig4; k++){
+        fread[4]=fbig4+k;
+        for(ii=0; ii < nbig3; ii++){
+          fread[3]=fbig3+ii;
+          for(i=0; i < nbig2; i++){
+            fread[2]=fbig2+i;
+            ierr==sreed_window(tagin,&five,nin,nread,fread,j,esize,block_in[k][i+ii*nbig2]);
+            if(ierr!=0 || verb==1){
+              fprintf(stderr,"reading parameters ngrid-%d %d %d %d %d \n",nin[0],nin[1],nin[2],nin[3],nin[4]);
+              fprintf(stderr,"reading parameters nwind-%d %d %d %d %d \n",nread[0],nread[1],nread[2],nread[3],nread[4]);
+              fprintf(stderr,"reading parameters fwind-%d %d %d %d %d \n",fread[0],fread[1],fread[2],fread[3],fread[4]);
+              fprintf(stderr,"reading parameters jwind-%d %d %d %d %d \n",j[0],j[1],j[2],j[3],j[4]);
+             }
+             if(ierr!=0)  seperr("trouble reading block \n");
+            }
+          }
+        }
+        fread[2]=fbig2; nread[2]=nbig2;
+        fread[3]=fbig3; nread[3]=nbig3;
+        fread[4]=fbig4; nread[4]=nbig4;
+        n4=nrite[3];n3=nrite[2];n2=nrite[1];n1=nrite[0];in1=esize;out1=esize;
+        in2=n1*in1; out2=n1*out1; 
+        in3=in2*n4; out3=out2*n2; 
+        in4=in3*n3;out4=out3*n3;
+        in5=in4*n2;out5=out4*n4;
+        ipos=0;
+
+          
+        ibeg=0;
+        /*can you believe all of this crap just do do this !!!!*/
+        for(i5=ibeg; i5 < n5; i5++){
+        for(i4=0; i4 < n4; i4++){
+      
+          for(i3=0; i3 < n3; i3++){
+            for(i2=0; i2 < n2; i2++){
+              for(i1=0; i1 < n1*esize; i1++){
+                block_out[i5][i3+i4*nrite[2]][i1+i2*esize*n1]=
+                  block_in[i5][i1+i2*esize*n1][i3+i4*nrite[2]]; 
+               } 
+            }
+          }
+        }}
+        fbig4=frite[4]; nbig4=nrite[4];
+        fbig3=frite[3]; nbig3=nrite[3];
+        fbig2=frite[2]; nbig2=nrite[2];
+        nrite[3]=1; nrite[2]=1;
+        for(k=0; k < nbig4; k++){
+        frite[4]=fbig4+k;
+        for(ii=0; ii < nbig3; ii++){
+          frite[3]=fbig3+ii;
+          for(i=0; i < nbig2; i++){
+            frite[2]=fbig2+i;
+            if(0!=srite_window(tagout,&five,nout,nrite,frite,j,esize,block_out[k][i+ii*nbig2])){
+              fprintf(stderr,"write parameters ngrid-%d %d %d %d %d \n",nin[0],nin[1],nin[2],nin[3],nin[4]);
+              fprintf(stderr,"write parameters nwind-%d %d %d %d %d \n",nrite[0],nrite[1],nrite[2],nrite[3],nrite[4]);
+              fprintf(stderr,"write parameters fwind-%d %d %d %d %d \n",frite[0],frite[1],frite[2],frite[3],frite[4]);
+              fprintf(stderr,"write parameters jwind-%d %d %d %d %d \n",j[0],j[1],j[2],j[3],j[4]);
+              seperr("trouble writing block \n");
+            }
+          }
+        }}
+        frite[2]=fbig2; nrite[2]=nbig2;
+        frite[3]=fbig3; nrite[3]=nbig3;
+        frite[4]=fbig4; nrite[4]=nbig4;
+        frite[0]=frite[0]+nrite[0]; 
+      }
+      frite[1]=frite[1]+nrite[1];  frite[0]=0;
+    }
+    frite[2]=frite[2]+nrite[2]; frite[1]=0;
+  }
+  frite[3]=frite[3]+nrite[3]; frite[2]=0;
+  if(nout[4]==1 && verb) fprintf(stderr,"Finished block %d of %d \n",frite[3],nout[3]);
+}
+
+return(SUCCESS);
+}
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int transp_reg(char *tagin,char *tagout,int f5in,int f5out,int n5,int *rite_in,int *rite_out,int *nin,int *nout,char *block_in,char *block_out,int verb)
+_XFUNCPROTOEND
+#else    
+int transp_reg(tagin,tagout,f5in,f5out,n5,rite_in,rite_out,nin,nout,block_in,block_out,verb)
+char *tagin,*tagout;
+int f5in, f5out,n5,*rite_in,*rite_out,*nin,*nout,verb;
+char *block_in, *block_out;
+#endif
+{
+int i1,i2,i3,i4,i5;
+int dn[4];
+int fread[5],frite[5],j[5],nread[5],nrite[5],ipos;
+int n4,n3,n2,n1,in5,in4,in3,in2,in1,out1,out2,out3,out,out5,out4,five;
+int ibeg,ihold,isend,iend;
+float block[100];
+
+
+
+
+
+
+fread[4]=f5in; frite[4]=f5out;five=5;
+nread[4]=n5; nrite[4]=n5;
+j[0]=1; j[1]=1; j[2]=1; j[3]=1; j[4]=1;
+frite[0]=0; frite[1]=0; frite[2]=0; frite[3]=0;
+while(frite[3] < nout[3]){
+  nrite[3]=MIN(rite_out[3],nout[3]-frite[3]);  
+  while(frite[2] < nout[2]){
+    nrite[2]=MIN(rite_out[2],nout[2]-frite[2]);  
+    while(frite[1] < nout[1]){
+      nrite[1]=MIN(rite_out[1],nout[1]-frite[1]);  
+      while(frite[0] < nout[0]){
+        nrite[0]=MIN(rite_out[0],nout[0]-frite[0]);  
+        nread[0]=nrite[0];nread[1]=nrite[3];nread[2]=nrite[2];nread[3]=nrite[1];
+        fread[0]=frite[0];fread[1]=frite[3];fread[2]=frite[2];fread[3]=frite[1];
+
+        ith++;
+        if(0!=sreed_window_new(tagin,five,nin,nread,fread,j,esize,block_in)){
+          fprintf(stderr,"reading parameters ngrid-%d %d %d %d %d \n",nin[0],nin[1],nin[2],nin[3],nin[4]);
+          fprintf(stderr,"reading parameters nwind-%d %d %d %d %d \n",nread[0],nread[1],nread[2],nread[3],nread[4]);
+          fprintf(stderr,"reading parameters fwind-%d %d %d %d %d \n",fread[0],fread[1],fread[2],fread[3],fread[4]);
+          fprintf(stderr,"reading parameters jwind-%d %d %d %d %d \n",j[0],j[1],j[2],j[3],j[4]);
+          seperr("trouble reading block \n");
+        }
+
+          n4=nrite[3];n3=nrite[2];n2=nrite[1];n1=nrite[0];in1=esize;out1=esize;
+          in2=n1*in1; out2=n1*out1; 
+          in3=in2*n4; out3=out2*n2; 
+          in4=in3*n3;out4=out3*n3;
+          in5=in4*n2;out5=out4*n4;
+          ipos=0;
+
+          
+          ibeg=0;
+          /*can you believe all of this crap just do do this !!!!*/
+          for(i5=ibeg; i5 < n5; i5++){
+          for(i4=0; i4 < n4; i4++){
+            for(i3=0; i3 < n3; i3++){
+              for(i2=0; i2 < n2; i2++){
+                  memcpy( (void*)(block_out+(long long)(i2*out2)+(long long)(i3*out3)+
+                    (long long)(i4*out4)+(long long)(out5*i5)),
+                    (const void*)(block_in+(long long)(i4*in2)+(long long)(i3*in3)+
+                     (long long)i2*in4+(long long)(in5*i5)),
+                 in2);
+                  
+              }
+            }
+          }}
+
+          if(0!=srite_window(tagout,&five,nout,nrite,frite,j,esize,block_out))
+            seperr("trouble reading block \n");
+        frite[0]=frite[0]+nrite[0]; 
+      }
+      frite[1]=frite[1]+nrite[1];  frite[0]=0;
+    }
+    frite[2]=frite[2]+nrite[2]; frite[1]=0;
+  }
+  frite[3]=frite[3]+nrite[3]; frite[2]=0;
+  if(nout[4]==1 && verb) fprintf(stderr,"Finished block %d of %d \n",frite[3],nout[3]);
+}
+
+return(SUCCESS);
+}
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int transfer_block(char *tagin,char *tagout, int *nin, int f5, int n5, int ntot, char *block_in)
+_XFUNCPROTOEND
+#else    
+int transfer_block(tagin,tagout, nin, f5, n5,ntot,block_in)
+char *tagin, *tagout,*block_in; 
+int *nin, f5,  n5,ntot;
+#endif    
+{
+double nbig;
+double ndone;
+int block;
+
+
+
+if(f5!=0) sseek(tagout,0,0);
+nbig=(double)nin[0]*(double)nin[1]*(double)nin[2]*(double)nin[3]*(double)esize;
+ndone=0;
+
+while(ndone< nbig){
+  block=MIN((int)(nbig-ndone),ntot);
+  if(block!=sreed(tagin,block_in,block))
+    seperr("troulbe reading from tag=%s \n",tagin);
+  if(block!=srite(tagout,block_in,block))
+    seperr("troulbe writing to tag=%s \n",tagout);
+
+  ndone=ndone+block;
+}
+
+
+return(SUCCESS);
+}

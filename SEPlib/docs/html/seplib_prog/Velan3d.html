@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Velan3d - Perform velocity analysis</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Velan3d - Perform velocity analysis</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Velan3d  &lt;in.H &gt;out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_v0__2d_float">v0 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      first velocity</pre>
+</dd>
+<dt><strong><a name="item_dv__2d_float">dv - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      velocity sampling</pre>
+</dd>
+<dt><strong><a name="item_nv__2d_integer">nv - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of velocities</pre>
+</dd>
+<dt><strong><a name="item_ntout__2d_integer">ntout - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [ntin/5] number of samples in output</pre>
+</dd>
+<dt><strong><a name="item_smooth__2d_integer">smooth - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [ntin/ntout*2] smoothing window</pre>
+</dd>
+<dt><strong><a name="item_mute__2d_real">mute  - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.8] muting parameter</pre>
+</dd>
+<dt><strong><a name="item_integer">off_keys - <code>integer(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      keys which contain offset information</pre>
+</dd>
+<dt><strong>offset_axes - <code>integer(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      axes which describe the offset and/or
+      the axes which to perform velocity on</pre>
+</dd>
+<dt><strong><a name="item_verb__2d_integer">verb    - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] wheter or not to be verbose</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Performs Velocity Analysis on sep3d datasets</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+ off_keys and off_axes, are somewhat optional
+ If none of these are suplied checks keys and then axes for
+ offset, offset_x, and offset_y.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Velan.html">the Velan manpage</a>,<a href="./../seplib_prog/Nmo3d.html">the Nmo3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/velan</strong></p>
+
+</body>
+
+</html>

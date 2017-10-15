@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sseek - seek to a position in a SEPlib dataset</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#return_values">RETURN VALUES</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#diagnostics">DIAGNOSTICS</a></li>
+	<li><a href="#keywords">KEYWORDS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sseek - seek to a position in a SEPlib dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+        int sseek (tag,offset,whence)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_char_2a__2d_tag">char* - tag</a></strong><br />
+</dt>
+<dd>
+<pre>
+      name of history file;</pre>
+</dd>
+<dt><strong><a name="item_int__2d_offset">int - offset</a></strong><br />
+</dt>
+<dd>
+<pre>
+      offset from whence given in machine types size for file i/o;</pre>
+</dd>
+<dt><strong><a name="item_int__2d_whence">int   - whence</a></strong><br />
+</dt>
+<dd>
+<pre>
+      from where</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_values">RETURN VALUES</a></h1>
+<pre>
+ -1 =  if fails</pre>
+<pre>
+ x = current position if successful</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Moves file pointers inside a given SEPLIB dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>The tag argument is either the string ``in'',``out'', or any tag appropriate for
+use with <code>auxin()</code> or auxout().  
+This means either an explicit filename or a command
+line redirect parameter tag=filename.</p>
+<p><code>sseek()</code> sets the seek pointer associated with the open seplib dataset
+or  device referred to by the tag according to the
+value supplied for whence.  whence must be one of  the  following 
+constants defined in &lt;unistd.h&gt;:</p>
+<pre>
+               SEEK_SET
+               SEEK_CUR
+               SEEK_END</pre>
+<p>If whence is SEEK_SET, the seek pointer  is  set  to  offset
+bytes.   If  whence  is SEEK_CUR, the seek pointer is set to
+its current location plus offset.  If  whence  is  SEEK_END,
+the seek pointer is set to the size of the file plus offset.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p>seplib, <a href="./../seplib_base/sreed.html">the sreed manpage</a>, <a href="./../seplib_base/srite.html">the srite manpage</a>, <a href="./../seplib_base/auxclose.html">the auxclose manpage</a>, <a href="./../seplib_base/sseek_block.html">the sseek_block manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="diagnostics">DIAGNOSTICS</a></h1>
+<p>If an error occurs the return value will be -1. A diagnostic
+error should be printed.</p>
+<p>
+</p>
+<hr />
+<h1><a name="keywords">KEYWORDS</a></h1>
+<p>seek position</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,3 @@
+#/bin/csh -f
+source LOCAL_CONFIG
+./configure  --with-sep -prefix=${SEP}

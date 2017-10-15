@@ -1,0 +1,76 @@
+									INSTALLING SEPlib
+
+
+SEPlib now uses a GNU-style configure mechanism for installation.
+So far this installation mechanism has been tested on:
+-  Linux (Redhat 5.0,5.2,6.0,6.1,6.2,7.0)
+-  IRIX6.5
+-  DecAlpha  (fortran support doesn't work yet)
+-  HPUX (10.1,11)
+-  Solaris
+
+It is the first release with this new installation mechanism so please
+report bugs to  bob@sep.stanford.edu.
+
+
+Follow the following steps to install SEPlib
+
+-  Download the software, ftp://sepftp.stanford.edu/pub/sep-distr/seplib-5.0.tar.gz
+-  gunzip seplib-5.0 -c |tar xf -
+-  cd seplib-5.0
+-  ./configure
+-  gmake install
+
+Following the above procedure should install the core seplib libraries
+and programs into the directory  /usr/local/SEP.
+
+[--prefix=/other/directory]     Specify another directory to install SEPlib in
+
+[--bindir,--mandir,--includedir,--libdir]
+   Location to put the binaries,  manual pages, include files, and libraries.
+   If you are going to try to compile SEP reports, old SEPlib code, etc. it
+   is important that you set these rather than doing copy or mv commands. 
+   See MAKERULES for more details. The directories default to
+   default to [prefix]/bin, [prefix]/include, [prefix]/man, [prefix]/lib
+  
+
+[--with-local]                  Install the less tested, newer portions of SEPlib
+[--with-su=/su/directory]       Compile SU support 
+[--with-motif=/motif/directory] Specify motif directory or  --without-motif  the absence of motif
+
+[--with-static]                 Will try to compile a static version of
+                                the programs.  For SOLARIS machines this is only
+                                an approximation because of system libaries
+
+[--with-ppm=/my/pbmplus/dir]    The directory containing the pbmplus package.
+
+--with-ppm=yes  AND
+  setenv PBM_LIB -L/mypbm/dirs -lppm ...
+                                Link flags needed to compile ppm program
+
+
+[--with-mansupport]            some systems don't include the
+                                packages neqn, tbl, etc.  If your system
+                                does, use this option
+
+
+If you run into problems (for example you need to add an additional library
+path when compiling programs) you can often solve your problem by setting 
+environmental variables that the configure script will then use. For example:
+
+
+[F90]        The F90 compiler
+[F77]        The F90 compiler
+[LDFLAGS]    Directories and libraries to link when compiling C programs
+[F77LDFLAGS] Directories and libraries to link when compiling F77 programs
+[F90LDFLAGS] Directories and libraries to link when compiling F77 programs
+[CFLAGS]     Flags to pass to the C compiler
+[LIBS]        C Libs to include by default
+[FLIBS]        F77 Libs to include by default
+[F90LIBS]        F90 Libs to include by default
+[F77FLAGS]     Flags to pass to the F77 compiler
+[F90FLAGS]     Flags to pass to the F90 compiler
+{DEFAULT_DOC_PATH]  Location of SEPlib software, useful if you move source code
+[CPPFLAGS]    C Processor flags
+[etc]        Look configure.in the main directory to find other variables that
+             can be set in the environment

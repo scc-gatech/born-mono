@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>hwt_trace_rays - trace rays</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>hwt_trace_rays - trace rays</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>int hwt_trace_rays(int *n,float *o,float *d,float *shot,float aimi,float aima,
+ float oi,float si,int ni, float sa, int na,float st,int nt,float *vel,
+ float *xray,float *yray,float *zray,float *vray)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n__2d_int_5b3_5d">n -  int[3]</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Dimensions of elements in velocity cube (3)</pre>
+</dd>
+<dt><strong><a name="item_o__2d_float_5b3_5d">o -  float[3]</a></strong><br />
+</dt>
+<dd>
+<pre>
+      First element of velocity cube (3)</pre>
+</dd>
+<dt><strong><a name="item_d__2d_float_5b3_5d">d -  float[3]</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Sampling of velocity cube velocity cube (3)</pre>
+</dd>
+<dt><strong><a name="item_shot__2d_float_5b3_5d">shot -  float[3]</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Location of shot</pre>
+</dd>
+<dt><strong><a name="item_aimi__2d_float">aimi -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Inclination</pre>
+</dd>
+<dt><strong><a name="item_aima__2d_float">aima -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Azimuth</pre>
+</dd>
+<dt><strong><a name="item_oi__2d_float">oi -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      First aperture angle</pre>
+</dd>
+<dt><strong><a name="item_si__2d_float">si -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Sampling  of aperture</pre>
+</dd>
+<dt><strong><a name="item_ni__2d_int">ni -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of half aperture angles</pre>
+</dd>
+<dt><strong><a name="item_sa__2d_float">sa -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Sampling of radial steps</pre>
+</dd>
+<dt><strong><a name="item_na__2d_int">na -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of radial steps</pre>
+</dd>
+<dt><strong><a name="item_st__2d_float">st -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Sampling in time</pre>
+</dd>
+<dt><strong><a name="item_nt__2d_int">nt -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of time samples</pre>
+</dd>
+<dt><strong><a name="item_vel__2d_float_2a">vel -  float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Velocity</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_xray__2d_float_2a">xray -  float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      X position of ray</pre>
+</dd>
+<dt><strong><a name="item_yray__2d_float_2a">yray -  float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Y position of ray</pre>
+</dd>
+<dt><strong><a name="item_zray__2d_float_2a">zray -  float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Z position of ray</pre>
+</dd>
+<dt><strong><a name="item_vray__2d_float_2a">vray -  float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Velocity of ray at positon</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Trace rays using Huegyn wavefrom raytracing</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/hwt_travel_cube.html">the hwt_travel_cube manpage</a>, <a href="./../seplib_prog/Hwt3d.html">the Hwt3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>septravel</strong></p>
+
+</body>
+
+</html>

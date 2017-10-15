@@ -1,0 +1,117 @@
+module wei_tds
+  !! Tridiagonal Solver
+
+!  use wei_util
+!  use wei_external
+  use wei_par_mod
+  !---------------
+  implicit none
+
+  integer,                              private ::  nx, ny
+  complex, dimension(:,:), allocatable, private :: ddx,ddy
+  complex, dimension(:,:), allocatable, private :: oox,ooy
+
+contains
+  !----------------------------------------------------------------
+  !! tridiagonal solver for symmetric systems
+  !!             (Golub and van Loan, p. 157)
+  !! solves (At A + e^2 Rt R) m = At d
+  !!
+  !!    (At A + e^2 Rt R) is tridiagonal and defined by
+  !!                                      diag and offd
+  !!
+  !! return:  m = (At A + e^2 Rt R)^-1 At d
+  !!
+  !----------------------------------------------------------------  
+  subroutine weitds_init(nxi, nyi)
+    integer, intent(in) :: nxi,nyi
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weitds_init'
+#endif  
+    nx = nxi
+    ny = nyi
+    allocate(ddx(nx,my_nomp()),oox(nx,my_nomp()))
+    allocate(ddy(ny,my_nomp()),ooy(ny,my_nomp()))
+#ifdef DEBUG
+!    if(run%debug) call out(unit)
+#endif
+  end subroutine weitds_init
+  !----------------------------------------------------------------
+  subroutine weitdsx(ith,diag,offd,m)
+    integer, intent(in) :: ith
+    complex, dimension(:,:), pointer       :: diag,offd
+    complex, dimension(:,:), intent(inout) :: m
+    integer :: k
+    complex :: t
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weitdsx'
+!    if(run%depar) call in(unit)
+#endif
+
+    ddx(1,ith) = diag(1,ith)
+    do k=2,nx
+       t=offd(k-1,ith)
+       oox(k-1,ith)=t/diag(k-1,ith)
+       ddx(k  ,ith)=  diag(k  ,ith) - t*oox(k-1,ith)
+    end do
+
+    do k=2,nx
+       m(k,ith) = m(k,ith) - oox(k-1,ith)*m(k-1,ith)
+    end do
+
+    m(nx,ith) = m(nx,ith)/ddx(nx,ith)
+    do k = nx-1, 1, -1
+       m(k,ith) = m(k,ith)/ddx(k,ith)-oox(k,ith)*m(k+1,ith)
+    end do
+#ifdef DEBUG
+!    if(run%depar) call out(unit)
+#endif
+  end subroutine weitdsx
+  !----------------------------------------------------------------
+  subroutine weitdsy(ith,diag,offd,m)
+    integer, intent(in) :: ith
+    complex, dimension(:,:), pointer       :: diag,offd
+    complex, dimension(:,:), intent(inout) :: m
+    integer :: k
+    complex :: t
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weitdsy'
+!    if(run%depar) call in(unit)
+#endif
+
+    ddy(1,ith) = diag(1,ith)
+    do k=2,ny
+       t=offd(k-1,ith)
+       ooy(k-1,ith)=t/diag(k-1,ith)
+       ddy(k  ,ith)=  diag(k  ,ith) - t*ooy(k-1,ith)
+    end do
+
+    do k=2,ny
+       m(k,ith) = m(k,ith) - ooy(k-1,ith)*m(k-1,ith)
+    end do
+
+    m(ny,ith) = m(ny,ith)/ddy(ny,ith)
+    do k = ny-1, 1, -1
+       m(k,ith) = m(k,ith)/ddy(k,ith)-ooy(k,ith)*m(k+1,ith)
+    end do
+#ifdef DEBUG
+!    if(run%depar) call out(unit)
+#endif
+  end subroutine weitdsy
+  !----------------------------------------------------------------
+  subroutine weitds_close()
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weitds_close'
+!    if(run%debug) call in(unit)
+#endif
+    deallocate(ddx,oox)
+    deallocate(ddy,ooy)
+#ifdef DEBUG
+!    if(run%debug) call out(unit)
+#endif
+  end subroutine weitds_close
+  !----------------------------------------------------------------
+end module wei_tds
+
+
+

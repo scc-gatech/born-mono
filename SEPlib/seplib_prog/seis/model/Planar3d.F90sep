@@ -1,0 +1,504 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$ Planar3d -Create a 3-D planar section with one or more planes
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ Planar3d [parameters - sparse,max,v0,t0,rickerf,deriv]
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$
+!!$=item  surface locations given by :
+!!$
+!!$    n1,o1,d1-sep_standard model dimension axis 1
+!!$    n2,o2,d2-sep_standard model dimension axis 2
+!!$    n3,o3,d3-sep_standard model dimension axis 3
+!!$
+!!$
+!!$=item dip2    -real
+!!$
+!!$      Dip of plane(s) in 2-direction (degrees)
+!!$
+!!$=item dip3    -real
+!!$
+!!$       3-direction
+!!$
+!!$=item t0   -real
+!!$
+!!$      [1.]  Time at physical origin (x=y=0.) (sparse=0)
+!!$
+!!$=item v0   -real
+!!$
+!!$      [2.]  Velocity for time-depth conversion (sparse=0)
+!!$
+!!$=item mag     -real
+!!$
+!!$       [1.]  (Average) Magnitude
+!!$
+!!$=item  sparse     -real
+!!$
+!!$      [0.]  Percentage of nonzero reflection coefficients in
+!!$            range 1 to n1.  Use 0 to specify a single plane.
+!!$
+!!$=item  rickerf    -real
+!!$
+!!$      [45.] center frequency of Ricker wavelet
+!!$
+!!$=item  deriv      -logical
+!!$
+!!$      [n]   use Ricker derivative instead of Ricker
+!!$
+!!$=back
+!!$
+!!$=head1 COMMENTS
+!!$
+!!$ Assumes a 3-D model with consistent sampling in all 3 directions.
+!!$
+!!$ Output is an n1 x n2 x n3 regular seplib array
+!!$
+!!$
+!!$=head1  DESCRIPTION
+!!$
+!!$ Generates one or more planes of scatters with a Ricker wavelet attached
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Scatter3d>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/model>
+!!$
+!!$=cut
+!>
+program zyxabd
+use sep
+implicit none
+real, allocatable, dimension (:) :: out, randlist, maglist
+integer n1, n2, n3
+real sparse
+integer nrandom
+call SEP_ADD_DOC()
+call sep_init('')
+  if (0>= getch('n2','d',n2 )) then
+    call erexit('Trouble reading  n2 from param  ')
+  end if
+  if (0.ne.putch('Read  from param: #n2 ','d',n2)) then
+    call erexit('Trouble writing n2 to history')
+  end if
+  if (0>= getch('n3','d',n3 )) then
+    call erexit('Trouble reading  n3 from param  ')
+  end if
+  if (0.ne.putch('Read  from param: #n3 ','d',n3)) then
+    call erexit('Trouble writing n3 to history')
+  end if
+  if (0>= getch('n1','d',n1 )) then
+    call erexit('Trouble reading  n1 from param  ')
+  end if 
+  if (0>= getch('sparse','f', sparse )) then
+    call erexit('Trouble reading  n1 from param  ')
+  end if 
+nrandom = n1*MIN(1.0,sparse/100.0)
+if(nrandom .LE. 0) then
+   nrandom = 1
+endif
+allocate(randlist(nrandom),maglist(nrandom))
+allocate (out(n1))
+call gotoworkbrother (n1,n2,n3,nrandom,sparse,out,randlist,maglist)
+end program zyxabd 
+
+function r4_normal_01 ( seed )
+
+!*****************************************************************************80
+!
+!! R4_NORMAL_01 returns a unit pseudonormal R4.
+!
+!  Discussion:
+!
+!    The standard normal probability distribution function (PDF) has
+!    mean 0 and standard deviation 1.
+!
+!    Because this routine uses the Box Muller method, it requires pairs
+!    of uniform random values to generate a pair of normal random values.
+!    This means that on every other call, essentially, the input value of
+!    SEED is ignored, since the code saves the second normal random value.
+!
+!    If you didn't know this, you might be confused since, usually, the
+!    output of a random number generator can be completely controlled by
+!    the input value of the SEED.  If I were more careful, I could rewrite
+!    this routine so that it would distinguish between cases where the input
+!    value of SEED is the output value from the previous call (all is well)
+!    and those cases where it is not (the user has decided to do something
+!    new.  Restart the uniform random number sequence.)  But I'll leave
+!    that for later.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    31 May 2007
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input/output, integer ( kind = 4 ) SEED, a seed for the random
+!    number generator.
+!
+!    Output, real ( kind = 4 ) R4_NORMAL_01, a sample of the standard
+!    normal PDF.
+!
+  implicit none
+
+  real ( kind = 4 ), parameter :: pi = 3.141592653589793E+00
+  real ( kind = 4 ) r1
+  real ( kind = 4 ) r2
+  real ( kind = 4 ) r4_normal_01
+  real ( kind = 4 ) r4_uniform_01
+  integer ( kind = 4 ) seed
+  integer ( kind = 4 ), save :: seed2 = 0
+  integer ( kind = 4 ), save :: used = 0
+  real ( kind = 4 ) x
+  real ( kind = 4 ), save :: y = 0.0E+00
+!
+!  On odd numbered calls, generate two uniforms, create two normals,
+!  return the first normal and its corresponding seed.
+!
+  if ( mod ( used, 2 ) == 0 ) then
+
+    r1 = r4_uniform_01 ( seed )
+
+    if ( r1 == 0.0E+00 ) then
+      write ( *, '(a)' ) ' '
+      write ( *, '(a)' ) 'R4_NORMAL_01 - Fatal error!'
+      write ( *, '(a)' ) '  R4_UNIFORM_01 returned a value of 0.'
+      stop
+    end if
+
+    seed2 = seed
+    r2 = r4_uniform_01 ( seed2 )
+
+    x = sqrt ( - 2.0E+00 * log ( r1 ) ) * cos ( 2.0E+00 * pi * r2 )
+    y = sqrt ( - 2.0E+00 * log ( r1 ) ) * sin ( 2.0E+00 * pi * r2 )
+!
+!  On odd calls, return the second normal and its corresponding seed.
+!
+  else
+
+    seed = seed2
+    x = y
+
+  end if
+
+  used = used + 1
+
+  r4_normal_01 = x
+
+  return
+end
+function r4_uniform_01 ( seed )
+
+!*****************************************************************************80
+!
+!! R4_UNIFORM_01 returns a unit pseudorandom R4.
+!
+!  Discussion:
+!
+!    An R4 is a real ( kind = 4 ) value.
+!
+!    This routine implements the recursion
+!
+!      seed = 16807 * seed mod ( 2**31 - 1 )
+!      r4_uniform_01 = seed / ( 2**31 - 1 )
+!
+!    The integer arithmetic never requires more than 32 bits,
+!    including a sign bit.
+!
+!    If the initial seed is 12345, then the first three computations are
+!
+!      Input     Output      R4_UNIFORM_01
+!      SEED      SEED
+!
+!         12345   207482415  0.096616
+!     207482415  1790989824  0.833995
+!    1790989824  2035175616  0.947702
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    31 May 2007
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Reference:
+!
+!    Paul Bratley, Bennett Fox, Linus Schrage,
+!    A Guide to Simulation,
+!    Second Edition,
+!    Springer, 1987,
+!    ISBN: 0387964673,
+!    LC: QA76.9.C65.B73.
+!
+!    Bennett Fox,
+!    Algorithm 647:
+!    Implementation and Relative Efficiency of Quasirandom
+!    Sequence Generators,
+!    ACM Transactions on Mathematical Software,
+!    Volume 12, Number 4, December 1986, pages 362-376.
+!
+!    Pierre L'Ecuyer,
+!    Random Number Generation,
+!    in Handbook of Simulation,
+!    edited by Jerry Banks,
+!    Wiley, 1998,
+!    ISBN: 0471134031,
+!    LC: T57.62.H37.
+!
+!    Peter Lewis, Allen Goodman, James Miller,
+!    A Pseudo-Random Number Generator for the System/360,
+!    IBM Systems Journal,
+!    Volume 8, Number 2, 1969, pages 136-143.
+!
+!  Parameters:
+!
+!    Input/output, integer ( kind = 4 ) SEED, the "seed" value, which
+!    should NOT be 0.  On output, SEED has been updated.
+!
+!    Output, real ( kind = 4 ) R4_UNIFORM_01, a new pseudorandom variate,
+!    strictly between 0 and 1.
+!
+  implicit none
+
+  integer ( kind = 4 ), parameter :: i4_huge = 2147483647
+  integer ( kind = 4 ) k
+  integer ( kind = 4 ) seed
+  real ( kind = 4 ) r4_uniform_01
+
+  if ( seed == 0 ) then
+    write ( *, '(a)' ) ' '
+    write ( *, '(a)' ) 'R4_UNIFORM_01 - Fatal error!'
+    write ( *, '(a)' ) '  Input value of SEED = 0.'
+    stop
+  end if
+
+  k = seed / 127773
+
+  seed = 16807 * ( seed - k * 127773 ) - k * 2836
+
+  if ( seed < 0 ) then
+    seed = seed + i4_huge
+  end if
+
+  r4_uniform_01 = real ( seed, kind = 4 ) * 4.656612875E-10
+
+  return
+end
+
+subroutine gotoworkbrother(n1,n2,n3,nrandom,sparse,out,randlist,maglist)
+use sep_mod
+integer  n1,n2,n3, i1,i2,i3, ir,nrandom
+integer :: ierr
+real o1,o2,o3, d1,d2,d3, pi,dip2,dip3, x2,x3,tantheta2,tantheta3
+real mag,sparse,rickerf,depthxy,depthz,t0,v0,z1
+real pift1,pift2,x0,y0,z0,alpha,alpha1
+real out(n1), randlist(nrandom), maglist(nrandom)
+real r4_normal_01
+real r4_uniform_01
+external r4_normal_01
+external r4_uniform_01
+integer seedu, seedn
+logical deriv
+call sep_begin_prog()
+  if (0>= fetch('o1','f',o1 )) then
+    o1 = 0.
+  end if
+  if (0>= fetch('o2','f',o2 )) then
+    o2 = 0.
+  end if
+  if (0>= fetch('o3','f',o3 )) then
+    o3 = 0.
+  end if
+
+  if (0.ne.putch('Read  from param: o1','f',o1)) then
+    call erexit('Trouble writing o1 to history')
+  end if
+  if (0.ne.putch('Read  from param: o2','f',o2)) then
+    call erexit('Trouble writing o2 to history')
+  end if
+  if (0.ne.putch('Read  from param: o3','f',o3)) then
+    call erexit('Trouble writing o3 to history')
+  end if
+
+  if (0>= getch('d1','f',d1 )) then
+    d1 = 1.
+  end if
+  if (0.ne.putch('Read  from param: d1','f',d1)) then
+    call erexit('Trouble writing d1 to history')
+  end if
+  if (0.ne.putch('Read  from param: #d1 ','f',d1)) then
+    call erexit('Trouble writing d1 to history')
+  end if
+  if (0>= getch('d2','f',d2 )) then
+    d2 = 1.
+  end if
+  if (0.ne.putch('Read  from param: d2','f',d2)) then
+    call erexit('Trouble writing d2 to history')
+  end if
+  if (0>= getch('d3','f',d3 )) then
+    d3 = 1.
+  end if
+  if (0.ne.putch('Read  from param: d3','f',d3)) then
+    call erexit('Trouble writing d3 to history')
+  end if
+  if (0>= getch('dip2','f',dip2 )) then
+    dip2 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #dip2 ','f',dip2)) then
+    call erexit('Trouble writing dip2 to history')
+  end if
+  if (0>= getch('dip3','f',dip3 )) then
+    dip3 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #dip3 ','f',dip3)) then
+    call erexit('Trouble writing dip3 to history')
+  end if
+  if (0>= getch('mag','f',mag )) then
+    mag = 1.
+  end if
+  if (0.ne.putch('Read  from param: #mag ','f',mag)) then
+    call erexit('Trouble writing mag to history')
+  end if
+  if (0>= getch('rickerf','f',rickerf )) then
+    rickerf = 45.
+  end if
+  if (0.ne.putch('Read  from param: #rickerf ','f',rickerf)) then
+    call erexit('Trouble writing rickerf to history')
+  end if
+  if (0>= getch('deriv','1',deriv )) then
+    deriv = .false.
+  end if
+  if (0.ne.putch('Read  from param: #deriv ','1',deriv)) then
+    call erexit('Trouble writing deriv to history')
+  end if
+  
+  if(sparse .LE. 0.0) then
+     if (0 >= getch('t0','f',t0 )) then
+        t0 = 1.0
+     endif
+  endif
+  if (0 >= getch('v0','f',v0 )) then
+     v0 = 2.0
+  endif
+  if(sparse .LE. 0.0) then
+     if (0.ne.putch('Read  from param: #t0 ','f',t0)) then
+       call erexit('Trouble writing t0 to history')
+     end if
+  else
+     if (0.ne.putch('Read  from param: #sparse ','f',sparse)) then
+       call erexit('Trouble writing sparse to history')
+     end if
+  endif
+  if (0.ne.putch('Read  from param: #v0 ','f',v0)) then
+    call erexit('Trouble writing v0 to history')
+  end if
+if(sparse .LE. 0.0) then
+   randlist = t0
+   maglist = mag
+else
+   seedu = 191
+   seedn = 784433
+   do i1=1,nrandom
+     randlist(i1) = o1 + d1 * (n1 - 1) * r4_uniform_01(seedu)
+     maglist(i1) = mag*r4_normal_01(seedn)
+   enddo
+endif
+pi=4.0*atan(1.)
+tantheta2=tan(dip2*pi/180)
+tantheta3=tan(dip3*pi/180)
+alpha1 = sqrt(1+tantheta2**2+tantheta3**2)
+alpha = 2.0/(v0*alpha1)
+
+! write(0,*)'dip2, dip3, v0 ',dip2, dip3, v0
+! write(0,*)'nrandom ',nrandom
+do i3=1,n3  
+  x3 = (i3-1)*d3+o3
+  do i2=1,n2  
+    x2 = (i2-1)*d2+o2
+    out=0.0
+    do ir = 1, nrandom
+      z0 = v0*randlist(ir)*0.5/alpha1
+      x0 = -z0*tantheta2
+      y0 = -z0*tantheta3
+      depthz=((x2-x0)*tantheta2+(x3-y0)*tantheta3+z0)*alpha
+! write(0,*)'t_rand, depthz, mag ',randlist(ir), depthz, maglist(ir)
+      do i1=1,n1
+         z1 = depthz - (o1 + (i1-1) * d1)
+         pift1 = z1*(pi*rickerf)**2
+         pift2 = (z1*pi*rickerf)**2
+         if(pift2 .lt. 87.45) then
+            if(deriv) then
+               out(i1) = out(i1) - 2.0*pift1*maglist(ir)*(3.0-2.0*pift2)*exp(-pift2)
+            else
+               out(i1) = out(i1) + maglist(ir)*(1.0-2.0*pift2)*exp(-pift2)
+            endif
+         endif
+      enddo
+    enddo
+    ierr= srite('out',out,n1*4)
+    if(ierr .ne. n1*4) then
+       call erexit('Trouble trace n1 to output  ')
+    endif
+  end do
+end do 
+  if (0.ne. putch('n1','d',n1 )) then
+    call erexit('Trouble writing n1 to history  ')
+  end if
+     if (0.ne. putch('n2','d',n2 )) then
+       call erexit('Trouble writing n2 to history  ')
+     end if
+     if (0.ne. putch('n3','d',n3 )) then
+       call erexit('Trouble writing  n3 to history  ')
+     end if
+     if (0.ne. putch('label1','s','Time(sec)')) then
+       call erexit('Trouble writing  label1 to history  ')
+     end if
+     if(v0 .le. 20.0) then
+        if (0.ne. putch('label2','s','X(km)')) then
+          call erexit('Trouble writing  label2 to history  ')
+        end if
+        if (0.ne. putch('label3','s','Y(km)')) then
+          call erexit('Trouble writing  label2 to history  ')
+        end if
+     else
+        if (0.ne. putch('label2','s','X(m)')) then
+          call erexit('Trouble writing  label2 to history  ')
+        end if
+        if (0.ne. putch('label3','s','Y(m)')) then
+          call erexit('Trouble writing  label2 to history  ')
+        end if
+     endif
+  if (0.ne. putch('esize','d',4 )) then
+    call erexit('Trouble writing esize to history  ')
+  end if
+  if (0.ne. putch('hff','d',-1 )) then
+    call erexit('Trouble writing hff to history  ')
+  end if
+  if (0.ne. putch('gff','d',-1 )) then
+    call erexit('Trouble writing hff to history  ')
+  end if
+call hclose()
+call sep_end_prog()
+end   

@@ -1,0 +1,6 @@
+Currently my thought is that ths directory is stuff
+that takes advantage of seplib's 'cube' feature 
+without changing the day.
+
+Pad and Interleave don't necessarly belong according
+to that definition, maybe they belong in filtering

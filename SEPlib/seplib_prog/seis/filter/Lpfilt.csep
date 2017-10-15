@@ -1,0 +1,206 @@
+/*$
+=head1  NAME
+
+Lpfilt - low pass filter
+
+=head1 SYNOPSIS
+
+	Lpfilt < in.H f3db= order=6 > out.H
+
+=head1  INPUT PARAMETERS
+
+=over 4
+
+=item	f3db	- real   
+
+      low-pass cutoff frequency (Hz.) for attenuation by 3db.
+
+=item	order - integer 
+
+      [6]:	number of poles to use in filter
+
+=item  n1,n2,n3-integer 
+
+       standard seplib params
+
+=item  d1     - real    
+
+       standard seplib params
+
+=back
+
+=head1  DESCRIPTION
+
+Low-pass (Butterworth) filtering
+
+=head1 EXAMPLE
+
+	Lpfilt < in.H f3db=12 order=6 > out.H
+	Apply a 9-pole Butterworth low-pass filter with cutoff frequency of
+	12 Hz (that is, at 12 Hz the amplitude is 3db down with respect
+	to the pass window). Standard SEP parameters are taken from the 
+	input data.
+
+=head1 REFERENCE
+
+	XXXXXXXXXXXXXX
+
+=head1 SEE ALSO
+
+L<Bandpass>
+
+=head1 CATEGORY
+
+B<seis/filter>
+
+=cut
+
+
+>*/
+
+/*
+ KEYWORDS low-pass butterworth 
+
+ SEE ALSO
+	Dipfil Lmodip
+
+ WHERE
+	./cube/seis/Lpfilt.c
+
+*/
+/*
+#
+Written by D. Hale, adapted for Seplib by D. Rothman 29 July 83. 
+Modified to seplib standards 11/10/83  stew
+Martin Karrenbach 11-3-92  changed alloc(sizeof()) and sreed/srite sizeof(xdr)
+*/
+/*
+ * Keyword: low-pass butterworth : Dipfil Lmodip
+ */
+ADD_DEF_SEP_DOC
+
+#include <math.h>
+#include <sep.main>
+void conv (float *x,int lx,float *y,int ly,float *z,int lz);
+
+int MAIN(void)
+{
+	int size,nx,ix,order,jmax,i,j,k,lnd,lfinal,od2,nt,n3,ntrace;
+	int esize;
+	float dt,*z,*num,*den,*sn,*sd,*tn,*td;
+	float cutoff,arg,den0,sum,mypi,a,aa,aap4,c,b;
+	float *x,*y,*space;
+
+        sep_begin_prog();
+	/* obtain arguments */
+	if(!fetch("esize","d",&esize)) n3=sizeof(float);
+	if(!fetch("n1","d",&nt)) if(!fetch("nt","d",&nt))
+		seperr(" Can't find n1(nt)\n");
+	if(!fetch("n2","d",&nx)) if(!fetch("nx","d",&nx))
+		seperr(" Can't find n2(nx)\n");
+	if(!fetch("n3","d",&n3)) n3=1;
+	ntrace = n3*nx; /* filter loop is over ntrace */
+	if (getch("f3db","f",&cutoff)==0)
+		seperr("must specify f3db (cutoff frequency)\n");
+	order=6;		
+	fetch("order","d",&order);
+	dt=1.;			
+	if(!fetch("d1","f",&dt)) fetch("dt","f",&dt);
+	putch("f3db","f",&cutoff);	putch("order","d",&order);
+	cutoff = cutoff * dt;
+	hclose(); /* before writing output data */
+
+	/* compute constants */
+	mypi = 3.141592654;
+	od2 = order / 2;
+	if (od2 < 1) od2 = 1;
+	a = 2. * sin (mypi*cutoff) / cos (mypi*cutoff);
+	aa = a * a;
+	aap4 = aa + 4;
+	c = 2. * aa - 8.;
+	lnd = 3;
+	lfinal = 1 + od2 * 2;
+
+	/* allocate storage */
+	size = 3*nt + 4*lfinal + 2*3;
+	space=( float *) alloc(size * sizeof(float)); /* allocate array */
+	z = space;
+	x = z + nt;
+	y = x + nt;
+	num = y + nt;
+	den = num + lfinal;
+	tn = den + lfinal;
+	td = tn + lfinal;
+	sn = td + lfinal;
+	sd = sn + 3;
+
+	/* compute filter */
+	num[0] = aa;  num[1] = 2. * aa;  num[2] = aa;
+	arg = mypi * 0.25 / od2;
+	b = 4. * a * sin (arg);
+	den[0] = aap4 + b;  den[1] = c;  den[2] = aap4 - b;
+
+	for (i = 1; i < od2; i++) {
+		for (j = 0; j < lnd; j++) {
+			tn[j] = num[j];
+			td[j] = den[j];
+		}
+		arg = mypi * .5 / od2 * (i + 0.5);
+		b = 4. * a * sin (arg);
+		sn[0] = aa; sn[1] = 2. * aa; sn[2] = aa;
+		sd[0] = aap4 + b; sd[1] = c; sd[2] = aap4 - b;
+		lnd += 2;
+		conv (sn,3,tn,lnd-2,num,lnd);
+		conv (sd,3,td,lnd-2,den,lnd);
+	}
+
+	/* normalize filter */
+	den0 = den[0];
+	for (i = 0; i < lnd; i++) {
+		num[i] /= den0;
+		den[i] /= den0;
+	}
+
+	/* loop over input traces */
+	for (ix=0; ix<ntrace; ix++) {
+		sreed("in", (char *)x, nt*esize); /* read in one trace */
+
+		/* apply filter */
+		conv (num,lnd,x,nt,z,nt);
+		for (k = 0; k < nt; k++) {
+			jmax = (lnd-1 < k) ? lnd-1 : k;
+			sum = 0.;
+			for (j = 1; j <= jmax; j++)
+				sum += den[j] * y[k-j];
+			y[k] = -sum + z[k];
+		}
+		srite("out", (char *) y, nt*esize); /* write out one trace */
+	}
+   sep_end_prog();
+   return EXIT_SUCCESS;
+}
+
+/*******************************************************************
+*                          Subroutine conv                         *
+********************************************************************
+*                         computes z = x * y                       *
+********************************************************************
+*	x	input wavelet                                              *
+*	lx	length of x                                                *
+*	y	input wavelet                                              *
+*	ly	length of y                                                *
+*	z	output wavelet                                             *
+*	lz	length of z                                                *
+*******************************************************************/
+void conv (float *x,int lx,float *y,int ly,float *z,int lz)
+{
+	int i,j,jmin,jmax;
+
+	for (i = 0; i < lz; i++) {
+		z[i] = 0.;
+		jmin = (0 > i-ly+1) ? 0 : i-ly+1;
+		jmax = (lx-1 < i) ? lx-1 : i;
+		for (j = jmin; j <= jmax; j++)
+			z[i] += x[j] * y[i-j];
+	}
+}

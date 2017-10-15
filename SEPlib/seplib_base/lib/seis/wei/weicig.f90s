@@ -1,0 +1,871 @@
+module wei_cig
+  !! compute CIGs
+  !!        offset domain (weihcig)
+  !! ray parameter domain (weipcig)
+
+#ifdef SEP_DFT
+use wei_flags
+#else
+#ifndef USE_FFTW
+use fftw_sep_fake_mod
+#endif
+#endif
+
+  use wei_wavespace_mod
+  use wei_par_mod
+!  use wei_util
+!  use wei_external
+  use wei_slow_mod
+  use wei_flags
+  use wei_tds
+  use wei_attr
+  use wei_image_mod
+  !---------------
+  implicit none
+  type, public        :: axis
+     integer          :: n
+     real             :: o,d
+     character(len=2) :: l    !! label (i.e. axis name)
+  end type axis
+
+
+  type(axis) :: akhx, akhy
+  type(axis) :: aphx, aphy
+#ifdef SEP_DFT
+  type(dfti_type) , pointer :: dfti(:)
+#endif
+
+
+  integer(kind=dbl),pointer,  private :: planF(:) !! forward FFT
+  integer(kind=dbl),pointer,  private :: planI(:) !! inverse FFT
+  real,               private :: scale
+
+  real,               private :: pcigeps
+  integer,            private :: jhx,jhy,npadx,npady,begpadx,begpady !! half nhx,nhy - even # of samples
+
+  !! temp FFT arrays
+  complex, dimension(:,:,:), allocatable, private :: hht
+  complex, dimension(:,:),       pointer, private :: sftF, sftI !! shared
+
+  !! mapping arrays
+  integer, dimension(:,:),       pointer, private :: xilk, yilk !! index to lower kh
+  logical, dimension(:,:),       pointer, private :: xobf, yobf !! off-bounds flag
+  real,    dimension(:,:),       pointer, private :: xwui, ywui !! weight to upper kh
+
+  !! tmp arrays
+  complex, dimension(:,:),       pointer, private :: hxtmp, hytmp
+  complex, dimension(:,:),       pointer, private :: pxtmp, pytmp
+
+  !! tridiagonal matrices
+  complex, dimension(:,:),       pointer, private :: xdiag, xoffd
+  complex, dimension(:,:),       pointer, private :: ydiag, yoffd
+contains
+  !----------------------------------------------------------------  
+!!$=head1 NAME
+!!$
+!!$weihcig_init -initialize offset imaging operator
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ierr= weihcig_init()
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Initializes migration operator whose image (R) domain is offset
+!!$
+!!$
+!!$=head1 LIBRARY
+!!$
+!!$sepweif90
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$ L<weipcig_init> L<weihcig>
+!!$
+!!$=cut
+!!$
+
+  !! h-domain CIG
+  integer function weihcig_init() result(st)
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weihcig_init'
+!    if(run%debug) call in(unit)
+#endif
+    !! do nothing
+#ifdef DEBUG
+!    if(run%debug) call out(unit)
+#endif
+    st=0
+  end function weihcig_init
+
+
+!!$=head1 NAME
+!!$
+!!$weihcig - Perform offset domain imaging 
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ ierr=weihcig(wfld,iws,ith)
+!!$
+!!$=head1 PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item iws - integer
+!!$
+!!$  current frequency slice
+!!$
+!!$=item ith - integer
+!!$
+!!$  current thread
+!!$
+!!$=item wfld - complex(:,:,:,:,:)
+!!$
+!!$  wavefield
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Imaging operation when in the offset domain
+!!$
+!!$
+!!$=head1 LIBRARY
+!!$
+!!$sepweif90
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$ L<weihcig_init> L<weipcig>
+!!$
+!!$=cut
+
+
+
+
+  !----------------------------------------------------------------
+  integer function weihcig(wfld,iws,ith) result(st)
+    complex, dimension(:,:,:,:,:), pointer :: wfld
+    integer, intent(in) ::iws,ith
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weihcig'
+!    if(run%depar) call in(unit)
+#endif
+    !! do nothing
+#ifdef DEBUG
+!    if(run%depar) call out(unit)
+#endif
+    st=0
+  end function weihcig
+  !----------------------------------------------------------------  
+!!$=head1 NAME
+!!$
+!!$weipcig_init -initialize offset ray parameter imaging
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ierr= weihcig_init()
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Initializes migration operator whose image (R) domain is p_h
+!!$
+!!$ Grabs pcig_eps (default=1.0)
+!!$
+!!$
+!!$=head1 LIBRARY
+!!$
+!!$sepweif90
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$ L<weihcig_init> L<weipcig>
+!!$
+!!$=cut
+!!$
+
+  !----------------------------------------------------------------  
+  !! p-domain CIG
+  integer function weipcig_init() result(st)
+    integer, dimension(3) :: ni
+    logical               :: fftmeasure
+    integer               :: fftsetup
+    integer               :: er,i
+    integer               :: ipx,ipy, jpx,jpy, ihx,ihy
+    real                  :: arg,pi
+    type(sep3d)           :: wsep,rsep
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weipcig_init'
+!    if(run%debug) call in(unit)
+#endif
+
+    call from_param("pcigx_pad",npadx,0)
+    call from_param("pcigy_pad",npady,0)
+    pi=3.1415926536
+
+    begpadx=npadx/2
+    begpady=npady/2
+
+
+    call grab_current_wave_space_pad(wsep)
+    !! Note: the offset axes should have an even number of samples
+    jhx = (wsep%n(3)+npadx)/2
+    jhy = (wsep%n(4)+npady)/2
+
+    call from_param("pcigeps",pcigeps,1.0)
+
+
+    ni = (/ wsep%n(3)+npadx, wsep%n(4)+npady, 1 /)
+    allocate(planF(my_nomp()),planI(my_nomp()))
+    scale = 1./sqrt(1.*product(ni))
+    !! ----- FFT tmp array -----
+    allocate(hht(ni(1),ni(2),my_nomp()),stat=er)
+    call add_mem(size(hht))
+    if(er/=0) call seperr('cant allocate hht')
+    !! ----- init FFT plans -----
+#ifdef SEP_DFT
+    allocate(dfti(my_nomp()))
+#endif
+    do i=1,my_nomp()
+#ifdef SEP_DFT
+     er= dfticreatedescriptor(dfti(i)%dft_d,dfti_single,DFTI_COMPLEX,2,ni)
+     er= dfticommitdescriptor(dfti(i)%dft_d)
+#else
+#ifdef USE_FFTW
+      call sfftw_plan_dft(planF(i),2,ni,hht(1,1,i),hht(1,1,i),FFTW_FORWARD,FFTW_PATIENT)
+      call sfftw_plan_dft(planI(i),2,ni,hht(1,1,i),hht(1,1,i),FFTW_BACKWARD,FFTW_PATIENT)
+#else
+     call seperr("no fftw")
+#endif
+#endif
+    end do
+
+    !! ----- init FFT shift -----
+    allocate(sftF(wsep%n(3)+npadx,wsep%n(4)+npady), stat=er)
+    call add_mem(size(sftF))
+    if(er /=0) call seperr("cant allocate sftF")
+    allocate(sftI(wsep%n(3)+npadx,wsep%n(4)+npady), stat=er)
+    call add_mem(size(sftI))
+    if(er /=0) call seperr("cant allocate sftI")
+
+    do ihx=1,wsep%n(3)+npadx
+       do ihy=1,wsep%n(4)+npady
+          arg = 2*pi &
+          * ( (ihx-1.)/(wsep%n(3)+npadx) * (wsep%o(3)/wsep%d(3)-begpadx) &
+          +   (ihy-1.)/(wsep%n(4)+npady) * (wsep%o(4)/wsep%d(4)-begpady) )
+
+          sftF(ihx,ihy) = cmplx(cos(arg),-(+1)*sin(arg))
+          sftI(ihx,ihy) = cmplx(cos(arg),-(-1)*sin(arg))
+       end do
+    end do
+
+    !! ----- tmp arrays ------
+    allocate(hxtmp(wsep%n(3)+npadx,my_nomp()), stat=er)
+    call add_mem(size(hxtmp))
+    if(er /=0) call seperr("cant allocate hxtmp") !! hxtmp(nhx,nth)
+    allocate(hytmp(wsep%n(4)+npady,my_nomp()), stat=er)
+    call add_mem(size(hytmp))
+    if(er /=0) call seperr("cant allocate hytmp") !! hytmp(nhy,nth)
+    allocate(pxtmp(wsep%n(3)+npadx,my_nomp()), stat=er)
+    call add_mem(size(pxtmp))
+    if(er /=0) call seperr("cant allocate pxtmp") !! pxtmp(npx,nth)
+    allocate(pytmp(wsep%n(4)+npady,my_nomp()), stat=er)
+    call add_mem(size(pytmp))
+    if(er /=0) call seperr("cant allocate pytmp") !! pytmp(npy,nth)
+
+    !! ------ stretch arrays ------
+    allocate(xilk(wsep%n(3)+npadx,my_nomp()), stat=er)
+    call add_mem(size(xilk))
+    if(er /=0) call seperr("cant allocate xilk") !! xilk(npx,nth)
+    allocate(xobf(wsep%n(3)+npadx,my_nomp()), stat=er)
+    call add_mem(size(xobf))
+    if(er /=0) call seperr("cant allocate xobf") !! xobf(npx,nth)
+    allocate(xwui(wsep%n(3)+npadx,my_nomp()), stat=er)
+    call add_mem(size(xwui))
+    if(er /=0) call seperr("cant allocate xwui") !! xwui(npx,nth)
+
+    allocate(yilk(wsep%n(4)+npady,my_nomp()), stat=er)
+    call add_mem(size(yilk))
+    if(er /=0) call seperr("cant allocate yilk") !! yilk(npy,nth)
+    allocate(yobf(wsep%n(4)+npady,my_nomp()), stat=er)
+    call add_mem(size(yobf))
+    if(er /=0) call seperr("cant allocate yobf") !! yobf(npy,nth)
+    allocate(ywui(wsep%n(4)+npady,my_nomp()), stat=er)
+    call add_mem(size(ywui))
+    if(er /=0) call seperr("cant allocate ywui") !! ywui(npy,nth)
+
+    !! ----- tridiagonal solver -----
+    call grab_current_image_space(rsep)
+    allocate(xdiag(rsep%n(3)+npadx,my_nomp()), stat=er)
+    call add_mem(size(xdiag))
+
+    if(er /=0) call seperr("cant allocate xdiag") !! xdiag(npx,nth)
+    allocate(xoffd(rsep%n(3)+npadx,my_nomp()), stat=er)
+    call add_mem(size(xoffd))
+    if(er /=0) call seperr("cant allocate xoffd") !! xoffd(npx,nth)
+
+    allocate(ydiag(rsep%n(4)+npady,my_nomp()), stat=er)
+    call add_mem(size(ydiag))
+    if(er /=0) call seperr("cant allocate ydiag") !! ydiag(npy,nth)
+    allocate(yoffd(rsep%n(4)+npady,my_nomp()), stat=er)
+    call add_mem(size(yoffd))
+    if(er /=0) call seperr("cant allocate yoffd") !! yoffd(npy,nth)
+
+    !! ----- init tridiagonal solver -----
+    call weitds_init(rsep%n(3)+npadx,rsep%n(4)+npady)
+
+    !! ----- init kh and ph axes -----
+    !! offset x axes (khx,phx)
+    akhx%n = wsep%n(3)+npadx
+    akhx%o = -   pi /  wsep%d(3)
+    akhx%d = 2 *pi / (wsep%d(3) * (wsep%n(3)+npadx))
+    if(wsep%n(3)+npadx ==1) then
+       akhx%o=0.
+       akhx%d=1.
+    end if
+    aphx%n =rsep%n(3)+npadx
+    aphx%o =rsep%o(3)-rsep%d(3)*begpadx
+    aphx%d =rsep%d(3)
+
+    !! offset y axes (khy,phy)
+    akhy%n = wsep%n(4)+npady
+    akhy%o = -   pi /  wsep%d(4)
+    akhy%d = 2 * pi / (wsep%d(4) * (wsep%n(4)*npady))
+    if(wsep%n(4)+npady ==1) then
+       akhy%o=0.
+       akhy%d=1.
+    end if
+    aphy%n = rsep%n(4)+npady
+    aphy%o = rsep%o(4)-rsep%d(4)*begpady
+    aphy%d = rsep%d(4)
+
+#ifdef DEBUG
+!    if(run%debug) call out(unit)
+#endif
+    st=0
+  end function weipcig_init
+!!$=head1 NAME
+!!$
+!!$weipcig - Perform offset ray parameter imaging 
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ ierr=weipcig(wfld,iws,ith)
+!!$
+!!$=head1 PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item iws - integer
+!!$
+!!$  current frequency slice
+!!$
+!!$=item ith - integer
+!!$
+!!$  current thread
+!!$
+!!$=item wfld - complex(:,:,:,:,:)
+!!$
+!!$  wavefield
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Imaging operation when in the offset ray parameter (p_h) domain
+!!$
+!!$
+!!$=head1 LIBRARY
+!!$
+!!$sepweif90
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$ L<weipcig_init> L<weihcig>
+!!$
+!!$=cut
+  !----------------------------------------------------------------
+  integer function weipcig(wfld,iws,ith) result(st)
+    complex, dimension(:,:,:,:,:), pointer :: wfld
+    integer, intent(in) ::iws,ith
+    logical :: adj
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weipcig'
+!    if(run%depar) call in(unit)
+#endif
+
+    adj= grab_current_adj()
+    !! interpolator map (A)
+    call weipcig_map(iws,ith, aphx,akhx, xobf,xilk,xwui)
+    call weipcig_map(iws,ith, aphy,akhy, yobf,yilk,ywui)
+
+    if(adj) then !! MIGRATION
+       call weipcig_fft(wfld,ith) !!            kh = Ft h
+       call weipcig_h2p(wfld,ith) !! ph = At Mt kh
+       call amp_wt(wfld,ith)
+    else             !! MODELING
+       call amp_wt(wfld,ith)
+       call weipcig_p2h(wfld,ith) !!         kh = A  M  ph
+       call weipcig_ift(wfld,ith) !!  h = F  kh
+    end if
+ 
+#ifdef DEBUG
+!    if(run%depar) call out(unit)
+#endif
+    st=0
+  end function weipcig
+  subroutine amp_wt(wfld,ith)
+    complex, dimension(:,:,:,:,:), pointer :: wfld
+    integer, intent(in) :: ith
+    integer             :: i1,i2,i3,i4,ix0,iy0
+    type(sep3d)         :: rsep,wsep
+    real,allocatable    :: sxy(:,:)
+    real                :: phi,amp,w
+                                                                                
+      call grab_current_image_space(wsep)
+      ix0=nint((0.-wsep%o(3))/wsep%d(3)+1.)
+      iy0=nint((0.-wsep%o(4))/wsep%d(4)+1.)
+      if(wsep%n(4)==1) iy0=1
+      call grab_current_image_space(rsep)
+      call store_current_ihx_ihy(ix0,iy0)
+      allocate(sxy(wsep%n(1),wsep%n(2)))
+      call add_mem(size(sxy))
+      call grab_slow_mid_map(sxy)
+      call grab_current_omega(w)
+      w=sqrt(w)
+      do i4=1,wsep%n(4)
+        do i3=1,wsep%n(3)
+          do i2=1,wsep%n(2)
+            do i1=1,wsep%n(1)
+              phi=((rsep%o(3)+rsep%d(3)*(i3-1))/(2.*sxy(i1,i2)))
+              if (phi >-.9 .and. phi < .9) then
+!                phi=asin(phi)
+!                amp=1./sqrt(2.*sxy(i1,i2)*cos(phi))
+                amp=1
+              else
+                phi=0
+                amp=0.
+              end if
+              wfld(i1,i2,i3,i4,ith)= wfld(i1,i2,i3,i4,ith)*amp
+            end do
+          end do
+        end do
+      end do
+      call del_mem(size(sxy))
+      deallocate(sxy)
+  end subroutine
+                                                                                
+
+  !----------------------------------------------------------------  
+  !! ph to kh conversion
+  subroutine weipcig_p2h(wfld,ith)
+    complex, dimension(:,:,:,:,:), pointer :: wfld
+    integer, intent(in) :: ith
+    integer             :: imx,imy, ihx,ihy, ipx,ipy
+    integer             :: il,iu
+    real                :: wl,wu 
+    type(sep3d)         :: rsep,wsep
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weipcig_p2h'
+!    if(run%depar) call in(unit)
+#endif
+
+   call grab_current_wave_space_pad(wsep)
+   call grab_current_image_space(rsep)
+
+    xp2h: if(rsep%n(3)+npadx >1) then
+       !!setup tridiagonal solver
+       call weipcig_i3d(ith,rsep%n(3)+npadx,xdiag,xoffd,xobf,xilk,xwui)
+
+       do imx=1,wsep%n(1)
+          do imy=1,wsep%n(2)
+             do ihy=1,wsep%n(4)+npady
+                hxtmp(:,ith) = 0.
+                pxtmp(:,ith) = wfld(imx,imy,:,ihy,ith)
+
+                !! solve (At A + e^2 Rt R ) ph = ph 
+                call weitdsx(ith,xdiag,xoffd,pxtmp)
+                do ipx=1,rsep%n(3) + npadx
+                   if(xobf(ipx,ith)) cycle
+                   il=xilk(ipx,ith); iu= il +  1
+                   wu=xwui(ipx,ith); wl= 1. - wu 
+
+                   !! kh = A ph
+                   hxtmp(il,ith) = hxtmp(il,ith) + pxtmp(ipx,ith) * wl
+                   hxtmp(iu,ith) = hxtmp(iu,ith) + pxtmp(ipx,ith) * wu
+                end do
+
+                wfld(imx,imy,:,ihy,ith) = hxtmp(:,ith)
+             end do
+          end do
+       end do
+    end if xp2h
+
+    yh2p: if(rsep%n(4)+npady >1) then
+       !!setup tridiagonal solver
+       call weipcig_i3d(ith,rsep%n(4)+npady,ydiag,yoffd,yobf,yilk,ywui)
+
+       do imx=1,wsep%n(1)
+          do imy=1,wsep%n(2)
+             do ihx=1,wsep%n(3)+npadx
+                hytmp(:,ith) = 0.
+                pytmp(:,ith) = wfld(imx,imy,ihx,:,ith)
+
+                !! solve (At A + e^2 Rt R ) ph = ph
+                call weitdsy(ith,ydiag,yoffd,pytmp)
+                do ipy=1,rsep%n(4) + npady
+                   if(yobf(ipy,ith)) cycle
+                   il=yilk(ipy,ith); iu= il +  1
+                   wu=ywui(ipy,ith); wl= 1. - wu 
+
+                   !! kh = A ph
+                   hytmp(il,ith) = hytmp(il,ith) + pytmp(ipy,ith) * wl
+                   hytmp(iu,ith) = hytmp(iu,ith) + pytmp(ipy,ith) * wu
+                end do
+
+                wfld(imx,imy,ihx,:,ith) = pytmp(:,ith)
+             end do
+          end do
+       end do
+
+    end if yh2p
+
+#ifdef DEBUG
+!    if(run%depar) call out(unit)
+#endif
+  end subroutine weipcig_p2h
+  !----------------------------------------------------------------
+  !! kh to ph conversion
+  subroutine weipcig_h2p(wfld,ith)
+    complex, dimension(:,:,:,:,:), pointer :: wfld
+    integer, intent(in) :: ith
+    integer             :: imx,imy, ihx,ihy, ipx,ipy
+    integer             :: il,iu
+    real                :: wl,wu
+    type(sep3d)         :: wsep,rsep
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weipcig_h2p'
+!    if(run%depar) call in(unit)
+#endif
+   call grab_current_wave_space_pad(wsep)
+   call grab_current_image_space(rsep)
+
+    xh2p: if(rsep%n(3)+npadx >1) then
+       !!setup tridiagonal solver
+       call weipcig_i3d(ith,rsep%n(3)+npadx,xdiag,xoffd,xobf,xilk,xwui)
+
+       do imx=1,wsep%n(1)
+          do imy=1,wsep%n(2)
+             do ihy=1,wsep%n(4)+npady
+                hxtmp(:,ith) = wfld(imx,imy,:,ihy,ith)
+                pxtmp(:,ith) = 0.
+
+                do ipx=1,rsep%n(3) + npadx
+                   if(xobf(ipx,ith)) cycle
+                   il=xilk(ipx,ith); iu= il +  1
+                   wu=xwui(ipx,ith); wl= 1. - wu 
+
+                   !! ph = At kh
+                   pxtmp(ipx,ith) = pxtmp(ipx,ith) + hxtmp(il,ith) * wl
+                   pxtmp(ipx,ith) = pxtmp(ipx,ith) + hxtmp(iu,ith) * wu
+                end do
+                !! solve (At A + e^2 Rt R ) ph = At kh 
+                call weitdsx(ith,xdiag,xoffd,pxtmp)
+
+                wfld(imx,imy,:,ihy,ith) = pxtmp(:,ith)
+             end do
+          end do
+       end do
+    end if xh2p
+
+    yh2p: if(rsep%n(4)+npady >1) then
+       !!setup tridiagonal solver
+       call weipcig_i3d(ith,rsep%n(4)+npady,ydiag,yoffd,yobf,yilk,ywui)
+
+       do imx=1,wsep%n(1)
+          do imy=1,wsep%n(2)
+             do ihx=1,wsep%n(3)+npadx
+                hytmp(:,ith) = wfld(imx,imy,ihx,:,ith)
+                pytmp(:,ith) = 0.
+
+                do ipy=1,rsep%n(4) + npady
+                   if(yobf(ipy,ith)) cycle
+                   il=yilk(ipy,ith); iu= il +  1
+                   wu=ywui(ipy,ith); wl= 1. - wu 
+
+                   !! ph = At kh
+                   pytmp(ipy,ith) = pytmp(ipy,ith) + hytmp(il,ith) * wl
+                   pytmp(ipy,ith) = pytmp(ipy,ith) + hytmp(iu,ith) * wu
+                end do
+                !! solve (At A + e^2 Rt R ) ph = At kh 
+                call weitdsy(ith,ydiag,yoffd,pytmp)
+
+                wfld(imx,imy,ihx,:,ith) = pytmp(:,ith)
+             end do
+          end do
+       end do
+    end if yh2p
+#ifdef DEBUG
+!    if(run%depar) call out(unit)
+#endif
+  end subroutine weipcig_h2p
+  !----------------------------------------------------------------
+  !! PULL stretch mapping - definition of A and At
+  !! (emphasize migration over modeling) 
+  !! loop over ph; map every ph into kh
+  subroutine weipcig_map( iws,ith, aph,akh, obf,ilk,wui)
+    integer,    intent(in) ::iws,ith
+    type(axis), intent(in) :: aph, akh
+    logical, dimension(:,:), pointer :: obf
+    integer, dimension(:,:), pointer :: ilk
+    real,    dimension(:,:), pointer :: wui
+    integer :: ip
+    real    :: p2k,w,ph
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weipcig_map'
+!    if(run%depar) call in(unit)
+#endif
+
+!   w  = bw%o + (iws-1)*bw%d
+    call grab_current_omega(w)
+
+    p2k=0.
+    obf(:,ith)=.false.
+    do ip=1,aph%n; ph = aph%o + (ip-1) * aph%d
+       p2k = ph * w  !! kh = f(ph) = ph * w
+
+       !! ILK = Index to Lower kh
+       ilk(ip,ith) = floor(1 + (p2k - akh%o)/akh%d)
+
+       !! WUI = Weight to Upper Index in the kh array
+       wui(ip,ith) = p2k - (akh%o + (ilk(ip,ith)-1)*akh%d)
+       wui(ip,ith) = wui(ip,ith)/akh%d
+
+    end do
+    where(ilk(:,ith)<1 .or. ilk(:,ith)>akh%n-1)
+       !! OBF = Off-Bounds Flag
+       obf(:,ith) = .true.
+    end where
+
+#ifdef DEBUG
+!    if(run%depar) call out(unit)
+#endif
+  end subroutine weipcig_map
+  !----------------------------------------------------------------
+  !! init tridiagonal matrix
+  subroutine weipcig_i3d(ith,n,diag,offd,obf,ilk,wui)
+    integer, intent(in) :: n, ith
+    complex, dimension(:,:), pointer :: diag, offd
+    logical, dimension(:,:), pointer :: obf
+    integer, dimension(:,:), pointer :: ilk
+    real,    dimension(:,:), pointer :: wui
+    integer :: i, il,iu
+    real    ::    wl,wu
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weipcig_i3d'
+!    if(run%depar) call in(unit)
+#endif
+
+    diag(:,ith) = 0.
+    offd(:,ith) = 0.
+    do i=1,n
+       if(obf(i,ith)) cycle
+       il=ilk(i,ith); iu= il +  1
+       wu=wui(i,ith); wl= 1. - wu
+       
+       !! (At A)
+       diag(i,ith) = wl*wl + wu*wu
+    end do
+    !! (At A + e^2 Rt R)
+    diag(:,ith) = diag(:,ith) + 2 * pcigeps*pcigeps
+    offd(:,ith) =             -     pcigeps*pcigeps
+#ifdef DEBUG
+!    if(run%depar) call out(unit)
+#endif
+  end subroutine weipcig_i3d
+  !----------------------------------------------------------------
+  subroutine weipcig_fft(wfld,ith)
+    complex, dimension(:,:,:,:,:), pointer :: wfld
+    integer, intent(in) :: ith
+    integer :: imx,imy!!, ihx,ihy
+    type(sep3d) :: rsep,wsep
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weipcig_fft'
+!    if(run%depar) call in(unit)
+#endif
+    !! FFT on hx and hy
+   call grab_current_wave_space_pad(wsep)
+   call grab_current_image_space(rsep)
+    do imx=1,wsep%n(1)
+       do imy=1,wsep%n(2)
+          hht(:,:,ith) = wfld(imx,imy,:,:,ith)
+#ifdef SEP_DFT
+        call forward_internal(wsep%N(3)*WSEP%n(4),size(hht,3),hht)
+#else
+#ifdef USE_FFTW
+          call sfftw_execute(planF(ith))
+#endif
+#endif
+          wfld(imx,imy,:,:,ith) = hht(:,:,ith) * scale
+       end do
+    end do
+
+    call weipcig_flp(wfld,ith)
+    call weipcig_sft(wfld,ith,sftF)
+
+#ifdef DEBUG
+!    if(run%depar) call out(unit)
+#endif
+  end subroutine weipcig_fft
+#ifdef SEP_DFT
+  subroutine forward_internal(n,nw,wfld,iw)
+    integer :: n,nw
+    complex :: wfld(n,nw)
+    integer :: iw,ierr
+       ierr=dfticomputeforward(dfti(iws)%dft_d,data(:,iws))
+  end subroutine
+  subroutine backward_internal(n,nw,wfld,iw)
+    integer :: n,nw
+    complex :: wfld(n,nw)
+    integer :: iw,ierr
+       ierr=dfticomputebackward(dfti(iws)%dft_d,data(:,iws))
+  end subroutine
+#endif
+   
+
+  !----------------------------------------------------------------
+  subroutine weipcig_ift(wfld,ith)
+    complex, dimension(:,:,:,:,:), pointer :: wfld
+    integer, intent(in) ::ith
+    integer :: imx,imy!!, ihx,ihy
+    type(sep3d) :: rsep,wsep
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weipcig_ift'
+!    if(run%depar) call in(unit)
+#endif
+
+   call grab_current_wave_space_pad(wsep)
+   call grab_current_image_space(rsep)
+    call weipcig_sft(wfld,ith,sftI)
+    call weipcig_flp(wfld,ith)
+
+    !! IFT on hx and hy
+    do imx=1,wsep%n(1)
+       do imy=1,wsep%n(2)
+          hht(:,:,ith) = wfld(imx,imy,:,:,ith)
+#ifdef SEP_DFT
+        call backward_internal(wsep%N(3)*WSEP%n(4),size(hht,3),hht)
+#else
+#ifdef USE_FFTW
+          call sfftw_execute(planI(ith))
+#endif
+#endif
+          wfld(imx,imy,:,:,ith) = hht(:,:,ith) * scale
+       end do
+    end do
+#ifdef DEBUG
+!    if(run%depar) call out(unit)
+#endif
+  end subroutine weipcig_ift
+  !----------------------------------------------------------------
+  !! origin shift
+  subroutine weipcig_sft(wfld,ith,sft)
+    complex, dimension(:,:,:,:,:), pointer :: wfld
+    complex, dimension(:,:),       pointer :: sft
+    integer,                    intent(in) ::ith
+    integer :: imx,imy
+    type(sep3d) :: rsep,wsep
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weipcig_sft'
+!    if(run%depar) call in(unit)
+#endif
+   call grab_current_wave_space_pad(wsep)
+   call grab_current_image_space(rsep)
+    do imx=1,wsep%n(1)
+       do imy=1,wsep%n(2)
+          wfld(imx,imy,:,:,ith) = &
+          wfld(imx,imy,:,:,ith) * sft
+       end do
+    end do
+#ifdef DEBUG
+!    if(run%depar) call out(unit)
+#endif
+  end subroutine weipcig_sft
+  !----------------------------------------------------------------
+  subroutine weipcig_flp(wfld,ith)
+    complex, dimension(:,:,:,:,:), pointer :: wfld
+    integer, intent(in)::ith
+    integer :: imx,imy, ihx,ihy
+    type(sep3d) :: wsep
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weipcig_flp'
+!    if(run%depar) call in(unit)
+#endif
+
+    call grab_current_wave_space_pad(wsep)
+    do imx=1,wsep%n(1)
+       do imy=1,wsep%n(2)
+
+          if(wsep%n(3)+npadx>1) then
+             do ihy=1,wsep%n(4)+npady
+                hxtmp(    1:    jhx,ith) = wfld(imx,imy,jhx+1:jhx+jhx,ihy,ith)
+                hxtmp(jhx+1:jhx+jhx,ith) = wfld(imx,imy,    1:    jhx,ihy,ith)
+                wfld(imx,imy,:,ihy,ith)  = hxtmp(:,ith)
+             end do
+          end if
+
+          if(wsep%n(4)+npady>1) then
+             do ihx=1,wsep%n(3)+npadx
+                hytmp(    1:    jhy,ith) = wfld(imx,imy,ihx,jhy+1:jhy+jhy,ith)
+                hytmp(jhy+1:jhy+jhy,ith) = wfld(imx,imy,ihx,    1:    jhy,ith)
+                wfld(imx,imy,ihx,:,ith)  = hytmp(:,ith)
+             end do
+          end if
+
+       end do
+    end do
+
+#ifdef DEBUG
+!    if(run%depar) call out(unit)
+#endif
+  end subroutine weipcig_flp
+  !----------------------------------------------------------------
+end module wei_cig
+
+!! ---------------------------------------------------
+!!
+!!        A        ph  =  kh
+!!  . . . . . . .   .      .
+!!  . . . . . . .   .      .
+!!  . . . . . . .   .      .
+!!  . . . . . . .   .      .
+!!                  .
+!!                  .
+!!                  .
+!!           A             ph =    kh
+!! LSQ:  (At A + e^2 Rt R) ph = At kh
+!! 
+!!
+!! MIGRATION: forward pCIG transformation
+!!       ph = [(At A + e^2 Rt R)^-1]  At  kh
+!!          = Mt  At  kh
+!!
+!!  MODELING: adjoint pCIG transformation
+!!       kh = A   M   ph
+!!          = A   [(At A + e^2 Rt R)^-1]  ph  
+!!
+!! ---------------------------------------------------
+!!
+!! weipcig_map - defines the pull mapping (stretch) A
+!!
+!!
+!! weipcig_h2p - pCIG forward transformation
+!!               * compute       ph = At kh
+!!               * apply weight  ph = Mt ph
+!!
+!! weipcig_p2h - pCIG adjoint transformation
+!!               * apply weight  ph = M  ph
+!!               * compute       kh = A  ph 
+!!
+!! ---------------------------------------------------
+

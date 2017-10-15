@@ -1,0 +1,42 @@
+=head1 NAME
+
+
+sep3d_synch - synchronize  a dataset
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3d_synch(tag,struct)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item tag  -  sepfile
+
+      tag
+
+=item struct  -  sep3d
+
+      structure
+
+=back
+
+=head1 DESCRIPTION
+
+
+Move all of the sections to local machine
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

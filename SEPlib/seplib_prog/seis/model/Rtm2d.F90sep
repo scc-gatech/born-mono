@@ -1,0 +1,101 @@
+!!$=head1 NAME
+!!$
+!!$    Rtm2d-- Reverse time migration or two-way wave equation forward modeling
+!!$                                  
+!!$=head1 SYNOPSIS
+!!$                                  
+!!$    Rtm2d par=parfile.P wavelet=wavelet.H Slow=slowness.H Data=data.H
+!!$       Image_X=image_x.H Image_Z=image_z.H
+!!$                                                               
+!!$                                            
+!!$=head1 PARAMETERS
+!!$                                            
+!!$=over 4
+!!$                                            
+!!$=item migrationormodel - char*
+!!$
+!!$   [modeling]  :to do forward modeling
+!!$                                             
+!!$  migration:to do reverse time migration
+!!$                                             
+!!$=item extrapolate_oper- char *
+!!$                                             
+!!$     [fd]       : finite-difference method
+!!$                                              
+!!$    fft       : psedu-spectral method
+!!$                                              
+!!$    write_wave=y              : whether to write wavefield to harddisk or not$
+!!$                                               
+!!$=item    image_X  - sepfile 
+!!$                                               
+!!$    [optional] horizontal Common Image Gathers
+!!$                                               
+!!$=item image_Z  - sepfile 
+!!$                                               
+!!$    [optional]  vertical Common Image Gathers
+!!$                                               
+!!$=item      o_source  d_source n_source- real, real, integer
+!!$
+!!$  [0.,10.,1]   sampling of Sources
+!!$
+!!$=item      dt, nt_source - real, integer
+!!$
+!!$  [1500,.002]   sampling in time
+!!$
+!!$
+!!$=item      hx_min, dx_offset, n_off - real, real, integer
+!!$
+!!$  [-100.,10.,200]   sampling of offset
+!!$
+!!$=item dz_image, nz_image : Sampling parameters for depth
+!!$
+!!$=item z_source, z_receiver: depth of source and receiver
+!!$                                            
+!!$=item image_nhx, image_nhz: horizontal and vertical subsurface offset number of
+!!$                                           
+!!$=item images x_min_wave, x_max_wave: aperture of the wavefield
+!!$                                          
+!!$=item xcoe_taper, zcoe_taper: tapering boundary condition parameters
+!!$
+!!$=item nx_bd_taper, z_bd_taper: thickness of tapering boundary condtion
+!!$
+!!$=item nop  : thickness of one-way wave equation boundary condtion
+!!$
+!!$=item x_min_image, x_max_image: aperture of the image
+!!$
+!!$=item verb - logical
+!!$
+!!$ [.false.] Whether or not to print progress messages
+!!$
+!!$=item pct_master - real
+!!$
+!!$ [2.]  How often to print when master process
+!!$
+!!$=item pct_slave - real
+!!$
+!!$ [10.] How often to print when non-master process
+!!$
+!!$=back
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/model>
+!!$
+!!$=cut
+program rtm2d
+use extrapolation_mod
+use sep
+
+implicit none
+integer :: i_node,n_node,ierr
+! integer, external :: sep_thread_num
+logical stat
+
+call SEP_ADD_DOC()
+call sep_init('')
+
+stat=extrapolate()
+
+call extrapolation_clean()
+
+end program rtm2d

@@ -1,0 +1,144 @@
+=head1 NAME
+
+
+Window - Window a dataset by cutting or decimation
+
+=head1 SYNOPSIS
+
+
+Window par= < in.H > out.H
+
+=head1 INPUT  PARAMETERS
+
+
+=over 4
+
+=item  min1-  float  
+
+       [o1] minimum value of the 1-axis to be copied
+
+=item  max1-  float  
+
+       [o1+(n1-1)*d1]  maximum value of the 1-axis to be copied
+
+=item  min2-  float  
+
+       [o2] minimum value of the 2-axis to be copied
+
+=item  max2-  float  
+
+       [o2+(n2-1)*d2]  maximum value of the 1-axis to be copied
+
+=item  min3-  float  
+
+       [o3] minimum value of the 3-axis to be copied
+
+=item  max3-  float  
+
+       [o3+(n3-1)*d3]  maximum value of the 1-axis to be copied
+
+=item  min4-  float  
+
+       [o4] minimum value of the 4-axis to be copied
+
+=item  max4-  float  
+
+       [o4+(n4-1)*d4]  maximum value of the 1-axis to be copied
+
+=item  n1-  int    
+
+       [1+((len-1-f1)/j1)]   number of elements to copy from 
+       each vector
+
+=item  n2-  int    
+
+       [1+((vecs-1-f2)/j2)]  the number of vectors to be copied
+
+=item  n3-  int    
+
+       [1+((planes-1-f3)/j3)] the number of planes to be copied
+
+=item  n4-  int    
+
+       [1+((cubes-1-f4)/j4)]  the number of cubes to be copied
+
+=item  j1-  int    
+
+       [1]  increment (in samples) between input elements
+
+=item  j2-  int    
+
+       [1]    increment between input vectors
+
+=item  j3-  int    
+
+       [1]    increment between input planes
+
+=item  j4-  int    
+
+       [1]    increment between input cubes
+
+=item  d1-  float  
+
+       [input d1] increment (physical) between input elements
+
+=item  d2-  float  
+
+       [input d2] increment (physical) between input vectors
+
+=item  d3-  float  
+
+       [input d3] increment (physical) between input planes
+
+=item  d4-  float  
+
+       [input d4] increment (physical) between input cubes
+
+=item  f1-  int    
+
+       [0] the first element of each vector to be copied
+
+=item  f2-  int    
+
+       [0] the first vector of each plane to be copied
+
+=item  f3-  int    
+
+       [0] the first plane of each cube to be copied
+
+=item  f4-  int    
+
+       [0] the first cube to be copied
+
+=item squeeze- char   
+
+      [y]  By default Window moves dimensions with size 1
+      to the end. If this special-case behavior is
+      not desired, set squeeze=n.
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Window portion of dataset data can be 1-D, 2-D, 3-D, or 4-D.  Can cut out
+ a block of samples and/or decimate (subsample) along any axis.
+
+=head1 COMMENTS
+
+
+ KEYWORDS subsample  window  data-shuffle
+	Anachronisms no longer recognized it0,dt,dx,nc,dv,it0,ix0......
+
+=head1 SEE ALSO
+
+
+L<Window3d>
+
+=head1 CATEGORY
+
+
+B<util/cube>
+
+=cut
+

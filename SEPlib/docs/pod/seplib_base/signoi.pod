@@ -1,0 +1,62 @@
+=head1 NAME
+
+
+signoi - signal and noise separation
+
+=head1 SYNOPSIS
+
+
+C<call signoi_init(nn,ss,niter,nd,eps)>
+
+C<ierr=signoi_lop(adj,add,data,sign)>
+
+C<call signoi_close()>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item  nn   type(filter)
+
+       Noise filter
+
+=item  ss   type(filter)
+
+       Signal filter
+
+=item niter integer
+
+      Number of itterations
+
+=item nd    integer
+
+      Number of data points
+
+=item eps   real
+
+      Epsilon
+
+=item adj,add,data,sign
+
+      Standard operator parameters
+
+=back
+
+=head1 DESCRIPTION
+
+
+Signal an noise separation Claerbout style
+
+=head1 SEE ALSO
+
+
+L<pef>,L<helicon>,L<solver_prec>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

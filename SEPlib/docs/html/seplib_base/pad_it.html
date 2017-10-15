@@ -1,0 +1,101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>pad_it - Pad an array</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameter">INPUT PARAMETER</a></li>
+	<li><a href="#output_parameter">OUTPUT PARAMETER</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>pad_it - Pad an array</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>pad_it(input,output,ndim,n,beg,end.extend)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameter">INPUT PARAMETER</a></h1>
+<dl>
+<dt><strong><a name="item_input__2d_void_2a">input - void*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Input dataset</pre>
+</dd>
+<dt><strong><a name="item_ndim__2d_int">ndim - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Number of dimensions</pre>
+</dd>
+<dt><strong><a name="item_n__2d_int_5bndim_5d">n - int[ndim]</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Axes lengths</pre>
+</dd>
+<dt><strong><a name="item_beg__2d_int_5bndim_5d">beg - int[ndim]</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Amount to pad at the begining of each axis</pre>
+</dd>
+<dt><strong><a name="item_end__2d_int_5bndim_5d">end - int[ndim]</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Amount to pad at the end of each axis</pre>
+</dd>
+<dt><strong><a name="item_extend_2d_int">extend- int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Whether or not to fill with nearest point[1] or zeros [0]</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameter">OUTPUT PARAMETER</a></h1>
+<dl>
+<dt><strong><a name="item_output__2d_void_2a">output - void*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Output array</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Pads an array. Should work with any dimension.</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepaux</strong></p>
+
+</body>
+
+</html>

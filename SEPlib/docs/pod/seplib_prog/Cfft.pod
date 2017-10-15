@@ -1,0 +1,54 @@
+=head1 NAME
+
+
+Cfft - complex fft
+
+=head1 DESCRIPTION
+
+
+Complex fast fourier transform
+
+=head1 SYNOPSIS
+
+
+Cfft < in.h > out.h
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item sign      - integer
+
+      [1]: forward transform
+      -1 : reverse transform (FDGP sign convention)
+
+=item  n1,n2,n3  - integer
+
+       input cube dimensions (complex data).
+       (n1 = 2*(ntime1/2+1) if in frequency domain)
+
+=item  esize     - integer   [8]
+
+=head1 EXAMPLES
+
+		Cfft < in.h sign=1 esize=8 > fft.h
+ 		Compute complex forward fft of input dataset in.H
+
+		Cfft < fft.h sign=-1 esize=8 > out.h
+ 		Compute complex inverse fft of input dataset fft.H
+
+=back
+
+=head1 SEE ALSO
+
+
+L<Ft3d>
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

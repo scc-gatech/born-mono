@@ -1,0 +1,12 @@
+#!/bin/csh
+
+#DO I HAVE A FORTRAN COMPILER
+setenv FC no #don't have Fortran77 compiler
+
+#DO I HAVE CC COMPILER ->no
+setenv CC "gcc"
+setenv LIBS "-L/usr/local/lib/gcc-lib/sparc-sun-solaris2.8/2.95.3 -lgcc"
+#DO I HAVE CC COMPILER ->yes
+setenv CC "cc"
+./configure --with-local -prefix=/homes/3DGeo/clapp/SEP2
+gmake all

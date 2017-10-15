@@ -1,0 +1,49 @@
+=head1 NAME
+
+
+heliarr - two helix convolutions
+
+=head1 SYNOPSIS
+
+
+Initialize: C<call heliarr_init(nx,aa1,aa2)>
+
+Operator  : C<ierr= heliarr_lop(adj,add, xx,yy)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item  aa1,aa2  - type(filter)
+
+       Helix filters
+
+=item  nx1      - integer
+
+       Size of model space where aa1 will be applied
+
+=item  adj,add,xx,yy
+
+       standard operator conventions;
+
+=back
+
+=head1 DESCRIPTION
+
+
+An array of helix convolutions.  aa1 Will be applied to  points
+(1:nx1) operator two to the remaining data.
+
+=head1 SEE ALSO
+
+
+L<helicon>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

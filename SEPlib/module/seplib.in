@@ -1,0 +1,30 @@
+#%Module1.0#####################################################################
+##
+## SEPlib
+##
+##  V7
+##
+proc ModulesHelp { } {
+        global version
+
+        puts stderr "\tThis module add SEPlib to your environment"
+}
+
+module-whatis "(Category_______) Seismic software"
+module-whatis "(Name___________) SEPlib"
+module-whatis "(Version________) 8.1"
+module-whatis "(Website________) http://sep.stanford.edu/software/"
+module-whatis "(Authorship_____) SEP"
+
+
+# for Tcl script use only
+set     version      "3.2.10"
+
+set sep @CMAKE_INSTALL_PREFIX@
+setenv SEP $sep
+setenv SEPINC $sep/include
+append-path PATH $sep/bin
+append-path MANPATH $sep/man
+append-path PYTHONPATH $sep/lib/python
+setenv VPLOTSPOOLDIR /tmp
+prepend-path LD_LIBRARY_PATH $sep/lib

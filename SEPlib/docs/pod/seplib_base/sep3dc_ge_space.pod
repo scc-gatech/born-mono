@@ -1,0 +1,46 @@
+=head1 NAME
+
+
+sep3dc_ge_space - whether space1 contains space 2
+
+
+
+=head1 SYNOPSIS
+
+
+C<ndims= sep3dc_ge_space(sep3dc *space1, sep3dc *space2)>
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  space1  -  sep3d
+
+     structure 
+
+=item  space2  -  sep3d
+
+     structure 
+
+=back
+
+=head1 DESCRIPTION
+
+
+
+Whether space1 contains space2
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

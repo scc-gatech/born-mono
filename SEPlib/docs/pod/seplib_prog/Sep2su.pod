@@ -1,0 +1,40 @@
+=head1 NAME
+
+
+Sep2su - convert from sep3d to su
+
+
+=head1 SYNOPSIS
+
+
+Sep3d2su < in.H >out.su pars
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item verb - int  [1000000] 
+
+      How often to print number of traces converted
+
+
+=back
+
+=head1 DESCRIPTION
+
+
+Converts a SEP3d dataset to SU
+
+=head1 SEE ALSO
+
+
+L<Su2sep>
+
+=head1 CATEGORY
+
+
+B<converters>
+
+=cut
+

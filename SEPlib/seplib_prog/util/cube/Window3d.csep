@@ -1,0 +1,708 @@
+/*$
+
+=head1 NAME
+
+Window3d,Window3dM - Window a SEPlib dataset (3-D or 2-D) by cutting and/or decimating samples.
+
+=head1 SYNOPSIS
+
+Window3d <in.H [params] >out.H
+
+Window3dM intag=in.H [params] outtag=out.H
+
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+
+=item	f_ - int     
+
+
+      first element to keep along axis specified by a number replacing the '_'.  
+
+
+=item  j_ - int     
+
+       sampling of the elements to keep along the specified axis.
+
+
+=item  n_ - int     
+
+       number of elements to keep along the specified axis.
+
+
+=item  min_ - float   
+
+       Minimum sample value to grab from specified axis.
+
+
+=item  max_ - float   
+
+       Maximum sample value to grab from specified axis.
+
+
+=item  synch - int     
+
+       [0]whether or not to sink 
+
+
+=item  squeeze - int     
+
+       [1] Wheter to squeeze axes 
+
+
+=item  max_memory - int     
+
+       [50] Maximum memory in megabytes to use
+
+
+=item  verb - int     
+
+       [0]  Wheter or not to be verbose
+
+
+=back
+
+=head1 DESCRIPTION 
+
+Windows dataset by cutting and/or subsampling along specified axes.
+
+=head1 EXAMPLE
+
+Window3d <in.H min1=0.3 max1=0.5 j2=3 f2=2 >out.H
+
+   Creates out.H, which is in.H windowed from 0.3 to 0.5 along the 1 axis, and
+   includes only every 3rd sample along the 2 axis, starting with the 2nd.  
+   Assuming that the first axis is time (in seconds), and the second axis is offset,
+   out.H will contain times from 0.3 to 0.5 seconds, and every third trace begining 
+   with trace number 2. 
+
+=head1 SEE ALSO
+
+L<Window>
+
+=head1 CATEGORY
+
+B<util/cube>
+
+=cut
+
+
+>*/
+/*
+Author:Robert G. Clapp
+
+7/23/99 Begun
+21Oct2002 - Morgan - Fixed round-off behavior for min[x] arguments.
+29Oct2002 - Morgan - Fixed bug where "deleting" intermediate axis would cause
+                     loss of o & d.
+
+*/
+
+#include <sys/types.h>
+#include <string.h>
+#include <seplib.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <sep3dc.h>
+#include <math.h>
+
+extern int sep_thread_num(void);
+
+#define STRING_SIZE 128
+#define NOT_SET -1
+char intag[256],outtag[256];
+
+_XFUNCPROTOBEGIN
+void check_array(float *array, int n1, int n2);
+int grab_pars(sep3d *input,int *fwind,int *jwind, int *nwind,int *verb,int *synch, int *max_memory, int *squeeze);
+int put_pars(sep3d *input,  sep3d *output,int *fwind,int *jwind, int *nwind,int *nin,int verb,int max_memory,int *nout, int *fout, int *jout,int squeeze,int *out_type,int *synch, int *ngout);
+int figure_loops(sep3d *input,
+ int max_memory,int synch,int out_type,int  *nwind, 
+ int *fwind, int*jwind, int *nsend, int *fsend, int *jsend, int *nout,
+ int *fout, int *jout, int *in_memory, int *out_memory, int *max_traces, 
+ int *ntr, int *nhelix_in, int *nhelix_out, int *nb, int *esize,int *ngout);
+_XFUNCPROTOEND
+
+
+ADD_DEF_SEP_DOC
+
+char intag[256],outtag[256];
+                                                                                                
+                                                                                                
+                                                                                                
+                                                                                                
+#include<seplib.h>
+int main(int argc, char **argv)
+{
+int nprint;
+int *fwind,*jwind,*nwind,*nout,*nhelix_in,nb,*nhelix_out,*ngout;
+int squeeze,synch,max_memory,verb,out_mem;
+int in_mem,unit,nkeys,ntr,esize;
+int *fout,*jout, *iloc,out_type,i,in_memory,out_memory;
+int *fsend,*jsend,*nsend,nh,*drn,n,b,*pt,*nin,*grid;
+int ntraces,tot_traces,tempi;
+long long n123o;
+int write_data,write_grid,ih,ia,max_traces,wg,wh,write_head;
+char *buffer;
+sep3d input,output;
+int ith,nth,master_data;
+long long ndo, ndone, nblock,nout1,big_max;
+int input_axis;
+
+
+   initpar(argc,argv);
+  master_data=1;
+  if(0==getch("verb","d",&verb)) verb=0;
+  strcpy(intag,"in");
+  strcpy(outtag,"out");
+  ADD_DEF_SEP_DOC
+  init_3d();
+  MY_SEP_DOC
+  doc(SOURCE);
+  sep_begin_prog();
+
+
+
+if(0!=init_sep3d_tag(intag,&input,"INPUT"))
+		seperr("trouble initializing tag in \n");
+
+nin=(int*) alloc(sizeof(int)*input.ndims); /*INPUT DATA DIMENSIONS */
+
+/*INPUT WINDOW PARAMS*/
+fwind=(int*) alloc(sizeof(int)*input.ndims); 
+jwind=(int*) alloc(sizeof(int)*input.ndims); 
+nwind=(int*) alloc(sizeof(int)*input.ndims);
+
+
+/*WHAT WINDOW PARAMS WE WILL LOOP SEND*/
+nsend=(int*) alloc(sizeof(int)*input.ndims); 
+fsend=(int*) alloc(sizeof(int)*input.ndims); 
+jsend=(int*) alloc(sizeof(int)*input.ndims);
+
+/*WINDOW LOOP OUT PARS */
+nout=(int*) alloc(sizeof(int)*input.ndims); 
+fout=(int*) alloc(sizeof(int)*input.ndims); 
+jout=(int*) alloc(sizeof(int)*input.ndims);
+
+ngout=(int*) alloc(sizeof(int)*input.ndims); /*WINDOW LOOP OUT PARS */
+
+
+/*switch to and from helix axes */
+nhelix_in=(int*) alloc(sizeof(int)*input.ndims);
+nhelix_out=(int*) alloc(sizeof(int)*input.ndims);
+iloc=(int*) alloc(sizeof(int)*input.ndims);
+
+if(SUCCESS!=grab_pars(&input,fwind,jwind,nwind,&verb,&synch,
+  &max_memory,&squeeze))
+	seperr("trouble grabbing pars \n");
+
+if(SUCCESS!= put_pars(&input,&output,fwind,jwind,nwind,nin,verb,max_memory,
+  nout,fout,jout,squeeze,&out_type,&synch,ngout)) 
+   seperr("trouble writing pars \n");
+
+
+
+if(SUCCESS!=figure_loops(&input,max_memory,synch,out_type, nwind, 
+ fwind, jwind, nsend,fsend,jsend,nout, fout, jout, &in_memory,&out_memory,
+ &max_traces, &ntr, nhelix_in, nhelix_out, &nb, &esize,ngout))
+		seperr("trouble figuring loops \n");
+
+if(out_memory==0) {
+  /*special case-regular dataset, output axis larger then 1*/
+  big_max=ntr/esize;
+  nout1=ngout[0];
+  for(i=0; i< input.ndims; i++){
+    if(input.n[i]!=1 && nwind[i]!=1){
+      /*looking for the large axis of the input that we can't hold */
+      input_axis=i;
+      break;
+    } 
+  } 
+  /*we may not have all the pointers in fsend right in all cases*/
+}
+
+
+
+/*allocate data record number */
+if(out_type!=0) drn=(int*) alloc(sizeof(int)*max_traces);
+
+if(out_type==2) write_grid=1; else write_grid=0;
+if(out_type!=0) write_head=1; else write_head=0;
+
+
+
+/*allocate data buffer */
+if(synch==1) buffer=(char*) alloc(sizeof(char)*ntr);
+else buffer=SEPNULL2;
+
+if(out_type==1) write_grid=0; else write_grid=1; /*are we writing the grid*/
+if(synch==1){ 
+	sep3dc_rite_file_stat(&output,1,1);
+	write_data=1; 
+
+}
+else write_data=0;  /*are we writing the data */
+
+
+/*LOOP OVER DATASET */
+tot_traces=0; /*total number of trace written */
+nprint=MAX(nb/100,1);
+if(sep_thread_num()!=0) nprint=nprint*10;
+
+for(i=1,n123o=1; i<input.ndims; i++){
+   n123o=n123o*ngout[i];
+}
+n123o=n123o/(long long)nb;
+grid=(int*)malloc(sizeof(int)*(int)n123o);
+
+
+for(i=0; i < nb; i++){
+	if(verb && i%nprint==0) 
+		fprintf(stderr,"working on section %d of %d, %d traces processed thread=%d\n",i,nb,
+     tot_traces,sep_thread_num());	
+
+  
+
+	h2c(i,nhelix_in,input.ndims,iloc); 	/*convert input parameters */
+	for(ih=in_memory; ih<input.ndims;ih++) fsend[ih]=fwind[ih]+jwind[ih]*iloc[ih];
+
+	h2c(i,nhelix_out,input.ndims,iloc); 	/*convert output parameters */
+	for(ih=out_memory; ih<input.ndims;ih++){
+		 fout[ih]=iloc[ih];
+	}
+
+
+ if(out_memory!=0){
+
+  if(0!=sep3dc_grab_headers(intag,&input,&nh,&nsend[1],&fsend[1], &jsend[1]))
+     seperr("trouble grabbing headers \n");
+
+  tot_traces+=nh;
+  
+    memcpy((void*)output.nwind,(const void*)nout,sizeof(int)*output.ndims);
+    memcpy((void*)output.fwind,(const void*)fout,sizeof(int)*output.ndims);
+    memcpy((void*)output.jwind,(const void*)jout,sizeof(int)*output.ndims);
+    sep3d_set_sep3d(&output);
+
+    if(out_type!=0){
+      if(0!=sep3dc_header_copy(&input,&output))
+        seperr("trouble copying headers \n");
+    }
+
+
+    if(nh>0){
+      if(synch==1){
+        if(0!=sep3dc_read_data(intag,&input,(char*)buffer,nsend[0],
+          fsend[0],jsend[0]))
+          seperr("trouble reading data \n");
+    }
+        if(synch==1){
+	        if(SUCCESS!=sep3dc_inorder(&output))
+	  	    	seperr("trouble setting headers in order \n");
+        }
+      }
+      if(0==strcmp(input.file_format,"GRID")){
+        if(0!=sep3dc_grab_grid_values(&input,grid))
+           seperr("trouble grabbing grid values thread=%d \n",sep_thread_num());
+        if(0!=sep3dc_set_grid_values(&output,grid))
+           seperr("trouble setting grid values \n");
+      }
+
+      if(0!=sep3dc_write_data(outtag,&output,(char*)buffer,nout,fout,jout,nh,
+          write_head,write_grid))
+          seperr("trouble writing data \n");
+   
+   }
+   else{
+    /* this is a special case when we have regular dataset and
+       we are creating an output axis larger than the assigned memory*/
+    ndo=nout1;
+    ndone=0;
+    while( ndone < ndo){
+      nblock=MIN(ndo-ndone,big_max);
+      fsend[input_axis]=fwind[input_axis]+ndone*jwind[input_axis];
+      nsend[input_axis]=nblock;
+      nout[0]=nblock;
+      fout[0]=ndone;
+      jout[0]=jwind[input_axis];
+      if(0!=sreed_window(intag,&input.ndims,input.n,nsend,fsend,jsend,esize,
+         buffer)) seperr("trouble reading data ");
+      if(0!=srite_window(outtag,&output.ndims,output.n,nout,fout,jout,esize,
+         buffer)) seperr("trouble writing data ");
+      ndone=ndone+nblock;
+    }
+   }
+
+}
+if(0!= sep3dc_update_ntraces(&output))
+  seperr("trouble updating ntraces \n");
+if(out_type!=0){
+  if(0!= sep3d_rite_num_traces(outtag,&output))
+    seperr("trouble updating ntraces \n");
+}
+
+                                                                                                
+
+sep_end_prog();
+return(SUCCESS);
+}
+
+
+/*
+Usage:
+
+*/
+
+
+_XFUNCPROTOBEGIN
+int grab_pars(sep3d *input,int *fwind,int *jwind, int *nwind,int *verb,int *synch, int *max_memory,int *squeeze)
+_XFUNCPROTOEND
+{
+int i,v,n,bi,ei;
+float min,max,o,d;
+char label[STRING_SIZE] ,unit[STRING_SIZE],temp_ch[STRING_SIZE];
+
+
+
+/* first grab non window params */
+if(0==getch("synch","d",synch)) *synch=0;
+if(0==getch("verb","d",verb)) *verb=0;
+/*if(sep_thread_num()!=0) *verb=0;*/
+if(0==getch("squeeze","d",squeeze)) *squeeze=1;
+if(0==getch("max_memory","d",max_memory)) *max_memory=50;
+
+v=*verb;
+
+for(i=0; i < input->ndims; i++){
+
+
+	/*grab min max f j n*/
+	fwind[i]=NOT_SET; jwind[i]=NOT_SET; nwind[i]=NOT_SET;bi=NOT_SET; ei=NOT_SET;
+  n=input->n[i]; o=input->o[i]; d=input->d[i];
+
+	sprintf(temp_ch,"f%d",i+1);getch(temp_ch,"d",&fwind[i]);
+	sprintf(temp_ch,"j%d",i+1);getch(temp_ch,"d",&jwind[i]);
+	sprintf(temp_ch,"n%d",i+1);getch(temp_ch,"d",&nwind[i]);
+	sprintf(temp_ch,"min%d",i+1); if(1==getch(temp_ch,"f",&min)) bi=(min-o)/d+0.5;
+	sprintf(temp_ch,"max%d",i+1); if(1==getch(temp_ch,"f",&max)) ei=(max-o)/d+0.5;
+
+
+	if(n<=fwind[i])
+		seperr("invalid f parameter axis=%d ndata=%d f=%d \n",i+1,n,fwind[i]);
+	if(n<nwind[i])
+		seperr("invalid n parameter axis=%d ndata=%d n=%d \n",i+1,n,nwind[i]);
+	if(jwind[i] <= 0 && jwind[i]!=NOT_SET)
+		seperr("invalid j parameter axis=%d j=%d \n",i+1,jwind[i]);
+	if(jwind[i]==NOT_SET) jwind[i]=1;
+	if(nwind[i]==NOT_SET){
+		if(fwind[i]==NOT_SET){
+			if(bi==NOT_SET) fwind[i]=0;
+			else if(bi < 0 || bi>= n) 
+				seperr("invalid min parameter axis=%d min=%f min_data=%f \n",
+					i+1,min,o);
+			else fwind[i]=bi;
+		}
+		if(ei!=NOT_SET){
+			if(ei <= fwind[i]  || ei >=n)
+			 seperr("invalid max parameters axis=%d max=%f min_wind=%f max_data=%f\n",
+				i+1,max,fwind[i]*d+o,(n-1)*d+o);	
+			else nwind[i]=(ei-fwind[i]-1)/jwind[i]+1;
+		}
+		else nwind[i]=(n-fwind[i]-1)/jwind[i]+1;
+	}
+	else if(fwind[i]==NOT_SET){
+		if(bi==NOT_SET) fwind[i]=0;
+		else if(bi < 0 || bi>= n) 
+			seperr("invalid min parameter axis=%d min=%f min_data=%f \n",
+				i+1,min,o);
+		else fwind[i]=bi;
+	}
+	if(i==0 && nwind[0]!=n) *synch=1;
+	if(n<(1+fwind[i]+jwind[i]*(nwind[i]-1))) 
+		seperr("invalid window parameters axis=%d fwind=%d jwind=%d nwind=%d ndata=%d \n",i+1,fwind[i],jwind[i],nwind[i],n);
+
+   sprintf(temp_ch,"#Window #f%d=%d  #j%d=%d #n%d=%d",
+      i+1,fwind[i],i+1,jwind[i],i+1,nwind[i]);
+   if(sep_thread_num()==0) auxputhead(outtag,"%s",temp_ch);
+}
+
+
+
+
+return(SUCCESS);
+
+
+
+
+}
+
+/* ----------------------------------------------------------------------*/
+_XFUNCPROTOBEGIN
+int put_pars( sep3d *input, sep3d  *output, int *fwind, int *jwind, int *nwind,
+  int *nin, int verb, int max_memory, int *nout, int *jout, int *fout,
+              int squeeze, int *out_type, int *synch, int *ngout)
+_XFUNCPROTOEND
+{
+int i,v,n,bi,ei,ndout,iout,ntr,out;
+int j,k,ntriv,*swapped;
+float min,max,o,d;
+char label[STRING_SIZE] ,unit[STRING_SIZE],temp_ch[STRING_SIZE];
+float *otmp, *dtmp, *o0, *d0, buf;
+
+otmp=(float*) malloc(sizeof(float)*input->ndims);
+dtmp=(float*) malloc(sizeof(float)*input->ndims);
+o0=(float*) malloc(sizeof(float)*input->ndims);
+d0=(float*) malloc(sizeof(float)*input->ndims);
+swapped=(int*) malloc(sizeof(int)*input->ndims);
+
+if(0!=init_sep3d_struct(*input,output,"OUTPUT"))
+	 seperr("trouble creating output structure \n");
+
+
+if(      0==strcmp(input->file_format,"REGULAR") ) { out=0; }
+else if( 0==strcmp(input->file_format,"HEADER") )  { out=1; }
+else                                    { out=2; }
+
+if( jwind[0] !=1 || out==0) *synch=1;
+if( *synch==0 ) {
+/*
+	if( SUCCESS != sep3d_set_nh(outtag,2) )  seperr("set nh\n");
+*/
+}
+
+ndout=0;
+for( i=0; i<input->ndims; i++ ) {
+	if(squeeze!=1 || nwind[i]!=1) ndout++;
+	nout[i]=1;
+	fout[i]=0;
+	jout[i]=1;
+	nout[i]=1;
+	ngout[i]=1;
+
+  n=input->n[i]; o=input->o[i]; d=input->d[i];
+
+  otmp[i]=o+fwind[i]*d;  o0[i]=otmp[i];  /* Store original o values*/
+  dtmp[i]=d;             d0[i]=dtmp[i];  /* Store original d values*/
+  swapped[i]=0;             /* Keep track of which axes are swapped */
+}
+
+iout=0;  ntr=1;
+
+
+for( i=0; i<input->ndims; i++) {
+
+  n=input->n[i]; o=input->o[i]; d=input->d[i];
+	nin[i] = n;
+
+  o=o+fwind[i]*d;
+  d=d*jwind[i];
+  strcpy(label,input->label[i]);
+  strcpy(unit,input->unit[i]);
+
+	if( squeeze!=1 || nwind[i]!=1 || (i==0 && out!=0) ) {
+		fout[iout]=NOT_SET;
+		jout[iout]=NOT_SET;
+		nout[iout]=NOT_SET;
+	  ngout[iout]=nwind[i]; 
+		iout++;
+
+ 		if(verb && sep_thread_num()==0) 
+      fprintf(stderr,"Setting axis=%d to n=%d o=%f d=%f label=%s unit=%s\n",
+        i+1,nwind[i],o,d,label,unit);
+
+    output->n[iout-1]=nwind[i];
+    output->o[iout-1]=o;
+    output->d[iout-1]=d;
+    strcpy(output->unit[iout-1],unit);
+    strcpy(output->label[iout-1],label);
+
+		if(i!=0) ntr=ntr*nwind[i];
+	} else {
+
+/*    -----------------------------------------------------------------*/
+/*     Say that the nwinds are: 200 1 1 40 1 3, and squeeze=1.*/
+/*     Then the output cube n should be 200 40 3.*/
+/*     Old axis 2 goes to new axis 4, 3 to 5, and 5 to 6.*/
+/*     If m non-trivial axes are to the right of the current axis, */
+/*      we slide current axis m spots to the right.*/
+/*    -----------------------------------------------------------------*/
+    if( nwind[i]==1 && squeeze==1 ) {
+      ntriv=0;                         /* # non-trivial axes to right.*/
+      for( j=i+1; j<input->ndims; j++ ) {
+        if( nwind[j]!=1) ntriv++;
+      }
+      otmp[i+ntriv] = o0[i];           /* Preserve o&d values of n=1 axes*/
+      dtmp[i+ntriv] = d0[i];
+      swapped[i+ntriv]=1;              /* This axis has been swapped into*/
+    }
+
+  }
+} 
+
+/*---------------------------------------------------------------------*/
+/* We've stored all the o & d values of axes that "disappear" with*/
+/* squeeze=1, swapping them as needed.  Now put them to the header.*/
+/*---------------------------------------------------------------------*/
+for( i=0; i<input->ndims; i++) {
+  if( squeeze==1 && swapped[i]==1 ) {
+    output->n[i]=1;
+    output->o[i]=otmp[i];
+    output->d[i]=dtmp[i];
+    if(verb && sep_thread_num()) 
+      fprintf(stderr,"Setting disappearing axis %d with n,o,d=%d,%f,%f\n",i+1,1,otmp[i],dtmp[i]);
+  }
+}
+
+if(out!=0){
+  output->ntraces=ntr;
+}
+sep3d_set_sep3d(output);
+if((*synch==1 || output->n[0] != input->n[0]) && 0!=strcmp("REGULAR",output->file_format) ){
+  if(0!=sep3dc_inorder(output))
+    seperr("trouble setting in order\n");
+}
+if(SUCCESS!=sep3dc_write_description(outtag,output))
+	seperr("trouble writing out dataset  parameters \n");
+
+if(*synch==0 && out!=0){
+	if(0!=sep_copy_data_pointer(intag,outtag))
+		seperr("trouble copying data pointer \n");
+}
+if(out==0) sep_3d_close();
+
+*out_type=out;
+
+free(otmp);free(dtmp); free(o0); free(d0);free(swapped);
+
+return(SUCCESS);
+
+}
+
+
+
+_XFUNCPROTOBEGIN
+int figure_loops(sep3d *input,int max_memory,int synch,int out_type,int *nwind, 
+ int *fwind, int*jwind, int *nsend, int *fsend, int *jsend, int *nout,
+ int *fout, int *jout, int *in_memory, int *out_memory, int *max_traces, 
+ int *ntr, int *nhelix_in, int *nhelix_out, int *nb, int *es,int *ngout)
+_XFUNCPROTOEND
+/*
+nsend - parameres sending to window read
+nout  - parameters sending to write
+*/
+
+{
+  int esize;
+  int nkeys,diff,window_1;
+  long long unit_in,unit_out;
+  int i,tempi,ndim;
+  long long big_thing;
+
+  ndim=input->ndims;
+  if(input->n[0] !=1 && nwind[0]==1) window_1=1;
+  else window_1=0; 
+
+
+  max_memory=max_memory*1000000;
+  
+  /*figure out how much memory one trace represents */
+  if(synch==1){
+    if(0==hetch("esize","d",&esize)) esize=4;
+    unit_in=esize*nwind[0];
+    unit_out=esize*(long long) ngout[0];
+    *ntr=max_memory;
+  }
+  else {
+    unit_in=0;
+    unit_out=0;
+  }
+  if(out_type!=0){
+    nkeys=input->nkeys;
+    unit_out+=8*nkeys;
+    unit_in+=8*nkeys;
+    if(out_type==2) unit_in+=4;
+    if(out_type==2) unit_out+=4;
+  }
+
+  
+  if(unit_out>max_memory){
+  if( out_type!=0) {
+    seperr("max memory is less than memory taken by one trace\n");
+  }
+  else{ 
+    *in_memory=0;
+    *out_memory=0;
+    *ntr=max_memory/esize;;
+    *ntr=esize*(*ntr);
+  }
+  }
+  else {
+
+    /*calculate the hypercube we can hold in memory*/
+    *in_memory=1; tempi=unit_in;
+    big_thing=max_memory;
+    for(i=1; i<ndim; i++){
+      if((long long)unit_in*(long long)nwind[i]<= big_thing){
+        *in_memory+=1; unit_in=unit_in*nwind[i];
+      }
+      else break;
+    }
+
+    /*calculate the hypercube we can hold in memory*/
+    *out_memory=1; 
+    for(i=1; i<ndim; i++){
+      if((long long)unit_out*(long long)ngout[i]<= big_thing){
+        *out_memory+=1; unit_out=unit_out*ngout[i];
+        *ntr=unit_out;
+      }
+      else break;
+    }
+  }
+
+
+
+  /*CREATE HELIX ARRAY INPUT */
+  *max_traces=1;
+//  if(window_1==1) *in_memory=*in_memory+1;
+  for(i=0; i<*in_memory; i++){ 
+    fsend[i]=fwind[i]; jsend[i]=jwind[i]; nsend[i]=nwind[i];
+    nhelix_in[i]=1;
+    if(i!=0) *max_traces=(*max_traces)*nwind[i];
+  } 
+  for(i=*in_memory;i< ndim;i++){
+    jsend[i]=1; nsend[i]=1; nhelix_in[i]=nwind[i];
+  }
+
+  /*CREATE HELIX ARRAY OUTPUT */
+  for(i=0; i<*out_memory; i++){ 
+    fout[i]=0; jout[i]=1; nout[i]=ngout[i];
+    nhelix_out[i]=1;
+  } 
+  *nb=1;
+  diff=*in_memory-*out_memory; /*compressed axes */
+  for(i=*out_memory;i< ndim;i++){
+    jout[i]=1; nout[i]=1; nhelix_out[i]=ngout[i];*nb=(*nb)*nhelix_out[i];
+  }
+
+  *es=esize;
+  return(SUCCESS);
+}
+void check_array(float *array, int n1, int n2)
+{
+int i,i1,i2;
+float mysum;
+
+for(i=0,i2=0, mysum=0; i2 < n2; i2++){
+for(i1=0; i1 < n1; i++,i1++){
+  mysum=mysum+fabs(array[i]);
+}
+/*fprintf(stderr,"CHECK VAL %d %f \n",i2,array[i2*n1+650]);*/
+}
+
+
+}
+
+
+/*  $Id: Window3d.csep,v 1.4 2004/07/08 18:15:33 bob Exp $ */

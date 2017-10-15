@@ -1,0 +1,152 @@
+!!$=head1 NAME
+!!$
+!!$Pef - Estimate PEF in N dimensions
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Pef < data.H a= [niter=] [center=] [gap=] [nullval=] [maskin=] [maskout=] > pef.H
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Estimates PEF by least squares, using helix convolution. 
+!!$Can ignore missing data 
+!!$
+!!$=head1 PARAMETERS
+!!$
+!!$=over 3
+!!$
+!!$=item from history
+!!$
+!!$B<integer array> I<n> - reads I<n1>, I<n2>, I<n3>, etc.
+!!$
+!!$=item from par
+!!$
+!!$B<integer array> I<a>= - filter size
+!!$
+!!$B<integer> I<niter>=2*prod(a) (optional) - number of 
+!!$PEF iterations
+!!$
+!!$B<integer array> I<center>=a/2+1 (optional) - zero-lag position (filter centering)
+!!$
+!!$B<integer array> I<gap>=0 (optional) - filter gap
+!!$
+!!$B<filename> I<maskin, maskout> (optional) - data selectors 
+!!$
+!!$B<float> I<nullval> (optional) - if I<maskin> not provided samples with
+!!        this value are considered missing.  Default is 0.
+!!$
+!!$=item to history
+!!$
+!!$B<integer array> I<lag> - comma separated list of filter lags
+!!$
+!!$=back
+!!$
+!!$=head1 EXAMPLES
+!!$
+!!$F<gee/mda/hole90/>, F<gee/mda/miss390/>, F<gee/mda/morgan/>, 
+!!$F<gee/mda/seab90/>, F<gee/pch/signoi90/>
+!!$
+!!$=head1 MODULES
+!!$
+!!$F<shape.r90>, F<bound.r90>, F<misinput.r90>, F<pef.r90>, 
+!!$F<compress.r90>, F<print.r90>, F<helix.r90>
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<MSPef>, L<Fillmiss>, L<Helicon>, L<Decon>
+!!$
+!!$=cut
+!%
+program Pef3
+  use sep
+  use helix
+  use createhelixmod
+  use bound
+  use misinput
+  use pef
+  use compress
+  use print
+ 
+  implicit none
+  integer, dimension (:), allocatable :: n, n0, a, center, gap
+  integer                             :: dim, n123, i, niter, na
+  real,    dimension (:), pointer     :: dd, kk
+  type( filter)                       :: aa   
+  character (len = 6)                 :: varname
+  real                                :: nullval
+  logical                             :: usenullval
+
+  call SEP_ADD_DOC()
+  call sep_init ('')
+  nullval = 0.0
+  dim = sep_dimension ()
+  allocate (n (dim), n0 (dim), center (dim), a (dim), gap (dim))
+  call from_history (n)
+  call to_history ("n",n)
+  a=1; n0=1; center=1; gap=1
+  call from_param ("a", a)
+  center = 1
+  where (a (2:) > 1) center (:dim-1) = a(:dim-1)/2 + 1
+  call from_param ("center", center, center)
+  call from_param ("na", na, 0)
+  if (na == 0) then
+     gap = 0
+     call from_param ("gap", gap, gap)
+     aa = createhelix( n, center, gap, a) ! allocate PEF
+     n0 = n
+  else
+     call allocatehelix (aa, na)
+     call from_param ("lag", aa%lag)
+     call from_param ("n", n0)
+  end if
+  
+  if(1 .EQ. getch('nullval','f',nullval)) usenullval = .TRUE.
+
+  n123 = product (n)
+  allocate (dd (n123), kk (n123)) 
+  call sep_read (dd)
+  if (exist_file ("maskin")) then
+     call sep_read (kk, "maskin")
+  else
+     kk = 1.
+     if(usenullval) then
+         where (dd .EQ. nullval) kk = 0.
+     endif
+  end if
+
+  call boundn( n0, n, a, aa) 
+  call find_mask( (kk /= 0), aa)   ! missing data
+
+  if (exist_file ("maskout")) then
+     where (aa%mis) 
+        kk = 0.
+     elsewhere
+        kk = 1.
+     end where
+     do i=1, dim
+        call to_history (axisname(i),n(i),"maskout")
+     end do
+     call to_history ("esize",4,"maskout")
+     call sep_write (kk, "maskout")
+  end if
+
+  call from_param( "niter", niter, size(aa%lag)*2 )
+
+  call find_pef ( dd, aa, niter)         ! estimate aa
+  call resize( aa)                       ! eliminate zeroes
+  call printn( n, center, a, aa)         ! print filter
+
+  call to_history ("na", size ( aa%lag))
+!  call to_history ("n", n)
+   do i=1, dim
+      call to_history (axisname(i),n(i))
+   end do
+  call to_history ("lag", aa%lag)
+  call sep_write (aa%flt)
+ 
+  call sep_close ()
+  deallocate (dd, kk)
+  deallocate (n, n0, center, a, gap)
+  call deallocatehelix( aa)
+  call exit (0)
+end program Pef3

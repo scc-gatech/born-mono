@@ -1,0 +1,27 @@
+
+
+=head1 NAME
+
+sepsu - Functions that allow Seplib and Su to interface
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Functions that allow Seplib and Su to interface
+
+=head1 FUNCTIONS
+
+
+
+L<tgettr> -  get the next trace from a SEP3d dataset
+
+
+
+L<tputtr> - put given trace next in output stream
+
+L<finish_susep> - finish i/o for a SU like program using sep3d data
+
+=cut 

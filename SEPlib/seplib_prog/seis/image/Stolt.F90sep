@@ -1,0 +1,229 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$ Stolt - Stolt  Migration
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ Stolt par=parfile.P < input.H > output.H
+!!$
+!!$=head1 PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$
+!!$=item vel=3. - (real)
+!!$
+!!$ Velocity
+!!$
+!!$=item push=.true. - (logical)
+!!$
+!!$ whether to do a push or pull operation in stretch
+!!$
+!!$=item scale=.false. - (logical)
+!!$
+!!$ whether to scale
+!!$
+!!$=item eps=.5 - (real)
+!!$
+!!$ fitting parameter for push/pull operation
+!!$
+!!$=back
+!!$
+!!$=head1 RUN PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item maxmem=100. - (real)
+!!$
+!!$ memory to use in MB
+!!$
+!!$=item verb=.false. - (logical)
+!!$
+!!$ verbosity
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Perform Stolt residual migration (See Paul Sava SEP-100,SEP-102)
+!!$
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/image>
+!!$
+!!$=cut
+!!$      
+program Stolt
+  !! Stolt Residual Migration
+  !! Paul Sava (paul@sep.stanford.edu)
+  !! 12/1/00
+  !! Changed to Stolt - Bob
+
+  !! complex input/output
+  !! input  is kz-khx-khy-kmx-kmy
+  !! output is kz-khx-khy-kmx-kmy-ro
+
+  use sep_mod
+  use utilities_mod
+  use storm_mod
+
+  integer, parameter:: dbl=selected_int_kind(15)
+
+  type(paxis) :: az,ahx,ahy,amx,amy, aj
+
+#ifdef SEP_OMP
+  integer, external :: omp_get_num_threads
+  integer, external :: omp_get_thread_num
+#endif
+
+  logical     :: verb, push, scale
+  real        :: eps,vel
+  integer     :: stat,ierr
+
+  !! z-hx-hy-ngathers
+  complex, dimension(:,:,:,:), pointer :: data
+
+  integer :: imx,imy,ir
+
+  real    :: maxmem    !! max memory available  (Mb)
+  real    :: gathermem !! memory for one gather (Mb)
+  integer :: nth,      ith
+  integer :: nblocks,  iblocks
+  integer(kind=dbl) :: ngathers, igathers, allgathers
+
+  call sep_init('')
+  call SEP_ADD_DOC() 
+
+  call pinaxis(az ,1); az%l ="z";  call pouaxis(az ,1)
+  call pinaxis(ahx,2); ahx%l="hx"; call pouaxis(ahx,2)
+  call pinaxis(ahy,3); ahy%l="hy"; call pouaxis(ahy,3)
+  call pinaxis(amx,4); amx%l="mx"; call pouaxis(amx,4)
+  call pinaxis(amy,5); amy%l="my"; call pouaxis(amy,5)
+
+  aj%n=1; aj%o=0.; aj%d=1.; aj%l=" "
+  call pouaxis(aj,7)
+
+  call from_param("maxmem",maxmem,100.)
+  call from_param("verb",verb,.false.)
+  call from_param("push",push,.true.)
+  call from_param("scale",scale,.false.)
+  call from_param("eps",eps,0.5)
+  call from_param("vel",vel,3.)
+
+  call sep_close()
+
+  !----------------------------------------------------------------
+  !! find out how many threads the environment variable actually allows
+#ifdef SEP_OMP
+  !$OMP PARALLEL
+  nth = omp_get_num_threads()
+  !$OMP END PARALLEL
+#else
+  nth=1
+#endif
+
+  !! total # of gathers
+  allgathers = amy%n * amx%n
+
+  !! memory needed for one gather
+  gathermem = (1/1024./1024.) * az%n * ahx%n * ahy%n * 8 
+  !! z*hx*hy*(4+8) (Mb)
+
+  !! find the max # of gathers that fit in the allocated memory
+  ngathers = maxmem/gathermem
+
+  !! find, if possible, the max value of ngathers 
+  !!       which divides allgathers
+  !!      and is divided by nth
+
+  if(nth>allgathers) nth=allgathers
+    do while(allgathers/nth *nth /= allgathers)
+       nth=nth-1
+    end do
+
+    do i=1,allgathers
+       if(allgathers/i  *i   ==allgathers .and. &
+       i/nth*nth ==i    .and. &
+       i <= ngathers ) k=i
+    end do
+    ngathers = k
+
+#ifdef SEP_OMP
+  !! set and freeze the # of threads
+  call omp_set_dynamic(.false.)
+  call omp_set_num_threads(nth)
+#endif
+
+  !! # of data blocks
+  nblocks = allgathers/ngathers
+  !----------------------------------------------------------------  
+
+  if(verb) then
+     write(0,*) "    maxmem=",maxmem,'Mb'
+     write(0,*) "    effmem=",az%n*ahx%n*ahy%n*ngathers*8/1024./1024.,'Mb'
+     write(0,*) "allgathers=",allgathers
+     write(0,*) "  ngathers=",ngathers
+     write(0,*) "       nth=",nth
+     write(0,*) "   nblocks=",nblocks
+  end if
+
+  !----------------------------------------------------------------
+  allocate(data(az%n,ahx%n,ahy%n,ngathers), stat=stat)
+  if(stat /=0) call seperr("cant allocate data")
+  data = (0.0,0.0)
+
+  !----------------------------------------------------------------
+  !! reserve enough disk space for the entire output
+  if(verb) write(0,*) "reserving disk space"
+     do imy=1,amy%n
+        do iblocks=1,nblocks
+           call sep_write(data)
+        end do
+     end do
+  ierr= sseek('out',0,0)
+  if(verb) write(0,*) "OK"
+
+  !----------------------------------------------------------------
+  call storm_init(nth,az,ahx,ahy,amx,amy,eps,push,scale)
+
+  !----------------------------------------------------------------
+     ierr= sseek('in',0,0)
+
+     do imy=1,amy%n
+        !----------------------------------------------------------------     
+        do iblocks=1,nblocks
+           call sep_read(data)
+
+#ifdef SEP_OMP
+           !$OMP  PARALLEL
+           !$OMP  DO &
+           !$OMP& SCHEDULE(DYNAMIC) &
+           !$OMP& PRIVATE(ith,imx,igathers)
+#endif
+           do igathers=1,ngathers
+              imx = igathers + (iblocks-1)*ngathers
+#ifdef SEP_OMP
+              ith = omp_get_thread_num()+1
+#else
+              ith = 1
+#endif 
+              call storm_stolt_compute(ith,igathers,data,vel,az,ahx,ahy,imx,imy)
+
+           end do
+#ifdef SEP_OMP
+           !$OMP END DO
+           !$OMP END PARALLEL
+#endif
+
+           call sep_write(data)
+        end do
+        !----------------------------------------------------------------     
+     end do
+
+  !----------------------------------------------------------------
+  deallocate(data, stat=stat)
+  if(stat /=0) call seperr("cant deallocate data")
+
+end program Stolt

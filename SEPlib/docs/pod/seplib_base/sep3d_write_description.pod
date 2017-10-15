@@ -1,0 +1,42 @@
+=head1 NAME
+
+
+sep3d_write_description - write out format file info
+
+=head1 SYNOPSIS
+
+
+C<sep3d_write_description(tag,struct)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item tag      -  char*
+
+      tag to write out
+
+=item struct   -  sep3d
+
+      structure to write out
+
+=back
+
+=head1 DESCRIPTION
+
+
+Write out description to tag
+
+=head1 SEE ALSO
+
+
+B<sep3d_write>
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

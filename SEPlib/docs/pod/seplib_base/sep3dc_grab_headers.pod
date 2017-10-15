@@ -1,0 +1,59 @@
+=head1 NAME
+
+
+sep3dc_grab_headers - Grab a window of the headers
+
+
+=head1 SYNOPSIS
+
+
+C<logic=sep3dc_grab_headers(char *tag, sep3d *sep3dc, int *nh, int *nwind, int *fwind, int *jwind)
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item tag  -  sepfile
+
+     tag to grab the headers from 
+
+=item sep3c  -  sep3d
+
+     structure 
+
+=item nh  -  int*
+
+     snumber of header
+
+=item nwind  -  int*
+
+     Number of elements along each axis (starting with axis 2) 
+
+=item fwind  -  int*
+
+     First elements along each axis (starting with axis 2) 
+
+=item jwind  -  int*
+
+    Sampling elements along each axis (starting with axis 2) 
+
+=back
+
+=head1 DESCRIPTION
+
+
+Grab a window the headers 
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

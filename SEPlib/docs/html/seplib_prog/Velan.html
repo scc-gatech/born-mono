@@ -1,0 +1,217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Velan - Velocity analysis</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Velan - Velocity analysis</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Velan velopt=vel nv= dv= v0= nw= dw= w0= ng=all g0=0 dg=1 ntout=nt/10 dtout=(nt/ntout)*dt t0out=t0 tsmoo=2*dtout smute=2 &lt; in.H &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_velopt__2d_char_2a">velopt  - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      vel - scan over velocity (nv,dv,v0 required)
+      slow - scan over slowness (nw,dw,w0 required)</pre>
+</dd>
+<dt><strong><a name="item_nv__2d_int">nv      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of velocities</pre>
+</dd>
+<dt><strong><a name="item_dv_2cv0__2d_float">dv,v0   - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      sampling and first velocity</pre>
+</dd>
+<dt><strong><a name="item_nw__2d_int">nw      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number pf slownesses</pre>
+</dd>
+<dt><strong><a name="item_dw_2cw0__2d_float">dw,w0   - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      sampling and first slownesses</pre>
+</dd>
+<dt><strong><a name="item_ng__2d_int">ng      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [all] number of gathers analyzed</pre>
+</dd>
+<dt><strong><a name="item_g0__2d_int">g0      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]   number of gathers to skip before beginning analysis</pre>
+</dd>
+<dt><strong><a name="item_dg__2d_int">dg      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]   increment between gathers analyzed</pre>
+</dd>
+<dt><strong><a name="item_ntout__2d_int">ntout   - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [nt/10]  time-axis of out</pre>
+</dd>
+<dt><strong><a name="item_dtout__2d_float">dtout   - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [(nt/ntout)*dt] dtout must be an integer multiple of dt</pre>
+</dd>
+<dt><strong><a name="item_t0out__2d_float">t0out   - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [t0]first time to analyze</pre>
+</dd>
+<dt><strong><a name="item_tsmoo__2d_float">tsmoo   - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [2*dtout]  length of temporal smoothing window</pre>
+</dd>
+<dt><strong><a name="item_smute__2d_float">smute   - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [2] samples for which nmo stretch exceeds smute 
+      are zeroed</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3_2dint">n1,n2,n3-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard seplib params</pre>
+</dd>
+<dt><strong><a name="item_o1_2co2_2co3_2dfloat">o1,o2,o3-float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard seplib params</pre>
+</dd>
+<dt><strong><a name="item_d1_2cd2_2cd3_2dfloat">d1,d2,d3-float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard seplib params</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n1__2d_integer">n1 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      ntout</pre>
+</dd>
+<dt><strong><a name="item_d1__2d_float">d1 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      dtout</pre>
+</dd>
+<dt><strong><a name="item_o1__2d_float">o1 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      t0out</pre>
+</dd>
+<dt><strong><a name="item_n2__2d_int">n2 - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      nv</pre>
+</dd>
+<dt><strong><a name="item_d2__2d_float">d2 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      dv</pre>
+</dd>
+<dt><strong><a name="item_o2__2d_float">o2 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      v0</pre>
+</dd>
+<dt><strong><a name="item_n3__2d_int">n3 - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      ng midpoint axis</pre>
+</dd>
+<dt><strong><a name="item_d3__2d_float">d3 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (input d3)*dg</pre>
+</dd>
+<dt><strong><a name="item_o3__2d_float">o3 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (input o3) + g0*(input d3)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Velocity analysis of common-midpoint gathers</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Velan3d.html">the Velan3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/velan</strong></p>
+
+</body>
+
+</html>

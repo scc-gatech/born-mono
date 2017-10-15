@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>auxputch - put parameter into auxilary file</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#return_value">RETURN VALUE</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#diagnostics">DIAGNOSTICS</a></li>
+	<li><a href="#keywords">KEYWORDS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>auxputch - put parameter into auxilary file</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>int auxputch(name, type, val, tag)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_name__2d_char_2a">name - 	char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      name variable name</pre>
+</dd>
+<dt><strong><a name="item_type_2d_char_2a">type- 	char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      format ((d our i),(f or r),(g or s))</pre>
+</dd>
+<dt><strong><a name="item_val__2d_void_2a">val - void*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      variable value of variable</pre>
+</dd>
+<dt><strong><a name="item_tag__2d_char_2a">tag - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      tag of history file</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_value">RETURN VALUE</a></h1>
+<p>0 = if successful</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Writes Parameters to an auxilary history file</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>This function is a seplib companion to the input routine auxpar.
+Auxputch writes or appends values to the auxiliary history file
+Possible format conversions are ``d'' (or ``i''), ``f'' (or ``r''), ``g'' and ``s''
+for integer, floating point, double precision, and strings respectively.</p>
+<p>The default auxiliary output header name given in string `tag'
+for the auxiliary output header may be
+overriden by coding `tag=header_file' on the command line.
+(This is the same action taken by snap.)
+The output header file is created if necessary.</p>
+<p>Examples:
+from C:
+auxputch ( ``int'', ``i'', &amp;int, ``tag'')
+auxputch ( ``int'', ``d'', &amp;int, ``tag'')
+auxputch ( ``float'', ``f'', &amp;float, ``tag'')
+auxputch ( ``float'', ``r'', &amp;float, ``tag'')
+auxputch ( ``name'', ``s'', ``name'', ``tag'')</p>
+<p>from Fortran:
+call auxputch ( 'int', 'i', int, 'tag')
+call auxputch ( 'int', 'd', int, 'tag')
+call auxputch ( 'float', 'f', float, 'tag')
+call auxputch ( 'float', 'r', float, 'tag')
+call auxputch ( 'name', 's', 'name', 'tag')</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/auxpar.html">the auxpar manpage</a>, <a href="./../seplib_base/slice.html">the slice manpage</a>, <a href="./../seplib_base/auxclose.html">the auxclose manpage</a>,<a href="./../seplib_base/putch.html">the putch manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="diagnostics">DIAGNOSTICS</a></h1>
+<p>Program execution is terminated when an invalid format is passed.
+Not all sequences of auxout) and auxputch have
+been tested.</p>
+<p>
+</p>
+<hr />
+<h1><a name="keywords">KEYWORDS</a></h1>
+<p>auxillary header parameter output</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep</strong></p>
+
+</body>
+
+</html>

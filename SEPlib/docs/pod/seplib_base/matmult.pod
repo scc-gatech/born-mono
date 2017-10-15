@@ -1,0 +1,39 @@
+=head1 NAME
+
+
+matmult - matrix multiplication
+
+=head1 SYNOPSIS
+
+
+C<call matmult_init(bb)>
+
+C<ierr=matmult_lop(adj,add,model,data)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item  bb  C<real(:,:)>
+
+       Matrix
+
+=item adj,add,model,data
+
+      Standard operator interface
+
+=back
+
+=head1 DESCRIPTION
+
+
+Matrix multiplication
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

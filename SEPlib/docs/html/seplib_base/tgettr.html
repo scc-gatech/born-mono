@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>tgettr - read a specified  trace from a SEP3d dataset</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#return_values">RETURN VALUES</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>tgettr - read a specified  trace from a SEP3d dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>ierr= tgettr(&quot;in&quot;, trace,itr)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_sep3dname__2d_char_2a">sep3dname    -  char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      tag of sep_3d structure</pre>
+</dd>
+<dt><strong><a name="item_trace__2d_segy_2a">trace        -  segy*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      trace to read in</pre>
+</dd>
+<dt><strong><a name="item_itr__2d_int">itr          -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      trace number</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_values">RETURN VALUES</a></h1>
+<dl>
+<dt><strong><a name="item_returns_0_at_end_of_traces">returns 0 at end of traces</a></strong><br />
+</dt>
+<dt><strong><a name="item_nread__3d">nread  =</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of bytes read</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Read in  a given trace specified by itr</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/tgettr.html">the tgettr manpage</a>, <a href="./../seplib_base/tputtr.html">the tputtr manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepsu</strong></p>
+
+</body>
+
+</html>

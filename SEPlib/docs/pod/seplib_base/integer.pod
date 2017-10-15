@@ -1,0 +1,78 @@
+=head1 NAME
+
+  integer function weicam_init() result(st)
+    integer :: er
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weicam_init'
+    if(run%debug) call in(unit)
+#endif
+
+    !! init SSR
+    call from_param("nkxko",nkxko,2001)
+    call from_param( "kxko", kxko,2.)
+    call dsr_init(kxko,nkxko,kzko,tkzko,exp_kzko,ikzko,dkxko,nkxko,idkzko,rdkzko)
+    call  comaz_init(kxko,nkxko)
+
+#ifdef DEBUG
+    if(run%debug) call out(unit)
+#endif
+    st=OK
+  end function weicam_init
+
+
+
+=head1 NAME
+
+
+weicam - one depth step of common azimuth migration
+
+=head1 SYNOPSIS
+
+
+ ierr=weicam(iws,izs,ifk,ith,wfld)
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item iws - integer
+
+  current frequency slice
+
+=item izs - integer
+
+  current depth slice
+
+=item ifk - integer
+
+  current fk operation
+
+=item ith - integer
+
+  current thread
+
+=item wfld - complex(:,:,:,:,:)
+
+  wavefield
+
+=back
+
+=head1 DESCRIPTION
+
+
+Common Azimuth Migration  operator
+
+
+=head1 LIBRARY
+
+
+sepweif90
+
+=head1 SEE ALSO
+
+
+ L<wei_caminit> L<weiwem>
+
+=cut
+

@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Rtm2d- - Reverse time migration or two-way wave equation forward modeling</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Rtm2d- - Reverse time migration or two-way wave equation forward modeling</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+    Rtm2d par=parfile.P wavelet=wavelet.H Slow=slowness.H Data=data.H
+       Image_X=image_x.H Image_Z=image_z.H</pre>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_migrationormodel__2d_char_2a">migrationormodel - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+   [modeling]  :to do forward modeling</pre>
+</dd>
+<dd>
+<pre>
+  migration:to do reverse time migration</pre>
+</dd>
+<dt><strong><a name="item_extrapolate_oper_2d_char__2a">extrapolate_oper- char *</a></strong><br />
+</dt>
+<dd>
+<pre>
+     [fd]       : finite-difference method</pre>
+</dd>
+<dd>
+<pre>
+    fft       : psedu-spectral method</pre>
+</dd>
+<dd>
+<pre>
+    write_wave=y              : whether to write wavefield to harddisk or not$</pre>
+</dd>
+<dt><strong><a name="item_image_x__2d_sepfile">image_X  - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+    [optional] horizontal Common Image Gathers</pre>
+</dd>
+<dt><strong><a name="item_image_z__2d_sepfile">image_Z  - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+    [optional]  vertical Common Image Gathers</pre>
+</dd>
+<dt><strong><a name="item_o_source_d_source_n_source_2d_real_2c_real_2c_inte">o_source  d_source n_source- real, real, integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [0.,10.,1]   sampling of Sources</pre>
+</dd>
+<dt><strong><a name="item_dt_2c_nt_source__2d_real_2c_integer">dt, nt_source - real, integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [1500,.002]   sampling in time</pre>
+</dd>
+<dt><strong><a name="item_hx_min_2c_dx_offset_2c_n_off__2d_real_2c_real_2c_i">hx_min, dx_offset, n_off - real, real, integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [-100.,10.,200]   sampling of offset</pre>
+</dd>
+<dt><strong><a name="item_dz_image_2c_nz_image__3a_sampling_parameters_for_d">dz_image, nz_image : Sampling parameters for depth</a></strong><br />
+</dt>
+<dt><strong><a name="item_z_source_2c_z_receiver_3a_depth_of_source_and_rece">z_source, z_receiver: depth of source and receiver</a></strong><br />
+</dt>
+<dt><strong><a name="item_image_nhx_2c_image_nhz_3a_horizontal_and_vertical_">image_nhx, image_nhz: horizontal and vertical subsurface offset number of</a></strong><br />
+</dt>
+<dt><strong><a name="item_images_x_min_wave_2c_x_max_wave_3a_aperture_of_the">images x_min_wave, x_max_wave: aperture of the wavefield</a></strong><br />
+</dt>
+<dt><strong><a name="item_xcoe_taper_2c_zcoe_taper_3a_tapering_boundary_cond">xcoe_taper, zcoe_taper: tapering boundary condition parameters</a></strong><br />
+</dt>
+<dt><strong><a name="item_nx_bd_taper_2c_z_bd_taper_3a_thickness_of_tapering">nx_bd_taper, z_bd_taper: thickness of tapering boundary condtion</a></strong><br />
+</dt>
+<dt><strong><a name="item_nop__3a_thickness_of_one_2dway_wave_equation_bound">nop  : thickness of one-way wave equation boundary condtion</a></strong><br />
+</dt>
+<dt><strong><a name="item_x_min_image_2c_x_max_image_3a_aperture_of_the_imag">x_min_image, x_max_image: aperture of the image</a></strong><br />
+</dt>
+<dt><strong><a name="item_verb__2d_logical">verb - logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [.false.] Whether or not to print progress messages</pre>
+</dd>
+<dt><strong><a name="item_pct_master__2d_real">pct_master - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [2.]  How often to print when master process</pre>
+</dd>
+<dt><strong><a name="item_pct_slave__2d_real">pct_slave - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [10.] How often to print when non-master process</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/model</strong></p>
+
+</body>
+
+</html>

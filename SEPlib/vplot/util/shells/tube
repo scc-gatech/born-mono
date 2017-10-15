@@ -1,0 +1,71 @@
+#!/usr/bin/csh -f
+#$
+#$=head1 NAME
+#$
+#$tube -  display a .v file
+#$
+#$=head1 SYNOPSIS
+#$
+#$tube file1 file2 file3 ...
+#$
+#$=head1 DESCRIPTION
+#$
+#$Display vplot file(s)
+#$
+#$=head1 SEE ALSO
+#$
+#$L<xtpen>,L<tube>
+#$
+#$=head1 CATEGORY
+#$
+#$B<graphics/vplot/util/shells>
+#$
+#$=head1 COMPILE LEVEL
+#$
+#$ DISTR
+#$
+#$=cut
+#>
+# Keywords: graphics vplot tty
+#
+# Here is an example of a shell which will pick the appropriate
+# pen filter for the user's terminal, so he doesn't have to remember.
+#
+set path=( ${SEP}/bin ${path} )
+
+	if($TERM =~ xterm) then
+	xtpen $*
+	exit
+	else if($TERM =~ aixterm ) then
+	xtpen $*
+	exit
+	else if($TERM =~ gigi*) then
+	gigipen $* 
+	exit
+	else if($TERM =~ envision220*) then
+	envipen $* 
+	exit
+	else if($TERM =~ envision*) then
+	envipen wstype=envi215 $* 
+	exit
+	else if($TERM =~ tek4105*) then
+	ctekpen $*
+	exit
+	else if($TERM =~ grif* || $TERM == tek4014) then
+	tekpen $*
+	exit
+	else if($TERM =~ suntool) then
+	sunpen  $*
+	exit
+	else if($?DISPLAY) then
+	xtpen $*
+	exit
+	else if($TERM =~ sun) then
+	sunpen  $*
+	exit
+	else if($TERM =~ sun-cmd) then
+	sunpen $*
+	exit
+	else
+	echo "tube: No Graphics available on that device\!\!"
+	endif

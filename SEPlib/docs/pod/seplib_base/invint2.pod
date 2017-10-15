@@ -1,0 +1,72 @@
+=head1 NAME
+
+
+invint2 - Inverse linear interpolation;
+
+=head1 SYNOPSIS
+
+
+C<call invint(niter,coord,ord,o1,d1,mm,mmov,eps,aa,doprec)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item niter - integer
+
+      Number of iterations
+
+=item coord -  C<real(:)>
+
+      Coordinates
+
+=item o1,d1 -  real
+
+      First model position and sampling
+
+=item ord   -  C<real(:)>
+
+      Data values
+
+=item mm    -  C<real(:)>
+
+      Output model
+
+=item mmov  -  C<real(:,:)>
+
+      Model movie
+
+=item eps   -  real
+
+      Epsilon value if doing preconditioning
+
+=item aa    -  type(filter)
+
+      Preconditioning operator
+
+=item prec  -  logical
+
+      Whether or not to do preconditioning
+
+
+=back
+
+=head1 DESCRIPTION
+
+
+Perform inverse linear interpolation
+
+
+=head1 SEE ALSO
+
+
+L<lint1>,L<helicon>,L<polydiv>,L<solver>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

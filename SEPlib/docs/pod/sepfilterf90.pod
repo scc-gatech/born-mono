@@ -1,0 +1,31 @@
+
+
+=head1 NAME
+
+sepfilterf90 - Fortran90 Functions that deal with filtering
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Fortran90 Functions that deal with filtering
+
+=head1 FUNCTIONS
+
+
+
+L<boxconv> -  smooth by apllying box filter
+
+
+
+L<burg> - burg decon
+
+L<burg2> - Burg 2D convolution
+
+L<butter> - Find butterworth filter
+
+L<halfdifa> - half causal derivative
+
+=cut 

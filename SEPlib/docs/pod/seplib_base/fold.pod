@@ -1,0 +1,38 @@
+=head1 NAME
+
+
+fold - fold the ends inside
+
+=head1 SYNOPSIS
+
+
+C<ierr=fold_lop(adj,add,x,y)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item adj,add,x,y  -
+
+      Standard operator interface
+
+=back
+
+=head1 DESCRIPTION
+
+
+Fold portion of y outside x back in on itself
+
+=head1 SEE ALSO
+
+
+L<triangle>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

@@ -1,0 +1,43 @@
+=head1 NAME
+
+
+cartesian - convert to and from cartesian
+
+=head1 SYNOPSIS
+
+
+C<call line2cart(nn,i,ii)>
+
+C<call cart2line(nn,ii,i)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item nn - C<int(:)>
+
+      cartesian axes
+
+=item ii - C<int(:)>
+
+      cartesian coordinates
+
+=item i  - int
+
+      linear index
+
+=back
+
+=head1 DESCRIPTION
+
+
+index transform (vector to matrix) and its inverse
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

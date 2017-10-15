@@ -1,0 +1,48 @@
+=head1 NAME
+
+
+Rm3d - Remove a SEPlib dataset
+
+=head1 SYNOPSIS
+
+
+C<Rm3d [-v] [-f] [-i] file1.H [file2.H]>
+
+
+=head1 INPUT PARAMETERS:
+
+
+=over 4
+
+=item i-flag 
+
+      ask whether to delete each file
+
+=item v-flag
+
+      the Headers will be echoed on stdout.
+
+=item f-flag 
+
+      force delete, no ownership check will be done before deleting
+
+=back
+
+
+=head1 DESCRIPTION
+
+
+Remove SEP3d datasets
+
+=head1 SEE ALSO
+
+
+L<Rm>,L<Mv3d>,L<Cp3d>
+
+=head1 CATEGORY
+
+
+B<util/unix>
+
+=cut
+

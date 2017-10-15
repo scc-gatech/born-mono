@@ -1,0 +1,25 @@
+
+
+=head1 NAME
+
+sepauxf90 - Useful F90 functions that don't fit anywher else
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Useful F90 functions that don't fit anywher else
+
+=head1 FUNCTIONS
+
+
+
+L<interpolate_mod> -  Linear interpolation
+
+
+
+L<quick_sort> - quick sort
+
+=cut 

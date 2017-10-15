@@ -1,0 +1,25 @@
+
+
+=head1 NAME
+
+util/vector - Programs that do vector operations on SEP datasets
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Programs that do vector operations on SEP datasets
+
+=head1 PROGRAMS
+
+
+L<Log> - Programs that do vector operations on SEP datasets
+
+
+
+L<Math> - Perform mathematical operations on data
+
+
+=cut 

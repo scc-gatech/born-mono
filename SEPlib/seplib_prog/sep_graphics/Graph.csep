@@ -1,0 +1,1193 @@
+/*$
+
+=head1 NAME
+
+Graph - line plot
+
+=head1 SYNOPSIS
+
+Graph [par=] [<in.H] | Tube
+
+=head1 DESCRIPTION
+
+Line plot of a seplib file
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item n1 - int 
+
+      REQUIRED
+
+=item n2,n3 - int 
+
+      defaults to the number of different values of n1
+
+=item d1,d2,d3 - float 
+
+      [1.],[1.],[1.] float standard seplib
+
+=item o1,o2,o3 - float 
+
+      [0.],[0.],[0.] float standard seplib
+
+=item esize    - int   
+
+      [4]  (4,8)
+
+=item pad       -char  
+
+      [1] (0,1 n,y)  (If user specifies mins or maxes then 
+      padding is turned off unless pad is specified. 
+      pad is useful if you want the length of the plot 
+      to be the same as the length of the graph.  
+
+=item transp    -char  
+
+      [0] =1 flips the first and second axes 
+
+=item xreverse  -char  
+
+      [0] =1 reverses the x axis
+
+=item yreverse  -char  
+
+      [0]   (0,1 n.y) =1 reverses the y axis
+
+=item screenht  -float 
+
+      [10.24] sets screen height
+
+=item screenwd  -float 
+
+      [13.75] sets screen width
+
+=item screenratio -float 
+
+      [.75] sets height vs. width ratio
+
+=item xinch,yinch -float 
+
+      [10.24],[7.5]
+
+=item crowd,crowd1,crowd2 -float 
+
+      [.75] [crowd1=crowd][crowd2=crowd] 
+      (.75< crowd < 1.) crowd labels off the 
+      screen by expanding data on 1 or 2 axis.
+
+=item xll,yll,xur,yur - float 
+
+      set Lower Left and Upper Right coordinates
+
+=item wantframe - char 
+
+      [1] makes a box around the graph
+
+=item wantframenum -char 
+
+      [1] (0,1, n,y) gives number of the current frame in a movie
+
+=item wantaxis,wantaxis1,wantaxis2 - char 
+
+      [1] turns on axes
+
+=item min1, min2, max1, max2- float
+
+      sets minimum and maximum values for the graph
+
+=item axisor1, axisor2 - float 
+
+      [min1],[min2] sets the minimum value on the axes
+
+=item o1num, o2num, d1num, d2num- float
+
+      set tic spacing on axes
+
+=item n1tic,n2tic - int 
+
+      [1] set number of tics
+
+=item wheretics - char 
+
+      [f] (f,a) where to put tics (frame, axes)
+
+=item wheretitle -char 
+
+      [t] (t,b,l,r) where to put title (top,bottom,left,right)
+
+=item wherexlabel - char 
+
+      [b] (t,b) where to put x axis label (top,bottom)
+
+=item whereylabel - char 
+
+      [l] (l,r) where to put y axis label (left, right)
+
+=item titlefat,labelfat - int 
+
+      [1] makes the text fat
+
+=item label1,label2 - char* 
+
+      label for axes
+
+=item title - char* 
+
+      title for plot
+
+=item titles - char* 
+
+      title for different planes separated by colons 
+      first:second:third
+
+=item labelsz - int 
+
+      [8] font size for labels
+
+=item titlesz - int 
+
+      [10] font size for titles
+
+=item labelrot - char 
+
+      [y] (0,1 n,y) rotate labels 90 degrees
+
+=item grid,grid1,grid2 - char 
+
+      [0]   (0,1 n,y) turns on grid
+
+=item g1num,g2num - float 
+
+      [d1num],[d2num] grid spacing
+
+=item gridcol - int 
+
+      [axiscol] color of grid 
+
+=item backcol  - float* 
+
+      [0,0,0] background color (R,G,B) between 0 and 1
+
+=item fillcol  - float* 
+
+      [backcol(0,0,0)] fill color (R,G,B) between 0 and 1
+
+=item plotcol  - int*  
+
+      [6,5,4,3,2,1,...] color for each line plotted
+
+=item axiscol  - int*  
+
+      [7,7,7,7,...] color for each axis
+
+=item plotfat  - int*  
+
+      [0,0,0,...] makes plotted line fat
+
+=item axisfat  - int*  
+
+      [0,0,0,...] makes axes fat
+
+=item legend   - char  
+
+      [n] whether or not you want a legend
+
+=item legendtitle-char* 
+
+      ['Legend'] Title for legend
+
+=item legendloc -char*  
+
+      [br, bottom right] Location for legend
+
+=item legendpos -float[2]
+
+      Legend location.  Specifiy screen coordinates (e.g 10.2,6.1)
+
+=item legendsz  -int  
+
+      [7] Legend text size
+
+=item curvelabel-char*  
+
+      [curve number] : list of curve labels
+
+=item legendfat -int   
+
+      [0] makes legend fat
+
+=item plot_amp -  sepfile
+    
+     [none]   file containg amplitudes to use instead of base color
+
+=item color -  char*
+    
+     [I]    colortable when using plotamp
+
+
+
+=item arrow    -  char  
+
+      [0] (0,1 n,y) for complex data, makes arrows rather than lines
+
+=item dash     -  int*  [0]
+      
+      0 default is continuous.
+      1 fine dash
+      2 fine dot
+      3 dash
+      4 large dash
+      5 dot dash
+      6 large dash smalldash
+      7 double dot
+      8 double dash
+      9 loose dash  The  part  after  the decimal point
+        determines the pattern repetition interval
+
+=back
+
+ 
+
+=head1 EXAMPLES
+
+   Graph n1=50,100,20 d1=2.5,1,0.33 in=datafile | Tube
+     plots three curves  in  one  plot  frame  on  the  screen  horiz
+     coordinates are t(i)  =  o1+i*d1  for  i=0  to  n1-1  (o1=0  by  default)
+     vert coordinates are read sequentially from datafile--50 vert-coordinates
+     for  the  1st plot, 100 for the 2nd, 20 for the 3rd.
+
+     Graph n1=100 esize=8 n2=4 n3=10 symbol='*x%$'<datafile >Hplotfile 
+     This reads n1=100 x,y pairs sequentially from datafile for each of  
+     n2=4 plots, All on the same Graph.  This is repeated for each of the 
+     10 Movie frames; The plot axes, etc, are determined for each frame. 
+     Hplotfile will be a SEPLIB header file pointing to a file containing 
+     vplot commands to plot the character '*' at each of the 1st 100 points, 
+      'x'  at each of the 2nd 100 points, etc, for each Movie frame.
+
+=head1 SEE ALSO
+
+L<Dots>,L<Histogram>,L<xtpen>
+
+=head1 CATEGORY
+
+B<sep_graphics>
+
+=head1 COMPILE LEVEL
+
+DISTR
+
+=cut
+
+*/
+
+/*
+SEE ALSO
+
+KEYWORDS   graph vplot plot
+
+WHERE
+	./cube/plot/Graph.c
+
+
+(c) copyright 1991 Stanford University
+****************************** END SELFDOC *********************************
+*/
+/* 
+*Keyword: graph vplot plot
+*/
+/*    EDIT HISTORY
+* Feb. 9, 1990   Jenni Hufnagel
+* added checks on  the number n1  not to exceed n2 or NPMAX
+* changed memory allocation to allocate seperate memory for data space
+         x and y
+* changed data input routine to reed in entire frame   
+* Feb 24, 1990   Jenni Hufnagel
+* converted to stuctures
+* Jan 8, 1992 Jon claerbout, removed nt,nx anachronisms
+* April, 1997 Hector Urdaneta, removed clip window stuff. Also fixed use of 
+* multiple symbol, symbolsz, plofat, plotcol. It was only using the first
+* value given for any of these variables. Added multiple title entries.
+* May, 1997 Hector Urdaneta, fixed use of multiple n1, d1, and o1 values.'
+* August, 97 Hector U., fixed two bugs I had made when I added the multiple
+* n1 option. The bugs fixed where: 
+*   + Graph was not rotating through the usual 6 colors.
+*   + For a file like n1=128 n2=1 n3=10, Graph was only outputting 
+*     the first frame correctly and the rest was garbage.
+* Jan 98- Bob Added legend capabilities
+* 
+*/
+
+ /*
+  * include file containing structure definitions 
+  */
+#include "glplot.h"
+
+ /*
+  * declaration of structures that Graph will be using 
+  */
+struct datainfo data;
+struct coordinfo coordinate;
+struct coordinfo coordinatetemp;
+struct axisinfo axis1;
+struct axisinfo axis2;
+struct plotposition position;
+struct plotinfo plot;
+struct dashinfo dash;
+struct gridinfo grid;
+struct titleinfo title;
+struct colorinfo color;
+
+ /*
+  * declaration of internal variables for Graph 
+  */
+int             minusone, one, nnx, fastplt;
+int             i, j, k, l, wantframe,wantframenum, n3_loop;
+float          *pdata, *datap;
+unsigned char *amp_data;
+int        *ic;
+float           ch, vs, *x, *y, xc, yc, xup, yup, xpath, ypath, tempfat, tempfat1, tempfat2;
+int             movie,multi_t;
+char            string[80],titles[1024],title_temp[128],title_out[128],coltab[128];
+int  wantlegend;
+char legendtitle[256],curvelabel[1024],legendloc[3];
+float legendpos[2];
+int legendsz,legendfat;
+int do_plot_amp;
+int nreserve=8;
+
+#include <stdlib.h>
+#include <string.h>
+ADD_DEF_SEP_DOC
+
+#include <sep.main>
+
+extern void set_output_data_format(const char *);
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void initial (void);
+void graphinitial1 (void);
+void graphinitial2 (void);
+void update (void);
+void memoryallocation (void);
+void datainput (void);
+void create_legend (void);
+void minmax (float *point1, float *point2, struct coordinfo *coordinate, struct datainfo *data);
+void init_plot_amp(void);
+int search_title (int jj, char *list_member, char *big_list);
+_XFUNCPROTOEND
+#else
+void initial ();
+void graphinitial1 ();
+void graphinitial2 ();
+void update ();
+void memoryallocation ();
+void datainput ();
+void minmax ();
+void create_legend ();
+int search_title ();
+#endif
+
+int MAIN (void)
+{			/* Begin of main */
+    int sti2 = 0;
+   int js;
+	 vp_filep(outstream); /* tell plotting routines where to stick it */
+
+
+    /* call initial to initialize and fetch seplib variables */
+    initial ();
+
+    /*
+     * allocate  memory for 1  n3 plot  it is assumed that for each n3 the
+     * product of n1 and n2 are the same 
+     */
+    memoryallocation ();
+    /* loop over n3, each n3 causes a new plot */
+    graphinitial1 ();
+    vp_coltab (0, color.backcol[0], color.backcol[1], color.backcol[2]);
+    gl_erase ();
+     vp_rascoltab(nreserve,coltab) ;
+    for (n3_loop = 0; n3_loop < data.n3; n3_loop++)
+    {				/* movie loop data input */
+	/* READ INPUT DATA */
+	datainput ();
+
+	/* setting of x and y data points  loop over n2 */
+	l = 0;
+	for (i = sti2, pdata = datap; i < data.n2 + sti2; i++)
+	{
+	    if (data.esize == 8)/* if x,y pairs */
+	    {
+		k = 0;		/* counter for data stream */
+		for (j = 0; j < data.n1[i]; j++)
+		{		/* n1 loop to read data */
+		    x[l] = pdata[k];
+		    y[l] = pdata[k + 1];
+        if(do_plot_amp==1) ic[l]= amp_data[l]+256;
+		    k = k + 2;
+		    l = l + 1;
+		}		/* end of n1 loop to read data */
+		/* stepping data stream to beginning of next n2 */
+		pdata += 2 * data.n1[i];
+	    }			/* end of if for  x,y pairs */
+	    else
+	    {			/* else y only being read */
+		for (j = 0; j < data.n1[i]; j++)
+		{		/* n1 loop  to read data  and calculate data */
+		    x[l] = data.o1[i] + j * data.d1[i];
+		    y[l] = pdata[j];
+        if(do_plot_amp==1) ic[l]= amp_data[j];
+		    l = l + 1;
+		}		/* end of n1 loop */
+		/* stepping data stream to beginning of next n2 */
+		pdata += data.n1[i];
+	    }			/* end of else */
+	}			/* end of n2 loop  */
+
+	graphinitial2 ();
+	if (n3_loop != 0){
+    gl_erase ();
+ 		gl_plotint (&plot, &dash); /*reinitialize plot dash type */
+	}
+	gl_vplotint (&position, &coordinate, &axis1, &axis2);
+	if (color.fillcol[0] != color.backcol[0] || color.fillcol[1] != color.backcol[1] || color.fillcol[2] != color.backcol[2])
+	    gl_fillin (&coordinate, &color);
+
+/* next section of code is commented out. No need for the extra padding on the clip window */
+#if 0
+	/*
+	 * need some extra padding  on the clip window if plot.fat and or
+	 * axisfat are greater then 0. 
+	 */
+	tempfat = 0;
+	for (i = 0; i < data.n2; i++)
+	{
+	    if (tempfat < plot.fat[i])
+		tempfat = plot.fat[i];
+	}
+	tempfat = tempfat + axis1.fat[n3_loop];
+	tempfat = tempfat / 200;
+	tempfat1 = 1- tempfat ;
+	tempfat2 = tempfat + 1;
+	gl_uclip (tempfat1 * coordinatetemp.min1, tempfat1 * coordinatetemp.min2, tempfat2 * coordinatetemp.max1, tempfat2 * coordinatetemp.max2);
+#endif         
+
+	gl_uclip (coordinatetemp.min1, coordinatetemp.min2,  coordinatetemp.max1, coordinatetemp.max2); 
+
+	/* setting the symbol size */
+	l = 0;
+	for (i = sti2; i < data.n2 + sti2; i++)
+	{
+		js=i-sti2; /*THIS RESTARTS COLOR WITH EACH FRAME -added by bob 10/99*/
+	    gl_dashfig (&dash, js);
+	    gl_dash (&dash);
+	    gl_fat (plot.fat[js]);
+	    if(do_plot_amp==0) gl_color (plot.col[js]);
+	    ch = plot.symbolsz[js] / 33.;
+/* next section of code is commented out, this is not really necessary.  Trying
+to use actual font size instead of trying to make symbols look the same size */ 
+
+#if 0
+
+	    if (plot.symbol[i] == '.')
+		ch = ch * 2.0 / 10.0;
+	    else
+		if ((int) (plot.symbol[i]) >= (int) ('a') &&
+		    (int) (plot.symbol[i]) <= (int) ('z'))
+		ch = ch * 4.0 / 10.0;
+	    else
+		ch = ch * 6.0 / 10.0;
+#endif
+	    gl_tjust ("s");
+	    gl_penup ();
+	    for (j = 0; j < data.n1[i]; j++)
+	    {
+		if (plot.symbol[i] != ' ')
+		{
+		    sprintf (string, "%c", plot.symbol[i]);
+		    xpath = ch;
+		    ypath = 0;
+		    xup = 0;
+		    yup = ch;
+        if(do_plot_amp==1) {
+          gl_color(ic[l]);
+        }
+		    gl_umove (x[l], y[l]);
+		    gl_where (&xc, &yc);
+		    gl_gtext (xc, yc, xpath, ypath, xup, yup, string, "s");
+
+		    if (plot.lineunder)
+		    if(coordinate.transp)
+		    {
+			gl_umove (0., y[l]);
+			gl_udraw (x[l], y[l]);
+		    }
+		    else
+		    {
+			gl_umove (x[l], 0.);
+			gl_udraw (x[l], y[l]);
+		    }
+		}
+		else
+		{
+        if(do_plot_amp==1) {
+          gl_color(ic[l]);
+        }
+		    gl_upendn (x[l], y[l]);
+		}
+		l = l + 1;
+	    }
+	    gl_purge ();
+	}
+	sti2 = i;
+	dash.dash[0] = 0.;
+	dash.dash[1] = 0.;
+	dash.gap[0] = 0.;
+	dash.gap[1] = 0.;
+	gl_dash (&dash);
+	gl_uclip (coordinate.min1, coordinate.min2, coordinate.max1, coordinate.max2);
+	if(multi_t ==1) {
+	  if(!search_title(n3_loop, title_out,titles)) {
+	    strcpy (title.title, title_out);
+	  } else strcpy (title.title, title_temp);
+	}
+	gl_stdplot (&data, &coordinate, &axis1, &axis2, &grid, &title, n3_loop, fastplt, wantframe,wantframenum);  
+
+		/*now create legend if desired */
+		if(wantlegend!=0) create_legend();
+
+    }				/* end of Movie loop */
+
+	return(EXIT_SUCCESS);
+}			/* end of MAIN */
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void initial (void)
+_XFUNCPROTOEND
+#else
+void initial()
+#endif
+{
+int             i;
+
+    /* initialization of parameters and setting of defaults */
+    fastplt = 0;
+    minusone = -1;
+    one = 1;
+    plot.lineunder = 0;
+    getch ("lineunder", "1", &plot.lineunder);
+    /* initialization of data space */
+    for (i = 0; i < NPMAX; i++)
+    {
+	data.n1[i] = 0;
+	data.d1[i] = 1.0;
+	data.o1[i] = 0.0;
+    }
+/* setting values of n1 and d1 at NPMAX + 1 to to check to see if 
+ * user enters more than NPMAX values
+ */
+    data.n1[NPMAX ] = 0;
+    data.d1[NPMAX ] = 0;
+
+/* initialization of data space */
+    data.n3 = 1;
+    data.d3 = 1.0;
+    data.o3 = 0.0;
+    data.d2 = 1.0;
+    data.o2 = 0.0;
+    if (fetch ("n1", "d", data.n1) == 0)
+	seperr ("n1 is required\n");
+    if (data.n1[NPMAX ] != 0)
+	seperr ("too many n1 values picked, exceeding NPMAX value\n");
+    nnx = 0;
+    while ((data.n1[nnx] != 0) && (nnx < NPMAX + 1))
+	nnx++;
+    fetch ("n3", "d", &data.n3);
+    if (data.n3 == 0)
+	seperr ("assuming no data since n3=0 \n");
+    data.n2 = nnx;
+    if (fetch ("n2 nplot", "d", &data.n2))
+    {
+	if (data.n2 > NPMAX)
+	    seperr ("n2 exceeds NPMAX(%d) reduce n2\n", NPMAX);
+	if (data.n1[data.n2*data.n3] != 0)
+	    seperr ("too many n1 values picked, either reduce n1 or up n2\n");
+    }
+    fetch ("d1", "f", data.d1);
+    i = 0;
+    j = 0;
+    while (i < NPMAX)
+    {
+	if (data.d1[i] == 0.0)
+	{
+	    data.d1[i] = 1.0;
+	    j++;
+	}
+	i++;
+    }
+    if (j != 0)
+    {
+	fprintf (stderr, "****************** WARNING *****************\n");
+	fprintf (stderr, "   d1=0 option no longer supported. \n ");
+	fprintf (stderr, "   Assuming data input is only one axis.\n ");
+	fprintf (stderr, "   Setting d1=1\n");
+	fprintf (stderr, "********************************************\n");
+    }
+    fetch ("o1", "f", data.o1);
+    fetch ("d3", "f", &data.d3);
+    fetch ("o3", "f", &data.o3);
+    fetch ("d2", "f", &data.d2);
+    fetch ("o2", "f", &data.o2);
+
+    data.esize = 4;		/* default for data.esize is 4 */
+    if (fetch ("esize", "d", &data.esize))
+	if ((data.esize % 4) != 0)
+	{
+	    fprintf (stderr, "********************  WARNING *******************");
+	    fprintf (stderr, "           esize not divisible by 4              ");
+	    seperr ("esize needs to be divisible by 4 \n");
+	}
+
+    /*
+     * default movie = no; 
+     */
+    movie = 0;
+    getch ("movie", "1", &movie);
+    if (movie)
+    {
+
+	/*
+	 * converting data to plot only one plot per frame 
+	 */
+	data.n3 = data.n3 * data.n2;
+	data.d3 = data.d2;
+	data.o3 = data.o2;
+	data.n2 = 1;
+    }
+    for (i = nnx; i < data.n2*data.n3; i++)
+    {
+	data.n1[i] = data.n1[i - 1];
+	data.d1[i] = data.d1[i - 1];
+	data.o1[i] = data.o1[i - 1];
+    }
+    init_plot_amp();
+    update ();
+}
+
+
+void init_plot_amp(void){
+  int n1,n2,n3,n1in,i;
+  float  o,d;
+  char temp_ch[128];
+  do_plot_amp=0;
+  if(NULL!=auxin("plot_amp")){ /*file exists*/
+   if(0==auxpar("n1","d",&n1,"plot_amp"))
+      seperr("error: plot_amp not a valid seplib file. Must contain n1 \n");
+
+    if(0==auxpar("n2","d",&n2,"plot_amp")) n2=1;
+    if(0==auxpar("n3","d",&n3,"plot_amp")) n3=1;
+    fetch("n1","d",&n1in);
+    getch("n1","d",&n1); getch("n2","d",&n2); getch("n3","d",&n3);
+    if(data.n3 != n3)
+      seperr("expecting n3 of plot_amp (%d) and in (%d) to be the same \n",
+         n3,data.n3);
+    if(n1in != n1)
+      seperr("expecting n1 of plot_amp (%d) and in (%d) to be the same \n",
+          n1,n1in);
+    if(data.n2 != n2)
+      seperr("expecting n2 of plot_amp (%d) and in (%d) to be the same \n",
+         n2,data.n2);
+    if(0==auxpar("esize","d",&i,"plot_amp")) i=4;
+    if(i!=1) seperr("expecting byte data for plot_amp run Grey eout=1 < file.H >out.T \n");
+
+   if(0==getch("color","s",coltab)) strcpy(coltab,"I");
+   do_plot_amp=1;
+  }
+
+}
+
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void graphinitial1 (void)
+_XFUNCPROTOEND
+#else
+void graphinitial1 ()
+#endif
+{
+int ierr,geo;
+char temp_ch[1024],junk[2048];
+   geo=0;
+   getch("geophysics","d",&geo);
+   if(geo==1){
+     getch_add_string("labelrot=0");
+     if(!getch("wherexlabel","s",junk)) getch_add_string("wherexlabel=bottom");
+     if(!getch("wheretitle","s",junk)) getch_add_string("wheretitle=t");
+   }
+    wantframe = 1;
+    wantframenum = 1;
+    getch ("wantframe", "1", &wantframe);
+    getch ("wantframenum", "1", &wantframenum);
+    strcpy (axis1.wherelabel, "b");
+    strcpy (axis2.wherelabel, "l");
+    coordinate.xreverse = 0;
+    coordinate.yreverse = 0;
+    coordinate.transp = 0;
+    strcpy (title.wheretitle, "t");
+    gl_coordint (&position, &coordinate, &axis1, &axis2);
+    gl_plotint (&plot, &dash);
+    gl_titleint (&title);
+    multi_t = getch("titles", "s", titles);
+    if(!fetch("title","s",title_temp)) 
+      strcpy (title_temp, " ");
+    gl_colorint (&color);
+
+		wantlegend=0;
+		ierr=getch("legend","l",&wantlegend);
+		if(wantlegend==1){
+			strcpy(legendtitle,"Legend");
+			ierr=getch("legendtitle","s",legendtitle);
+			
+			if(0==getch("legendfat","d",&legendfat)) legendfat=0;
+			if(0!=getch("legendloc","s",legendloc)){
+				if(0==strcmp("br",legendloc)){ legendpos[0]=8.8; legendpos[1]=3.;}
+				else if(0==strcmp("bl",legendloc)){ legendpos[0]=2.4; legendpos[1]=3.;}
+				else if(0==strcmp("tr",legendloc)){ legendpos[0]=8.8; legendpos[1]=8.5;}
+				else if(0==strcmp("tl",legendloc)){ legendpos[0]=2.4; legendpos[1]=8.5;}
+				else seperr("legend location must be br, bl, tr, or tl\n");
+			}
+			else{
+				ierr=getch("legendpos","f",legendpos);
+				if(ierr==0) { 
+					strcpy(legendloc,"br"); 
+				}
+				else if(ierr!=2)  seperr("legend pos must be of size 2 \n");
+				else{
+					strcpy(legendloc,"de"); 
+				}
+			}
+
+			curvelabel[0]='\0';
+			ierr=getch("curvelabel","s",curvelabel);
+			legendsz=7; ierr=getch("legendsz","d",&legendsz);
+		}
+
+			
+			
+
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void graphinitial2 (void)
+_XFUNCPROTOEND
+#else
+void graphinitial2 ()
+#endif
+{
+float           temp1;
+float           temp2;
+
+    minmax (x, y, &coordinate, &data);
+    gl_minmax (&coordinate);
+    if (coordinate.transp)
+    {
+	gl_transp (x, y, &data);
+    }
+    coordinatetemp.min1 = coordinate.min1;
+    coordinatetemp.max1 = coordinate.max1;
+    coordinatetemp.min2 = coordinate.min2;
+    coordinatetemp.max2 = coordinate.max2;
+    coordinate.pad = 1;
+    coordinate.npad = getch ("pad", "1", &coordinate.pad);
+    gl_padint (&coordinate);
+    if (coordinate.yreverse)
+    {
+	gl_rotate (y, coordinate.min2, coordinate.max2, &data);
+    }
+    if (coordinate.xreverse)
+    {
+	gl_rotate (x, coordinate.min1, coordinate.max1, &data);
+    }
+    gl_axisint (&axis1, &axis2, &coordinate, &position);
+    gl_gridint (&grid, &coordinate, &axis1, &axis2);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void update (void)
+_XFUNCPROTOEND
+#else
+void update ()
+#endif
+{
+
+    putch ("n1", "d", &minusone);
+    putch ("n2", "d", &one);
+    putch ("n3", "d", &one);
+    putch ("movie", "d", &movie);
+    set_output_data_format("vplot");
+    hclose ();
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void memoryallocation (void)
+_XFUNCPROTOEND
+#else
+void memoryallocation ()
+#endif
+{
+int             i, j;
+int             nalloc, max_nalloc;
+
+    /* compute the memory needed for each plot, 
+       and figure the maximum                   */
+    max_nalloc = 0;
+    for (j = 0; j < data.n3; j++) {
+      nalloc = 0;
+      for (i = 0; i < data.n2; i++)
+	{
+	  nalloc += data.n1[i+j*data.n2];
+	}
+      max_nalloc = (max_nalloc < nalloc) ? nalloc : max_nalloc;
+    }
+    nalloc = max_nalloc;
+
+
+    /*
+     * allocate memory for the data space  check to see if fails 
+     */
+    if(do_plot_amp==1){
+      if ((amp_data = (unsigned char *) calloc ((nalloc), sizeof (char))) == 0)
+      {
+	  perror ("calloc");
+	  seperr ("unable to allocate memory needed for amp_data.\n");
+    }
+    if ((ic = (int *) calloc (nalloc, sizeof (int))) == 0)
+    {
+	perror ("calloc");
+	seperr ("unable to allocate memory needed for cint deminison.\n");
+    }
+   }
+
+    if ((datap = (float *) calloc ((data.esize / 2) * (nalloc), sizeof (float))) == 0)
+    {
+	perror ("calloc");
+	seperr ("unable to allocate memory needed for data space.\n");
+    }
+
+    /*
+     * allocate memory for the x data space  check to see if fails 
+     */
+    if ((x = (float *) calloc (nalloc, sizeof (float))) == 0)
+    {
+	perror ("calloc");
+	seperr ("unable to allocate memory needed for x deminison.\n");
+    }
+
+    /*
+     * allocate memory for the y data space  check to see if fails 
+     */
+    if ((y = (float *) calloc (nalloc, sizeof (float))) == 0)
+    {
+	perror ("calloc");
+	seperr ("unable to allocate memory needed for y deminison.\n");
+    }
+
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void datainput (void)
+_XFUNCPROTOEND
+#else
+void datainput ()
+#endif
+{
+int             i, tmp, amtread;
+
+    static int st = 0;
+    tmp = 0;
+    pdata = datap;
+
+/*
+ *   SUMMATION OF n1[i]  points 
+ */
+    for (i = st, pdata = datap; i < data.n2 + st; i++)
+    {
+	tmp += data.n1[i];
+    }
+    st = i;
+/*
+ *   Reading in the data in one chunk.  tmp is the number of points
+ *   and esize determines the byte size ( currently esize is only allowed
+ *   to be 4 or 8.   
+ */
+
+    if ((amtread = sreed ("in", pdata, tmp * data.esize)) != tmp * data.esize)
+    {
+	fprintf (stderr, " ************WARNING********** \n");
+	fprintf (stderr, "amount data read was not the amount specified\n");
+	fprintf (stderr, "check n1 and n2  and n3 and esize\n");
+	fprintf (stderr, " ***************************** \n");
+    }
+
+  
+   if(do_plot_amp==1){
+    if ((amtread = sreed ("plot_amp", amp_data, tmp )) != tmp )
+    {
+	fprintf (stderr, " ************WARNING********** \n");
+	fprintf (stderr, "amount plot_amp read was not the amount specified\n");
+	fprintf (stderr, "check n1 and n2  and n3 \n");
+	fprintf (stderr, " ***************************** \n");
+    }
+  }
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void minmax (float *point1, float *point2, struct coordinfo *coordinate, struct datainfo *data)
+_XFUNCPROTOEND
+#else
+void minmax (point1, point2, coordinate, data)
+    float          *point2, *point1;
+    struct coordinfo *coordinate;
+    struct datainfo *data;
+#endif
+{
+static int      st = 0;
+double          mintemp, maxtemp;
+int             ii, jj, kk;
+
+/* first calculate max and min  of original data*/
+    mintemp = 1.e+30;
+    maxtemp = -1.e+30;
+    kk = 0;
+    for (ii = st; ii < data->n2 + st; ii++)
+    {
+	for (jj = 0; jj < data->n1[ii]; jj++)
+	{
+	    mintemp = (point1[kk] < mintemp) ? point1[kk] : mintemp;
+	    maxtemp = (point1[kk] > maxtemp) ? point1[kk] : maxtemp;
+	    kk++;
+	}
+    }
+    coordinate->min1 = mintemp;
+    coordinate->max1 = maxtemp;
+    mintemp = 1.e+30;
+    maxtemp = -1.e+30;
+    kk = 0;
+    for (ii = st; ii < data->n2 + st; ii++)
+    {
+	for (jj = 0; jj < data->n1[ii]; jj++)
+	{
+	    mintemp = (point2[kk] < mintemp) ? point2[kk] : mintemp;
+	    maxtemp = (point2[kk] > maxtemp) ? point2[kk] : maxtemp;
+	    kk++;
+	}
+    }
+    st = ii;
+    coordinate->min2 = mintemp;
+    coordinate->max2 = maxtemp;
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int search_title (int jj, char *stitle, char * big_list)
+_XFUNCPROTOEND
+#else
+int search_title (jj, stitle,big_list)
+/*  find the jjrd member of titles=first:second:third */
+int jj;
+char *stitle,*big_list;
+#endif
+{
+  char *ptr;
+  int i, colon, junk;
+  colon = 0;
+  stitle[0] = '\0';
+  junk=1;
+  for( ptr=big_list; *ptr!='\0'; ptr++ ) {
+    if(*ptr == ':') {
+      colon++;
+    }
+    else if( colon == jj ) {
+      for( i=0; *ptr!='\0' && *ptr !=':'; ptr++) {
+        stitle[i++] = *ptr;
+      }
+      stitle[i] = '\0';
+      junk=0;
+      break;
+    }
+  }
+  return(junk);
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void create_legend (void)
+_XFUNCPROTOEND
+#else
+void create_legend ()
+#endif
+{
+int i2,length,i1,size2;
+char temp_ch[1024],label[1024],use_this[16];
+float size,location1,location2,beg1,beg2,end1,end2;
+float origin1,origin2,delta1,delta2;
+float min1,min2,max1,max2,correct_pos;
+char just[10];
+int   nmax_str,line_size;
+float   xlow,xhi,ylow,yhi;
+float   x_low,x_hi,y_low,y_hi;
+float    line_h, title_h,  line_w, title_w,line_f_size;
+float   pad_frame,pad_box,pad_between;
+int     nbox_size;
+
+
+
+
+/*          TITLE
+       ----------------------
+      |curve         _______|     
+      |curve         _______|     
+      |curve         _______|     
+      |curve         _______|     
+       ----------------------*/
+
+
+	/*GRAB THE EDGES OF THE FRAME*/
+	gl_umove(coordinate.min1,coordinate.min2);
+	vp_where(&min1,&min2);
+	gl_umove(coordinate.max1,coordinate.max2);
+	vp_where(&max1,&max2);
+	delta1=(max1-min1)/(coordinate.max1-coordinate.min1);
+	delta2=(max2-min2)/(coordinate.max2-coordinate.min2);
+
+	/*determine the box size */
+	nmax_str=0;
+	for(i2=0; i2< data.n2; i2++){
+		if(0!=search_title(i2,temp_ch,curvelabel)) sprintf(temp_ch,"%d",i2);
+		nmax_str=MAX(nmax_str,strlen(temp_ch));
+	}
+
+
+
+	line_size=8; /*number of chars for the line */
+	line_f_size=line_size;
+
+  pad_frame=.1; /*amount of padding away from edge of the frame */
+  pad_box = .1;/*amount of padding arround legend box edge */
+	pad_between=2.;/*number of chars to leave blank between curve label and line*/
+
+	/*the box should be the width of the title */
+  nbox_size=MAX((int)(1.7*strlen(legendtitle)+.99999),nmax_str+line_f_size+pad_between);
+ 
+  line_size=nbox_size-nmax_str-pad_between;
+
+		size=legendsz/37.; /* size of the curve text */
+
+   line_h=1.5*(float)legendsz/37.; line_w=(float)legendsz/37.;
+   title_h=1.7*line_h;             title_w=1.7*line_w;
+
+
+
+	/*FIGURE OUT ARE STARTING POSITION */
+
+	if(0==strcmp(legendloc,"tr")){
+		xhi=max1-pad_frame;         xlow=xhi-nbox_size*line_w-2.*pad_box;
+		yhi=max2-pad_frame-title_h; ylow=yhi-((.3+data.n2)*line_h)-2.*pad_box;
+	}
+	else if(0==strcmp(legendloc,"tl")){
+		xlow=min1+pad_frame;        xhi=xlow+nbox_size*line_w+2.*pad_box;
+		yhi=max2-pad_frame-title_h; ylow=yhi-((.3+data.n2)*line_h)-2.*pad_box;
+	}
+	else if(0==strcmp(legendloc,"bl")){
+		xlow=min1+pad_frame; xhi=xlow+nbox_size*line_w+2.*pad_box;
+		ylow=min2+pad_frame; yhi=ylow+((.3+data.n2)*line_h)+2.*pad_box;
+	}
+	else if(0==strcmp(legendloc,"br")){
+		xhi=max1-pad_frame;  xlow=xhi-nbox_size*line_w-2.*pad_box;
+		ylow=min2+pad_frame; yhi=ylow+((.3+data.n2)*line_h)+2.*pad_box;
+	}
+	else{
+		xhi=(legendpos[0]-coordinate.min1)*delta1+min1;      
+		ylow=(legendpos[1]-coordinate.min2)*delta2+min2; 
+		xhi=legendpos[0];
+		ylow=legendpos[1];
+		xlow=xhi-nbox_size*line_w-2.*pad_box;
+		yhi=ylow+((.3+data.n2)*line_h)+2.*pad_box;
+	}
+	x_low=(xlow-min1)/delta1+coordinate.min1;
+	x_hi=(xhi-min1)/delta1+coordinate.min1;
+	y_low=(ylow-min2)/delta2+coordinate.min2;
+	y_hi=(yhi-min2)/delta2+coordinate.min2;
+	
+
+
+	/*draw the box */
+  gl_color (7);
+	vp_penup();
+	gl_upendn (x_low, y_low); gl_upendn (x_low, y_hi); gl_upendn (x_hi, y_hi);
+	gl_upendn (x_hi, y_low); gl_upendn (x_low, y_low);
+
+
+  /*draw the title*/
+  gl_fat(legendfat);
+	vp_tjust(TH_CENTER,TV_BOTTOM);
+	gl_color(7);
+	size2=legendsz*1.7; /* size of the title */
+	vp_text(.5*xlow+.5*xhi,yhi,size2,0,legendtitle);
+ 
+
+ 	gl_plotint (&plot, &dash); /*reinitialize plot dash type */
+
+  /*draw the curves */	
+	for(i2=0; i2< data.n2; i2++){ /*loop over the curves */
+
+		if(0!=search_title(i2,temp_ch,curvelabel)) sprintf(temp_ch,"%d",i2);
+    if(do_plot_amp==0) gl_color (plot.col[i2]);
+    else gl_color(6); 
+     
+
+    /*curve label */
+		vp_tjust(TH_LEFT,TV_TOP); /*orient to the left */
+    gl_fat(legendfat);
+		vp_text(xlow+pad_box,yhi-(float)i2*line_h-pad_box,legendsz,0,temp_ch);
+
+    /*curve look */
+		gl_dashfig (&dash, i2);
+    gl_dash (&dash);
+    gl_fat (plot.fat[i2]);
+		vp_tjust(TH_RIGHT,TV_TOP); /*orient to the left */
+	 	if (plot.symbol[i2] != ' '){
+			for(i1=0;i1<line_size; i1++)
+				temp_ch[i1]=plot.symbol[i2];
+    	temp_ch[line_size]='\0';
+			vp_text(xhi-pad_box,yhi-(float)i2*line_h-pad_box,legendsz,0,temp_ch);
+		}
+		else{
+ 			vp_penup();
+			gl_upendn(x_hi-pad_box/delta1,y_hi-(float)((i2+.5)*line_h+pad_box)/delta2);;
+			gl_upendn(x_hi-(line_size*line_w+pad_box)/delta1,
+        y_hi-(float)((i2+.5)*line_h+pad_box)/delta2);
+		}
+	}
+
+}
+
+

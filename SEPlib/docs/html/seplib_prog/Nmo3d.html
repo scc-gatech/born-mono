@@ -1,0 +1,170 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Nmo3d - NMO in sep3d datasets</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Nmo3d - NMO in sep3d datasets</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Nmo3d  &lt;in.H &gt;out.H pars
+Nmo3dM  intag=in.H outtag=out.H pars</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_verb__2d_integer">verb   -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] Whether (1) or not(0) to be verbose</pre>
+</dd>
+<dt><strong><a name="item_linear__2d_integer">linear -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1] Do linear interpolation NMO, [0] Nearest neighbor</pre>
+</dd>
+<dt><strong><a name="item_adj__2d_integer">adj    -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] Perform adjoint opperation(1), forward(0)</pre>
+</dd>
+<dt><strong><a name="item_inv__2d_integer">inv    -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] Perform inverse(1), else forward(0)</pre>
+</dd>
+<dt><strong><a name="item_maxsize_2d_integer">maxsize-  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [10]Number of megabytes of traces to hold</pre>
+</dd>
+<dt><strong><a name="item_slowfile_2d_sepfile">slowfile- sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Slowness file (regular cube or sep3d with headers)</pre>
+</dd>
+<dt><strong><a name="item_velfile_2d_sepfile">velfile-  sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Velocity file (regular cube or sep3d with headers)</pre>
+</dd>
+<dt><strong><a name="item_slow__2d_float">slow   -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Slowness to do NMO on</pre>
+</dd>
+<dt><strong><a name="item_vel__2d_float">vel    -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1.5] Velocity to do constant velocity NMO</pre>
+</dd>
+<dt><strong><a name="item_integer">off_keys- <code>integer(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+       Offset float key(s) describing</pre>
+</dd>
+<dt><strong>off_axes- <code>integer(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+       Offset axes</pre>
+</dd>
+<dt><strong><a name="item_vel_key_2d_integer">vel_key-  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Key that relates SEP3d velocity file to SEP3d data</pre>
+</dd>
+<dt><strong><a name="item_data_keys_2d_integer">data_keys- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Key that relate SEP3d data file file velocity file</pre>
+</dd>
+<dt><strong><a name="item_data_axes_int_2a">data_axes int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Axes that relate SEP3d data file file velocity file</pre>
+</dd>
+<dt><strong><a name="item_vel_axes_2d_int_2a">vel_axes- int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Offset axis/axes that relate to the off_axes or
+       offkeys of the dataset.</pre>
+</dd>
+<dt><strong><a name="item_master_data_2d_int">master_data- int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Whether or not the master trace has any of the data sections (only
+       valid for Nmo3dM)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+  Performs NMO, adjoint NMO, pseudoinverse NMO</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>NMO</em>, <a href="./../seplib_prog/Velan3d.html">the Velan3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+ off_keys and off_axes, are somewhat optional
+ If none of these are suplied checks keys and then axes for
+ aoffset, offset_x, and offset_y.</pre>
+<pre>
+ If you supply a key number &gt; key number of data_record_number subtract 1
+ to the parameter (data_record_number is not stored with the headers)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/velan</strong></p>
+
+</body>
+
+</html>

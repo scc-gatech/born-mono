@@ -1,0 +1,42 @@
+=head1 NAME
+
+
+sep3d_grab_coords - Grab the coordinates
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3d_grab_coords(struct,coords)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure
+
+=item coords  -  int (:,:)
+
+      coordinates
+
+=back
+
+=head1 DESCRIPTION
+
+
+Grab the coordinates [axis(2:)] of the dataset currently in memory
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

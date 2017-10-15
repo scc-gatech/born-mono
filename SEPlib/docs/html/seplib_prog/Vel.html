@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Vel - Make velocity model</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Vel - Make velocity model</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+        Vel  &gt;out.H pars</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n1_2cn2_2cn3_2co1_2co2_2co3">n1,n2,n3,o1,o2,o3</a></strong><br />
+</dt>
+<dd>
+<pre>
+         Standard SEPlib</pre>
+</dd>
+<dt><strong><a name="item_vc__2d_real">vc -       real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [2000.] Background velocity</pre>
+</dd>
+<dt><strong><a name="item_hgrad_2d_real">hgrad-     real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0.] Horizontal velocity gradient</pre>
+</dd>
+<dt><strong><a name="item_slow__2d_integer">slow -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] velocity, 1-slowness</pre>
+</dd>
+<dt><strong><a name="item_transp_2d_integer">transp-    integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] regular, 1-transpose axis 1 and 2</pre>
+</dd>
+<dt><strong><a name="item_xa___2d_real">xa_   -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [o2] left edge of plane reflector</pre>
+</dd>
+<dt><strong><a name="item_xb___2d_real">xb_   -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [o2+(n2-1)*d2] left edge of plane reflector</pre>
+</dd>
+<dt><strong><a name="item_alfa___2d_real">alfa_ -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.] dip in degress</pre>
+</dd>
+<dt><strong><a name="item_z___2d_real">z_    -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [o1+(n1-1)*d1] depth at xa</pre>
+</dd>
+<dt><strong><a name="item_vr___2d_real">vr_   -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      velocity below reflector</pre>
+</dd>
+<dt><strong><a name="item_const__2d_integer">const_-    integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] grad, 1= velocity is constant below reflector</pre>
+</dd>
+<dt><strong><a name="item_smooth_2d_real">smooth-    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      linear velocity under reflector from vr_ to smooth_</pre>
+</dd>
+<dt><strong><a name="item_sin_period_2dreal">sin_period-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [10*d2] period of sinusoid</pre>
+</dd>
+<dt><strong><a name="item_sin_amp_2d_real">sin_amp-   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      amplitude of sinusoid</pre>
+</dd>
+<dt><strong><a name="item_sin_vel_up_2dreal">sin_vel_up-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.] velocity perturbation above reflector</pre>
+</dd>
+<dt><strong><a name="item_sin_vel_down_2dreal">sin_vel_down-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.] velocity perturbation below reflectr</pre>
+</dd>
+<dt><strong><a name="item_sin_z_x0_2d_real">sin_z_x0-   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [o2] zero crossing of sine</pre>
+</dd>
+<dt><strong><a name="item_sinz__2d_real">sinz  -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [-o1] depth at sin_z_x0</pre>
+</dd>
+<dt><strong><a name="item_xan__2d_real">xan   -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.] coordinate center of anomaly</pre>
+</dd>
+<dt><strong><a name="item_zan__2d_real">zan   -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0.] coordinate center of anomaly</pre>
+</dd>
+<dt><strong><a name="item_ranx__2d_real">ranx  -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [-1.] coordinate center of anomaly</pre>
+</dd>
+<dt><strong><a name="item_ranz__2d_real">ranz  -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [-1.] coordinate center of anomaly</pre>
+</dd>
+<dt><strong><a name="item_exan__2d_real">exan  -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] sharpness of anomaly</pre>
+</dd>
+<dt><strong><a name="item_rankx__2d_real">rankx -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [-1.]  differential sharpness of in x</pre>
+</dd>
+<dt><strong><a name="item_rankz__2d_real">rankz -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+     [-1.]  differential sharpness of in z</pre>
+</dd>
+<dt><strong><a name="item_exank__2d_real">exank -    real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [exan] differential sharpness of anomaly</pre>
+</dd>
+<dt><strong><a name="item_widthan_2d_real">widthan-   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] scale width of anomaly</pre>
+</dd>
+<dt><strong><a name="item_dvan__2d_real">dvan   -   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] Maximum value of anomaly at (xan,zan)</pre>
+</dd>
+<dt><strong><a name="item_dvank__2d_real">dvank  -   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [dvan] For flat-topped anomalies</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+        Makes velocity models in  2-D and 2.5-D
+ (i.e. 2-D models replicated alonb the 3rd axis)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Gauss.html">the Gauss manpage</a>, <a href="./../seplib_prog/Spike.html">the Spike manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/model</strong></p>
+
+</body>
+
+</html>

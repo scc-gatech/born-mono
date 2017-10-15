@@ -1,0 +1,251 @@
+/*
+
+ =head1 NAME
+ 
+ Solver_ops - Mathematical operations for out-of-core solver
+ 
+ =head1 SYNOPSIS
+ 
+ Solver_ops  file1=in.H  op= [file2= scale1_r= scale2_r= scale2_i= scale1_i=]
+ 
+ =head1 INPUT PARAMETERS
+ 
+ =over 4
+ 
+ =item  file1-  sepfile
+ 
+        Seplib file to perform mathematical operation on 
+ 
+ =item  op-  char*
+ 
+        Mathematical operation (dot, multiply, zero, add, scale_add_scale,scale_add,scale)
+ 
+ =item  file2-  sepfile
+ 
+        Seplib file used for mathematical operation
+ 
+ =item  scale1_r,scale2_r,scale1_i,scale_i-  float
+ 
+        Scalars to apply during mathematical operation
+ 
+ =item  verb-  logical
+ 
+        [0] Verbosity
+ 
+ =item  pct_print-  integer
+ 
+        [10] How often to print progress
+ 
+ =back
+ 
+ =head1 DESCRIPTION
+ 
+  Apply simple mathematical operation on SEPlib files needed
+ 
+  for solver operations.
+ 
+ L<Math>
+ 
+ =head1 CATEGORY
+ 
+ B<util/vector>
+ 
+ =cut
+ >*/
+ADD_DEF_SEP_DOC
+
+#include <time.h>
+#include <stdlib.h>
+#include<seplib.h>
+#include<string.h>
+
+ int main(int argc, char **argv){
+   
+   char op[32];
+   char file1[999],file2[999];
+   char tmpch[99];
+   float scale1r,scale1i,scale2r,scale2i;
+   int two_file=0;
+   long long maxsize=100,block;
+   int block2;
+   double dotR=0,dotI=0;
+   int verb=0;
+   long long i;
+
+   initpar(argc,argv);
+   getch_add_string("head=/dev/null");
+
+   if(1!=getch("file1","s",file1))
+     seperr("file1 required");
+
+   if(1!=getch("op","s",op))
+      seperr("op required");
+
+   if(0==getch("file2","s",file2))
+     strcpy(file2,"none");
+
+   if(0==getch("verb","d",&verb)) verb==0;
+
+  if(0==getch("scale1_r","f",&scale1r)) scale1r=1;
+  if(0==getch("scale1_i","f",&scale1i)) scale1i=1;
+  if(0==getch("scale2_r","f",&scale2r)) scale2r=1;
+  if(0==getch("scale2_i","f",&scale2i)) scale2i=1;
+
+  auxinout("file1");
+  long long n123=1;
+  int esize=4;
+  auxpar("esize","d",&esize,"file1");
+  for(i=0; i <9 ; i++){
+    int n=1; 
+    sprintf(tmpch,"%s%d","n",i+1);
+    auxpar(tmpch,"d",&n,"file1");
+    n123*=(long long)n;
+  }
+  if(strcmp(file2,"none")!=0){
+    auxinout("file2");
+    long n1232=1;
+    int esize2=4;
+    auxpar("esize","d",&esize2,"file2");
+    if(esize!=esize2) seperr("file1 and file2 not of same type (complex,real)");
+    for(i=0; i <9 ; i++){
+      int n=1; 
+      sprintf(tmpch,"%s%d","n",i+1);
+      auxpar(tmpch,"d",&n,"file1");
+      n1232*=(long long)n;
+    }
+    if(n1232!=n123) seperr("files are not of the same");
+    two_file=1;
+  }
+
+  getch("maxsize","d",&maxsize);
+  maxsize=maxsize*1024*1024;
+
+  if(0!=strcmp("dot",op) && 0!=strcmp("multiply",op) && strcmp("zero",op) &&
+    0!=strcmp("scale_addscale",op) && 0!=strcmp("scale_add",op) && strcmp("rand",op) &&
+    0!=strcmp("scale",op))
+     seperr("uknown op type %s",op);
+
+
+   long long done=0;
+   float *buf1,*buf2;
+
+   buf1=(float*)malloc(sizeof(float)*maxsize);
+   buf2=(float*)malloc(sizeof(float)*maxsize);
+
+   int blockM=maxsize;
+   if(esize==8) blockM=blockM/2;
+
+  
+   long long fivep=n123/20;
+   
+   srand(time(NULL));
+
+   while(done < n123){
+     block=n123-done;
+     if(block > blockM) block=blockM;
+     block2=block*4;
+     if(esize==8) block2*=2;
+
+     if(verb){
+        if( done + block > fivep){
+          fprintf(stderr,"working on %d ", (int)(100.*(done+block)/n123));
+          int twenty=(int)((done+block)/n123*20.);
+          fivep=((float)(twenty+1)/20.)*n123;
+        }
+     }
+     if(0!=strcmp("op","zero")&& 0!=strcmp("op","rand")){
+        if(block2!=sreed("file1",buf1,block2))
+          seperr("trouble reading in file1\n");
+        if(strcmp("op","dot")!=0) sseek("file1",-block2,1);
+     }
+
+     if(two_file==1){
+     fprintf(stderr,"in two file1 \n");
+       if(block2!=sreed("file2",buf2,block2))
+         seperr("trouble reading in file2\n");
+     }
+     
+     if(0==strcmp("dot",op)){
+        if(esize==4){
+          for(i=0; i < block; i++) dotR+=buf1[i]*buf2[i];
+        }
+        else{
+          for(i=0; i < block; i++){
+             dotR+=buf1[i*2]*buf2[i*2]+buf1[i*2+1]*buf2[i*2+1];
+             dotI+=-buf1[i*2]*buf2[i*2+1]+buf1[i*2+1]*buf2[i*2];
+          }
+        }
+     }
+
+     if(0==strcmp(op,"zero")){
+        for(i=0; i < block2/4; i++) buf1[i]=0;
+     }
+     if(0==strcmp("add",op)){
+        for( i=0; i < block2/4; i++) buf1[i]+=buf2[i];
+
+     }
+     if(0==strcmp(op,"rand")){
+        for( i=0; i < block2/4; i++) buf1[i]+=2*((float)rand()/(float)RAND_MAX)-1.;
+     }
+     if(0==strcmp(op,"mult")){
+        if(esize==4){
+          for(i=0; i < block; i++) buf1[i]=buf1[i]*buf2[i];
+        }
+        else{
+           for(i=0; i < block; i++){
+              buf1[i*2]=buf1[i*2]*buf2[i*2]-buf1[i*2+1]*buf2[i*2+1];
+              buf1[i*2+1]=buf1[i*2]*buf2[i*2+1]+buf1[i*2+1]*buf2[i*2];
+           }
+        }
+     }
+     if(0==strcmp(op,"scale_addscale")){
+        if(esize==4){
+          for(i=0; i < block; i++) buf1[i]=buf1[i]*scale1r+buf2[i]*scale2r;
+        }
+        else{
+           for(i=0; i < block ;i++){
+              buf1[i*2]=buf1[i*2]*scale1r-buf1[i*2+1]*scale1i+
+                buf2[i*2]*scale2r-buf2[i*2+1]*scale2i;
+
+              buf1[i*2+1]=buf1[i*2]*scale1i+buf1[i*2+1]*scale1r+
+                buf2[i*2]*scale2r-buf2[i*2+1]*scale2r;
+           }
+        }
+     }
+     if(0==strcmp(op,"scale_add")){
+        if(esize==4){
+          for(i=0; i < block; i++) buf1[i]=buf1[i]+buf2[i]*scale1r;
+        }
+        else{
+           for(i=0; i < block; i++){
+              buf1[i*2]=buf1[i*2]+
+                buf2[i*2]*scale1r-buf2[i*2+1]*scale1i;
+
+              buf1[i*2+1]=buf1[i*2+1]+
+                buf2[i*2]*scale1r-buf2[i*2+1]*scale1r;
+           }
+        }
+     }
+      if(0==strcmp(op,"scale")){
+        if(esize==4){
+          for(i=0; i < block; i++) buf1[i]=buf1[i]*scale1r;
+        }
+        else{
+           for(i=0; i < block; i++){
+              buf1[i*2]=buf1[i*2]*scale1r-buf1[i*2+1]*scale1i;
+              buf1[i*2+1]=buf1[i*2]*scale1i+buf1[i*2+1]*scale1r;
+           }
+        }
+     }
+     if(0!=strcmp("dot",op)){
+        if(block2!=srite("file1",buf1,block2))
+         seperr("trouble writing out results");
+     }
+    done+=block;
+  }
+ 
+  if(0==strcmp("dot",op)){
+     if(esize==4) fprintf(stderr,"DOT RESULT %f\n",dotR);
+     else fprintf(stderr,"DOT RESULTS %f,%fi\n",dotR,dotI);
+  }
+  }

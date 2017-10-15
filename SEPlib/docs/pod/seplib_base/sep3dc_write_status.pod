@@ -1,0 +1,52 @@
+=head1 NAME
+
+
+sep3dc_write_status - Set write status
+
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3dc_write_status(char *sep3dc, int data, int headers)>
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  sep3dc  -  sep3d
+
+     structure 
+
+=item  data  -  int
+
+    whether [1] or not [0] we have written out data
+
+=item  headers  -  int
+
+    whether [1] or not [0] we have written out headers
+
+=back
+
+=head1 DESCRIPTION
+
+
+
+Set whether the data and/or headers of this dataset have been written (necessary
+
+to know where to write the number of traces in a dataset)
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

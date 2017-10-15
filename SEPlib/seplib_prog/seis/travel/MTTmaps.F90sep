@@ -1,0 +1,904 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$ MTTmaps - Band-limited maximum-energey Green's function maps
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$MTTmaps <slowmodel.H x_shot= mode=0 >maps.H
+!!$
+!!$
+!!$=head1  INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$
+!!$=item  stdin  - sepfile
+!!$
+!!$       slow(nz,nx) = slowness model
+!!$
+!!$=item  z_shot - real
+!!$
+!!$        [0.] shot Z coordinate
+!!$
+!!$=item  x_shot -real
+!!$
+!!$       [0.] first shot X coordinate
+!!$
+!!$=item  dx_shot-real
+!!$
+!!$       [dxo] increment in shot X coordinate
+!!$
+!!$=item  n_shot -integer
+!!$
+!!$       [1] number of shots
+!!$
+!!$=item  mode   -integer
+!!$
+!!$       [0]  grid is stationary the shot moves across the grid
+!!$       the second output axis coordinates are absolute.
+!!$       1=grid moves with the shot, the second output axis
+!!$       coordinates are relative to the shot location.
+!!$
+!!$=item  oxo    -real
+!!$
+!!$       [o2] initial surface coordinate (mode=0)
+!!$
+!!$=item  dxo    -real
+!!$
+!!$       [d2] increment in surface coordinate (mode=0)
+!!$
+!!$=item  nxo    -integer
+!!$
+!!$       [n2] number of surface coordinates (mode=0)
+!!$
+!!$=item  ozo    -real
+!!$
+!!$       [o1] first depth level  (mode=0)
+!!$
+!!$=item  dzo    -real
+!!$
+!!$       [d1] depth increments (mode=0)
+!!$
+!!$=item  nzo    -integer
+!!$
+!!$       [n1] number of depth levels on the grid  (mode=0)
+!!$
+!!$=item  oxo    -real
+!!$
+!!$       [(o2-x_shot)] first offset from shot coordinate  (mode=1)
+!!$
+!!$=item  dxo    -real
+!!$
+!!$       [d2] increment in offset (mode=1)
+!!$
+!!$=item  nxo    -integer
+!!$
+!!$       [n2] number of offsets (mode=1)
+!!$
+!!$=item  ozo    -real
+!!$
+!!$       [o1] first depth level  (mode=1)
+!!$
+!!$=item  dzo    -real
+!!$
+!!$       [d1] depth increments (mode=1)
+!!$
+!!$=item  nzo    -integer
+!!$
+!!$       [n1] number of depth levels on the grid
+!!$
+!!$=item  n_theta-integer
+!!$
+!!$       [nxo]  number of angles for the polar grid
+!!$
+!!$=item  nr     -integer
+!!$
+!!$       [nzo] number of radius increments for the polar grid
+!!$
+!!$=item  fmin   -real
+!!$
+!!$       [10] minimum frequency in estimation band
+!!$
+!!$=item  fmax   -real
+!!$
+!!$       [60] maximum frequency in estimation band
+!!$
+!!$=item  nf     -integer
+!!$
+!!$       [16] number of frequencies to use in estimation.
+!!$
+!!$=item  dt     -real
+!!$
+!!$       [.008] sampling to use for initial traveltime estimation
+!!$
+!!$=back
+!!$
+!!$=head1  OUTPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item stdout - sepfile
+!!$
+!!$      maps(nzo,nxo,3,n_shot) = output
+!!$      Green's function maps, tt/amp/phase
+!!$
+!!$=back
+!!$
+!!$=head1  DESCRIPTION
+!!$
+!!$  Band-limited maximum-energy Green's function maps
+!!$
+!!$=head1 COMMENTS
+!!$
+!!$ Default parameters calculate one shot at user specified output location.
+!!$ x_shot must be specified! The output grid will be the same as the input grid.
+!!$
+!!$ When calculating multiple maps you may want to specify the other
+!!$ parameters that control the output grid relative to each shot.
+!!$ There are two modes, if mode=0 the output grid is absolute.
+!!$ If mode=1 the output grid is relative to the shot location.
+!!$
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Hwt3d>, L<FMeikonal>, L<Gfgradz>, L<Hwt3d>;
+!!$
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/travel>
+!!$
+!!$=cut
+!!$
+!>
+!  Author: Dave Nichols
+!
+!#######################################################################
+!
+! Author, Dave Nichols (SEP) March 19 1994
+!
+program zyxabc
+use sep
+implicit none
+real, allocatable, dimension (:,:) :: poltime
+real, allocatable, dimension (:,:) :: polamp
+real, allocatable, dimension (:,:) :: polphase
+real, allocatable, dimension (:,:) :: slow
+real, allocatable, dimension (:,:) :: polslow
+real, allocatable, dimension (:) :: omega
+integer nx,nz,nr,ntheta
+integer nxo,nzo,nshot,mode,nf
+real    xshot,zshot,ox,dx,oz,dz
+real    oxo,dxo,ozo,dzo,dxshot
+real    or,dr,otheta,dtheta,fmin,fmax,dt
+real 	rmax,zmax,apmax,v,thetamax
+!
+!      input slowness map parameters
+!
+call SEP_ADD_DOC()
+call sep_init('')
+call sep_begin_prog()
+  if (0>= hetch('n1','d',nz )) then
+    call erexit('Trouble reading  n1 from history  ')
+  end if
+  if (0>= hetch('n2','d',nx )) then
+    call erexit('Trouble reading  n2 from history  ')
+  end if
+  if (0>= hetch('o1','f',oz )) then
+    call erexit('Trouble reading  o1 from history  ')
+  end if
+  if (0>= hetch('o2','f',ox )) then
+    call erexit('Trouble reading  o2 from history  ')
+  end if
+  if (0>= hetch('d1','f',dz )) then
+    call erexit('Trouble reading  d1 from history  ')
+  end if
+  if (0>= hetch('d2','f',dx )) then
+    call erexit('Trouble reading  d2 from history  ')
+  end if
+  if (0>= getch('mode','d',mode )) then
+    mode = 0
+  end if
+  if (0.ne.putch('Read  from param: #mode ','d',mode)) then
+    call erexit('Trouble writing mode to history')
+  end if
+!
+!	shot coordinates
+!
+  if (0>= getch('x_shot','f',xshot )) then
+    call erexit('Trouble reading  x_shot from param  ')
+  end if
+  if (0.ne.putch('Read  from param: #x_shot ','f',xshot)) then
+    call erexit('Trouble writing xshot to history')
+  end if
+  if (0>= getch('z_shot','f',zshot )) then
+    zshot = 0.
+  end if
+  if (0.ne.putch('Read  from param: #z_shot ','f',zshot)) then
+    call erexit('Trouble writing zshot to history')
+  end if
+  if (0>= getch('n_shot','d',nshot )) then
+    nshot = 1
+  end if
+  if (0.ne.putch('Read  from param: #n_shot ','d',nshot)) then
+    call erexit('Trouble writing nshot to history')
+  end if
+  if (0>= getch('dx_shot','f',dxshot )) then
+    dxshot = dxo
+  end if
+  if (0.ne.putch('Read  from param: #dx_shot ','f',dxshot)) then
+    call erexit('Trouble writing dxshot to history')
+  end if
+!
+!	sampling of output grid
+!
+  if (0>= getch('nzo','d',nzo )) then
+    nzo = nz
+  end if
+  if (0.ne.putch('Read  from param: #nzo ','d',nzo)) then
+    call erexit('Trouble writing nzo to history')
+  end if
+  if (0>= getch('nxo','d',nxo )) then
+    nxo = nx
+  end if
+  if (0.ne.putch('Read  from param: #nxo ','d',nxo)) then
+    call erexit('Trouble writing nxo to history')
+  end if
+  if (0>= getch('ozo','f',ozo )) then
+    ozo = oz
+  end if
+  if (0.ne.putch('Read  from param: #ozo ','f',ozo)) then
+    call erexit('Trouble writing ozo to history')
+  end if
+  if (0>= getch('dzo','f',dzo )) then
+    dzo = dz
+  end if
+  if (0.ne.putch('Read  from param: #dzo ','f',dzo)) then
+    call erexit('Trouble writing dzo to history')
+  end if
+  if (0>= getch('dxo','f',dxo )) then
+    dxo = dx
+  end if
+  if (0.ne.putch('Read  from param: #dxo ','f',dxo)) then
+    call erexit('Trouble writing dxo to history')
+  end if
+if ( mode .eq. 0 ) then
+    if (0>= getch('oxo','f',oxo )) then
+      oxo = ox
+    end if
+    if (0.ne.putch('Read  from param: #oxo ','f',oxo)) then
+      call erexit('Trouble writing oxo to history')
+    end if
+else
+    if (0>= getch('oxo','f',oxo )) then
+      oxo = (ox-xshot)
+    end if
+    if (0.ne.putch('Read  from param: #oxo ','f',oxo)) then
+      call erexit('Trouble writing oxo to history')
+    end if
+end if 
+!
+!	frequency sampling and rough time sampling
+!
+  if (0>= getch('nf','d',nf )) then
+    nf = 16
+  end if
+  if (0.ne.putch('Read  from param: #nf ','d',nf)) then
+    call erexit('Trouble writing nf to history')
+  end if
+  if (0>= getch('fmin','f',fmin )) then
+    fmin = 10.
+  end if
+  if (0.ne.putch('Read  from param: #fmin ','f',fmin)) then
+    call erexit('Trouble writing fmin to history')
+  end if
+  if (0>= getch('fmax','f',fmax )) then
+    fmax = 60.
+  end if
+  if (0.ne.putch('Read  from param: #fmax ','f',fmax)) then
+    call erexit('Trouble writing fmax to history')
+  end if
+  if (0>= getch('dt','f',dt )) then
+    dt = .008
+  end if
+  if (0.ne.putch('Read  from param: #dt ','f',dt)) then
+    call erexit('Trouble writing dt to history')
+  end if
+!
+!	size of polar grid
+!
+or = 0
+  if (0>= getch('v','f',v )) then
+    v = 2000.
+  end if
+  if (0.ne.putch('Read  from param: #v ','f',v)) then
+    call erexit('Trouble writing v to history')
+  end if
+! calculate a reasonable dr ( 3 points per min wavelength )
+dr = ( (v/fmax) / 3. )
+if ( mode .eq. 0 ) then
+  apmax = max( abs(xshot-oxo), abs(oxo+(nxo-1)*dxo-xshot) )
+else
+  apmax = max( abs(oxo), abs(oxo+(nxo-1)*dxo) )
+end if 
+zmax = ozo + (nzo-1)*dzo
+rmax=sqrt(zmax**2 + apmax**2 )
+nr = rmax/dr +2
+  if (0>= getch('n_theta','d',ntheta )) then
+    ntheta = nxo
+  end if
+  if (0.ne.putch('Read  from param: #n_theta ','d',ntheta)) then
+    call erexit('Trouble writing ntheta to history')
+  end if
+thetamax = 3.141592654*0.99/2.
+otheta = -thetamax
+dtheta = (2.*thetamax)/real(ntheta-1)
+allocate (poltime(ntheta,nr) )
+allocate (polamp(ntheta,nr) )
+allocate (polphase(ntheta,nr) )
+allocate (slow(nz,nx), polslow(ntheta,nr))
+allocate (omega(nf))
+call mttmap (xshot,zshot,nx,ox,dx,nz,oz,dz,slow,polslow,poltime,polamp&
+  &,polphase,nxo,nzo,oxo,dxo,ozo,dzo,nshot,dxshot,mode,ntheta,nr,or&
+  &,dr,otheta,dtheta,nf,fmin,fmax,dt,v,omega)
+end program zyxabc 
+subroutine mttmap(xshot,zshot,nx,ox,dx,nz,oz,dz,slow,polslow,poltime&
+  &,polamp,polphase,nxo,nzo,oxo,dxo,ozo,dzo,nshot,dxshot,mode,ntheta&
+  &,nr,or,dr,otheta,dtheta,nf,fmin,fmax,dt,v,omega)
+use sep_mod
+integer nx,nz,nr,ntheta
+integer nxo,nzo,nshot,mode,nf
+real    oxo,dxo,ozo,dzo,dxshot
+real xshot,zshot,ox,dx,oz,dz
+real    or,dr,otheta,dtheta,fmin,fmax,dt,v
+real poltime(ntheta,nr) 
+real polamp(ntheta,nr) 
+real polphase(ntheta,nr) 
+real slow(nz,nx), polslow(ntheta,nr)
+real omega(nf) 
+real ooxo,dfreq,pi
+integer input,output,esize,i,n3o,irad0
+integer :: ierr
+integer nsamp,cosamp,polout
+  if (0>= getch('cosamp','d',cosamp )) then
+    cosamp = 0
+  end if
+  if (0.ne.putch('Read  from param: #cosamp ','d',cosamp)) then
+    call erexit('Trouble writing cosamp to history')
+  end if
+  if (0>= getch('polout','d',polout )) then
+    polout = 0
+  end if
+  if (0.ne.putch('Read  from param: #polout ','d',polout)) then
+    call erexit('Trouble writing polout to history')
+  end if
+esize=4
+pi=3.1415926536
+n3o = 3
+if ( polout .eq. 0 ) then
+    if (0.ne. putch('n1','d',nzo )) then
+      call erexit('Trouble writing  n1 to history  ')
+    end if
+    if (0.ne. putch('n2','d',nxo )) then
+      call erexit('Trouble writing  n2 to history  ')
+    end if
+    if (0.ne. putch('n3','d',n3o )) then
+      call erexit('Trouble writing  n3 to history  ')
+    end if
+    if (0.ne. putch('n4','d',nshot )) then
+      call erexit('Trouble writing  n4 to history  ')
+    end if
+    if (0.ne. putch('o1','f',ozo )) then
+      call erexit('Trouble writing  o1 to history  ')
+    end if
+    if (0.ne. putch('o2','f',oxo )) then
+      call erexit('Trouble writing  o2 to history  ')
+    end if
+    if (0.ne. putch('o4','f',xshot )) then
+      call erexit('Trouble writing  o4 to history  ')
+    end if
+    if (0.ne. putch('d1','f',dzo )) then
+      call erexit('Trouble writing  d1 to history  ')
+    end if
+    if (0.ne. putch('d2','f',dxo )) then
+      call erexit('Trouble writing  d2 to history  ')
+    end if
+    if (0.ne. putch('d4','f',dxshot )) then
+      call erexit('Trouble writing  d4 to history  ')
+    end if
+else
+    if (0.ne. putch('n1','d',ntheta )) then
+      call erexit('Trouble writing  n1 to history  ')
+    end if
+    if (0.ne. putch('n2','d',nr )) then
+      call erexit('Trouble writing  n2 to history  ')
+    end if
+    if (0.ne. putch('n3','d',n3o )) then
+      call erexit('Trouble writing  n3 to history  ')
+    end if
+    if (0.ne. putch('n4','d',nshot )) then
+      call erexit('Trouble writing  n4 to history  ')
+    end if
+    if (0.ne. putch('o1','f',otheta )) then
+      call erexit('Trouble writing  o1 to history  ')
+    end if
+    if (0.ne. putch('o2','f',or )) then
+      call erexit('Trouble writing  o2 to history  ')
+    end if
+    if (0.ne. putch('o4','f',xshot )) then
+      call erexit('Trouble writing  o4 to history  ')
+    end if
+    if (0.ne. putch('d1','f',dtheta )) then
+      call erexit('Trouble writing  d1 to history  ')
+    end if
+    if (0.ne. putch('d2','f',dr )) then
+      call erexit('Trouble writing  d2 to history  ')
+    end if
+    if (0.ne. putch('d4','f',dxshot )) then
+      call erexit('Trouble writing  d4 to history  ')
+    end if
+end if 
+call hclose()
+dfreq= (fmax-fmin)/(nf-1)
+do i=1,nf 
+  omega(i) = (fmin + dfreq*(i-1))*2.*pi
+end do 
+nsamp = max( nint(.25/(dfreq * dt)) , 3 )
+irad0 = (v/(fmin*2)-or)/dr + 1
+irad0 = max(irad0,4)
+! read the slowness field
+ierr= sreed('in',slow,nz*nx*esize)
+do i=1,nshot 
+! Interpolate slowness to polar grid
+  call rect2pol( slow, nx, ox, dx, nz, oz, dz ,polslow, ntheta, otheta&
+    &, dtheta, nr, or, dr ,xshot, zshot )
+! compute Green's function on polar grid
+  call Polgreens( ntheta,dtheta,otheta,nr,or,dr,irad0,polslow,poltime&
+    &,polamp,polphase,omega,nf,dt,nsamp,cosamp )
+  if ( mode .eq. 0 ) then
+! output grid is stationary
+    ooxo = oxo
+  else
+! output grid is relative to shot
+    ooxo = xshot + oxo
+  end if 
+  if ( polout .eq. 0 ) then
+! Interpolate maps to rect grid and output
+    call rectout( poltime, ntheta,dtheta,otheta,nr,or,dr,ooxo,nxo,dxo&
+      &,ozo,dzo,nzo, zshot,xshot )
+    call rectout( polamp, ntheta,dtheta,otheta,nr,or,dr,ooxo,nxo,dxo,ozo&
+      &,dzo,nzo, zshot,xshot )
+    call rectout( polphase, ntheta,dtheta,otheta,nr,or,dr,ooxo,nxo,dxo&
+      &,ozo,dzo,nzo, zshot,xshot  )
+  else
+    ierr= srite('out',poltime,ntheta*nr*4)
+    ierr= srite('out',polamp,ntheta*nr*4)
+    ierr= srite('out',polphase,ntheta*nr*4)
+  end if 
+! increment shot coord.
+  xshot  = xshot + dxshot
+end do 
+!call exit(0)
+call sep_end_prog()
+return
+end
+subroutine Polgreens( nth,dth,oth,nr,or,dr,irad0,slowness,time,amp,phase&
+  &,omega,nom,dt,nsamp,cosamp )
+use sep_mod
+integer nr,nth,nom,nsamp,irad0,cosamp
+real dth,dr,dt,oth,or
+real omega(nom)
+real slowness(nth,nr)
+real time(nth,nr)
+real amp(nth,nr)
+real phase(nth,nr)
+! =======================================================
+real timeprev(nth)
+complex wavefield(nth,nom)
+complex temp( nth )
+complex upper( nth)
+complex lower( nth)
+complex maind( nth  )
+complex aa( nth )
+complex bb( nth )
+real alpha( nth )
+real winmin( nth )
+real winmin1( nth )
+real winmin2( nth )
+real winmin3( nth )
+real envelope( nsamp )
+complex wrk1( nom )
+complex wrk2( nom )
+complex wrk3( nom )
+complex boundary1
+complex boundary2
+real rad, costheta
+integer ir,iw,ith
+real pi
+pi=3.1415926536
+!
+!     up to irad0 we just propagate outwards uniformly (zero deg)
+!     straight ray approximation
+!
+!     at zero radius time == 0
+!     amplitude is damped to prevent singularity
+do ith=1,nth  
+  costheta = cos( oth+(ith-1)*dth )
+  time(ith,1) = slowness(ith,1)*or
+  if ( cosamp .eq. 1 ) then
+    amp(ith,1) = 1./( sqrt( time(ith,1) ) + dt*10. )*costheta
+  else
+    amp(ith,1) = 1./( sqrt( time(ith,1) ) + dt*10. )
+  end if 
+  phase(ith,1) =  0.
+  do ir = 2, irad0  
+    time (ith,ir) = time (ith,ir-1) + slowness(ith,ir)*dr
+    if ( cosamp .eq. 1 ) then
+      amp(ith,ir) = 1./( sqrt( time(ith,ir) ) + dt*10. )*costheta
+    else
+      amp(ith,ir) = 1./( sqrt( time(ith,ir) ) + dt*10. )
+    end if 
+    phase(ith,ir) =  0.
+  end do
+end do 
+!
+!     initial field at irad0
+!
+do iw=1,nom   
+  do ith=1,nth 
+    wavefield(ith,iw) = amp(ith,irad0)*cexp(cmplx(0.,omega(iw)*time(ith&
+      &,irad0)+phase(ith,irad0)))
+  end do
+end do 
+!
+!     save inital time
+do ith=1,nth 
+  timeprev(ith) = time(ith,irad0)
+end do 
+!
+!   loop over radius
+!
+do ir = irad0+1,nr  
+  rad = or + (ir-1)*dr
+!
+!  extrapolate wavefield out one radial step
+!
+  do iw=1,nom 
+    do ith=1,nth 
+      alpha(ith) =  (omega(iw)*slowness(ith,ir))**2 - 1./(4.*rad**2) 
+      aa(ith) = cmplx( 1./(4.*alpha(ith)*(rad**2)*(dth**2)) , 0. )
+      if ( alpha(ith) .gt. 0. ) then
+        bb(ith) = cmplx( 0., dr/(4.*sqrt(alpha(ith))*(rad**2)*(dth**2)&
+          &) )
+      else
+        bb(ith) = cmplx( dr/(4.*sqrt(-alpha(ith))*(rad**2)*(dth**2)),&
+          & 0. )
+      end if
+    end do 
+!
+!       boundary conditions ( data dependent absorbing )
+!
+    boundary1 = 2.* wavefield(1,iw)*conjg(wavefield(2,iw))/( cabs(wavefield&
+      &(1,iw))**2 + cabs( wavefield(2,iw))**2 )
+    boundary2 = 2.*wavefield(nth,iw)*conjg(wavefield(nth-1,iw) )/( cabs&
+      &(wavefield(nth,iw))**2 + cabs( wavefield(nth-1,iw))**2 )
+!
+!       calculate rhs
+!
+    do ith=1,nth  
+      lower(ith) = aa(ith)+bb(ith)  
+      maind(ith) = 1. - 2.*aa(ith) -2.* bb(ith) 
+      upper(ith) = aa(ith)+bb(ith)
+    end do 
+    do ith=2,nth-1  
+      temp(ith) = lower(ith)*wavefield(ith-1,iw) +maind(ith) * wavefield&
+        &(ith,iw) +upper(ith) * wavefield(ith+1,iw)
+    end do 
+    temp(1) = maind(1)*wavefield(1,iw) +upper(1)*wavefield(2,iw) +lower&
+      &(1)*boundary1*wavefield(1,iw)
+    temp(nth) = maind(nth) * wavefield(nth,iw) +upper(nth) * boundary2&
+      &*wavefield(nth,iw) +lower(nth) * wavefield(nth-1,iw)
+!
+!       create and solve tridiagonal system
+!
+    do ith=1,nth  
+      lower(ith) = aa(ith)-bb(ith)  
+      maind(ith) = 1. - 2.*aa(ith) + 2.* bb(ith) 
+      upper(ith) = aa(ith)-bb(ith)
+    end do 
+    maind(1) = maind(1) + lower(1)*boundary1
+    maind(nth) = maind(nth) + upper(nth)*boundary2
+    call tridiag( lower, maind, upper, temp, nth )
+!       thin lens + amp term
+    do ith=1,nth 
+      if ( alpha(ith) > 0. ) then
+        wavefield(ith,iw) =  temp(ith) *cexp( cmplx(-dr/(2.*rad), sqrt&
+          &(alpha(ith))*dr) )
+      else
+        wavefield(ith,iw) =  0.
+      end if
+    end do
+  end do 
+!   now calculate the traveltime/amp/phase for this radius
+  call wavetott(wavefield, nth,  time(1,ir), timeprev,amp(1,ir), phase&
+    &(1,ir), nom, omega,envelope, wrk1, wrk2, wrk3, winmin, winmin1,&
+    & winmin2, winmin3,nsamp , dr, slowness(1,ir ) , dt )
+!   save times at this radius
+  do ith=1,nth  
+    timeprev(ith) = time(ith,ir)
+  end do
+end do 
+!   end of loop over radius
+return
+end
+subroutine rect2pol( rectmap, nx, ox, dx, nz, oz, dz ,polmap, nth, oth&
+  &, dth, nr, or, dr ,xshot, zshot )
+use sep_mod
+integer nx,nz,nth,nr
+real ox,oz,oth,or,dx,dz,dth,dr,xshot,zshot
+real rectmap(nz,nx)
+real polmap(nth,nr)
+real PI,xmax,zmax,rmax,rr,xx,zz,theta,ddx,ddz
+real a11,a12,a21,a22
+integer it,ir,ix,iz
+real bilint
+bilint(ddz,ddx,a11,a21,a12,a22) = (1-ddz)*(1-ddx)*a11+ddz*(1-ddx)*a21+&
+  &(1-ddz)*ddx*a12+ddz*ddx*a22
+xmax=ox+(nx-1)*dx
+zmax=oz+(nz-1)*dz
+! Check if shot coordinates are outside model
+if ( (xshot.lt.ox.or.xshot.gt.xmax) .or. (zshot.lt.oz.or.zshot.gt.zmax&
+  &) ) then
+  call seperr ('Shot coordinates are outside grid model' )
+end if
+! Initialize constants
+PI = 4.*atan(1.)
+rmax = or + (nr-1)*dr
+! Loop in Radius and Theta and express the slowness in cylindrical coordinates
+xmax=ox+(nx-2)*dx
+zmax=oz+(nz-2)*dz
+do ir=1,nr  
+  rr=or+(ir-1)*dr
+  do it=1,nth  
+    theta=oth+(it-1)*dth
+    xx=rr*sin(theta)+xshot
+    zz=rr*cos(theta)+zshot
+! xx and zz stay within the boundaries (ox,xmax) respectively (oz,zmax)
+    xx=max(ox,xx)
+    xx=min(xmax,xx)
+    zz=max(oz,zz)
+    zz=min(zmax,zz)
+! Find index in the (X,Z) grid
+    ix=int((xx-ox)/dx)+1
+    iz=int((zz-oz)/dz)+1
+    ddx=(xx-ox)/dx-ix+1
+    ddz=(zz-oz)/dz-iz+1
+    ix=min(ix,nx-1)
+    iz=min(iz,nz-1)
+    a11=rectmap(iz,ix)
+    a21=rectmap(iz+1,ix)
+    a12=rectmap(iz,ix+1)
+    a22=rectmap(iz+1,ix+1)
+    polmap(it,ir)=bilint(ddz,ddx,a11,a21,a12,a22)
+  end do
+end do 
+return
+end
+subroutine rectout( polmap, ntheta,dtheta,otheta,nr,or,dr,oxo,nxo,dxo&
+  &,ozo,dzo,nzo, zshot, xshot )
+use sep_mod
+integer ntheta,nr,nxo,nzo
+real otheta,or,oxo,ozo,dtheta,dr,dxo,dzo,xshot,zshot
+real polmap( ntheta, nr )
+real rectmap( nzo, nxo )
+real PI,epsilon,rr,xx,zz,ddr
+real a11,a12,a21,a22,th,ddt
+integer it,ir,ix,iz,ierr
+real bilint
+bilint(ddt,ddr,a11,a21,a12,a22) =  (1-ddt)*(1-ddr)*a11+ddt*(1-ddr)*a21&
+  &+(1-ddt)*ddr*a12+ddt*ddr*a22
+! Initialize constants
+PI = 4.*atan(1.)
+epsilon=1e-10
+! Map to cartezian coordinates
+do iz=1,nzo  
+  zz=ozo+(iz-1)*dzo-zshot
+  do ix=1,nxo 
+    xx=oxo+(ix-1)*dxo-xshot
+    rr=sqrt(xx*xx+zz*zz)
+    if (abs(zz).lt.epsilon) then
+      th=sign(1.,xx)*PI/2.
+    else
+      th=atan2(xx,zz)
+    end if 
+    it=int((th-otheta)/dtheta)+1
+    it=max(1,it)
+    it=min(ntheta-1,it)
+    ir=int((rr-or)/dr)+1
+    ir=max(1,ir)
+    ir=min(nr-1,ir)
+    ddr=(rr-or)/dr-ir+1
+    ddt=(th-otheta)/dtheta-it+1
+    a11=polmap(it,ir)
+    a21=polmap(it+1,ir)
+    a12=polmap(it,ir+1)
+    a22=polmap(it+1,ir+1)
+    rectmap(iz,ix)=bilint(ddt,ddr,a11,a21,a12,a22)
+  end do
+end do 
+! write out rectangular coord map
+ierr= srite('out', rectmap, nzo*nxo*4 )
+return
+end
+subroutine wavetott(wavefield, nth,  time, timeprev,amp, phase, nom,&
+  & omega,envelope, onewave, cmpshift, cmptmp,winmin, winmin1, winmin2&
+  &, winmin3,nsamp , dr, slowness, dt )
+use sep_mod
+integer nth,nom,nsamp 
+real dr,dt
+real omega(nom)
+complex wavefield(nth,nom)
+real amp(nth)
+real time(nth)
+real timeprev(nth)
+real phase(nth)
+real slowness(nth)
+real envelope(nsamp)
+complex onewave(nom)
+complex cmpshift(nom)
+complex cmptmp(nom)
+real winmin(nth)
+real winmin1(nth)
+real winmin2(nth)
+real winmin3(nth)
+real tmptime
+real maxtime
+real maxamp
+real delf
+real del2f
+complex cdata,cdata2,ctmp
+integer i,j,k,ith
+!
+!       for each angle do a slow transform back to the energy of
+!       the signal for each time sample
+!
+!       minimum travel time to image at this radius
+do i=1,nth  
+  winmin(i) = timeprev(i) + real(-nsamp/2)*dt + dr*slowness(i)
+  if ( winmin(i) .lt. 0. ) then
+    winmin(i)=0.
+  end if
+end do 
+call median3( winmin, winmin1, winmin2, winmin3, nth )
+!precomputed shifts by one sample
+do k = 1,nom  
+  cmpshift(k)  = cexp( cmplx( 0., -dt*omega(k) ) )
+end do 
+do ith = 1,nth  
+  do i = 1, nom  
+    onewave(i) = wavefield(ith,i)
+  end do
+! calculate envelope for nsamp traveltime, use precomputed cexp shifts
+  cdata = 0.
+  do k = 1,nom  
+    onewave(k) = onewave(k)*cmplx( cos(winmin(ith)*omega(k)),-sin(winmin&
+      &(ith)*omega(k)) )
+    cdata=cdata+onewave(k)
+  end do 
+  envelope(1) = cabs(cdata)
+  do j = 2,nsamp 
+    cdata=0.
+    do k = 1,nom  
+      onewave(k) = onewave(k)*cmpshift(k) ! shift by dt
+      cdata=cdata+onewave(k)
+    end do 
+    envelope(j) = cabs(cdata)
+  end do 
+  do i = 1, nom  
+    onewave(i) = wavefield(ith,i)
+  end do 
+!
+!       pick the maximum value
+!       use its amplitude and time (for now)
+  maxtime = 0. 
+  maxamp = 0.
+  do j = 1,nsamp 
+    if ( envelope(j) > maxamp ) then
+      maxamp = envelope(j)
+      maxtime  = winmin(ith) + real(j-1)*dt
+    end if
+  end do 
+!
+!     tune up the traveltimes
+!
+!       first calculate gradient and curvature
+  do k=1,nom  
+    cmptmp(k)=cmplx(cos(omega(k)*maxtime),sin(omega(k)*maxtime))
+  end do 
+  delf =0.	
+  del2f =0.	
+  do i = 1,nom 
+    cdata=0.
+    cdata2=0.
+    do k = 1,nom 
+      ctmp = cmptmp(i)*conjg(cmptmp(k))
+      cdata = cdata +cmplx(0.,(omega(i)-omega(k))) * ctmp * onewave(k)
+      cdata2 = cdata2 -(omega(i)-omega(k))**2 * ctmp * onewave(k)
+    end do 
+    delf = delf +  real( conjg(onewave(i)) * cdata ) 
+    del2f = del2f +  real( conjg(onewave(i)) * cdata2 )
+  end do 
+!       locate maximum  ( quadratic fit (limit to one samp) )
+  delf = delf/del2f
+  if ( abs(delf).lt. dt ) then
+    maxtime = maxtime - delf 
+  end if
+  time(ith) = maxtime
+!	calculate amplitude and phase at this point
+  cdata=0.
+  do k = 1,nom  
+    cdata=cdata+onewave(k)* cmplx( cos(maxtime*omega(k)), -sin(maxtime&
+      &*omega(k)) )
+  end do 
+  amp(ith) = cabs( cdata )
+  phase(ith) =  atan2( aimag(cdata), real(cdata ))
+end do 
+! end of loop on theta
+return
+end
+subroutine median3( winmin, winmin1,winmin2,winmin3, nth )
+use sep_mod
+integer nth, i
+real winmin(nth)
+real winmin1(nth)
+real winmin2(nth)
+real winmin3(nth)
+do i=1,nth-1  
+  winmin1(i) = winmin(i+1)
+end do 
+winmin1(nth) = winmin(nth)
+do i=1,nth  
+  winmin2(i) = winmin(i)
+end do 
+do i=2,nth  
+  winmin3(i) = winmin(i-1)
+end do 
+winmin3(1) = winmin(1)
+!       Take 3 point median of winmin
+!       Three phase bubble sort then take middle
+do i=1,nth  
+  if ( winmin3(i) .lt. winmin2(i)  ) then
+    winmin(i) = winmin2(i)
+    winmin2(i)=winmin3(i)
+    winmin3(i)=winmin(i)
+  end if
+  if ( winmin2(i) .lt. winmin1(i)  ) then
+    winmin2(i)=winmin1(i)
+  end if
+  if ( winmin3(i) .lt. winmin2(i)  ) then
+    winmin2(i)=winmin3(i)
+  end if
+  winmin(i) = winmin2(i)
+end do 
+return
+end
+subroutine tridiag(l,m,u,x,n)
+use sep_mod
+integer n 
+complex l(n),m(n),u(n),x(n) 
+complex bet,gam
+integer j
+bet=m(1)
+x(1)=x(1)/bet
+do j=2,n  
+  gam=u(j-1)/bet
+  bet=m(j)-l(j)*gam
+  x(j)=(x(j)-l(j)*x(j-1))/bet
+  l(j) = gam
+end do 
+do j=n-1,1,-1  
+  x(j)=x(j)-l(j+1)*x(j+1)
+end do 
+return
+end  

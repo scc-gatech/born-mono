@@ -1,0 +1,61 @@
+=head1 NAME
+
+
+Stolt - Stolt  Migration
+
+=head1 SYNOPSIS
+
+
+ Stolt par=parfile.P < input.H > output.H
+
+=head1 PARAMETERS
+
+
+=over 4
+
+
+=item vel=3. - (real)
+
+ Velocity
+
+=item push=.true. - (logical)
+
+ whether to do a push or pull operation in stretch
+
+=item scale=.false. - (logical)
+
+ whether to scale
+
+=item eps=.5 - (real)
+
+ fitting parameter for push/pull operation
+
+=back
+
+=head1 RUN PARAMETERS
+
+
+=over 4
+
+=item maxmem=100. - (real)
+
+ memory to use in MB
+
+=item verb=.false. - (logical)
+
+ verbosity
+
+=back
+
+=head1 DESCRIPTION
+
+
+Perform Stolt residual migration (See Paul Sava SEP-100,SEP-102)
+
+=head1 CATEGORY
+
+
+B<seis/image>
+
+=cut
+

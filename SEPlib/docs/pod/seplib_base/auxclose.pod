@@ -1,0 +1,41 @@
+=head1 NAME
+
+
+auxclose - Close a SEPlib history file
+
+=head1 SYNOPSIS
+
+
+void auxclose(tag)
+
+=head1 INPUT PARAMETERS
+
+
+=over 4 
+
+=item	char* - tag  
+
+      name of history file
+
+=back
+
+=head1 DESCRIPTION
+
+
+	Auxclose closes, if necessary, an auxiliary input 
+	or output previously opened with auxin or auxout.
+
+=head1 COMMENTS
+
+
+	Parameter `tag' is the name by which the auxiliary
+	file is known.  All internal buffers associated 
+	with that file will be freed as well.
+
+=head1 LIBRARY
+
+
+B<sep>
+
+=cut
+

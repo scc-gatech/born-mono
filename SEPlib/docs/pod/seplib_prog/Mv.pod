@@ -1,0 +1,28 @@
+=head1 NAME
+
+
+Mv - move a sep77 dataset
+
+
+=head1 DESCRIPTION
+
+
+Copy seplib header and data file
+
+=head1 SYNOPSIS
+
+
+Mv Header1 Header2 > out.H
+
+=head1 SEE ALSO
+
+
+L<Cp>,L<Rm>,L<Mv3d>
+
+=head1 CATEGORY
+
+
+B<util/unix>
+
+=cut
+

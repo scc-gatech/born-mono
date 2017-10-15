@@ -1,0 +1,57 @@
+=head1 NAME
+
+
+sep3dc_local_buffer_size - Local buffer size given a window
+
+
+
+=head1 SYNOPSIS
+
+
+C<logic=sep3dc_local_buffer_size(sep3d *sep3din, int *n,int *nwind, int *fwind, int*jwind)>
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  sep3din  -  sep3d
+
+     structure 
+
+=item  n -  int[2]
+
+    Output buffer size
+
+=item  nwind -  int*
+
+    Number of elements along each axis
+
+=item  fwind -  int*
+
+    First  sample along each axis
+
+=item  jwind -  int*
+
+    Sampling of elements along each axis
+
+=back
+
+=head1 DESCRIPTION
+
+
+Distribute the headers to a section tag (space2) from a non-sectioned tag (space1)
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

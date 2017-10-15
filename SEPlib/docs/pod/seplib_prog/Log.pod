@@ -1,0 +1,59 @@
+=head1 NAME
+
+
+Log - Take the log of data
+
+=head1 SYNOPSIS
+
+
+<in.H  Log  [range=3 centered=2] > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item range   -real  
+
+      defines the smallest allowed value.
+      Defining max to be the maximum of the logs (best
+      signal), output values (bad signal) below (max-range)
+      are set to (max-range). Often you might choose range
+      to be a small integer, for example, range=3 means
+      each input handled as max(input, biggest/1000).
+
+=item  centered -integer  
+
+        defines method of shifting mean of log.
+        0-The max is subtracted so all logs are negative.
+        label2='log base 10' is putched
+        1- The average of max and (max-range) is subtracted.
+        (effectively scaling the original data)
+        pclip=100 is putched.
+        2-The average value of all the logs is subtracted.
+        range=2*(max-avg) is putched.
+
+=item  maxsize  - integer 
+
+      [10] Maximum memory to use in Megabytes
+
+=back
+
+=head1 DESCRIPTION
+
+
+Base ten logarithm of absolute values.
+
+=head1 SEE ALSO
+
+
+L<Math>
+
+=head1 CATEGORY
+
+
+B<util/vector>
+
+
+=cut
+

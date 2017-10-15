@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Tpow - scales on the time axis</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<ul>
+
+		<li><a href="#method">METHOD</a></li>
+	</ul>
+
+	<li><a href="#category">CATEGORY</a></li>
+	<li><a href="#compile_level">COMPILE LEVEL</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Tpow - scales on the time axis</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Tpow par= &lt; in.H &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+   Select a power of t for seismogram scaling
+   out(t)  =  data(t)* t**tpow</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n1_2cn2_2cn3__2d_int">n1,n2,n3 - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [nt],[nx],[11] usual seismic data t inner</pre>
+</dd>
+<dt><strong><a name="item_d1_2cd2__2dfloat">d1,d2     -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [dt],[dx] samplinginterval</pre>
+</dd>
+<dt><strong><a name="item_o1_2co2__2dfloat">o1,o2     -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [ot],[ox] [first sample time]</pre>
+</dd>
+<dt><strong><a name="item_tpow__2dfloat">tpow      -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       power of time</pre>
+</dd>
+<dt><strong><a name="item_panel__2dchar_2a">panel     -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1]: (default) 1st panel is used for estimating tpow.
+       When panel=all, all panels are used.</pre>
+</dd>
+<dt><strong><a name="item_tmin__2dfloat">tmin      -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+                        [o1]:   time of the first sample to be used in estimating tpow.</pre>
+</dd>
+<dt><strong><a name="item_tmax__2dfloat">tmax      -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [4.]: end of region used on time axis</pre>
+</dd>
+<dt><strong><a name="item_ofdep__2dchar_2a">ofdep     -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [unknown]      unknown: automatic picking of first
+         arrivals will be applied to compute the muting parameters
+       no:  data are offset-independent 
+       yes: data are offset-dependent</pre>
+</dd>
+<dt><strong><a name="item_v0_2d_float">v0-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       (km/s) apparent |dx/dt|. muting 
+        before first arrival time will 
+        be applied in estimating the 
+        medians. when no v0 is given
+        and ofdep is not 'no', automatic
+        picking will be applied</pre>
+</dd>
+<dt><strong><a name="item_nxmin__2d_int">nxmin - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1]: the first trace used for Tpow</pre>
+</dd>
+<dt><strong><a name="item_nxmax_3dnx">nxmax=nx</a></strong><br />
+</dt>
+<dd>
+<pre>
+       the last trace used. For 3-d data,
+       trace nxmin to trace nxmax are 
+       used on each plane if panel=all.</pre>
+</dd>
+<dt><strong><a name="item_eps__2d_float">eps  - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0.05]: (default) iteration of estimating dtpow stops
+       when abs(dtpow) &lt; eps.</pre>
+</dd>
+<dt><strong><a name="item_idt__2d_integer">idt  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [2]: subsample rate (integer) of time for tpow
+       estimating</pre>
+</dd>
+<dt><strong><a name="item_idx__2d_integer">idx  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1]: subsample rate (integer) of trace for tpow estimating</pre>
+</dd>
+<dt><strong><a name="item_iwind__2d_integer">iwind - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [9]: window length used for calculating L-1 energy in autopicking</pre>
+</dd>
+<dt><strong><a name="item_perc__2d_float">perc  - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [10.]: when L-1 norm of present window exceeds
+       that of the previous one by 
+       'perc', first arrival is picked</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>
+</p>
+<h2><a name="method">METHOD</a></h2>
+<pre>
+  m02 * (.25*tmax)**(dtpow) = m24 * (.75*tmax)**(dtpow)
+  tpow = tpow + dtpow
+  where 
+    m02 --- median over (0, tmax/2)    of | data(t) | * t**tpow
+    m24 --- median over (tmax/2, tmax) of | data(t) | * t**tpow</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+<p>
+</p>
+<hr />
+<h1><a name="compile_level">COMPILE LEVEL</a></h1>
+<p>DISTR</p>
+
+</body>
+
+</html>

@@ -1,0 +1,82 @@
+=head1 NAME
+
+
+sep_get_data_axis_par - grab data's n,o,d and label
+
+
+=head1 SYNOPSIS
+
+
+C<ierr=sep_get_data_axis_par(tag_history,i_axis,n,o,d,label)>
+
+=head1 INPUT  PARAMETERS
+
+
+=over 4
+
+=item char* - tag_history  
+
+      Tag of History File
+
+=item int*  -  i_axis      
+
+       Axis number of the parameters to read     
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item int* - n      
+
+      value of n-i (i = i_axis)
+
+=item float* - o    
+
+      value of o-i (i = i_axis)
+
+=item float* - d    
+
+      value of d-i (i = i_axis)
+
+=item char* - label 
+
+      value of label-i (i = i_axis)
+
+=back
+
+=head1 RETURN VALUES
+
+
+ -1 = if fails for other reasons
+
+ 0 = if successful
+
+ +1 = if tag_history is not a Sep History File
+
+=head1 DESCRIPTION
+
+
+        Get the values that describe the Data Axes from the History
+        File. 
+
+=head1 COMMENTS
+
+
+        Defaults the others (o=0 d=1 label="label-i axis").
+
+=head1 SEE ALSO
+
+
+L<sep_get_header_axis_par>, L<sep_get_grid_axis_par>, L<sep_put_data_axis_par>
+
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

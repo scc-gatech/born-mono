@@ -1,0 +1,143 @@
+=head1 NAME
+
+
+Math - Perform mathematical operations on data
+
+=head1 SYNOPSIS
+
+
+Math  pars >out.H    [pars]        Generic math routine
+
+Rtoc  <in.H >out.H   [pars]        Real to complex
+
+Cmplx  real.H imag.H >out.H [pars] Form complex from two files
+
+Real  <in.H  >out.H  [pars]        Output just real part of complex file
+
+Imag  <in.H  >out.H  [pars]        Output just imaginary part of complex file
+
+Conj  <in.H  >out.H  [pars]        Form the conjugate of a complex number  
+
+Cabs  <in.H  >out.H  [pars]        Output absolute value of complex number
+
+Cabs2 <in.H  >out.H  [pars]        Output absolute value^2 of complex number
+
+Pow   <in.H  >out.H pow=  [pars]   Data raised to power, sign preserved
+
+Gpow <in.H >out.H gpow= [pars]  Data raised to power gpow
+
+Add   file1.H file2.H file3.H mode=[sum],prod,div > out.H Add, multiply, or divide  datasets
+
+
+=head1 INPUT PARAMETERS
+
+
+
+=head2 Math
+
+=over 4
+
+=item exp      - char*  
+
+      [file1] Expression to perfom on history files
+
+=item file[1..10] - sepfile 
+
+      [in]  Name of this history file
+
+=item exp_real - char*   
+
+      [exp]   If complex function for the real values
+
+=item exp_imag - char*   
+
+      [exp]   If complex function for the imaginary values
+
+=back
+
+=head2 Pow
+
+=over 4
+
+=item pow      -  float          
+
+      Power to raise data to
+
+=head2 Gpow
+
+=over 4
+
+=item gpow      -  float          
+
+      Power to raise data to
+
+=back
+
+=head2 Generic parameters
+
+=over 4
+
+=item maxsize  -    int     
+
+      [20]   Maximum amount of memory to consume
+
+=item verb     -    int     
+
+      [0]    Whether or not to be verbose
+
+=back
+
+=head1 DESCRIPTION
+
+
+Performs mathematical operation of seplib files
+
+Supported Functions (specified by @ at begining):
+
+COS SIN TAN
+ACOS  ASIN  ATAN
+COSH  SINH  INT
+EXP LOG SQRT
+ABS SGN
+
+
+
+Example 1:  Add two real files
+Math  file1=in file2=out2.H exp=file1+file2 >out.H
+
+Example 2: Tpow (2.) on one file
+Math exp='file1^2' >out.H
+
+Example 3: Multiply two complex files
+Math  file1=a.H file2=b.H exp_real='file1.re*file2.re-file1.im*file2.im' 
+  exp_imag='file1.re*file2.im+file1.im*file2.re'
+
+
+
+=item NOTES
+
+Math is not automatically complex aware.
+If you are doing addition,subtraction with files it
+will do the right thing. If you are trying to multiplication
+or division you need to code the exp_real and exp_imag yourself.
+If you are using it with the old 'Add' functionality it will
+do the correct thing.
+
+For most cases you can just go
+Math exp='a.H+b.H' >c.H 
+
+Math is just a script interface Math_base the real workhorse
+
+=head1 SEE ALSO
+
+
+L<Clip>,L<Add>
+
+
+=head1 CATEGORY
+
+
+B<util/vector>
+
+=cut
+

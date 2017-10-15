@@ -1,0 +1,109 @@
+=head1 NAME
+
+
+Gauss - Make gaussian anomalies
+
+=head1 SYNOPSIS
+
+
+Gauss.x   >out.H pars
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item velback - real
+
+     [0.] background velocity
+
+=item n1 - integer
+
+     [1]  first axis dimension
+
+=item n2 - integer
+
+      [1]  second axis dimension
+
+=item n3- integer
+
+     [1]  third axis dimension
+
+=item o1- real
+
+      [0.]  first axis origin
+
+=item o2- real
+
+      [0.]  second axis origin
+
+=item o3- real
+
+      [0.]  third axis origin
+
+=item d1      - real
+
+      [1.]  first axis sampling
+
+=item d2      - real
+
+      [1.]  second axis sampling
+
+=item d3      - real
+
+      [1.]  third axis sampling
+
+=item ngauss  - integer
+
+      [1]  number of gaussian anomalies
+
+=item maxvel  - real
+
+      [1.]  maximum deviation from background
+
+=item var     - real
+
+      [1.]  variance  of gaussian anomalies
+
+=item max1    - real
+
+      [center of axis 1]location of maximum along 1 dimension
+
+=item max2    - real
+
+      [center of axis 2]location of maximum along 2 dimension
+
+=item max3    - real
+
+      [center of axis 3]location of maximum along 3 dimension
+
+=item zero_at -real
+
+      distance to zero anomaly
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item out.H - sepfile
+
+      SEPlib file with gaussian model
+
+=back
+
+
+=head1 DESCRIPTION
+
+
+Makes simple Gaussian anomailes
+
+=head1 CATEGORY
+
+
+B<seis/model>
+
+=cut
+

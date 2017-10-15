@@ -1,0 +1,20 @@
+subroutine adjnull( adj, add, x, nx,  y, ny )
+integer ix, iy,     adj, add,    nx,     ny
+real                          x( nx), y( ny )
+if( add == 0 )
+        if( adj == 0 )
+                do iy= 1, ny 
+                        y(iy) = 0.
+        else
+                do ix= 1, nx 
+                        x(ix) = 0. 
+return; end
+subroutine ladjnull( adj, add, x, y )
+logical adj, add
+real x(:), y(:)
+if(.NOT. add)
+        if( .NOT. adj)
+                y = 0.0
+        else
+                x = 0.0
+return; end

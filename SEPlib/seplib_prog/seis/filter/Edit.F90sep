@@ -1,0 +1,777 @@
+!!$=head1 NAME
+!!$
+!!$ Edit  - patching driver
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$  <in.H Edit.x [options] > out.H
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item	w1,w2,w3- integer
+!!$
+!!$      window sizes
+!!$
+!!$=item nfactor - integer
+!!$
+!!$      factor to mulitiply the median of the residuals
+!!$      to produce a tolerance above which samples
+!!$      will be removed, default is 5
+!!$
+!!$=item htrc    - integer
+!!$
+!!$      number of traces on either side of a trace
+!!$      to be used in predicting the trace, htrc=1
+!!$      means one trace on either side, or a two trace
+!!$      prediction
+!!$
+!!$=item n1,n2,n3-integer
+!!$
+!!$      wall sizes, defaults to the input
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Patching driver
+!!$
+!!$=head1 REFERENCE
+!!$      see SEP88 (Ray Abma's thesis) for more information on data editing.
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/filter>
+!!$
+!!$=cut
+!>
+!
+! Edit History
+! Bob  10/98 Changed kill to kill_it because of g77 bug
+! ------------------------------
+! Keyword: noise editing mute burst
+! ------------------------------
+program Edit 
+  use sep
+  implicit none
+  integer :: n1,n2,n3, w1,w2,w3,  k1,k2,k3
+  integer :: w1safe, w2safe, w3safe, k3safe
+  integer :: nfactor
+  real, allocatable :: modl(:,:,:),resi(:,:,:),modla(:,:,:)
+  call SEP_ADD_DOC()
+  call sep_init('')
+  call sep_begin_prog()
+
+  call from_history("n1",n1)
+  call from_history("n2",n2)
+  call from_history("n3",n3,1)
+  w1safe = min(n1, 20)
+  call from_param("w1",w1,w1safe)
+  w2safe = min(n2, 20)
+  call from_param("w2",w2,w2safe)
+  w3safe = min(n3, 6)
+  call from_param("w3",w3,w3safe)
+  call from_param("k1",k1,floor( 1.5*n1/(w1+1.)))
+  call from_param("k2",k2,floor( 1.5*n2/(w2+1.)))
+  call from_param("k3",k3,floor( 1.5*n3/(w3+1.)))
+  k1 = max(1,k1)
+  k2 = max(1,k2)
+  k3 = max(1,k3)
+  k3safe = k3
+  call from_param("nfactor",nfactor,5)
+! allocate working space
+  allocate(modl (n1,n2,n3), resi (n1,n2,n3))
+  allocate(modla (n1,n2,n3))
+! call subroutine to do the actual job
+  call dicesaw(n1,n2,n3, w1,w2,w3, k1,k2,k3, modl,resi,nfactor,modla)
+  call sep_end_prog()
+end program 
+subroutine dicesaw(n1,n2,n3, w1,w2,w3, k1,k2,k3,modl,resi,nfactor,modla&
+  &)
+  use sep_mod
+  implicit none
+  integer        n1,n2,n3, w1,w2,w3, k1,k2,k3,          nfactor
+  real	                                    modl(n1,n2,n3)
+  real                                             resi(n1,n2,n3)
+  real                                                          modla&
+    &(n1,n2,n3)
+  real    rand01, big
+  integer	i1,i2,i3, ix,ierr
+  integer iseed
+  ierr= sreed('in',  modl, 4*n1*n2*n3)
+  big= 0.
+  do i1=1,n1  
+    do i2=1,n2  
+      do i3=1,n3  
+        if (big < abs( modl(i1,i2,i3))) then
+          big = abs( modl(i1,i2,i3))
+        end if
+      end do
+    end do
+  end do 
+  iseed=1993
+  do i1=1,n1  
+    do i2=1,n2  
+      do i3=1,n3  
+        modla(i1,i2,i3) = modl(i1,i2,i3)
+        modl(i1,i2,i3) = modl(i1,i2,i3)/big+.0001*rand01(iseed)
+      end do
+    end do
+  end do 
+  call doit(n1,n2,n3, w1,w2,w3, k1,k2,k3,modl,modla, resi,nfactor)
+  call hclose()
+  do i1=1,n1  
+    do i2=1,n2  
+      do i3=1,n3  
+        resi(i1,i2,i3) = modla(i1,i2,i3) - resi(i1,i2,i3)
+      end do
+    end do
+  end do 
+! output signal
+  ierr= srite('out', resi, 4*n1*n2*n3)
+end subroutine 
+! doit  ----  patching
+!
+subroutine doit(n1,n2,n3, w1,w2,w3, k1,k2,k3, modl,modla,resi,nfactor)
+  use sep
+  implicit none
+  integer     n1,n2,n3, w1,w2,w3, k1,k2,k3
+  integer                                                   nfactor
+  real                                      modl(n1,n2,n3)
+  real                                           modla(n1,n2,n3)
+  real                                                 resi(n1,n2,n3)
+  integer i1,i2,i3
+  real snrm2
+  integer a1,a2
+  integer ix
+  integer htrc
+  real wallwt(n1,n2,n3), windwt(w1,w2,w3)
+  real pmodl(w1,w2,w3), dpres (w1*w2*w3)
+  real pmodla(w1,w2,w3)
+! get input parameters
+  call from_param("a1",a1,5)
+  call from_param("a2",a2,2)
+  call from_param("htrc",htrc,1)
+!##call     tent3( a1,a2,a3, lag1,lag2,lag3, windwt, w1,w2,w3)
+  do i1=1,w1  
+    do i2=1,w2  
+      do i3=1,w3  
+        windwt(i1,i2,i3)= 1.0
+        if (i2 .eq. 1 .or. i2 .eq.w2) then
+          windwt(i1,i2,i3)= 0.01
+        end if
+      end do
+    end do
+  end do 
+  call mkwallwt3( k1,k2,k3,windwt, w1,w2,w3, wallwt, n1,n2,n3)
+  call null(resi, n1*n2*n3)
+  do i3= 1, k3  
+    do i2= 1, k2  
+      do i1= 1, k1  
+        call patch3(0,0,i1,i2,i3,k1,k2,k3,modl,n1,n2,n3,pmodl,w1,w2,w3&
+          &)
+        call patch3(0,0,i1,i2,i3,k1,k2,k3,modla,n1,n2,n3,pmodla,w1,w2&
+          &,w3)
+        call kill_it (pmodl,pmodla,w1,w2,w3,dpres,a1,a2,nfactor,htrc)
+        call diag(0,0,windwt,w1*w2*w3,dpres(1),dpres(1))
+        call patch3(1,1,i1,i2,i3,k1,k2,k3,resi(1,1,1),n1,n2,n3,dpres(1&
+          &),w1,w2,w3)
+!##	call diag( 0, 0, windwt, w1*w2*w3,       pmodl,        dpres       )
+      end do
+    end do
+  end do 
+  call diag(0,0,wallwt,n1*n2*n3,resi(1,1,1),resi(1,1,1))
+  do i3= 1, n3  
+    do i2= 1, n2  
+      do i1= 1, n1  
+        if (abs(resi(i1,i2,i3) - 1.0) > 0.1) then
+          resi(i1,i2,i3) = modla(i1,i2,i3)
+        else
+          resi(i1,i2,i3) = 0.0
+        end if
+      end do
+    end do
+  end do
+end subroutine
+!#########################################################################
+!             triangle tent weights for 3-D convolution                  #
+!#########################################################################
+subroutine tent3(a1,a2,a3, lag1,lag2,lag3, windwt, w1,w2,w3)
+ use sep_mod
+  implicit none
+  integer      a1,a2,a3, lag1,lag2,lag3,         w1,w2,w3
+  real                                   windwt( w1,w2,w3)
+  integer i1,i2,i3,  s1,s2,s3,  e1,e2,e3
+  real mid1,mid2,mid3, wide1,wide2,wide3, x,y,z
+  call null(windwt, w1*w2*w3)
+  s1= 1+a1-lag1
+  e1= w1-lag1+1
+  mid1=(e1+s1)/2.
+  wide1=(e1-s1+1.)/2.
+  s2= 1+a2-lag2
+  e2= w2-lag2+1
+  mid2=(e2+s2)/2.
+  wide2=(e2-s2+1.)/2.
+  s3= 1+a3-lag3
+  e3= w3-lag3+1
+  mid3=(e3+s3)/2.
+  wide3=(e3-s3+1.)/2.
+  do i3= s3, e3  
+    y = abs((i3-mid3)/wide3)
+    do i2= s2, e2  
+      x = abs((i2-mid2)/wide2)
+      do i1= s1, e1  
+        z = abs((i1-mid1)/wide1)
+        windwt(i1,i2,i3) = amax1(0., 1.-abs(x))*amax1(0., 1.-abs(y))&
+          &*amax1( 0., 1. - abs(z)) 
+!#########################
+!##        windwt(i1,i2,i3) = 1.0
+!#########################
+      end do
+    end do
+  end do
+end subroutine 
+! patch3 ---- copy the j[123]-th of k[123] subcubes from a volume.
+!
+subroutine patch3(conj,add, j1,j2,j3, k1,k2,k3, wall, n1,n2,n3, wind,&
+  & w1,w2,w3)
+ use sep_mod
+  implicit none
+  integer       conj,add, j1,j2,j3, k1,k2,k3,       n1,n2,n3,       w1&
+    &,w2,w3
+  real                                        wall( n1,n2,n3),wind( w1&
+    &,w2,n3)
+  integer i1,i2,i3, s1,s2,s3, d1,d2,d3
+  call conjnull(conj, add, wall, n1*n2*n3, wind, w1*w2*w3)
+  if ( k3 .ne. 1) then
+    s3 = 1.5 + (n3 - w3) * (j3-1.)/(k3-1.)
+  else
+    s3= 1
+  end if 
+  if ( k2 .ne. 1) then
+    s2 = 1.5 + (n2 - w2) * (j2-1.)/(k2-1.)
+  else
+    s2= 1
+  end if 
+  if ( k1 .ne. 1) then
+    s1 = 1.5 + (n1 - w1) * (j1-1.)/(k1-1.)
+  else
+    s1= 1
+  end if 
+  do i3= 1, w3  
+    d3= i3 + s3 - 1
+    do i2= 1, w2  
+      d2= i2 + s2 - 1
+      do i1= 1, w1  
+        d1= i1 + s1 - 1
+        if (conj .eq. 0) then
+          wind(i1,i2,i3)=wind(i1,i2,i3)+wall(d1,d2,d3)
+        else
+          wall(d1,d2,d3)=wall(d1,d2,d3)+wind(i1,i2,i3)
+        end if
+      end do
+    end do
+  end do 
+  return
+end subroutine 
+! 3-D make wall weights from window weights.
+!
+subroutine mkwallwt3(k1,k2,k3, windwt, w1,w2,w3,  wallwt, n1,n2,n3)
+ use sep_mod
+  implicit none
+  integer          k1,k2,k3,         w1,w2,w3,          n1,n2,n3
+  real                       windwt( w1,w2,w3), wallwt( n1,n2,n3)
+  integer i1,i2,i3
+  call null(wallwt, n1*n2*n3)
+  do i3= 1, k3  
+    do i2= 1, k2  
+      do i1= 1, k1  
+        call patch3(1,1,i1,i2,i3,k1,k2,k3,wallwt,n1,n2,n3,windwt,w1,w2&
+          &,w3)
+      end do
+    end do
+  end do 
+  do i3= 1, n3  
+    do i2= 1, n2  
+      do i1= 1, n1  
+        if (wallwt(i1,i2,i3) .ne. 0.) then
+          wallwt(i1,i2,i3) = 1. / wallwt(i1,i2,i3)
+        end if
+      end do
+    end do
+  end do
+end subroutine 
+subroutine adjnull(adj, add, x, nx, y, ny)
+ use sep_mod
+  implicit none
+  integer        adj, add,    nx,    ny
+  real  			         x( nx),y( ny)
+  integer ix, iy
+  if (add .eq. 0) then
+    if (adj .eq. 0) then
+      do iy= 1, ny
+        y(iy) = 0.
+      end do
+    else
+      do ix= 1, nx
+        x(ix) = 0. 
+      end do
+    end if
+  end if
+  return
+end subroutine
+!#######################################################################
+!                     Subroutine boxconv                               #
+!#######################################################################
+! inputs:	nx,  xx(i), i=1,nx	the data                               #
+!		    nb			the box length                                 #
+! output:	yy(i),i=1,nx+nb-1	smoothed data                          #
+!#######################################################################
+subroutine boxconv(nb, nx, xx, yy)
+ use sep_mod
+  implicit none
+  integer nx, ny, nb
+  real xx(nx), yy(1)
+  integer i
+  real bb(nx+nb)
+  if (nb < 1 .or. nb > nx) then
+    call erexit('boxconv')	! "||" means .OR.
+  end if
+  ny = nx+nb-1
+  do i= 1, ny
+    bb(i) = 0.
+  end do 
+  bb(1) = xx(1)
+  do i= 2, nx
+    bb(i) = bb(i-1) + xx(i)		! make B(Z) = X(Z)/(1-Z)
+  end do 
+  do i= nx+1, ny
+    bb(i) = bb(i-1)
+  end do 
+  do i= 1, nb
+    yy(i) = bb(i)
+  end do 
+  do i= nb+1, ny
+    yy(i) = bb(i) - bb(i-nb)	! make Y(Z) = B(Z)*(1-Z**nb)
+  end do 
+  do i= 1, ny
+    yy(i) = yy(i) / nb
+  end do
+end subroutine 
+!####################################################################
+!                         Subroutine cgplus                         #
+!####################################################################
+!                  A step of conjugate-gradient descent             #
+!####################################################################
+subroutine cgplus(iter,   n, x, g, s,   m, rr, gg, ss)
+ use sep_mod
+  implicit none
+  integer       iter,   n,            m
+  real                     x(n),         rr(m)	! solution, residual
+  real                        g(n),          gg(m)
+  ! gradient, conjugate gradient
+  real                           s(n),           ss(m)
+  ! step, conjugate step
+  integer i
+  double precision ddot, sds, gdg, gds, determ, gdr, sdr, alfa, beta
+  if (iter < 1) then
+! steepest descent on first iteration.
+    do i= 1, n
+      s(i) = 0.
+    end do 
+    do i= 1, m
+      ss(i) = 0.
+    end do 
+    if (ddot(m,gg,gg).eq.0) then
+      call erexit('cgplus: first grad vanishes identically')
+    end if
+    alfa = - ddot(m,gg,rr) / ddot(m,gg,gg)
+    beta = 0.
+  else
+! search plane by solving 2-by-2
+    gdg = ddot(m,gg,gg)	!  G . (R + G*alfa + S*beta) = 0
+    sds = ddot(m,ss,ss)	!  S . (R + G*alfa + S*beta) = 0
+    gds = ddot(m,gg,ss)
+    if (gdg .eq. 0.) then
+      call erexit('cgplus: grad vanishes identically')
+    else if ( sds .eq. 0.) then
+      alfa = - ddot(m,gg,rr) / ddot(m,gg,gg)
+      beta=0.
+    else
+      determ = gdg * sds * dmax1( 1.d0 - (gds/gdg)*(gds/sds), 1.0d-12)
+      gdr = - ddot(m,gg,rr)
+      sdr = - ddot(m,ss,rr)
+      alfa = ( sds * gdr - gds * sdr ) / determ
+      beta = (-gds * gdr + gdg * sdr ) / determ
+    end if
+  end if 
+  do i= 1, n		! s = model step
+    s(i) = alfa * g(i) + beta * s(i)
+  end do 
+  do i= 1, m		! ss = conjugate
+    ss(i) = alfa * gg(i) + beta * ss(i)
+  end do 
+  do i= 1, n		! update solution
+    x(i) = x(i) +  s(i)
+  end do 
+  do i = 1, m		! update residual
+    rr(i) = rr(i) + ss(i)
+  end do
+end subroutine 
+double precision function ddot(n, x, y )
+  integer n
+  real  x(n), y(n)	
+  integer i
+  double precision val
+  val = 0.
+  do i=1,n   
+    val = val + x(i) * y(i)
+  end do 
+  ddot = val
+end function 
+! Internal Convolution, Adjoint is the Filter. 2-dimensional
+!
+subroutine icaf2(adj,add, lag1,lag2, xx,n1,n2,  aa,na1,na2,  yy)
+  integer      adj,add, lag1,lag2,    n1,n2,     na1,na2
+  real                             xx(n1,n2), aa(na1,na2), yy(n1,n2)
+  integer x1,x2, a1, a2, y1,y2
+  call adjnull(adj, add, aa,na1*na2, yy,n1*n2)
+  do a2=1,na2  
+    do y2= 1+na2-lag2, n2-lag2+1  
+      x2= y2 - a2 + lag2
+      do a1=1,na1  
+        do y1= 1+na1-lag1, n1-lag1+1  
+          x1= y1 - a1 + lag1
+          if (adj .eq. 0) then
+            yy( y1,y2)=yy(y1,y2)+aa(a1,a2)*xx(x1,x2)
+          else
+            aa(a1,a2)=aa(a1,a2)+yy(y1,y2)*xx(x1,x2)
+          end if
+        end do
+      end do
+    end do
+  end do
+end subroutine 
+!
+subroutine kill_it(modl,modla, n1,n2,n3, resi,a1,a2,nfactor,htrc)
+use sep_mod
+  integer                    n1,n2,n3,      a1,a2,nfactor,htrc
+  real           modl(       n1,n2,n3),resi(n1,n2,n3)
+  real                modla( n1,n2,n3)
+  integer	i1,i2,i3
+  integer niter,lag1,lag2
+  integer ix,iframe
+  integer cnt, m1,m2, j
+  real snrm2
+  real p,temp
+  real left(n1,2), ritee(n1,2)
+  real aa(a1,a2)
+  real afree(a1,a2)
+  real tresi(n1,n2,n3)
+  real buff(n1,2)
+  real xbuff(n1,htrc*2)
+  do i1=1,a1  
+    do i2=1,a2  
+      aa(i1,i2) = 0.0
+    end do
+  end do 
+  aa(a1/2+1,1) = 1.0
+  do i1=1,a1  
+    do i2=1,a2  
+      afree(i1,i2) = 1.0
+    end do
+  end do 
+  do i1=1,a1  
+    i2=1
+    afree(i1,i2) = 0.0
+  end do 
+  niter = (a2-1)*a1
+  if (n3 .ne. 1) then
+    call seperr(' incorrect value for n3, must be 1')
+  end if
+  do i2=1,n2  
+    cnt = 0
+    m1 = max(1,  i2-htrc)
+    m2 = min(n2, i2+htrc)
+    do j = m1, m2  
+      if (i2 .ne. j) then
+        cnt = cnt + 1
+        do i1=1,n1  
+          buff(i1,1) = modl(i1,i2,1)
+        end do 
+        do i1=1,n1  
+          buff(i1,2) = modl(i1, j,1)
+        end do 
+        lag1 = a1/2+1
+        lag2 = 1
+        call null(left, n1*2)
+        call pef2(buff(1,1), left, n1,2, niter, lag1,lag2,afree, aa,a1&
+          &,a2)
+        do i1=1,n1  
+          xbuff(i1,cnt) = left(i1,2)
+        end do
+      end if
+    end do 
+    do j=2,cnt  
+      do i1=1,n1  
+        if (abs(xbuff(i1,1)) > abs(xbuff(i1,j))) then
+          xbuff(i1,1) = xbuff(i1,j)
+        end if
+      end do
+    end do 
+    do i1=1,n1  
+      tresi(i1,i2,1) = xbuff(i1,1)
+    end do
+  end do 
+!
+! be sure zeros are saved
+!
+  do i2=1,n2  
+    do i1=1,n1  
+      tresi(i1,i2,1) = abs(tresi(i1,i2,1))
+      if (modla(i1,i2,1) .eq. 0.0) then
+        tresi(i1,i2,1) = 0.0
+      end if
+    end do
+  end do 
+  call medianx(tresi, n1*n2*n3, p)
+  temp = nfactor * p
+  do i2=1,n2  
+    do i1=1,n1  
+      if (abs(tresi(i1,i2,1)) > temp) then
+        resi(i1,i2,1) =  0.0
+      else
+        resi(i1,i2,1) =  1.0
+      end if
+    end do
+  end do
+end subroutine 
+!
+subroutine medianx(data, n, rmed)
+  integer              n
+  real           data( n)
+  real                    rmed
+  integer i,j
+  real dtemp(n)
+  j = 0
+  do i=1,n  
+    if (data(i) .ne. 0.0) then
+      j=j+1
+      dtemp(j) = abs(data(i))
+    end if
+  end do 
+  if (j .eq. 0) then
+    rmed = 0.0
+    return
+  end if
+  call shell(j,dtemp)
+  rmed = dtemp(j/2)
+end subroutine 
+subroutine conjnull(conj, add, x, nx,  y, ny)
+  integer         conj, add,    nx,     ny
+  real  				       x( nx), y( ny)
+  integer ix, iy
+  if (add .eq. 0) then
+    if (conj .eq. 0) then
+      do iy= 1, ny
+        y(iy) = 0.
+      end do
+    else
+      do ix= 1, nx
+        x(ix) = 0. 
+      end do
+    end if
+  end if
+  return
+end subroutine 
+subroutine copy(n, xx, yy)
+  integer n
+  real xx(n), yy(n)
+  integer i
+  do i= 1, n
+    yy(i) = xx(i)
+  end do 
+  return
+end subroutine 
+subroutine diag(adj, add, lambda,n,  pp,    qq)
+  integer     adj, add,        n 		      ! equivalence (pp,qq) OK
+  real                  lambda(n), pp(n), qq(n)
+  integer i
+  if (adj .eq. 0) then
+    if (add .eq. 0) then
+      do i=1,n  
+        qq(i) = lambda(i) * pp(i)
+      end do
+    else
+      do i=1,n  
+        qq(i) = qq(i) + lambda(i) * pp(i)
+      end do
+    end if
+  else
+    if (add .eq. 0) then
+      do i=1,n  
+        pp(i) = lambda(i) * qq(i)
+      end do
+    else
+      do i=1,n  
+        pp(i) = pp(i) + lambda(i) * qq(i)
+      end do
+    end if
+  end if
+end subroutine 
+subroutine null(xx, n)
+  integer n
+  real xx( n)
+  integer i
+  do i= 1, n
+    xx(i) = 0.
+  end do 
+  return
+end subroutine 
+real function rand01(iseed)
+  integer iseed
+  integer ia, im
+  parameter(ia = 727,im = 524287)
+  iseed = mod(iseed*ia,im)
+  rand01 =(float(iseed) - 0.5)/float(im - 1)
+  return
+end function 
+subroutine scale(factor, n, data)
+  integer              n
+  real         factor,    data(n)
+  integer i
+  do i= 1, n
+    data(i) = factor * data(i)
+  end do
+end subroutine
+!#######################################################################
+!                             Subroutine triangle                      #
+!#######################################################################
+!                            Convolve with triangle                    #
+!#######################################################################
+! input:	nr	rectangle width (points) (Triangle base twice as wide) #
+! input:	uu(m1,i2),i2=1,n12	is a vector of data                    #
+! output:	vv(m1,i2),i2=1,n12	may be on top of uu                    #
+!#######################################################################
+subroutine triangle(nr, m1, n12, uu,          vv)
+  integer         nr, m1, n12
+  real                         uu(m1, n12), vv(m1, n12)	
+  integer i,np,nq
+  real pp(n12+nr-1), qq(n12+nr+nr-2), tt(n12)
+  do i=1,n12  
+    qq(i) = uu(1,i)
+  end do 
+  if (n12 .eq. 1) then
+    call copy(n12, qq, tt)
+  else
+    call boxconv(nr, n12, qq, pp)
+    np = nr+n12-1
+    call boxconv(nr, np , pp, qq)
+    nq = nr+np-1
+    do i= 1, n12
+      tt(i) = qq(i+nr-1)
+    end do 
+    do i= 1, nr-1					! fold back near end
+      tt(i) = tt(i) + qq(nr-i)
+    end do 
+    do i= 1, nr-1					! fold back far end
+      tt(n12-i+1) = tt(n12-i+1) + qq(n12+(nr-1)+i)
+    end do
+  end if 
+  do i=1,n12  
+    vv(1,i) = tt(i)
+  end do
+end subroutine 
+! smooth by convolving with triangle in two dimensions.
+!
+subroutine triangle2(rect1, rect2, n1, n2, uu,        vv)
+  integer          rect1, rect2, n1, n2
+  real                                   uu(n1,n2), vv(n1,n2)
+  real ss(n1,n2)
+  integer i1,i2
+  do i1= 1, n1
+    call triangle( rect2, n1, n2, uu(i1,1), ss(i1,1))
+  end do 
+  do i2= 1, n2
+    call triangle( rect1,  1, n1, ss(1,i2), vv(1,i2))
+  end do 
+  return
+end subroutine 
+! Find prediction-error filter avoiding missing data.
+!
+subroutine pef2(data,       rr,n1,n2, niter, lag1,lag2,afre,        aa&
+  &,a1,a2)
+  integer                    n1,n2, niter, lag1,lag2,                a1&
+    &,a2
+  real        data(n1*n2),rr(n1*n2),                 afre(a1,a2), aa(a1&
+    &,a2)
+  integer i1,i2, a12, n12, iter
+  real dfre(n1*n2), da(a1,a2), dr(n1*n2), ww(n1*n2)
+  real sa(a1,a2), sr(n1*n2), wr(n1*n2)
+  a12= a1*a2
+  n12= n1*n2
+  call null(rr, n12)
+  call null(aa, a12)
+  aa(lag1,lag2) = 1.
+  do i1=1,n12  
+    if (data(i1).eq.0.0) then
+      dfre(i1) = 1.
+    else
+      dfre(i1) = 0.
+    end if
+  end do 
+  afre(lag1,lag2) = 1.
+  call icaf2 (0, 0, lag1,lag2, dfre,n1,n2, afre,a1,a2, ww)
+  afre(lag1,lag2) = 0.
+  do i1= 1, n12
+    if ( ww(i1) > 0.0) then
+      ww(i1) = 0.0
+! free data hits nonzero filter.
+    else
+      ww(i1) = 1.0
+    end if
+  end do 
+  call icaf2(0, 0, lag1,lag2, data,n1,n2,  aa,a1,a2, rr)
+  call diag(0, 0, ww, n12, rr, wr)
+  do iter= 0, niter  
+    call diag(1, 0, ww, n12, dr, wr)
+    call icaf2(1, 0, lag1,lag2, data,n1,n2, da,a1,a2, dr)
+    do i2= 1, a2
+      do i1= 1, a1  
+        da(i1,i2) = da(i1,i2) * afre(i1,i2)
+      end do
+    end do 
+    call icaf2(0, 0, lag1,lag2, data,n1,n2,  da,a1,a2, dr)
+    call diag(0, 0, ww, n12, dr, dr)
+    call cgplus(iter, a12, aa,da,sa, n12, wr,dr,sr)
+  end do 
+  call icaf2(0, 0, lag1,lag2, data,n1,n2, aa,a1,a2, rr)
+end subroutine 
+SUBROUTINE SHELL(N,ARR)
+  integer n,lognb2,m,k,nn,i,j,l
+  real ALN2I, TINY,t
+  real ARR(N)
+  LOGNB2=INT(ALOG(FLOAT(N))*ALN2I+TINY)
+  ALN2I=1.4426950
+  TINY=1.E-5
+  M=N
+  DO NN=1,LOGNB2  
+    M=M/2
+    K=N-M
+    DO J=1,K  
+      I=J
+      3           CONTINUE
+      L=I+M
+      if (ARR(L)<ARR(I)) then
+        T=ARR(I)
+        ARR(I)=ARR(L)
+        ARR(L)=T
+        I=I-M
+        if (I>1) then
+          GO TO 3
+        end if
+      end if
+    end do
+  end do 
+end subroutine  

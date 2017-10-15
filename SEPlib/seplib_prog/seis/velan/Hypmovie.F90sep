@@ -1,0 +1,171 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$Hypmovie - velocity space transform movie
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Hypmovie integral=0 vmin=1.4 vmax=3.0 n3= < in.H > out.H
+!!$
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item	integral - integer
+!!$
+!!$      [0] 0 calls hypsumtab
+!!$      1 calls hypinttab
+!!$
+!!$=item	vmin     - real
+!!$
+!!$      [1.4] minimum velocity
+!!$
+!!$=item	vmax     - real
+!!$
+!!$      [3.0] maximum velocity
+!!$
+!!$=item	n3       - integer
+!!$
+!!$      [1] number of times into velocity space
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$	 Velocity space transformation movie.
+!!$	 Go in and out of velocity space n3 times.
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Hypint>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/velan>
+!!$
+!!$=cut
+!>
+! KEYWORDS 	velocity hyperbola spectra canon unitary movie
+!
+! SEE ALSO
+!
+! WHERE
+!	./cube/canon/Hypmovie.rs
+!
+! 4-20-87 	jon	wrote it.
+! 5-8-96	stew	removed "*2" from declarations of itab vars
+!			this makes it match what subroutines expect
+! keyword     velocity hyperbola spectra canon unitary movie
+program zyxabc
+use sep
+implicit none
+real, allocatable, dimension (:,:) :: tx
+real, allocatable, dimension (:,:) :: zv
+real, allocatable, dimension (:,:,:) :: count
+integer, allocatable, dimension (:,:,:) :: itab1
+integer, allocatable, dimension (:,:,:) :: itab2
+integer nt, nx, nv
+call SEP_ADD_DOC()
+call SEP_INIT('')
+  if (0>= hetch('n1','d',nt )) then
+    call erexit('Trouble reading  n1 from history  ')
+  end if
+  if (0>= hetch('n2','d',nx )) then
+    call erexit('Trouble reading  n2 from history  ')
+  end if
+  if (0>= getch('n2','d',nv )) then
+    nv = nx
+  end if
+  if (0.ne.putch('Read  from param: #n2 ','d',nv)) then
+    call erexit('Trouble writing nv to history')
+  end if
+allocate (tx(nt,nx), zv(nt,nv))
+!allocate:	real ctx(nt,nx), czv(nt,nv)
+allocate (count(nx,nv,nt))
+allocate (itab1(nx,nv,nt))
+allocate (itab2(nx,nv,nt))
+call setup ( nt, nx, nv, tx, zv, count, itab1, itab2 )
+end program zyxabc 
+subroutine setup( nt, nx, nv, tx, zv, count, itab1, itab2 )
+use sep_mod
+integer it, nt, nx, nv, i3, n3, integ,ierr
+integer itab1(nx,nv,nt), itab2(nx,nv,nt)
+real t0,dt, x0,dx, v0,dv, vmin,vmax
+real	 tx(nt,nx),  zv(nt,nv)
+real	count(nx,nv,nt)
+  if (0>= getch('n3','d',n3 )) then
+    n3 = 1
+  end if
+  if (0.ne.putch('Read  from param: #n3 ','d',n3)) then
+    call erexit('Trouble writing n3 to history')
+  end if
+  if (0>= getch('integral','d',integ )) then
+    integ = 0
+  end if
+  if (0.ne.putch('Read  from param: #integral ','d',integ)) then
+    call erexit('Trouble writing integ to history')
+  end if
+call sep_begin_prog()
+! establish mesh sizes
+  if (0>= hetch('o1','f',t0 )) then
+    t0 = 0.
+  end if
+  if (0>= hetch('d1','f',dt )) then
+    call erexit('Trouble reading  d1 from history  ')
+  end if
+  if (0>= getch('vmin','f',vmin )) then
+    vmin = 1.4
+  end if
+  if (0.ne.putch('Read  from param: #vmin ','f',vmin)) then
+    call erexit('Trouble writing vmin to history')
+  end if
+  if (0>= getch('vmax','f',vmax )) then
+    vmax = 3.0
+  end if
+  if (0.ne.putch('Read  from param: #vmax ','f',vmax)) then
+    call erexit('Trouble writing vmax to history')
+  end if
+! internally, v0 and dv refer to SLOWNESSES, not velocities !
+v0=1/vmax
+dv=(1/vmin-1/vmax)/(nv-1.)
+  if (0>= hetch('o2','f',x0 )) then
+    call erexit('Trouble reading  o2 from history  ')
+  end if
+  if (0>= hetch('d2','f',dx )) then
+    call erexit('Trouble reading  d2 from history  ')
+  end if
+ierr= sreed('in', tx, nt*nx*4)
+if ( integ.eq.0 ) then
+!	call hypsumtab ( t0,dt, x0,dx, v0,dv, nt,nx,nv, itab1,       ctx, czv)
+  call hypsumtab ( t0,dt, x0,dx, v0,dv, nt,nx,nv, itab1,       count)
+else
+!	call hypinttab ( t0,dt, x0,dx, v0,dv, nt,nx,nv, itab1,itab2, ctx, czv)
+  call hypinttab ( t0,dt, x0,dx, v0,dv, nt,nx,nv, itab1,itab2, count)
+end if
+  if (0 .ne. putch ('n3','i', 2*n3+1)) then
+    call erexit('trouble writing to file ')
+  end if
+call hclose()
+ierr= srite('out', tx, nt*nx*4 )
+do i3=1,n3  
+  if ( integ.eq.0 ) then
+!		call hypsum ( 0,0,  nt,nx,nv, itab1,       ctx, czv, tx, zv)
+    call hypsum ( 0,0,  nt,nx,nv, itab1,       count   , tx, zv)
+  else
+!		call hypint ( 0,0,  nt,nx,nv, itab1,itab2, ctx, czv, tx, zv)
+    call hypint ( 0,0,  nt,nx,nv, itab1,itab2, count   , tx, zv)
+  end if 
+  ierr= srite('out', zv, nt*nv*4 )
+  if ( integ.eq.0 ) then
+!		call hypsum ( 1,0,  nt,nx,nv, itab1,       ctx, czv, tx, zv)
+    call hypsum ( 1,0,  nt,nx,nv, itab1,       count   , tx, zv)
+  else
+!		call hypint ( 1,0,  nt,nx,nv, itab1,itab2, ctx, czv, tx, zv)
+    call hypint ( 1,0,  nt,nx,nv, itab1,itab2, count   , tx, zv)
+  end if 
+  ierr= srite('out', tx, nt*nx*4 )
+end do 
+call sep_end_prog()
+return
+end  

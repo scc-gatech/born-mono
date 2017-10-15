@@ -1,0 +1,111 @@
+=head1 NAME
+
+
+init_sep3d - initialize a SEP3d type
+
+=head1 SYNOPSIS
+
+
+C<call init_sep3d(instruct, outstruct, usage)>
+
+C<call init_sep3d(intag,outstruct,usage)>
+
+C<call init_sep3d(outstruct,usage,data_format,file_format,n,o,d,label,unit,ntraces,keyname,keytype,keyfmt,nh)>
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item IMPORTANT FOR FORTRAN USERS
+    include C<ctag="out"> as an argument when initializing output.
+    (have you noticed a f90 file mysteriously in your directory?)
+
+=item instruct  -  sep3d
+
+      Sep3d to structure to copy from
+
+=item usage     -  char*
+
+      Usage of the output tag
+
+=item tag       -  char*
+
+      Tag to initilize from
+
+=item data_format- char*
+
+      Data format (FLOAT,INTEGER,BYTE,COMPLEX)
+
+=item file_format- char*
+
+      File format (GRID,HEADER,REGULAR)
+
+=item n-  int*
+
+      (optional) axis dimensions
+
+=item o-  float*
+
+     (optional)  first sample axis
+
+=item d-  float*
+
+      (optional)  sampling of axis
+
+=item label-  char*
+
+      (optional)  label for axis
+
+=item unit-  char*
+
+      (optional)  unit for axis
+
+=item ntraces   -  int
+
+      (optional)  number of trac3es
+
+=item keyname  - char**
+
+      (optional)  keyname for dataset
+
+=item keytype  -  char**
+
+      (optional)  keytype for dataset
+
+=item keyfmt -  char**
+
+      (optional)  keyfmt for dataset
+
+=item nh-  int
+
+      (optional)  number of headers to store
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item outstruct -  sep3d
+
+      sep3d structure to create
+
+=back
+
+
+=head1 DESCRIPTION
+
+
+Initialize structure
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

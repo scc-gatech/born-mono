@@ -1,0 +1,796 @@
+/*$
+
+=head1 NAME
+
+Scat3d,Cat3d,Scat,Cat,Merge  - Concatenate seplib datasets, 5 names for the same exact code.
+
+=head1 SYNOPSIS
+
+Cat3d header.H [header2.H .....] [pars]
+
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item		axis - int 
+
+        [3] which axis to concatenate along
+
+=item		maxsize,max_memory - int 
+
+        [5000] maximum memory in MB
+
+=item		virtual    - int 
+
+        [0]  (1 if you don't wish to concatenate data just
+        make a multi-file seplib file
+
+=item   space    - char
+
+        [n] leave space between merged data to make it easy to tell
+            where one file ends and the next begins in merged movies
+            default: space=y for Merge, space=n for Cat, Cat3d
+
+=item   nspace   - int
+
+        number of traces in the space
+        (defaults to something reasonable).
+
+=back
+
+=head1 DESCRIPTION
+ 
+Concatenate datasets.  Scat3d and Cat3d are two names for the same code.
+
+
+=head1 COMMENTS
+
+Grid files are destroyed
+
+=head1 SEE ALSO
+
+L<Cat> L<Merge>
+
+=head1 CATEGORY
+
+B<util/cube>
+
+=cut
+>*/
+/*
+Author:Robert G. Clapp
+
+2/20/98 Begun
+*/
+#include <sepConfig.h>
+#include <stdlib.h>
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_SYS_FILE_H
+#include <sys/file.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#include <seplib.h>
+#include <superset.h>
+
+
+
+#define MAX_FILE_SIZE 4096
+#define MAX_FILES 1000
+#define STRING_SIZE 4096
+#define MAX_DIMS 20
+#define MAX_KEYS 200
+#define CAT_DATA 0
+#define CAT_HEADERS 1
+#define CAT_GRID 2
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+
+void get_parameters(int argc,char **argv,char **files,
+	int *nfiles,int *axis,long long *max_memory,int *cat_type,int *ndout,int *virtual,int *nspace);
+
+void put_parameters2(char **files,int nfiles,int axis,
+	int cat_type, int ndim, int *n_out,float *o_out, float *d_out, 
+	char **label_out,char **unit_out,
+	int virtual, int *nspace);
+
+void check_parameters2(char **files,int nf,
+	int ax,int cat_type ,int nd, int *n1,int *cat_axis, int *cat_after, 
+	int *n_out, float *o_out, float *d_out, char **label_out,
+	char **unit_out);
+
+int cat_it(char **files,int nf, int *n1, int *n_axis, 
+	int *cat_after, long long max_memory, int axis, int cat_type, int *n_out, int virtual,int nspace);
+
+_XFUNCPROTOEND
+#endif
+
+int main (int argc, char **argv)
+{
+	int i2,nfiles,iarg,logic,tempi,axis,*n_out,n,ierr,i1,key_size,*n1;
+	int block_b,block_e,tot_read_b,tot_read_a,read,nkeys_in,nkeys_out,drn;
+	int *n_shift,*shift,counter1,counter2,counter3,esize;
+	char **files,temp_ch[512],
+		label[STRING_SIZE],temp2_ch[129];
+	int axis_volume,*n_axis,*volume_in,*volume_out,ib,ia,old_drn;
+        long long max_memory;
+	int cat_type,ndim_list[100],ngrid_out[3];
+	float *o_out,o,*d_out,d;
+	char *volume_char,hff_out[256],files_in[MAX_FILES][MAX_FILE_SIZE],*temp_t[1];
+	float *o_list, *d_list;
+	char label_list[100][256],**unit_out,**label_out;
+	int ndim, *n_list,synch,block_a,buf_size,nf=0,*cat_before,*cat_after;
+	int virtual,nspace,i,iorder;
+
+   ADD_SEP_DOC
+
+      files=(char**) malloc(sizeof(char*)*MAX_FILES);
+      label_out=(char**) malloc(sizeof(char*)*MAX_FILES);
+      unit_out=(char**) malloc(sizeof(char*)*MAX_FILES);
+      for(i=0; i < MAX_FILES; i++){
+         label_out[i]=(char*) malloc(sizeof(char)*MAX_FILE_SIZE);
+         unit_out[i]=(char*) malloc(sizeof(char)*MAX_FILE_SIZE);
+         files[i]=(char*) malloc(sizeof(char)*MAX_FILE_SIZE);
+      }
+
+	/*SEPlib startup*/
+	initpar(argc,argv);
+        sep_begin_prog();
+	doc(SOURCE);
+
+	/*Get parameters */
+	get_parameters(argc,argv,files,&nfiles,&axis,&max_memory,&cat_type,
+		&ndim,&virtual,&nspace);
+
+	n_out      =(int *) malloc(sizeof(int) *ndim);
+	o_out      =(float *) malloc(sizeof(float) *ndim);
+	d_out      =(float *) malloc(sizeof(float) *ndim);
+	n1 =(int *) malloc(sizeof(int) * nfiles);
+	cat_after  =(int *) malloc(sizeof(int) * nfiles);
+	n_axis     =(int *) malloc(sizeof(int) * nfiles);
+
+	check_parameters2(files,nfiles,axis,cat_type, ndim,n1,n_axis,
+		cat_after,n_out,o_out, d_out, label_out,unit_out);
+
+	/*now lets write out info to the hff, gff, and history file */
+	put_parameters2(files,nfiles,axis,cat_type,ndim,n_out,o_out,d_out,
+		label_out,unit_out,virtual,&nspace);
+
+
+      if(0!=sep3d_grab_inorder("out",&iorder))
+               seperr("trouble grabbing in order \n");
+
+	sep_3d_close(); /*close the format files */
+
+	ngrid_out[0]=n_out[0]; ngrid_out[1]=1; ngrid_out[2]=1;
+	for(i1=1; i1 < axis; i1++) ngrid_out[1]=ngrid_out[1]* n_out[i1];
+	for(i1=axis; i1 < ndim ; i1++) ngrid_out[2]=ngrid_out[2]* n_out[i1];
+
+      if(0!=sep3d_grab_inorder("out",&iorder))
+               seperr("trouble grabbing in order \n");
+
+	cat_it(files,nfiles,n1,n_axis,cat_after,max_memory,axis,cat_type,
+		ngrid_out,virtual,nspace);
+
+      if(0!=sep3d_grab_inorder("out",&iorder))
+               seperr("trouble grabbing in order \n");
+
+        sep_end_prog();
+	return(EXIT_SUCCESS);
+}
+
+
+/*
+Usage:
+int cat_it(file,nf,n1,n_axis,cat_after,max_memory,axis,cat_type)
+
+*/
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int cat_it(char **files,int nf, int *n1, int *cat_axis, int *cat_after, long long max_memory, int axis, int cat_type, int *ngrid_out, int virtual,int nspace)
+_XFUNCPROTOEND
+#endif
+{
+	int  i2,i1,esize,sz,i3,i4;
+	char *buffer,temp_ch[STRING_SIZE],temp2_ch[STRING_SIZE];
+	int nwind[3],fwind[3],jwind[3],fout[3],nout[3],write_header,ngrid[3];
+	int read,max_block,nread,*drn,three,wd,block[MAX_FILES];
+	float o,d,count;
+	int *header_pt,tr_num,*grid_pt,write_grid,space,iorder;
+  float zero[50000];
+
+
+  for(i1=0; i1 < 50000;i1++) zero[i1]=0.;
+
+	if(virtual==1){
+		wd=0;
+		block[0]=0;
+		for(i2=0; i2 < nf-1; i2++) block[i2+1]=block[i2]+cat_axis[i2]*cat_after[i2];
+	} else wd=1;
+
+	if(0==auxpar("esize","d",&esize,files[0])) esize=4;
+  space=nspace*esize;
+  
+
+	buffer=(char *) malloc( sizeof(char)*max_memory);
+	max_memory=max_memory/esize;
+
+	fwind[0]=0; jwind[0]=1; jwind[1]=1; jwind[2]=1;  three=3; nwind[2]=1;nout[2]=1;
+
+	if(SUCCESS!=sep3d_grab_axis(files[0],1,nout,&o,&d,temp_ch,temp2_ch))
+		seperr("trouble grabbing axis 1 from out \n");
+
+
+	fout[0]=0;fout[1]=0;tr_num=0; fout[2]=-1;
+	for(i4=0; i4 < cat_after[0] ; i4++){ /* loop over outside axis */ 
+		fwind[2]=i4; fout[2]++; fout[0]=0; fout[1]=0;
+		for(i3=0; i3 < nf ; i3++) { /* loop over the files */
+			nwind[0]=n1[i3]; /*if(axis!=1) fout[1]=0;*/
+			read=0;
+
+			max_block=max_memory/n1[i3];
+			if(max_block < 1)
+				seperr("increase max memory could not hold 1 trace in memory \n");
+
+			drn=(int *) malloc(sizeof(int) *max_block);
+
+       if(i3!=0 && space >0){
+          while(read < space){
+            nread=MIN(space,200000);
+            if(nread!=srite("out",zero,nread))
+              seperr("trouble writing out zero trace\n");
+            read+=nread; 
+          }
+          read=0;
+       }
+			while(read < cat_axis[i3]){ 
+				nread=MIN(cat_axis[i3]-read,max_block);
+				fwind[1]=read; nwind[1]=nread;	
+
+				if(cat_type!=CAT_DATA){
+					if(SUCCESS!=sep3d_read_headers(files[i3],files[i3],
+						&nwind[1],&fwind[1],&jwind[1],&sz))
+						seperr("trouble reading headers from tag %s \n",files[i3]);
+	
+					if(SUCCESS!=sep3d_grab_drn(files[i3],drn))
+						seperr("trouble reading drn from %s \n",files[i3]);
+
+					nout[1]=sz;
+					if(axis!=1 || i3 ==0) {
+						write_header=1;
+						header_pt=sep3d_grab_header_pointer(files[i3]);
+						if(SUCCESS!=sep3d_set_header_pointer("out",sz,header_pt))
+							seperr("trouble setting header pointer \n");
+
+						if(cat_type==CAT_GRID){
+							write_grid=1;
+              if(SUCCESS!=sep3d_copy_coords(files[i3],"out"))
+								seperr("trouble coppying grid \n");
+						} else write_grid=0;
+					} else write_header=0;
+
+  if(virtual==0) {
+    if(SUCCESS!=sep3d_read_list(files[i3],n1[i3],n1[i3],0,1,
+     esize, sz, drn, buffer))
+	seperr("trouble reading in window \n");
+/*
+	if(SUCCESS!=sep3d_set_inorder("out"))
+	seperr("trouble setting the output to in order \n");
+*/
+  } else {
+						for(i1=0; i1 < sz; i1++) drn[i1]=drn[i1]+block[i3];
+							if(SUCCESS!=sep3d_set_drn("out",drn))
+								seperr("trouble reading drn from %s \n",files[i3]);
+					}
+     if(SUCCESS!=sep3d_rite("out","out",nout,fout,jwind,
+     buffer, sz, wd, write_header,write_grid))
+     seperr("trouble writing data headers \n");
+     
+     if(axis!=1 || i3 ==0) {
+     write_header=1;
+     if(SUCCESS!=sep3d_nullify_header_pointer("out"))
+     seperr("trouble nullifying header pointer \n");
+
+						if(write_grid==1) {
+/*							if(SUCCESS!=sep3d_nullify_grid_pointer("out"))*/
+/*								seperr("trouble nullifying grid pointer \n");*/
+						} else write_grid=0;
+					} else write_header=0;
+				} else{
+					ngrid[0]=n1[i3]; ngrid[1]=cat_axis[i3]; ngrid[2]=cat_after[i3];
+					nout[0]=n1[i3];
+
+					if(virtual==0){
+						if(SUCCESS!=sreed_window(files[i3],&three,ngrid,nwind,
+							fwind,jwind,esize,buffer))
+						seperr("trouble reading in data from tag-%s \n",files[i3]);
+						nout[1]=nread;
+
+/*						if(SUCCESS!=srite_window("out",&three,ngrid_out,nout,*/
+/*							fout,jwind,esize,buffer))*/
+/*							seperr("trouble writing data  \n");*/
+            if(esize*nout[0]*nout[1]*nout[2]!=srite("out",buffer,
+              esize*nout[0]*nout[1]*nout[2]))
+							seperr("trouble writing data  \n");
+					}
+				}
+				if(axis!=1){ fout[1]+=nout[1];  read+=nout[1];}
+				else {
+					/*the first axis is being catted so ngid_out[1]=1 
+						in this case just update nout[2] */
+					fout[0]+=nout[0]; read+=nout[1];
+				}
+			}
+			free(drn);
+		}
+	}
+
+	return(0);
+}
+				
+
+/*Function to grab initial parameters*/
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void get_parameters(int argc,char **argv,char **files,
+	int *nfiles, int *axis,long long *max_memory,int *cat_type, int *ndim, int *virtual,int *nspace)
+_XFUNCPROTOEND
+#endif
+{
+	int iarg,logic,nf,*n_list,nd,ax,temp2i,temp3i;
+	int i1,i2,tempi,n;
+	float *o_list, *d_list,o,d;
+	char temp_ch[STRING_SIZE],temp2_ch[STRING_SIZE],
+		label_list[MAX_DIMS][MAX_FILE_SIZE];
+  char ourname[1024];
+
+	/*MAKE A LIST OF THE  HEADER FILES */
+	nf=0;
+	for(iarg=1; iarg< argc; iarg++) {
+		logic=1;
+		for (i1=0;argv[iarg][i1]!='\0';i1++) {
+			if(argv[iarg][i1] == '=') logic=0;
+		}
+		if(logic==1) {
+			if(nf==0) {
+				sprintf(temp_ch,"%s%s","stdin=",argv[iarg]);
+				getch_add_string(temp_ch);
+			}
+			if(1==auxpar("in","s",temp_ch,argv[iarg])) {
+				if(nf>MAX_FILES) seperr("to many file, maximum MAX_FILES\n");
+				strcpy(files[nf],argv[iarg]);
+				nf++;
+			}
+		}
+	}
+
+	init_3d();
+
+	*nfiles=nf;
+
+	if(0==getch("axis","d",axis)) *axis=3;
+	if(0==getch("max_memory","d",max_memory)) *max_memory=5000;
+	*max_memory=*max_memory*1000000;
+	if(*nfiles==0)  seperr("found 0 valid sepfiles to concatenate \n");
+	ax=*axis;
+
+	/*NOW LETS CREATE SEP3D TAGS */
+	for(i1=0; i1< nf; i1++){
+		if(SUCCESS!=sep3d_tag_init(files[i1],files[i1],"INPUT"))
+			seperr("trouble initializing tag %s \n",files[i1]);
+
+		if(SUCCESS!=sep3d_grab_file_type(files[i1],temp_ch))
+			seperr("trouble figuring out file type for tag %s \n",files[i1]);
+
+		if(i1==0) strcpy(temp2_ch,temp_ch);
+		else if(0!=strcmp(temp_ch,temp2_ch))
+		seperr("Tag %s, type %s is not compatible with tag %s, type %s \n",
+		files[0],temp2_ch,files[i1],temp_ch);
+	}
+
+	/*FIGURE OUT THE TYPE OF CAT */
+	if(0==strcmp("GRID",temp_ch)) *cat_type=CAT_GRID;
+	if(0==strcmp("HEADER",temp_ch)) *cat_type=CAT_HEADERS;
+	else *cat_type=CAT_DATA;
+
+	*ndim=*axis;
+	for(i1=0;i1 < nf; i1++) {
+		if(SUCCESS!=sep3d_grab_ndims(files[i1],&tempi))
+		seperr("trouble obtaining number of dimensions from tag %s \n",files[i1]);
+
+		if(tempi > *ndim) *ndim=tempi;
+
+	}
+
+
+	if(0==getch("virtual","d",virtual)) *virtual=0;
+	if((*cat_type==CAT_DATA || *axis==1) && *virtual==1) 
+	seperr("Can not do a virtual cat on a sepcube or when catenating along 1st axis\n");
+
+  *nspace=0;
+
+  if(*axis==1 &&  *cat_type!=CAT_DATA)
+   seperr("You can not concatenate along the first axis when you have headers");
+  if(*cat_type==CAT_DATA && *virtual==0) {
+    sep_prog(ourname);
+    if(0==strcmp(ourname,"Merge")) *nspace=1;
+    else *nspace=0;
+    getch("space","1",nspace);
+  }
+  if(*nspace < 0) seperr("Illegal nspace(%d) must be >=0 \n",*nspace);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void check_parameters2(char **files,int nf,int ax,
+	int cat_type ,int nd, int *n1, int *cat_axis, int *cat_after, int *n_out, 
+	float *o_out, float *d_out, char **label_out,
+	char **unit_out)
+_XFUNCPROTOEND
+#endif
+
+{
+	int iarg,logic,**n_list,temp2i,temp3i,logic3,logic4;
+	int i1,i2,tempi,n,booga,ndim,*ndims,iaxis,virtual;
+        int ierr2,idrn,itest,ierr;
+	float *o_list, **d_list,o,d;
+	char temp_ch[STRING_SIZE],temp2_ch[STRING_SIZE],**label_list,
+		**key,label[STRING_SIZE],unit[STRING_SIZE],
+		temp3_ch[STRING_SIZE];
+	int l_error,nk,nkey;
+         int i;
+
+        key=(char**)malloc(sizeof(char*)*MAX_KEYS);
+        label_list=(char**)malloc(sizeof(char*)*MAX_KEYS);
+        for(i=0; i < MAX_KEYS; i++){
+           key[i]=(char*) malloc(sizeof(char)*STRING_SIZE);
+           label_list[i]=(char*) malloc(sizeof(char)*STRING_SIZE);
+        }
+
+	ndims =(int *) malloc(sizeof(int) * nf);
+
+	for(i2=0; i2< nf; i2++) {
+		if(SUCCESS!=sep3d_grab_ndims(files[i2],&ndims[i2]))
+			seperr("trouble grabbing ndim from tag:%s \n",files[i2]);
+
+		if(SUCCESS!=sep3d_grab_data_type(files[i2],temp_ch))
+			seperr("trouble obtaining data type \n");
+
+		if(i2==0) strcpy(temp2_ch,temp_ch);
+		else if (0!=strcmp(temp_ch,temp2_ch))
+			seperr("data types not equvilent %s=%s %s=%s \n",files[0],
+
+		temp2_ch,files[i2],temp_ch);
+		cat_axis[i2]=1;n1[i2]=1; cat_after[i2]=1;
+
+	}
+
+	for(i1=0; i1 < nd; i1++){ /* loop over axes */
+
+
+		iaxis=i1+1;
+		n_out[i1]=0; logic=0; logic3=-1;
+		l_error=0; o_out[i1]=0.; 
+
+		/* d_out[i1]=1.;*/
+		if(ax==iaxis) { /*this is the axis we are catting */
+			for(i2=0; i2 < nf; i2++) { /*loop over files */
+				/*check to set that files has this many dimension*/
+				if(iaxis <= ndims[i2]){ 
+					if(SUCCESS!=sep3d_grab_axis(files[i2],iaxis,&n,&o,&d,label,unit))
+						seperr("trouble grabbing axis %d from tag %s \n",
+							iaxis,files[i2]);
+					n_out[i1]+=n;
+					if(iaxis==1) n1[i2]=n;
+					else cat_axis[i2]=n*cat_axis[i2];
+
+					if(logic3==-1) { /*this is the first file with enough dims*/
+						o_out[i1]=o; d_out[i1]=d; strcpy(label_out[i1],label);
+						strcpy(unit_out[i1],unit);
+						logic3=i2;
+            logic=logic3;
+					} else if (l_error==0) {
+						if(o_out[i1] != o) {
+				fprintf(stderr,"WARNING:Incompatible o for axis %d %s[%f] %s[%f]\n",
+                 			i1+1,files[logic],o_out[i1],files[i2],o);
+							l_error=1;
+						}
+						if(d_out[i1] != d && l_error==0) {
+				fprintf(stderr,"WARNING:Incompatible d for axis %d %s[%f] %s[%f]\n",
+							i1+1,files[logic],d_out[i1],files[i2],d);
+							l_error=1;
+						}
+					}
+				} else {
+           n_out[i1]+=1;
+           if(i2==0){ o_out[i1]=0;d_out[i1]=1.; };
+            if(o_out[i1]==0.){
+             sprintf(temp_ch,"%s%d","o",iaxis);
+             auxpar(temp_ch,"f",&o_out[i1],files[i2]);
+            }
+            if(d_out[i1]==1.){
+             sprintf(temp_ch,"%s%d","d",iaxis);
+             auxpar(temp_ch,"f",&d_out[i1],files[i2]);
+            }
+        }
+			}
+		} else{
+			for(i2=0; i2 < nf; i2++) { /*loop over files */
+				/*check to set that files has this many dimension*/
+				if(iaxis <= ndims[i2]) {
+					if(SUCCESS!=sep3d_grab_axis(files[i2],iaxis,&n,&o,&d,label,unit))
+						seperr("trouble grabbing axis %d from tag %s \n",
+							iaxis,files[i2]);
+            logic4=1;
+          }
+          else{
+					  if(SUCCESS!=sep3d_reed_axis(files[i2],iaxis,&n,&o,&d,label,unit))
+					  	seperr("trouble grabbing axis %d from tag %s \n",
+						 	iaxis,files[i2]);
+              logic4=0;
+          } 
+					if(iaxis ==1) n1[i2]=n;
+					else if(iaxis < ax) cat_axis[i2]=cat_axis[i2]*n;
+					else cat_after[i2]=cat_after[i2]*n;
+          if(logic4==0  && logic3==-1){
+						n_out[i1]=n;
+						o_out[i1]=o; d_out[i1]=d; strcpy(label_out[i1],label);
+						strcpy(unit_out[i1],unit);
+          }
+					else if(logic3==-1 && logic4==1){/*this is the first file with enough dims*/
+						n_out[i1]=n;
+						o_out[i1]=o; d_out[i1]=d; strcpy(label_out[i1],label);
+						strcpy(unit_out[i1],unit);
+						logic3=i2;
+						logic=i2;
+					} else if(n!=n_out[i1]) {
+						seperr("ERROR:Incompatible n for axis %d %s[%d] %s[%d]\n",
+							i1+1,files[logic],n_out[i1],files[i2],n);
+					} else if(l_error==0) {
+						if(o_out[i1] != o){
+				fprintf(stderr,"WARNING:Incompatible o for axis %d %s[%f] %s[%f]\n",
+							i1+1,files[logic],o_out[i1],files[i2],o);
+							l_error=1;
+						}
+						if(d_out[i1] != d && l_error==0){
+				fprintf(stderr,"WARNING:Incompatible d for axis %d %s[%f] %s[%f]\n",
+							i1+1,files[logic],d_out[i1],files[i2],d);
+							l_error=1;
+						}
+					}
+			}
+		}
+	}
+	if(cat_type!=CAT_DATA){ /*now check key compatibility */
+		if(SUCCESS!=sep3d_grab_nkeys(files[0],&nkey))
+			seperr("trouble grabbing number of keys from tag %s \n",files[0]);
+
+		if(nkey > 199 ) seperr("can only handle MAX_KEYS keys right now \n");
+		for(i1=1 ; i1 <= nkey; i1++){
+			if(SUCCESS!=sep3d_grab_key(files[0],i1,key[i1],temp_ch,temp2_ch))
+				seperr("trouble getting key %d from tag %s \n",i1,files[0]);
+		}
+
+		for(i2=1; i2 < nf; i2++){
+			if(SUCCESS!=sep3d_grab_nkeys(files[i2],&nk))
+				seperr("trouble grabbing number of keys from tag %s \n",files[i2]);
+
+			if(nk!=nkey) 
+				seperr("number of keys not equal  %s[%d], %s[%d] \n", 
+					files[0],nkey,files[i2],nk);
+		
+			for(i1=1 ; i1 <= nkey; i1++){
+				if(SUCCESS!=sep3d_grab_key(files[i2],i1,temp3_ch,temp_ch,temp2_ch))
+					seperr("trouble getting key %d from tag %s \n",i1,files[i2]);
+				if(0!=strcmp(temp3_ch,key[i1]))
+					seperr("key %d is not compatible %s[%s] %s[%s] \n",i1,files[0],
+						key[i1],files[i2], temp3_ch);
+			}
+		}
+           if(0==getch("virtual","d",&virtual)) virtual=0;
+            if(virtual==1) {
+              ierr2=sep_get_key_index("data_record_number","d",&idrn);
+              if(ierr2!=0) idrn=-1;
+              for(i1=0; i1 < nf; i1++){
+                 if(0==auxpar("same_record_number","d",&ierr,files[i1])) ierr=1;
+                 if(ierr==0) seperr("Can not do a virutal cat when data is out of order file=%d\n",i1);
+                if(0!=sep_get_key_index("data_record_number","d",&itest))
+                  itest=-1;
+                if(itest != idrn) seperr("Inconsistent behavior for data_record_number_key, must be in the same position in every file (difference between 0 and %d \n",i1);
+
+             }
+
+
+           }
+	}
+
+	for(i2=0; i2 < nf; i2++){
+		if(SUCCESS!=sep3d_set_ndims(files[i2],3))
+			seperr("trouble resetting ndims in %s \n",files[i2]);
+		if(SUCCESS!=sep3d_set_axis(files[i2],1,n1[i2]*cat_axis[i2],
+			0.,1.,"none","none"))
+			seperr("trouble resetting axis 1 in %s \n",files[i2]);
+		if(SUCCESS!=sep3d_set_axis(files[i2],2,cat_axis[i2],
+			0.,1., "none","none"))
+			seperr("trouble resetting axis 1 in %s \n",files[i2]);
+		if(SUCCESS!=sep3d_set_axis(files[i2],3,cat_after[i2],
+			0.,1., "none","none"))
+			seperr("trouble resetting axis 1 in %s \n",files[i2]);
+	}
+	free(ndims);
+        for(i=0; i < MAX_KEYS; i++){
+          free(key[i]); free(label_list[i]);
+        }
+        free(key); free(label_list);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void put_parameters2(char **files,int nfiles,int axis,
+	int cat_type, int ndim, int *n_out,float *o_out, float *d_out, 
+	char **label_out,char **unit_out,
+	int virtual,int *nspace)
+_XFUNCPROTOEND
+#endif
+
+{
+	int i1,tempi,n2_out,i2,count,temp2i,temp3i,ntr,n,b,e,nkey,len;
+	char temp_ch[STRING_SIZE*4];
+	float tempr,tempr2;
+	char *name[150],*type[150],*format[150];
+	char *long_one;
+  int nbig,iorder;
+
+
+	for(i1=0; i1 < 150 ; i1++){
+		name[i1]=(char*) malloc(STRING_SIZE*sizeof(char));
+		type[i1]=(char*) malloc(STRING_SIZE*sizeof(char));
+		format[i1]=(char*) malloc(STRING_SIZE*sizeof(char));
+	}
+
+	/*Put axis that we are concatenating */
+	if(0!=putch("axis","d",&axis))
+		seperr("trouble writing %s to the history file \n",temp_ch);
+
+	/*next lets copy the name of the files*/
+	for(i2=0; i2<nfiles; i2++) {
+		sprintf(temp_ch,"%s%d","file",i2+1);
+		if(0!=putch(temp_ch,"s",files[i2]))
+			seperr("trouble writing %s to the history file \n",temp_ch);
+	}
+
+	if(SUCCESS!=sep3d_par_init("out","OUTPUT"))
+		seperr("trouble creating output structure \n");
+
+	if(cat_type==CAT_DATA) {
+		if(SUCCESS!=sep3d_set_file_type("out","REGULAR"))
+			seperr("trouble setting output file format \n");
+	} else if(cat_type==CAT_HEADERS) {
+		if(SUCCESS!=sep3d_set_file_type("out","HEADER"))
+			seperr("trouble setting output file format \n");
+           sep3d_set_rite_status("out",1,1);
+	} else{
+		if(SUCCESS!=sep3d_set_file_type("out","GRID"))
+			seperr("trouble setting output file format \n");
+           sep3d_set_rite_status("out",1,1);
+	}
+
+	if(SUCCESS!=sep3d_grab_data_type(files[0],temp_ch))
+		seperr("trouble grabbing data type from %s \n",files[0]);
+
+	if(SUCCESS!=sep3d_set_data_type("out",temp_ch))
+		seperr("trouble setting data format \n");
+
+	if(SUCCESS!=sep3d_set_ndims("out",ndim))
+		seperr("trouble setting number of dimensions \n");
+
+
+
+	ntr=1;n=1; b=1; e=1;
+	for(i1=1; i1 <= ndim; i1++){
+		if(i1==1) n=n_out[i1-1];
+		else if(i1 <= axis) b=n_out[i1-1]*b;
+		else e=n_out[i1-1]*e;
+		if(i1>1) ntr=ntr*n_out[i1-1];
+		if(SUCCESS!=sep3d_set_axis("out",i1,n_out[i1-1],o_out[i1-1],d_out[i1-1],
+			label_out[i1-1],unit_out[i1-1]))
+			seperr("trouble setting axis %d in output \n",i1);
+	}
+
+  nbig=1;
+  for(i1=1;i1 <axis;i1++) nbig=nbig*n_out[i1-1];
+  if(*nspace>0){
+    if(0==getch("nspace","d",nspace))
+      *nspace=n_out[axis-1]/(20*nfiles)+1;
+      n=n_out[axis-1]+*nspace;
+		  if(SUCCESS!=sep3d_set_axis("out",axis,n,o_out[axis-1],d_out[axis-1],
+		  	label_out[axis-1],unit_out[axis-1]))
+		  	seperr("trouble setting axis %d in output \n",axis);
+     ntr=ntr/n_out[axis-1]*n;
+    putch("nspace","d",nspace);
+    *nspace=*nspace*nbig;
+  }
+  
+
+	if(SUCCESS!=sep3d_set_ntraces("out",ntr))
+		seperr("trouble setting the number traces \n");
+
+	if(SUCCESS!=sep3d_grab_nkeys(files[0],&nkey))
+		seperr("trouble grabbing number of keys from tag %s \n",files[0]);
+	if(SUCCESS!=sep3d_set_nkeys("out",nkey))
+		seperr("trouble setting number of keys int output  \n");
+
+	if(cat_type!=CAT_DATA) {
+		if(SUCCESS!=sep3d_grab_keys(files[0],name,type,format))
+			seperr("trouble grabbing keys \n");
+		if(SUCCESS!=sep3d_set_keys("out",name,type,format))
+			seperr("trouble grabbing keys \n");
+
+		 sep3d_set_nh("out",1);
+		if(virtual==1){ 
+/*                 if(0!=sep3d_grab_inorder(files[0],&iorder))*/
+/*                   seperr("trouble grabbing in order \n");*/
+                  sep3d_set_inorder("out");
+                }
+	}
+
+	if(SUCCESS!=sep3d_rite_format("out","out"))
+		seperr("trouble writing out dataset  parameters \n");
+
+	sep3d_clear_headers("out");
+
+	/*now reset the parameters */
+	if(SUCCESS!=sep3d_set_ndims("out",2))
+		seperr("trouble resetting ndims in out \n");
+
+		if(SUCCESS!=sep3d_set_axis("out",1,n, 0.,1., "none","none"))
+			seperr("trouble resetting axis 1 in output \n");
+		if(SUCCESS!=sep3d_set_axis("out",2,b*e, 0.,1., "none","none"))
+			seperr("trouble resetting axis 2 in output \n");
+		
+	for(i1=0; i1 < 150 ; i1++){
+		free(name[i1]);
+		free(type[i1]);
+		free(format[i1]);
+	}
+
+	if(virtual==1){
+		len=0;
+		for(i2=0; i2< nfiles; i2++){
+			if(1!=auxpar("in","s",temp_ch,files[i2])) 
+				seperr("trouble grabbing in from %s \n",files[i2]);
+			len=len+strlen(temp_ch)+1;	
+		}
+		long_one=(char*) malloc(sizeof(char)*(len));
+
+		if(1!=auxpar("in","s",long_one,files[0])) 
+			seperr("trouble grabbing in from %s \n",files[0]);
+
+		for(i2=1; i2< nfiles; i2++){
+			if(1!=auxpar("in","s",temp_ch,files[i2])) 
+				seperr("trouble grabbing in from %s \n",files[i2]);
+			strcat(long_one,";");
+			strcat(long_one,temp_ch);
+		}
+    sep3d_set_rite_status("out",1,1);
+    sep3d_rite_ntraces("out","out");
+    sep3d_set_inorder("out");
+		putch("in","s",long_one);
+		free(long_one);
+	}
+}
+/*  $Id: Scat3d.csep,v 1.3 2004/07/08 18:15:33 bob Exp $ */

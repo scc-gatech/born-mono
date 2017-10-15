@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>helderiv - helix derivative filter</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>helderiv - helix derivative filter</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Initializer: <code>call helderiv_init(n1,na)</code></p>
+<p>Operator   : <code>ierr=helderiv_lop(adj,add,pp,qq)</code></p>
+<p>Close      : <code>call helderiv_close()</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n1__2d_int">n1 -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       number of samples in n1</pre>
+</dd>
+<dt><strong><a name="item_na__2d_int">na -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       number of coefs for filter</pre>
+</dd>
+<dt><strong><a name="item_adj__2d_logcal">adj -  logcal</a></strong><br />
+</dt>
+<dd>
+<pre>
+      wheter or not run the adjoint</pre>
+</dd>
+<dt><strong><a name="item_add__2d_logical">add -  logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+       whether or not to add outout to data</pre>
+</dd>
+<dt><strong><a name="item_real">pp  -  <code>real(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      model</pre>
+</dd>
+<dt><strong>qq  -  <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      data</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Create and apply a helix derivative filter</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/lapfac.html">the lapfac manpage</a>, <a href="./../seplib_base/helicon.html">the helicon manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

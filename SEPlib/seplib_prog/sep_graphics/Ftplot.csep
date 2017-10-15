@@ -1,0 +1,442 @@
+
+ /*$
+
+=head1 NAME
+
+Ftplot - plots the input time-series and output FT
+  
+=head1 SYNOPSIS
+
+Ftplot par= < in.H | Xtpen
+
+=head1 DESCRIPTION
+
+Outputs vplot commands to plot an input time-series 
+and its Fourier amplitude or phase spectrum.
+
+=head1 INPUT  PARAMETERS
+
+=over 4
+
+=item f2 - int        
+
+      [0]  number of traces to skip before reading from in
+
+=item fmin -float     
+
+      [0.] minimum frequencies to plot
+
+=item fmax- int       
+
+      [1/2dt] maximum frequencies to plot
+
+=item plot- char*     
+
+      [amp ] -to plot AMPLITUDE (NORMALIZED) spectrum.
+      db     - to plot AMPLITUDE (DB) spectrum.
+      pha    - to plot PHASE (DEGREES) spectrum.
+      upha   - to plot unwrapped PHASE (DEGREES) spectrum.
+
+=item lfft-int        
+
+      length of fft used to compute spectrum
+      input padded with zeros if lfft > nt
+
+=item wate-char*     
+
+      [no] -weighting to apply to input before Fourier 
+      transforming for rectangular weighting
+      ham -for Hamming weighting
+
+=item n1,n2  -int     
+
+      standard seplib parameters
+
+=item o1,d2  -float   
+
+      cube dimensions
+
+=back
+
+ 
+
+=head1 COMPILE LEVEL
+
+DISTR
+
+=head1 CATEGORY
+
+B<sep_graphics>
+
+=cut
+
+*/
+
+#define pi 3.1415926536
+
+/*
+
+ KEYWORDS Fourier-transform vplot plotting
+
+ SEE ALSO
+  all pens
+
+ WHERE
+  ./cube/plot/Ftplot.c
+
+*/
+/*    March 1 , 1987   updated vplot commands -- clem     */
+/*    January 6 , 1992   remove nt=n1 anachronisms */
+/*    Feb 18 , 1994   Added unwrapped phase option - dave */
+/*    Dec 22 , 1995   Account for t0 != 0 in plots - dave */
+/*
+ * Keyword: Fourier-transform vplot plotting  
+ */
+#include <stdio.h>
+#include <math.h>
+#include <signal.h>
+#include <vplot.h>
+#include <sepcube.h>
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+extern void set_output_data_format(const char *);
+static int getscl (float xmin,float xmax,int n,float *xminp,float *xmaxp,float *dist);
+void minmax (float *f,int n,float *pmin,float *pmax);
+int cntchr (char *strg);
+int cntnum (char *strg, float ticval);
+_XFUNCPROTOEND
+#else
+static int getscl ();
+void minmax ();
+int cntchr ();
+int cntnum ();
+#endif
+
+/* subroutine to determine readable scales for axes
+   taken from Algorithm 463 -- Collected Algorithms from CACM */
+static float vint[4] = { 1., 2., 5., 10. };
+static float sqr[3] = { 1.414214, 3.162278, 7.071068 };
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+static int getscl (float xmin,float xmax,int n,float *xminp,float *xmaxp,float *dist)
+_XFUNCPROTOEND
+#else
+static int getscl (xmin,xmax,n,xminp,xmaxp,dist)
+int n;
+float xmin,xmax,*xminp,*xmaxp,*dist;
+#endif
+  {
+  int nal,i,m1,m2;
+  float del,fn,fm1,fm2,a,b,al;
+#if !defined(__stdc__) && ! defined(__STDC__)
+  double log10(),fabs(),pow();
+#endif
+
+        if (xmax < xmin || n <= 0) seperr ("bad arguments passed to function getscl\n",0); 
+  fn = n;
+
+  /* roundoff error tolerance */
+  del = .00002;
+  
+  /* find approximate interval size a */
+  a = (xmax - xmin) / fn;
+  al = log10(a);
+  nal = al;
+  if (a < 1.)
+    nal--;
+  
+  /* a is scaled into variable named b between 1 and 10 */
+    b = a / pow(10.,(double)nal);
+
+  /* the closest permissible value for b is found */
+  for (i = 0; i < 3 && b >= sqr[i]; i++);
+    
+  /* the interval size is computed */
+  *dist = vint[i] * pow (10.,(double)nal);
+  fm1 = xmin / *dist;
+  m1 = fm1;
+  if (fm1 < 0.) m1--;
+  if (fabs(m1 + 1. - fm1) < del)
+    m1++;
+  
+  /* the new minimum and maximum limits are found */
+  *xminp = *dist * m1;
+  fm2 = xmax / *dist;
+  m2 = fm2 + 1.;
+  if (fm2 < -1.)
+    m2--;
+  if (fabs(fm2 + 1. - m2) < del)
+    m2--;
+  *xmaxp = *dist * m2;
+
+  /* adjust limits to account for roundoff if necessary */
+  if (*xminp > xmin)
+    *xminp = xmin;
+  if (*xmaxp < xmax)
+    *xmaxp = xmax;
+  return(0);
+  }
+
+ADD_DEF_SEP_DOC
+
+#include <stdlib.h>
+#include<complex.h>
+#include <sepfft.h>
+#include <sep.main>
+int MAIN(void)
+{
+  int nt,offset,lfft,it,jf,jfmin,jfmax,nf,charsz,nchr;
+  int f2,i2,n2,nread;
+  float t,dt,t0,fmin,fmax,fnyq,tmin,tmax,xmin,xmax,tnum,fnum,xnum;
+  float f,df,xmins,xmaxs,fmins,fmaxs,tmins,tmaxs,ch,cw,vs,xc,yc;
+  float *x,*y,x0num,dxnum,t0num,dtnum,f0num,dfnum,thi,fhi,wide;
+  float rad180;
+  float complex *cy;
+  char plot[10],wate[10],string[40],slabel[40];
+
+   vp_filep(outstream); /* tell plotting routines where to stick it */
+
+  /* get parameters, open files, and set defaults */
+  if (!fetch("n1","d",&nt)) seperr("need n1\n");
+  dt = 1.0;                               fetch("d1","f",&dt);
+  t0 = dt;                                fetch("o1","f",&t0);
+  offset = 0;                             getch("offset","d",&offset);
+  fmin = 0.;                              getch("fmin","f",&fmin);
+  fnyq = 0.5/dt; fmax = fnyq;             getch("fmax","f",&fmax);
+  strcpy (plot,"amp");                    getch("plot","s",plot);
+  for (lfft=2; lfft<nt; lfft*=2);         getch("lfft","d",&lfft);
+  if (lfft < nt) seperr("lfft < nt not allowed\n");
+  strcpy (wate,"no");                     getch("wate","s",wate);
+  n2 = 1;                                 fetch("n2","d",&n2);
+  f2 = 0;                                 getch("f2","d",&f2);
+  set_output_data_format("vplot");
+  hclose();
+
+  vp_style(ROTATED);
+
+  x = (float *) calloc ((lfft+2)*2,sizeof(float));
+  y = x+lfft+2;
+  cy = (float complex *) y;
+  wide = 9.0;  thi = 2.25;  fhi = 2.25;
+  charsz=4;  ch = charsz/20.0;  cw = 3.0*ch/5.0;  vs = 3.0*ch/10.0;
+  rad180 = 180./pi; 
+  nread = nt*4;
+
+  /* read and plot input time series */
+    for(i2=0; i2<f2; i2++) {
+      if(nread != sreed("in",x,nread)) seperr("unexpected end of input\n");
+      }
+    for(i2=0;i2<n2; i2++) {
+  bzero(x,(lfft+2)*2*sizeof(float));
+  if(nread != sreed("in",x,nread)) seperr("unexpected end of input\n");
+  if(i2 > 0) vp_erase ();
+  minmax (x,nt,&xmin,&xmax);
+  if(xmin == xmax) { xmax += .00002; }
+  getscl (xmin,xmax,(int)thi,&xmins,&xmaxs,&dxnum);
+  for (x0num=xmins; x0num<xmin; x0num+=dxnum);
+  tmin = t0; tmax = t0+(nt-1)*dt;
+  getscl (tmin,tmax,(int)wide,&tmins,&tmaxs,&dtnum);
+  for (t0num=tmins; t0num<tmin; t0num+=dtnum);
+  vp_color (6);
+  vp_orig (0.75+thi,0.75); vp_uorig (xmin,tmin);
+  vp_scale (-thi/(xmax-xmin),wide/(tmax-tmin));
+  vp_umove (xmax,tmin); 
+  vp_udraw (xmax,tmax+dt*0.001);
+  for (tnum=t0num; tnum<=tmax+dt*0.001; tnum+=dtnum) {
+    nchr = cntnum(string,tnum);
+    vp_umove (xmax,tnum); vp_where (&xc,&yc); vp_draw (xc-vs,yc);
+    vp_text (xc-vs-vs,yc-nchr*cw/2.0,charsz,90*(1),string);
+    }
+  vp_umove (xmax,(tmin+tmax)/2.0); vp_where (&xc,&yc); 
+  nchr = cntchr("TIME (SEC)");
+  vp_text (xc-vs-vs-ch,yc-nchr*cw/2.0,charsz,90*(1),"TIME (SEC)");
+  vp_umove (xmin,tmin);
+  vp_udraw (xmax,tmin);
+  for (xnum=x0num; xnum<=xmax; xnum+=dxnum) {
+    nchr = cntnum(string,xnum);
+    vp_umove (xnum,tmin); vp_where (&xc,&yc); vp_draw (xc,yc-vs);
+    vp_text (xc+nchr*cw/2.0,yc-vs-vs,charsz,90*(2),string);
+    }
+  vp_umove ((xmin+xmax)/2.0,tmin); vp_where (&xc,&yc); 
+  nchr = cntchr("AMPLITUDE");
+  vp_text (xc+nchr*cw/2.0,yc-vs-vs-ch,charsz,90*(2),"AMPLITUDE");
+  vp_color (5);
+  vp_umove (x[0],tmin);
+  for (it=0,t=t0; it<nt; it++,t+=dt)
+    vp_udraw (x[it],t);
+
+  /* compute and plot spectrum */
+  nf = lfft/2+1;
+  if (wate[0]=='h')
+    for (it=0; it<nt; it++)
+      y[it] = x[it] * (.54-.46*cos(6.283185/(nt-1)*it));
+  else
+    for (it=0; it<nt; it++)
+      y[it] = x[it];
+  refft ((float complex *) y,lfft,1,1.,2);
+  df = fnyq/(nf-1);
+  jfmin = fmin/df;  jfmin = (jfmin<0)?0:jfmin;
+  jfmax = fmax/df;  jfmax = (jfmax>nf-1)?nf-1:jfmax;
+  cy += jfmin;  nf = jfmax-jfmin+1;
+
+         /* apply time shift */
+         {
+           float complex tmp; float omt;
+           for (jf=0; jf<nf; jf++){
+                       omt = t0*jf*df*2.*3.1415926536;
+                       tmp = cy[jf];
+                       __real__ cy[jf] = cos(omt)*__real__ tmp+ -sin(omt)*__imag__ tmp;
+                       __imag__ cy[jf] = sin(omt)*__real__ tmp + cos(omt)*__imag__ tmp;
+
+           }
+         }
+
+
+  if (plot[0]=='d') {
+    for (jf=0; jf<nf; jf++)
+      x[jf] =__real__ cy[jf]*__real__ cy[jf] + __imag__ cy[jf]*__imag__ cy[jf];
+    minmax (x,nf,&xmin,&xmax);
+    if(xmin == xmax) { xmax += .00002; }
+    for (jf=0; jf<nf; jf++)
+      x[jf] = 10.0*log10(x[jf]/xmax);
+    minmax (x,nf,&xmin,&xmax);
+    if(xmin == xmax) { xmax += .00002; }
+    getscl (xmin,xmax,(int)fhi,&xmins,&xmaxs,&dxnum);
+    for (x0num=xmins; x0num<xmin; x0num+=dxnum);
+    strcpy (slabel,"AMPLITUDE (DB)");
+    }
+  else if (plot[0]=='p') {
+    for (jf=0; jf<nf; jf++)
+      x[jf] = atan2(__imag__ cy[jf],__real__ cy[jf])*rad180;
+    xmin = -180; xmax = 180.0; dxnum = 180.0; x0num = xmin;
+    strcpy (slabel,"PHASE (DEGREES)");
+    }
+  else if (plot[0]=='u') {
+    for (jf=0; jf<nf; jf++)
+      x[jf] = atan2(__imag__ cy[jf],__real__ cy[jf])*rad180;
+    for (jf=1; jf<nf; jf++)
+      y[jf] = x[jf] - x[jf-1];
+    for (jf=1; jf<nf; jf++){
+      if( y[jf] < -180 ){
+         y[jf] = y[jf] + ((int)((-y[jf]+180)/360))*360;
+      }
+      if( y[jf] > 180 ){
+         y[jf] = y[jf] - ((int)((y[jf]+180)/360))*360;
+      }
+    }
+    for (jf=1; jf<nf; jf++){
+      x[jf] = x[jf-1] + y[jf];
+                }
+    minmax (x,nf,&xmin,&xmax);
+    if(xmin == xmax) { xmax += .00002; }
+    getscl (xmin,xmax,(int)fhi,&xmins,&xmaxs,&dxnum);
+    for (x0num=xmins; x0num<xmin; x0num+=dxnum);
+    strcpy (slabel,"UNWRAPPED PHASE (DEGREES)");
+    }
+  else {
+    for (jf=0; jf<nf; jf++)
+      x[jf] = sqrt(__real__ cy[jf]*__real__ cy[jf] +__imag__ cy[jf]*__imag__ cy[jf]);
+    minmax (x,nf,&xmin,&xmax);
+    if(xmin == xmax) { xmax += .00002; }
+    for (jf=0; jf<nf; jf++)
+      x[jf] /= xmax;
+    minmax (x,nf,&xmin,&xmax);
+    if(xmin == xmax) { xmax += .00002; }
+    getscl (xmin,xmax,(int)fhi,&xmins,&xmaxs,&dxnum);
+    for (x0num=xmins; x0num<xmin; x0num+=dxnum);
+    strcpy (slabel,"AMPLITUDE (NORMALIZED)");
+    }
+  vp_color (6);
+  vp_orig (0.75+thi+0.5+fhi,0.75); vp_uorig (xmin,fmin);
+  vp_scale (-fhi/(xmax-xmin),wide/(fmax-fmin));
+  vp_umove (xmin,fmin);
+  vp_udraw (xmax,fmin);
+  for (xnum=x0num; xnum<=xmax; xnum+=dxnum) {
+    nchr = cntnum(string,xnum);
+    vp_umove (xnum,fmin); vp_where (&xc,&yc); vp_draw (xc,yc-vs);
+    vp_text (xc+nchr*cw/2.0,yc-vs-vs,charsz,90*(2),string);
+    }
+  vp_umove ((xmin+xmax)/2.0,fmin); vp_where (&xc,&yc); 
+  nchr = cntchr(slabel);
+  vp_text (xc+nchr*cw/2.0,yc-vs-vs-ch,charsz,90*(2),slabel);
+  vp_umove (xmin,fmin); 
+  vp_udraw (xmin,fmax+df*0.001);
+  getscl (fmin,fmax,(int)wide,&fmins,&fmaxs,&dfnum);
+  for (f0num=fmins; f0num<fmin; f0num+=dfnum);
+  for (fnum=f0num; fnum<=fmax+df*0.001; fnum+=dfnum) {
+    nchr = cntnum(string,fnum);
+    vp_umove (xmin,fnum); vp_where (&xc,&yc); vp_draw (xc+vs,yc);
+    vp_text (xc+vs+ch,yc-nchr*cw/2.0,charsz,90*(1),string);
+    }
+  vp_umove (xmin,(fmin+fmax)/2.0); vp_where (&xc,&yc); 
+  nchr = cntchr("FREQUENCY (HZ)");
+  vp_text (xc+vs+ch+ch,yc-nchr*cw/2.0,charsz,90*(1),"FREQUENCY (HZ)");
+  vp_color (5);
+  vp_umove (x[0],fmin);
+  for (jf=0,f=fmin; jf<nf; jf++,f+=df)
+    vp_udraw (x[jf],f);
+  }       
+     /* end loop over n2 */
+  return(EXIT_SUCCESS);
+}
+
+
+/* function places a tic value in a character string and
+   returns the number of characters */
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int cntnum (char *strg, float ticval)
+_XFUNCPROTOEND
+#else
+int cntnum (strg,ticval)
+float ticval;
+char *strg;
+#endif
+  {
+  sprintf (strg,"%1.5g",ticval);
+  return(cntchr(strg));
+  }
+
+/* function returns the number of characters in a string */
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int cntchr (char *strg)
+_XFUNCPROTOEND
+#else
+int cntchr (strg)
+char *strg;
+#endif
+  {
+  int i=0,nc=0; char esc=033;
+  while (strg[i] != '\0')
+    {
+    if (strg[i++]==esc)
+      i++;
+    else
+      nc++;
+    }
+  return (nc);
+  }
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void minmax (float *f,int n,float *pmin,float *pmax)
+_XFUNCPROTOEND
+#else
+void minmax (f,n,pmin,pmax)
+int n; float *f,*pmin,*pmax;
+#endif
+  {
+  register int i; register float min,max,fi;
+  min = 1.e30; max = (-1.e30);
+  for (i=0; i<n; i++)
+    {
+    fi = f[i];
+    min = (min<fi)?min:fi;
+    max = (max>fi)?max:fi;
+    }
+  *pmin = min; *pmax = max;
+  }

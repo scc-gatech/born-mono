@@ -1,0 +1,44 @@
+=head1 NAME
+
+
+cadd - complex add
+
+=head1 SYNOPSIS
+
+
+C<val=complex cadd(a, b)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  a,b  -complex   
+
+       complex numbers to add
+
+=back
+
+=head1 RETURN VALUES
+
+
+=over 4
+
+=item val -  complex 
+
+      complex  the result of addition;
+
+=back
+
+=head1 DESCRIPTION
+
+
+Cadd returns a+b.
+
+=head1 LIBRARY
+
+
+B<sepmath>
+
+=cut
+

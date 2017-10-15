@@ -1,0 +1,82 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>chain - create a chain of 2,3, or 4 operators</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>chain - create a chain of 2,3, or 4 operators</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call chain(oper1,oper2,adj,add,model,data,temp1)</code></p>
+<p><code>call chain(oper1,oper2,oper3,adj,add,model,data,temp1,temp2)</code></p>
+<p><code>call chain(oper1,oper2,oper3,oper4,adj,add,model,data,temp1,temp2,temp3)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_oper1_2coper2_2coper3_2coper4__2d_func">oper1,oper2,oper3,oper4 - func</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard operators</pre>
+</dd>
+<dt><strong><a name="item_adj_2cadd_2cmodel_2cdata__2d">adj,add,model,data      -</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard operator interface</pre>
+</dd>
+<dt><strong><a name="item_real">temp1,temp2,temp3       - <code>real(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      temporary arrays</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Create a chain of multiple operators</p>
+<p>head1 COMMENTS</p>
+<p>temp1 should be the output of <code>oper1(model)</code>
+temp2 should be the output of <code>oper2(oper1(model))</code>
+temp3 should be the output of <code>oper3(oper2(oper1(model)))</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/array.html">the array manpage</a>,<a href="./../seplib_base/solver.html">the solver manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

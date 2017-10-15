@@ -1,0 +1,46 @@
+=head1 NAME
+
+
+sep3d_set_key_vals - set header values in C structure
+
+=head1 SYNOPSIS
+
+
+C<call sep3d_set_key_vals(struct, locate, values)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct   -    sep3d
+
+      structure to grab from
+
+=item locate   -    (char*/int)
+
+      locate through keyname or keyindex
+
+=item values   -    (float*/int*)
+
+      array of header values
+
+=back
+
+=head1 DESCRIPTION
+
+
+Set header values
+
+=head1 SEE ALSO
+
+
+L<sep3d_grab_key_vals>
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

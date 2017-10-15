@@ -1,0 +1,32 @@
+
+
+=head1 NAME
+
+seis/model - Modeling programs 
+
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Modeling programs 
+
+
+=head1 PROGRAMS
+
+
+L<Fdmod> - Modeling programs 
+
+
+
+
+L<Spike> - make delta functions and impulsive plane waves.
+
+L<Wavelet> - wavelet generation
+
+L<Surface> - make surfaces
+
+
+=cut 

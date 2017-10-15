@@ -1,0 +1,759 @@
+
+ /*$
+
+=head1 NAME
+
+vplot - definition of the vplot graphics metalanguage
+
+=head1 DESCRIPTION
+
+Vplot is a graphical meta-language that is interpreted by the
+pen filters to produce plotted images in a device-independent way
+on many different graphics terminals and hard copy devices.
+New devices can readily be supported.  Unfortunately,
+vplot has only a primitive interactive capability.
+The reason for writing your plots in a device-independent
+intermediate plot language such as vplot
+is to make your plot programs portable and long lasting.
+
+Vplot originally stood for `vector plot', but this name is 
+now insufficient because vplot supports not only vectors,
+but also filled areas (either raster patterns or hatched),
+text (Hershey fonts),
+and raster images
+(including grey-scale dithered ones on monochrome devices 
+such as laser printers).
+
+=head1 COPYRIGHT
+
+Vplot is not in the public domain, although the copyright is not
+very restrictive. Here is the official Vplot copyright notice (the one
+that all the other manual pages and the source code tell you about):
+
+Copyright 1987 the Board of Trustees of the Leland Stanford Junior
+University.  All Rights Reserved.  Permission is hereby given
+to use, copy, modify, and distribute this software provided
+that (1) copyright and proprietary notices are retained in
+each copy, (2) any files which are modified are identified as such,
+and (3) you do not copy or distribute the software for payment or
+for commercial use without prior written consent from Stanford.
+STANFORD MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY KIND
+concerning this software or its use.
+
+Vplot consists of everything in this distribution, except for the
+contents of ``.../vplot/Hershey'' and ``.../vplot/filters/loclib''.
+These are in
+the public domain. The contents of ``.../vplot/Hershey_Fonts'', which may
+or may not be included in your copy of the distribution, are under
+their own restrictions contained in the file README_Hershey.
+
+You are invited to make improvements to Vplot, support new devices,
+fix bugs, use Vplot as a spare parts junkyard, etc, as long as you
+abide by the copyright given above. Older public domain versions of
+Vplot exist, although not as complete and as bug-free as this ``official''
+version. Before embarking on any major project, you might want to
+ask me (Joe Dellinger) for advice as to how to proceed.
+Other than that, you're on your own.
+When all else fails, read the manual!
+(And when that fails, read the source code.)
+
+You can get a tape of this distribution at cost by writing:
+  Office of Technology Licensing
+  Stanford University
+  350 Cambridge Avenue, Suite 250
+  Palo Alto, CA 94306
+
+=head1 ASSOCIATED PROGRAMS
+
+L<pldb>
+
+L<plas>
+
+L<pen>
+
+L<libvplot>
+
+L<vplottext>
+
+L<vplotraster>
+
+Library of test routines and examples:  .../vplot/filters/Tests/*
+
+=head1 COORDINATE SYSTEMS
+
+Vplot fits the largest 3-high by 4-wide rectangle
+(or whatever ratio is defined by SCREENRATIO in vplot.h)
+onto the device's screen that it can. The rectangle is left and bottom justified.
+Clipping is not done to the edge of this rectangle, but to the edge of
+the device's screen. For convenience, from here on in the documentation I
+will consider the
+3 by 4 rectangle inscribed inside the device's screen to BE the device's screen
+for the purposes of describing Vplot's coordinate system.
+
+Vplot coordinates can either be measured in integer vplot units (the actual
+integer numbers that go into the metafile) or as real inches. How many integer
+units there are per inch for various sorts of Vplot primitives is defined in
+vplot.h. RPERIN is the number of integer vplot units per inch for most things.
+Unfortunately, in order to be backwards compatible we have to measure some
+primitives in different units: TXPERIN gives the number of text-height units
+per inch, and FATPERIN gives the number of line-fatness-width units per inch.
+(HATCHPERIN is only used by libvplot, not vplot itself.)
+At Stanford, RPERIN=600, FATPERIN=200, and TXPERIN=33. These are not particularly
+convenient numbers, and new sites installing Vplot from scratch might consider
+selecting more reasonable values for all of these. (In theory, all you
+should have to do is change the definitions in vplot.h, update the
+documentation, and recompile everything in sight.)
+Whenever any of these ``magic numbers'' are referred to in code, they should
+be ``#define''d by vplot.h.
+
+Two different scaling systems are possible, ``relative'' and ``absolute''.
+The so-called ``real inches'' in Vplot can either correspond to absolute
+inches on your device's screen (size=absolute),
+or can scale with the size of the screen (size=relative).
+How many inches tall the screen is considered to be unfortunately depends on
+the ``plot style'', which is defined next.
+
+Two different coordinate systems are possible, ``standard'' and ``rotated''.
+(This is called the ``plot style''.) The plot style can be set with the
+vplot `S' command, set from the command line, set from the environment,
+or allowed to default, with that order of precedence. Rotated style
+is mostly supported for backwards-compatibility reasons; new programs
+should avoid using it whenever possible.
+
+Standard Style: The origin is in the lower left hand corner, with
+the X axis horizontal and the Y axis vertical.
+If size=relative, the plot is scaled so that the screen is considered to be
+10.24 (STANDARD_HEIGHT in vplot.h) inches tall. That is, if you move to
+the Vplot coordinate (in inches) of (x=0.,y=10.24), you will be at the top
+left corner of the screen no matter how big or small your device's screen
+actually is.
+
+Rotated Style: Plot is scaled so that the screen is considered to be
+7.5 inches tall. The origin is in the upper left hand corner, with the
+X axis vertical running down the screen and the Y axis horizontal.
+If size=relative, the plot is scaled so that the screen is considered to be
+7.5 (ROTATED_HEIGHT in vplot.h) inches tall. That is, if you move to the
+Vplot coordinate (in inches) of (x=7.5,y=0.) you will be at the bottom
+left corner of the screen no matter how big or small your device's screen
+actually is.
+
+=head1 COMMANDS 
+
+The following list constitutes the plot commands for
+the various plotting programs.
+The commands are universal in the sense that they are properly
+read in and appropriately used or ignored.
+The commands are specified by a literal one byte command
+character followed by zero or more half-word (2 byte) integers
+(sometimes characters or bytes if so stated in the text).
+
+The program ``pldb'' converts the binary Vplot format described here into
+a human-readable ASCII one. Pldb-format Vplot follows the documentation here
+closely. COMMAS SHOW WHERE NEWLINES OCCUR IN `pldb' FORMAT VPLOT THAT ARE NOT
+SHOWN AS NEWLINES HERE.
+
+A final message:
+official vplot dogma says that all programs should
+only WRITE vplot by calling libvplot. They should NOT actually write
+out the bytes described here directly. Official vplot dogma also says
+that only the subroutine ``dovplot'' should READ vplot. Plas and pldb
+violate both of these rules!
+
+=head2 COMMAND LIST
+
+=over 4
+
+=item e
+
+      erase the screen and start a new plot.
+      All plot frames begin with an erase.
+      (The ``erase'' pen filter option can be used to 
+      add an erase as the very first thing in an input 
+      plot file, but will only do so if the plot file
+      doesn't already have an initial erase.  Erases that 
+      occur near, but not at, the beginning of the plot file
+      are NOT considered initial erases, even if the commands 
+      preceding the erase produce no actual output on the device.)
+
+__________________________________________________________________
+
+=item b
+
+      break, same as erase in that it is a possible place to 
+      pause, but doesn't erase the screen. The erase command 
+      basically has 2 functions: first, it signals that the 
+      current frame of the plot is completed, and secondly
+      it erases the current frame of the plot so that the next 
+      frame can start fresh. The break command only carries the 
+      first meaning. The ``next frame'' of the plot builds upon 
+      the previous ones. This is useful when you want to
+      be able to stop at various times as an image is being built up.
+
+_________________________________________________________________
+
+=item o x y 
+
+      redefine origin (0,0) on the device (the lower left hand 
+      corner of the screen for standard plot style with no global 
+      translations via pen command line options) as vplot (x,y). 
+      This shift applies to everything until the next origin 
+      command. An origin command is not affected by previous ones. 
+      Changing the plot style resets the origin to zero.
+
+_________________________________________________________________
+
+=item u x y 
+
+      user origin coordinates set by vp_uorig() allowing the
+      pen filter to report user coordinates when the interact
+      option is used.
+
+_________________________________________________________________
+
+=item m x y
+
+      move the current position to (x,y).
+
+_________________________________________________________________
+
+=item d x y
+
+      draw a line from the current position to (x,y), and make 
+      this the new current position.
+
+__________________________________________________________________
+
+=item w xmin ymin xmax ymax
+
+      set clipping window. (Note that this only changes the 
+      CLIPPING window.  It does not change the vplot-to-device 
+      transformation at all!) The initial clipping window is 
+      set to the maximum dimensions of the particular plot device. 
+      If the coordinate system is rotated, the smallest clipping 
+      window with vertical and horizontal sides that contains the 
+      desired rotated clipping window will be used.  If xmin > xmax 
+      or ymin > ymax, then an inverted window will be used that 
+      should clip away everything.
+
+__________________________________________________________________
+
+=item T size orientation, string
+
+      Start text mode.  A character string is plotted starting 
+      at the old pen position (as set by a previous move, draw, 
+      or text command).  A nullbyte terminates the string.
+      The character size (the height) is in units of 1/33'rds 
+      of an inch (Ug!).  The character width is font and 
+      character dependent.  The character orientation is in 
+      degrees, and the angle is measured counter-clockwise from 
+      the X-axis.  The carriage controls newline, carriage return, 
+      and backspace are correctly interpreted.  The origin for 
+      newline and carriage return is taken as the pen position 
+      as of the last move.
+
+      A large number of special escape sequences for accessing 
+      multiple fonts, colors, sizes, fatnesses, symbols, and 
+      positions of text are available. See L<vplottext>.
+
+      The archaic text command t has been left in the code only 
+      for backwards compatibility. It should no longer be used, 
+      so I'm not going to even tell you the ridiculous format it used.
+
+__________________________________________________________________
+
+=item G xpath ypath xup yup, string
+
+      An alternate text command, which uses GKS notation.
+      The vector given by xpath and ypath is the ``text path 
+      vector'', and the vector given by xup and yup is the 
+      ``text up vector'', as defined in the GKS standard.  
+      Since it is important for these vectors to be very 
+      accurate, both are measured in units TEXTVECSCALE 
+      (defined in params.h, set to 10 at Stanford) 
+      times finer than normal vplot units.
+
+__________________________________________________________________
+
+=item f k
+
+      Set line fatness.  The integer k specifies the number 
+      of additional lines to be drawn parallel to, and one 
+      bit over from all future lines. The extra lines are 
+      added symmetrically.  k=0 resets back to single-line mode. 
+      The fatness is scaled to approximate the behavior of a 
+      200 pixel per inch device.
+
+__________________________________________________________________
+
+=item c k
+
+      Select new color from menu of 512 colors.  K is an 
+      integer from 0 to 511.  Colors 0 through 7 are guaranteed 
+      to be by default the Regis colors:
+      0-background, 1-blue, 2-red, 3-magenta, 
+      4-green, 5-cyan, 6-yellow, and 7-white.
+      (This is the order of colors in a color bar pattern 
+      on a TV.  It is used for that because on a black and 
+      white TV it makes a grey scale.)
+
+      Color zero is always the background color.
+      Monochrome devices should consider ANY non-zero color to 
+      NOT be the background color.
+
+      See important comments in the `set color table' command 
+      with regards to color mapping.
+
+____________________________________________________________________
+
+=item C color red green blue
+
+      set Color table:
+      Color number `color' is set to have red value
+      `red', green value `green', and blue value `blue'.
+      These are integers from 0 to 255, (or floats from 
+      0. to 1. when using plas and pldb in inch or centimeter 
+      units) with 255 being fully on and 0 being fully off.
+      The corresponding `grey level' for grey-scale devices is 
+      given by floor((4 * green + 2 * red + blue + 6) / 7). 
+      Note that the only way to get grey level 0 is if all three 
+      color levels are 0.
+
+      Vplot will try to give you the color you want, but this 
+      may not always be possible. If the device has N settable 
+      colors, then colors 0 through N-1 will be set exactly 
+      as you request.  If you attempt to define a color X outside
+      of this range, Vplot will pick which color in the range 0 
+      through N-1 is the closest and map all requests for color 
+      number X to that available color value.  Whenever any color 
+      in the range 0 through N-1 is changed, all the mappings
+      will be re-calculated (although of course what is already 
+      drawn or stored cannot be changed.)
+
+      This scheme is especially useful when for example mixing 
+      grey scales for raster information and bright colors for 
+      labels.  The few bright colors which you might need are 
+      allocated to the first few color numbers. Then the remainder 
+      of the lower half of the color scale is filled with the 
+      grey level values you will need, but ordered so that the most
+      important grey levels come first.  In the upper half of 
+      the color table you define a normally ordered grey scale.
+      Now when you want to draw grey scales, you refer only to the 
+      upper half of the grey scale and vplot will automatically 
+      map your requests down onto the real available colors of
+      the particular device.
+
+      Color zero is always the background color.
+      Color 0 is only mapped to if the match is exact.
+
+________________________________________________________________
+
+=item a npts
+
+B<afat xmask ymask>
+
+B<x1 y1, x2 y2, ...>
+
+      Define polygonal area for stippling (on monochrome 
+      devices) or solid area fill with current drawing color 
+      (for devices with color).  The polygon is specified
+      by its vertices (x1,y1),...,(xn,yn).
+      Npts is the number of vertices; the polygon is 
+      automatically closed only if necessary.
+      Afat is the fatness of the outline; 0 is the minimum, 
+      and -1 draws no outline.
+      The shading for monochrome devices is determined by the 
+      integer mask.  A point within the polygonal area is 
+      darkened if ((x mod xmask == 0) and (y mod ymask == 0)) 
+      is true, where x and y are all points within the polygon.
+      For example, xmask=1 and ymask=1 fills  the area completely,
+      and xmask=1 ymask=5 makes horizontal bars spaced 4 vertical 
+      bits apart.  The origin for x and y coordinates used in shading 
+      is device dependent but will usually be the lower left hand 
+      corner of the device screen.
+
+      As a special case, if either xmask or ymask is zero no 
+      shading is done. (The area filling routine for the device 
+      is never even called.) This is true for both color and 
+      monochrome devices.
+
+__________________________________________________________________
+
+=item A npts
+
+B<x1 y1, x2 y2, ...>
+
+      Fill polygonal area with pattern or color.  Fills 
+      polygon with patterns loaded with the `l' command (q.v.).
+      The pattern number used is the same as the current 
+      drawing color.  Note that a pattern can either be a 
+      hatch-line pattern or an arbitrary raster pattern, 
+      depending on the format of the `l' command used.
+
+      The purpose of this scheme is to associate each color 
+      with a particular fill pattern. Once a current drawing 
+      color is set, all vectors will have that color and all
+      filled areas will have the associated fill pattern.
+
+      Devices that can't fill with arbitrary patterns should 
+      simply fill solidly with the current drawing color.
+      If no pattern has been loaded, the `A' command will fill 
+      solidly with the current drawing color automatically.
+
+__________________________________________________________________
+
+=item l ppi nx ny ipat
+
+B<XXXX..., ... (nx*ny X's)>
+
+      Load raster pattern for `A' command.  Each `X'
+      is an integer containing a color number.
+      (These color numbers can be  mapped, etc,
+      just like color numbers in the `c' command.)
+      The X's represent pixels in a rectangular
+      pattern of dimensions nx by ny.
+      (In pldb format the X's are single-digit Hex numbers.)
+      The pattern is repeated to fill the polygon.
+      The pattern is scanned so that the first ny numbers 
+      are the first line, the second ny numbers are the second 
+      line, etc, for nx lines. The scanning of the pattern is 
+      done TV-style, ie starting at the upper left and working 
+      left-to-right and then top-to-bottom. (If in doubt, 
+      remember that patterns should appear on the device in the 
+      same orientation as in pldb-format vplot files.)
+
+      The pattern is given the pattern number ipat.
+      This pattern will be used for filling by the `A' 
+      command when the current color is number ipat.
+      Ppi is used to scale the pattern; it says how many pixels 
+      per inch you wanted this pattern to have.
+      E.g. on a 300 pixel per inch device
+
+          B<l 300 2 2 17>
+          B<0 1>
+          B<2 0>
+        represents 
+          01
+          20
+        whereas 
+          B<l 150 2 2 17>
+          B<0 1>
+          B<2 0>
+        represents
+          0011
+          0011
+          2200
+          2200
+        where the digits are color numbers for the 
+        corresponding pixels.  The result when you load a new 
+        pattern with the same pattern number as one already 
+        defined is device-dependent.
+
+______________________________________________________________
+
+=item l angle -1 numhatch ipat
+
+B<fat color offset interval>,
+
+B<...>,
+
+B<(numhatch * 2 sets of 4)>
+
+      Load hatch pattern for `A' command.
+      The angle gives the amount to rotate off horizontal. 
+      The `-1' is a flag to distinguish this case from the 
+      previous command.  Numhatch is the number of sets of 
+      hatched lines to place in each direction (X and Y).
+      Each set of hatched lines has four parameters:
+      fat, color, offset, and interval.
+      The fat and color give the fatness and color of every 
+      line in the set. The interval is the spacing (in regular 
+      vplot units) between the lines.  The offset parameter 
+      displaces all the lines in the set.  It should be less 
+      than the repeat interval.  The purpose of offset is so 
+      that you can have two different sets of lines (differently 
+      colored, perhaps) interleaved.  All the X sets are 
+      specified, and then all the Y sets.
+
+      Ipat is the pattern number. (See above for explanation.)
+
+_______________________________________________________________
+
+=item v flag
+
+      Change overlay mode.
+      Overlay mode controls the opacity of the background 
+      color of polygon and raster fills (see `a',`A',`l',`r',`R').
+      If flag=0, the polygon area is cleared before the new 
+      pattern is filled in.  If flag=1, the new pattern is simply 
+      added to whatever is already there with what is underneath 
+      showing through where the new pattern is color 0.  The 
+      default overlay flag can also be set in the command line.
+      flag=0 mode takes significantly longer to fill the polygon 
+      on many devices.  Some devices that have hardware raster or 
+      area fill may ignore this option if they are unable to 
+      implement it.
+
+_________________________________________________________________
+
+=item n
+
+      no-op for word aligning. Does nothing.
+
+_________________________________________________________________
+
+=item p
+
+      purge or flush plot buffers.
+
+_________________________________________________________________
+
+=item z, string
+
+      Print string out on the text screen of the plot device.
+
+________________________________________________________________
+
+=item L npts
+B<x1 y1, x2 y2, ...>
+
+      Draw a polyLine through the given points.
+
+________________________________________________________________
+
+=item M npts mtype msize
+
+B<x1 y1, x2 y2, ...>
+
+      Draw Markers of type mtype and size msize at the given 
+      set of points.  For small integer values of msize, this 
+      is as defined in GKS.  For larger values, it is taken to 
+      be a font glyph number (for most fonts this will correspond 
+      to the ASCII character number. However mtype may still be 
+      valid even when greater than 255 for some fonts.)
+
+      msize is measured in the same units as text is.
+
+_________________________________________________________________
+
+=item s ndash
+
+B<dash1 gap1, dash2 gap2, ...>
+
+      Set line style.  This command is used to make 
+      dashed or dotted lines. It affects all vectors 
+      produced by the `m', `d', and `L' commands.
+      Ndash is the number of dash-gap pairs in the pattern.
+      If ndash is 0, then continuous vectors will be drawn.
+
+_________________________________________________________________
+
+=item J hjust vjust
+
+      Set text Justification.  Values have meanings 
+      set in the include file `/usr/include/vplot.h'. 
+      The finer points of text justification are
+      discussed in L<vplottext>.
+
+__________________________________________________________________
+
+=item F font precision overlay_mode
+
+      Set text Font and precision.
+      Font is an integer from 0 on up. Font
+      numbers less than 100 are reserved for 
+      device-independent `gentext' fonts.
+      Precision is an integer zero through two, meaning: 
+      string, 0; char, 1; stroke, 2.  The generic vplot text 
+      routine gentext draws everything with stroke precision,
+      but only parses for ligatures at precision 2.
+      The standard `pen' font should be font number 0.
+      How many others are available is site-dependent, and 
+      should be documented in L<vplottext>.
+ 
+      The overlay mode is an integer from 0 through 3, with the 
+      following meanings: 
+      0: nothing unusual. 1: Draw a box around the text. 
+      2: Clear behind the text with a polygon drawn in the 
+      background color before drawing the text.
+      3: both 1 and 2.
+
+      All fonts, precisions, and text overlay modes are
+      ``#define''d in vplot.h.
+
+__________________________________________________________________
+
+=item S styleflag
+
+      Set Vplot Style.
+      Style is a single character, with possible values
+      `r' rotated, `s' standard, `a' absolute. Case distinctions
+      don't matter. These affect the scaling and orientation 
+      of the plot.  ``Standard'' and ``rotated'' styles are 
+      defined in the ``Coordinates'' section at the beginning 
+      of this document. Absolute style is like standard style,
+      except the plot is scaled to be in true inches. Some other 
+      archaic styles are recognized (old, mazama) but should no 
+      longer be used.  The style is reset to the default at the 
+      start of every plot frame.  It is probably a good idea 
+      to set the style immediately after every erase command, 
+      especially if the style you want to use is not STANDARD.
+
+___________________________________________________________________
+
+=item R orient offset
+
+B<xll yll, xur yur>
+
+B<xpix ypix>
+
+B<{linerep1, {numpat1 numbyte1, b1, b2, ...}}>
+
+      Byte deep Raster data, each point having offset
+      added to it as it is read in. It is xpix pixels wide 
+      and ypix pixels tall, with lower left hand pixel at
+      (xll, yll) and width xur-xll and height yur-yll.
+      Linerep tells how many times to repeat the following 
+      raster line.
+      Numpat gives the number of repetitions of the following
+      numbyte bytes b1, b2, ... bN within a line.
+      This is repeated until all the bytes within the raster 
+      line have been accounted for. (The last byte of the line 
+      must also be the last byte of the repeat pattern.) The same 
+      holds for the loop over lines.
+
+      The orientation of the axes of the raster is determined 
+      by the value of orient.  For orient=0 the raster is 
+      oriented TV-style, with the fast axis left-to-right and 
+      the slow axis top-to-bottom. For each increase of 1 in the
+      value of orient, the raster rotates 90 degrees clockwise.
+
+      Note that the lower-leftmost pixel of the raster image 
+      will be exactly at the vplot coordinate (xll,yll).
+      However, the point at vplot coordinate (xur,yur) will be 
+      the pixel just outside the raster image, touching the 
+      upper-rightmost corner. Things were done this way so that
+      xur-xll for example gives the width of the raster data box 
+      in vplot units.
+
+      The offset parameter is provided so that there is some way 
+      to access color table values greater than 255. (For example, 
+      4 different 64-value color schemes could be defined in the 
+      color table in slots 256-511. You could switch between these 
+      by merely changing the value of `offset'.)
+
+___________________________________________________________________
+
+=item r orient rastermult
+
+B<xll yll, xur yur>
+
+B<xpix ypix>
+
+B<{linerep1, {numpat1 numbit1, b1, b2, ...}}>
+
+      Same format as the `R' command, except that the data is 
+      encoded in bits and rastermult is multiplied by the 
+      value of each bit.  8 bits are encoded into each byte, 
+      in each byte the bits ordered from highest to lowest. 
+      As many bytes are used as are needed to hold numbit bits. 
+      For example, 13 bits would be encoded as
+          b1: (1 2 3 4 5 6 7 8) b2: (9 10 11 12 13 X X X).
+
+____________________________________________________________________
+
+=item [, string
+
+      Begin group named string.
+
+____________________________________________________________________
+
+=item ]
+
+      End last-opened group (it is an error to use this 
+      command if no group is open). Groups may be nested. 
+      Groups may not contain an erase or break command.
+      Groups may not extend across files.
+
+=back
+
+ 
+
+=head1 SEE ALSO
+
+L<pen>
+
+L<libvplot>
+
+L<vplottext>
+
+L<vplotraster>
+
+
+=head1 BUGS
+
+A non-technical "tutorial and overview" manual page is desperately
+needed, but I don't have time to write one.
+
+There may be no bugs in the vplot language, but there are
+in the programs which read and write it.
+
+I had a heck of a time with troff bugs eating words and characters
+while trying to write this, so if
+something seems to be missing you might refer back to the unformatted
+original.
+
+``Dovplot'', the subroutine which reads the vplot language, should be
+broken down into subroutines. There should be one subroutine to process
+each vplot command, and one subroutine to read the vplot metafile.
+These subroutines could then be hooked into programs that want to have
+the option of reading and writing vplot, without actually having to be a
+vplot filter.
+
+Vplot at Stanford suffers somewhat by the restriction of having to remain
+backwards compatible to the stone age (1980). The vplot coordinate system is
+integers, with 600 pixels to the inch. A much higher resolution should be
+used! This isn't too hard to change, all you have to do is to make plas and pldb
+write and read 4 bytes instead of 2. (Plas and pldb already work with integers
+anyway, and there are no short ints used in the code anywhere.)
+Several other `magic numbers' show
+up in this documentation as well. These are defined in `vplot.h' and `params.h'.
+I recommend that any new site starting to use vplot from scratch change these
+numbers to more reasonable values. If ALL code uses the #define's in vplot.h,
+as all Vplot source code (hopefully) does and all user code ought, then these
+values can be changed without breaking any programs, only old metafiles.
+
+=head1 AUTHOR
+
+Robert W. Clayton began the vplot software while in the
+Geophysics Department at Stanford University (circa 1979) on a PDP-11.
+He was last seen at Cal Tech.
+Since then
+Jeff Thorson,
+Stew Levin,
+Jon Claerbout,
+Dave Hale,
+Ron Ullmann,
+Glenn Kroeger,
+Michel Debiche,
+Shuki Ronen,
+Doug Wilson,
+Wes Monroe,
+Chuck Karish,
+Steve Cole,
+Clement Kostov,
+Kai Lanz,
+Jean-Luc Guiziou,
+Dave Nichols,
+and especially
+Joe Dellinger have altered and expanded it almost beyond recognition,
+for the most part preserving backwards compatibility, even when that required
+compromising of ideals.
+This manual page was hacked together by Joe Dellinger out of an ancient and
+out-of-date original by Michel Debiche, which was itself a hack of something
+even more ancient of unknown origin.
+
+=head1 CATEGORY
+
+B<graphics/vplot>
+
+=cut

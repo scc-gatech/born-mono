@@ -1,0 +1,46 @@
+=head1 NAME
+
+
+regrid - convert a helix filter from one data space to another
+
+=head1 SYNOPSIS
+
+
+C<call regridn(nold,nnew,aa)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item nold - C<integer(:)>
+
+      Old data dimensions
+
+=item nnew - C<integer(:)>
+
+      New data dimensions
+
+=item aa   -  type(filter)
+
+      Helix filter
+
+=back
+
+=head1 DESCRIPTION
+
+
+Converts a helix filter from one ata size to another
+
+=head1 SEE ALSO
+
+
+L<cartesian>,L<helix>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

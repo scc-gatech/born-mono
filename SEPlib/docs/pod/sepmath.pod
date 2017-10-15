@@ -1,0 +1,55 @@
+
+
+=head1 NAME
+
+sepmath - Math functions (especially Complex C)
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Math functions (especially Complex C)
+
+=head1 FUNCTIONS
+
+
+
+L<sconjg> -  complex conjugate
+
+
+
+L<scinv> - Inverse of cmplex number
+
+L<scsub> - subtract complex numbers
+
+L<Scadd> - complex add
+
+L<scdiv> - complex division
+
+L<scmult> - complex multiplication
+
+L<sqroot> - square root
+
+L<scsmult> - complex multiplication
+
+L<scsmult> - complex multiplication
+
+L<scexp> - complex exponent
+
+L<scspow> - raise complex number to real power
+
+L<sciexp> - exponent of imaginary number
+
+L<scneg> - negative of complex number
+
+L<scmplx> - create complex number
+
+L<scsqrt> - Complex square root
+
+L<sclog> - complex log
+
+L<sclog> - complex log
+
+=cut 

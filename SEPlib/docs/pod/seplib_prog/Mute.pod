@@ -1,0 +1,100 @@
+=head1 NAME
+
+
+Mute - Mute a SEP77 dataset
+
+=head1 SYNOPSIS
+
+
+Mute par=  < in.H > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item vmute    - real
+
+	[1.45]: outer mute velocity.
+	0.0: Special case - Flat mute.
+
+=item vfile    - file
+
+	[vmute]: vmute as a function of space.
+
+=item tmute    - real
+
+	[0.0]:  start time of (hyperbolic) outer mute
+
+=item tfile    - file
+
+	[tmute]: tmute as a function of space.
+
+=item tramp    - real
+
+	[0.25]: linear mute time ramp in seconds.
+
+=item Scale(t<Tmute)- real
+
+	[0.0]: Scale(t>Tmute+tramp) = 1.
+
+=item tpow   - real
+
+	[0]: gain trace data by  t**tpow
+
+=item xpow   - real
+
+	[0]: scale offset (x) traces by (x/xmin)**xpow
+
+=item trcbal - integer
+
+	[0]: no trace balancing
+    1: trace balance by sum of absolute values
+	  2: trace balance by rms amplitude value
+	  3: trace balance by trace energy (sum of squared values)
+
+=item weight - real
+
+	[0]: no weighting
+	  1: Jon's weight by 1/(t+xmax/vmute),
+			like dividing by the number of traces:
+			radial weight by r / ( 1. + (r*r)**2 )
+			r = r0 * x / (t * vmute)
+			r0 = sqrt( sqrt( drop - 1. ) )
+
+=item  drop   - real
+
+	[10.]: good till
+
+=item  tape   - real
+
+	[0]: no taper
+	  N: linear taper on the last N traces at either end of gather.
+
+=item  kill   - integer[]
+
+	[list]: list of trace numbers to kill
+       (first trace no. is 1)
+
+=item  emute  - real
+
+       end of trace  ; start time for end of data mute
+
+=item  eramp  - real
+
+	[0.25]: ramp length at end of trace
+
+=back
+
+=head1 DESCRIPTION
+
+
+   Apply linear outer mute to gather + preprocess for velocity analysis
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

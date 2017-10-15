@@ -1,0 +1,124 @@
+!!$=head1 NAME
+!!$
+!!$Median -  median filter
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Median < in.H > out.H
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item wind1 - integer
+!!$
+!!$      [0]: median window distance in n1 direction
+!!$
+!!$=item wind2 - integer
+!!$
+!!$      [0]: median window distance in n2 direction
+!!$
+!!$=item wind3 - integer
+!!$
+!!$      [0]: median window distance in n3 direction
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Median smoother.  Window size is (2*wind1+1)*(2*wind2+1)*(2*wind3+1)
+!!$
+!!$=head1 EXAMPLE
+!!$
+!!$		Median < in.H wind1=10 wind2=5 wind3=2 > out.H
+!!$				??????????????????????????????
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/filter>
+!!$
+!!$=cut
+!!$
+!
+!>
+!-------------------------------------------------
+!
+!Author: Robert Clapp, ESMB 463, 7230253
+!
+!Date Created:Wed Apr 15 13:51:56 PDT 1998
+!
+!Purpose:
+!
+program median 
+  use sep
+  use sorting_mod
+  implicit none
+  integer :: n1,n2,n3,wind1,wind2,wind3,ierr,panel,sz3,sz2,sz1
+  integer :: i1,i2,i3,b1,b2,b3,e1,e2,e3,center
+  real,allocatable :: input(:,:,:),output(:,:),temp_v(:)
+
+
+  call SEP_ADD_DOC()
+  call sep_init('')
+  call sep_begin_prog()
+! get parameters
+  call from_history("n1",n1)
+  call from_history("n2",n2)
+  call from_history("n3",n3,1)
+  call from_param("wind1",wind1)
+  call from_param("wind2",wind2,2)
+  call from_param("wind3",wind3,1)
+! allocate working space
+  allocate(input(n1,n2,wind3*2+1),output(n1,n2),temp_v((2*wind1+1)*(2&
+    &*wind2+1)*(2*wind3+1)),stat=ierr)
+  if (ierr.ne.0) then
+    call erexit("trouble allocating arrays")
+  end if
+! read input data
+  if (n1*n2*(2*wind3+1)*4 .ne. sreed("in",input,n1*n2*(2*wind3+1)*4))&
+    & then
+    call erexit("trouble reading data")
+  end if
+! compute and apply median filter
+  do i3=1,n3 
+    if (i3>  wind3+1 .and. i3 <= n3-wind3) then
+      write(0,*) "before read",i3
+      input=cshift(input,1,3)
+      if (n1*n2*4.ne.sreed("in",input(:,:,2*wind3+1),n1*n2*4)) then
+        call erexit("trouble readin in data")
+      end if
+    end if
+    if (i3<= wind3) then
+      e3=i3+wind3
+    else
+      e3=wind3*2+1
+    end if 
+    if (i3> n3-wind3) then
+      b3=wind3+1-(n3-i3)
+    else
+      b3=1
+    end if 
+    sz3=e3-b3+1
+    write(0,*) i3,b3,e3,sz3
+    do i2=1,n2 
+      b2=max(1,i2-wind2)
+      e2=min(n2,i2+wind2)
+      sz2=e2-b2+1
+      do i1=1,n1  
+        b1=max(1,i1-wind1)
+        e1=min(n1,i1+wind1)
+        sz1=e1-b1+1
+        temp_v=reshape(input(b1:e1,b2:e2,b3:e3),(/sz1*sz2*sz3/))
+        call quick_sort(temp_v,sz1*sz2*sz3)
+!				write(0,*) "points",i1,i2,i3,temp_v(1:sz1*sz2*sz3)
+        center=ceiling(.5*sz1*sz2*sz3)	
+        output(i1,i2)=temp_v(center)
+      end do
+    end do 
+    write(0,*) "before srite"
+    if (n1*n2*4.ne.srite("out",output,n1*n2*4)) then
+      call erexit("trouble writing outing array")
+    end if
+  end do 
+  call sep_end_prog()
+end program  

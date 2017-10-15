@@ -1,0 +1,91 @@
+
+
+=head1 NAME
+
+sep3d - Seplib base libary
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Seplib base libary
+
+=head1 FUNCTIONS
+
+
+
+L<sep_get_data_axis_par> -  grab data's n,o,d and label
+
+
+
+L<sep_put_data_axis_par> - put n,o,d, label to output tag
+
+L<sep_get_number_data_axes> - get number of data axes
+
+L<sep_put_grid_window> - write a window of the grid
+
+L<sep_get_grid_window> - read a window of the grid
+
+L<sep_get_val_headers> - get header values
+
+L<copy_data_pointer> - copy data pointer from one file to another
+
+L<sep_set_no_headers> - set no headers to an output tag
+
+L<sep_set_no_grid> - set that the output tag does not have a grid
+
+L<sep_copy_gff> - copy grid format file  from one SEP3d file to another
+
+L<sep_copy_hff> - copy header format file  from one SEP3d file to another
+
+L<sep_copy_header_keys> - copy keys from one SEP3d file to another
+
+L<sep_3d_close> - close sep3d format files
+
+L<sep_reorder_data> - reoder SEPlib dataset
+
+L<sep_get_val_by_name> - get header value by name
+
+L<sep_put_val_headers> - write a header block
+
+L<sep_get_val_by_index> - get key value by index
+
+L<sep_copy_grid> - copy a grid  from one tag to another
+
+L<sep_extract_val_by_index> - extract a header value by its index
+
+L<sep_put_val_by_index> - get key value by index
+
+L<sep_get_header_axis_par> - grab headers's n,o,d and label
+
+L<sep_get_grid_axis_par> - grab data's n,o,d and label
+
+L<sep_get_key_fmt> - get the format of a key
+
+L<sep_put_header_axis_par> - put n,o,d, label to output tag
+
+L<sep_put_grid_axis_par> - put n,o,d, label to output tag
+
+L<sep_put_number_keys> - put number of keys
+
+L<init_3d> - initialize sep3d i/o
+
+L<sep_reorder_data_fast> - reoder SEPlib dataset
+
+L<sep_get_key_type> - get the key type associated with an index
+
+L<sep_put_key> - write key info to a tag
+
+L<sep_get_number_header_axes> - get number of header axes
+
+L<sep_get_number_grid_axes> - get number of grid axes
+
+L<sep_get_key_index> - get the index of a key
+
+L<sep_get_number_keys> - get number of keys
+
+L<sep_get_key_name> - get the key name associated with a key index
+
+=cut 

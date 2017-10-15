@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Spectra - Calculate spectrum</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Spectra - Calculate spectrum</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Spectra &lt; in.h [in= out= j1= j2= j3= d1= phase=] &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n1__2d_integer">n1 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       on output (n1=(nearest power of two)/(2*j1)+1)</pre>
+</dd>
+<dt><strong><a name="item_n2_2cn3__2d_integer">n2,n3   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       like Window</pre>
+</dd>
+<dt><strong><a name="item_esize__2d_integer">esize   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       4=default=real input; 8=optional complex input</pre>
+</dd>
+<dt><strong><a name="item_j1_2cj2_2cj3__2dinteger">j1,j2,j3 -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        like Window but spectra will be added, not subsampled,
+        effectively smoothing the spectra</pre>
+</dd>
+<dt><strong><a name="item_d1__2dreal">d1       -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       on output will be replaced by j1/2*dt</pre>
+</dd>
+<dt><strong><a name="item_phase__2dfile">phase    -file</a></strong><br />
+</dt>
+<dd>
+<pre>
+       output auxiliary file with phase spectra</pre>
+</dd>
+<dt><strong><a name="item_mode__2dchar">mode     -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       mode=all defaults j2=n2 &amp; j3=n3 to reproduce 
+       functionality of old Spectrum program (not the default)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Obtain averaged amplitude spectra.
+Spectrum on 1=axis, smoothing on all axes.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Ftplot.html">the Ftplot manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

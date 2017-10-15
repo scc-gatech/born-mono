@@ -1,0 +1,56 @@
+=head1 NAME
+
+
+binpull1 - nearest neighbor interpolation
+
+=head1 SYNOPSIS
+
+
+Initializer : C<call binpull1_init(o1,d1,coordinate,m1)>
+
+Operator    : C<ierr=binpull1_lop(adj,add,model,data)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item o1 -  real
+
+      first sample of model space
+
+=item d1 -  real
+
+      sampling of model space
+
+=item coordinate - C<real(:)>
+
+      location of data
+
+=item m1   - integer
+
+      number of model points
+
+=item adj,add,model,data -
+
+      standard operator
+
+=back
+
+=head1 DESCRIPTION
+
+
+1-D nearest neighbor interpolation
+
+=head1 SEE ALSO
+
+
+L<binpull2>,L<lint1>,L<lint2>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

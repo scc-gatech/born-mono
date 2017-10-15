@@ -1,0 +1,64 @@
+=head1 NAME
+
+
+ssize_block - obtain the number of blocks in a seplib file
+
+=head1 SYNOPSIS
+
+
+C<int ssize_block(tag,block)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item tag - char*  
+
+      tag for dataset
+
+=item block - char*  
+
+      tag for dataset
+
+=back
+
+=head1 DESCRIPTION
+
+
+The tag argument is either the string "in" or any tag appropriate for
+use with auxin().  This means either an explicit filename or a command
+line redirect parameter tag=filename.  
+
+=head1 COMMENTS
+
+
+The return value is the size in bytes of the seplib data file or -1 on error.
+
+=head1 SEE ALSO
+
+
+seplib, L<sreed>, L<srite>, L<ssize>
+
+=head1 RETURN VALUES
+
+
+ -1 = is returned if there is an error.
+
+ x  = number of blocks
+
+=head1 BUGS
+
+
+=head1 KEYWORDS
+
+
+size
+
+=head1 LIBRARY
+
+
+B<sep>
+
+=cut
+

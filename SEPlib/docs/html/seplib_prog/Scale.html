@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Clip,Scale - compute clip on a dataset and apply it if requested</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#notes">NOTES</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Clip,Scale - compute clip on a dataset and apply it if requested</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+  Clip pclip=98 dclip=1 retry=y chop=no to=zero clip= &lt;  in.H &gt; out.H</pre>
+<pre>
+  Scale  &lt;  in.H &gt; out.H axis=12</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_pclip__2d_int">pclip      -   int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [98]: clip percentile  [98] for Clip, [100] for Scale</pre>
+</dd>
+<dt><strong><a name="item_dclip__2d_float">dclip    -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1.]: scale on clip (the maximum value of the data will be dclip)</pre>
+</dd>
+<dt><strong><a name="item_scale_to__2d_float">scale_to    -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1.]: scale  the data so the maximum value is this</pre>
+</dd>
+<dt><strong><a name="item_rscale_2cdscale__2d_float">rscale,dscale       -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Set the scale value yourself</pre>
+</dd>
+<dt><strong><a name="item_clip__2d_float">clip       -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Set the clip value yourself</pre>
+</dd>
+<dt><strong><a name="item_retry__2d_char">retry      -   char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [y]: If the clip turns out zero, the program will try again with 
+                        a higher pclip if the input file is not all zeroes. Defaults
+      to no for Scale, yes for Clip.</pre>
+</dd>
+<dt><strong><a name="item_chop__2d_char_2a">chop       -   char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [no]:     values are not cliped.
+       less:     all values less than or equal to the clip value will be changed.
+       greater:  all values greater than the clip value will be changed.
+       to:       What the above values are changed to a value, or 'clip'.
+       clip:     if chop=g
+                (The original sign is multiplied by this value,
+                so a positive value of to preserves the original sign)
+       Defaults to [no] for Clip, [yes] for Scale</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3_2cn4_2cn5_2cn6__2d_int">n1,n2,n3,n4,n5,n6   -   int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard SEP cube dimensions.</pre>
+</dd>
+<dt><strong><a name="item_axis__2d_int">axis - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Sub cube to do individual clip/scale operations on. Defaults to
+      the entire dataset</pre>
+</dd>
+<dt><strong><a name="item_max_size__2d_int">max_size - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [50] Maximum memory to use  in megabytes</pre>
+</dd>
+<dt><strong><a name="item_j__2d_int">j  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [nsize/esize/max_size]  - Subsamples the dataset to calculate
+        clip values. For Scale option the entire dataset is used.</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+  Clip - compute clip value based on all the data and put it on the header,
+               and do various sorts of clipping if requested.</pre>
+<pre>
+  Scale - compute maximum on a given sub-cube and standardize
+          the entire dataset to maximum of dclip</pre>
+<p>
+</p>
+<hr />
+<h1><a name="notes">NOTES</a></h1>
+<pre>
+   Only Scale option available on complex data</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

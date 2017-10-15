@@ -1,0 +1,150 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Dip_azim - Display dip and azimuth information</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#usage">Usage</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Dip_azim - Display dip and azimuth information</p>
+<p>
+</p>
+<hr />
+<h1><a name="usage">Usage</a></h1>
+<pre>
+ Dip_azim dip1=p.H dip2=q.H  &gt;dip_azim_plot.H fn_color=color</pre>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_dip1__2d_sepfile">dip1  - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+   dip in direction 1</pre>
+</dd>
+<dt><strong><a name="item_dip2__2d_sepfile">dip2  - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+   dip in direction 2</pre>
+</dd>
+<dt><strong><a name="item_stdout__2d_sepfile">stdout - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+   color coding file</pre>
+</dd>
+<dt><strong><a name="item_fn_color__2d_sepfile">fn_color - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+    color table for Grey</pre>
+</dd>
+<dt><strong><a name="item_ndim__2d_integer">ndim  -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+   [16] Number of dips (saturation)</pre>
+</dd>
+<dt><strong><a name="item_nazim__2d_integer">nazim  -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+   [8] Number of azimuths (hue)</pre>
+</dd>
+<dt><strong><a name="item_lightness__2d_real">lightness  -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+   [.5] Lighness</pre>
+</dd>
+<dt><strong><a name="item_mirror__2d_integer">mirror  -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+   [0]  Mirror effect on color scheme</pre>
+</dd>
+<dt><strong><a name="item_turn__2d_real">turn  -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+   [0.0]  Turn hue clockwise sirection in degrees</pre>
+</dd>
+<dt><strong><a name="item_max_dip__2d_real">max_dip  -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+   [30.0]  Value of maximum dip will be displayed</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Composing apparent dips (p and q components) to form a the true 
+    dip and azimuth composite data for color display</pre>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<pre>
+ Dip_azim dip1=dipx.H dip2=dipy.H &gt;out.H fn_color=color</pre>
+<pre>
+ Grey  color=color  color16=y  bclip=0 eclip=1024. &lt; out.H |Tube</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+ COLOR DESIGN: A constant lightness hue-saturation color palette
+               Total number of colors = nhue*nsaturation</pre>
+<pre>
+ COLOR MAPPING SCHEME: Azimuth (=arctan(q,p)) modulates the hue
+                       Dip (=sqrt(p^2+q^2)) modulates the saturation</pre>
+<pre>
+ KEY OPERATION: dip(:,:)=MIN(max_dip,dip(:,:))</pre>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<pre>
+  Lin, I-Ching 'Michael'</pre>
+<pre>
+  Allied Geophysics Laboratories</pre>
+<pre>
+  Department of Computer Science</pre>
+<pre>
+  University of Houston</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Kirmod3d - Kirchoff modeling</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#keywords">KEYWORDS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Kirmod3d - Kirchoff modeling</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Kirmod3d par=parfile.P &lt; Geom.H &gt; output.H Green= Reflector= 
+    Wavelet= Green= [Ang_diff= Ang_surf= ]</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_stdin">Stdin</a></strong><br />
+</dt>
+<dd>
+<pre>
+        Contains sep3d headers of geometry to be modeled</pre>
+</dd>
+<dt><strong><a name="item_mode__2dinteger">mode -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+     =1 - kinematic  Isotropic scatterers (simpler, faster, default) 
+     =2 - dynamic    Uses Rayleigh scattering to get *approximately* correct
+     amplitudes.</pre>
+</dd>
+<dt><strong><a name="item_nt_data_3d_28int_29">nt_data=(int)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of time samples in modeled data</pre>
+</dd>
+<dt><strong><a name="item_dt_data_3d_28real_29">dt_data=(real)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Sample interval in modeled data</pre>
+</dd>
+<dt><strong><a name="item_t0_data_3d_28real_29">t0_data=(real)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      First time to be modeled</pre>
+</dd>
+<dt><strong><a name="item__5bntr_block_3d_28int_29_5d">[ntr_block=(int)]</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of traces in each block</pre>
+</dd>
+<dt><strong><a name="item_1">[spow=1 (int)]</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Directivity of source !!! (not implemented)</pre>
+</dd>
+<dt><strong>[rpow=1 (int)]</strong><br />
+</dt>
+<dd>
+<pre>
+      Directivity of receiver !!! (not implemented)</pre>
+</dd>
+<dt><strong><a name="item_convolve_wave_2dint">convolve_wave-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       =1 Convolve output with wavelet (default)
+       =0 Don't</pre>
+</dd>
+<dt><strong><a name="item_wavelet__2d_sepfile">Wavelet -   sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+       1D real sep77 file containing wavelet in time domain</pre>
+</dd>
+<dt><strong><a name="item_reflector__2d_2d_real_sep77_file">Reflector - 2D real sep77 file</a></strong><br />
+</dt>
+<dd>
+<pre>
+      kinematic: n1=4 (z,x,y,perturbation)
+      dynamic:   n1=6 (z,x,y,d_rho,d_lambda,d_mu)</pre>
+</dd>
+<dt><strong><a name="item_green__2d_3d_real_sep77_file">Green -     3D real sep77 file</a></strong><br />
+</dt>
+<dd>
+<pre>
+      containing traveltimes &amp; 
+      amplitudes (&amp; angles) for 1D greens function
+      1-axis ... depth
+      2-axis ... offset
+      3-axis ... (:,:,1) = traveltimes
+      (:,:,2) = amplitudes
+      (:,:,3) = sin_theta_diff (dynamic only)
+      (:,:,4) = cos_theta_diff (dynamic only)
+      (:,:,5) = sin_theta_surf (dynamic only)
+      (:,:,6) = cos_theta_surf (dynamic only)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Born/Kirchhoff modeling program for sep3d
+ Needs Green's function tables supplied externally
+ See 'Modeling heterogeneous reservoirs using the first order Born 
+   Approximation', Rickett, Biondi &amp; Lumley (SEP92)
+   for references on Born/Rayleigh scattering</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Marine_geom3d.html">the Marine_geom3d manpage</a> (for creating geometries)
+<a href="./../seplib_prog/Gfgradz.html">the Gfgradz manpage</a> (for creating Green's function tables)
+<a href="./../seplib_prog/Scat3d.html">the Scat3d manpage</a> (for converting cube of scatterers to (x,y,z,ampl))
+<a href="./../seplib_prog/Wavelet.html">the Wavelet manpage</a> (for making wavelets)</p>
+<p>
+</p>
+<hr />
+<h1><a name="keywords">KEYWORDS</a></h1>
+<pre>
+ born kirchhoff modeling modelling 3D sep3d avo amplitude</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/model</strong></p>
+
+</body>
+
+</html>

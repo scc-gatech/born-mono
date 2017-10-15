@@ -1,0 +1,800 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$ Dip_azim  -  Display dip and azimuth information
+!!$
+!!$
+!!$=head1 Usage
+!!$
+!!$ Dip_azim dip1=p.H dip2=q.H  >dip_azim_plot.H fn_color=color
+!!$
+!!$=head1 PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item  dip1  - sepfile
+!!$
+!!$   dip in direction 1
+!!$
+!!$=item  dip2  - sepfile
+!!$
+!!$   dip in direction 2
+!!$
+!!$=item  stdout - sepfile
+!!$ 
+!!$   color coding file
+!!$ 
+!!$=item  fn_color - sepfile
+!!$  
+!!$    color table for Grey
+!!$ 
+!!$=item   ndim  -  integer
+!!$ 
+!!$   [16] Number of dips (saturation)
+!!$ 
+!!$=item   nazim  -  integer
+!!$ 
+!!$   [8] Number of azimuths (hue)
+!!$ 
+!!$=item   lightness  -  real
+!!$ 
+!!$   [.5] Lighness
+!!$ 
+!!$=item   mirror  -  integer
+!!$ 
+!!$   [0]  Mirror effect on color scheme
+!!$ 
+!!$=item   turn  -  real
+!!$ 
+!!$   [0.0]  Turn hue clockwise sirection in degrees
+!!$ 
+!!$=item   max_dip  -  real
+!!$ 
+!!$   [30.0]  Value of maximum dip will be displayed
+!!$ 
+!!$=back
+!!$ 
+!!$=head1 DESCRIPTION
+!!$
+!!$ Composing apparent dips (p and q components) to form a the true 
+!!$    dip and azimuth composite data for color display
+!!$
+!!$
+!!$=head1 EXAMPLES
+!!$
+!!$
+!!$ Dip_azim dip1=dipx.H dip2=dipy.H >out.H fn_color=color
+!!$
+!!$ Grey  color=color  color16=y  bclip=0 eclip=1024. < out.H |Tube
+!!$
+!!$=head1 COMMENTS
+!!$
+!!$ COLOR DESIGN: A constant lightness hue-saturation color palette
+!!$               Total number of colors = nhue*nsaturation
+!!$
+!!$ COLOR MAPPING SCHEME: Azimuth (=arctan(q,p)) modulates the hue
+!!$                       Dip (=sqrt(p^2+q^2)) modulates the saturation   
+!!$
+!!$ KEY OPERATION: dip(:,:)=MIN(max_dip,dip(:,:))
+!!$
+!!$
+!!$=head1 AUTHOR 
+!!$
+!!$  Lin, I-Ching 'Michael'     
+!!$
+!!$  Allied Geophysics Laboratories
+!!$
+!!$  Department of Computer Science
+!!$
+!!$  University of Houston
+!!$
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<sep_graphics>
+!!$
+!!$
+!!$=cut
+!!$
+! DATE: June 16, 2002
+! LAST UPDATE: September 27, 2002
+! 
+!***************************************************************************
+
+!___________________________________________________________________________
+! access the sep module
+!___________________________________________________________________________
+PROGRAM dip_azim_plot
+USE sep
+
+IMPLICIT NONE
+!___________________________________________________________________________
+! general variables used in defining the color table
+!___________________________________________________________________________
+REAL               :: hue,lightness,saturation ! hls color model
+INTEGER            :: icolor                   ! color map index
+INTEGER            :: tcolor                   ! total number of colors
+INTEGER            :: nhue                     ! number of hues
+INTEGER            :: nsaturation              ! number of saturations
+INTEGER            :: jhue                     ! hue index
+INTEGER            :: jsaturation              ! saturations index
+REAL               :: dhue                     ! hue increment in degrees
+REAL               :: dsaturation              ! saturation increment
+INTEGER            :: j                        ! an index 
+!___________________________________________________________________________
+! input argument variables
+!___________________________________________________________________________
+INTEGER            :: ndip    ! i.e. number of saturations
+INTEGER            :: nazim   ! i.e. number of hues
+INTEGER            :: mirror  ! 0 or 1, mirror effect on color scheme
+REAL               :: turn    ! turn color scheme clockwise dircetion in degree
+REAL               :: max_dip ! value of maximum dip will be displayed
+!___________________________________________________________________________
+! variables for input file #1, p
+!___________________________________________________________________________
+INTEGER            :: n1_f1
+INTEGER            :: n2_f1
+INTEGER            :: n3_f1
+REAL               :: d1_f1
+REAL               :: d2_f1
+REAL               :: d3_f1
+REAL               :: o1_f1
+REAL               :: o2_f1
+REAL               :: o3_f1
+INTEGER            :: esize_f1
+!___________________________________________________________________________
+! variables for input file #2, q
+!___________________________________________________________________________
+INTEGER            :: n1_f2
+INTEGER            :: n2_f2
+INTEGER            :: n3_f2
+REAL               :: d1_f2
+REAL               :: d2_f2
+REAL               :: d3_f2
+REAL               :: o1_f2
+REAL               :: o2_f2
+REAL               :: o3_f2
+INTEGER            :: esize_f2
+!___________________________________________________________________________
+! variables for output
+!___________________________________________________________________________
+INTEGER            :: n1
+INTEGER            :: n2
+INTEGER            :: n3
+REAL               :: d1
+REAL               :: d2
+REAL               :: d3
+REAL               :: o1
+REAL               :: o2
+REAL               :: o3
+INTEGER            :: esize
+!___________________________________________________________________________
+! operation variables
+!___________________________________________________________________________
+INTEGER            :: x_first
+INTEGER            :: x_last
+INTEGER            :: y_first
+INTEGER            :: y_last
+INTEGER            :: z_first
+INTEGER            :: z_last
+INTEGER            :: x
+INTEGER            :: y
+INTEGER            :: z
+REAL               :: start_time  ! first time to be processed in (s)
+REAL               :: end_time    ! last time to be processed in (s)
+!___________________________________________________________________________
+! allocatable arrays
+!___________________________________________________________________________
+REAL,    ALLOCATABLE, DIMENSION(:,:)   :: in_f1
+REAL,    ALLOCATABLE, DIMENSION(:,:)   :: in_f2
+REAL,    ALLOCATABLE, DIMENSION(:,:)   :: dip  
+REAL,    ALLOCATABLE, DIMENSION(:,:)   :: out_f
+!___________________________________________________________________________
+! file names                                     
+!___________________________________________________________________________
+CHARACTER(len=255) :: fn_color
+CHARACTER(len=255) :: fn_f1
+CHARACTER(len=255) :: fn_f2
+!CHARACTER(len=255) :: fn_out
+!CHARACTER(len=255) :: fn_prt ! for .DRIBBLE
+!___________________________________________________________________________
+! control variables                              
+!___________________________________________________________________________
+INTEGER            :: nwords             ! number of words
+INTEGER            :: allocation_status  ! return code for Fortran90 ALLOCATE command
+INTEGER            :: input_error        ! error counter
+integer :: ierr
+INTEGER, PARAMETER :: stderr=0           ! stderr unit
+INTEGER, PARAMETER :: lu_color_map=90    ! 2d overlay_map color unit
+INTEGER, PARAMETER :: luprt=91           ! printer and stderr units
+REAL,    PARAMETER :: rad2deg=180./3.1415926 ! convert from radians to degrees
+REAL,    PARAMETER :: UNDEFINED=-99999.  ! floating point znull value
+CHARACTER (len=1), PARAMETER :: qu='"'   ! quotation mark
+CHARACTER (LEN=1)  :: char1              ! dummy character to read 'y' or 'n'
+LOGICAL            :: iesx               ! IF==.TRUE. generate iesx format
+LOGICAL            :: wr_outfile         ! IF=.TRUE. write out an output file
+!___________________________________________________________________________
+! timing and op count arrays. make these double precision to avoid
+! truncation errors.
+!___________________________________________________________________________
+REAL*8 :: last_time(0:20)        ! last time clock was called for a given operation
+REAL*8 :: total_time(0:20)=1.e-3 ! sum of time for a given operation.
+!___________________________________________________________________________
+! initialize the intrinsic Fortran 90 time counter.
+!___________________________________________________________________________
+!CALL inittime(last_time(0))
+!___________________________________________________________________________
+! read command line arguments
+!___________________________________________________________________________
+CALL initpar()
+call sep_add_doc_line("NAME")
+call sep_add_doc_line("     Dip_azim  -  Display dip and azimuth information")
+call sep_add_doc_line("")
+call sep_add_doc_line("Usage")
+call sep_add_doc_line("     Dip_azim dip1=p.H dip2=q.H  >dip_azim_plot.H fn_color=color")
+call sep_add_doc_line("")
+call sep_add_doc_line("PARAMETERS")
+call sep_add_doc_line("    dip1 - sepfile")
+call sep_add_doc_line("           dip in direction 1")
+call sep_add_doc_line("")
+call sep_add_doc_line("    dip2 - sepfile")
+call sep_add_doc_line("           dip in direction 2")
+call sep_add_doc_line("")
+call sep_add_doc_line("    stdout - sepfile")
+call sep_add_doc_line("           color coding file")
+call sep_add_doc_line("")
+call sep_add_doc_line("    fn_color - sepfile")
+call sep_add_doc_line("            color table for Grey")
+call sep_add_doc_line("")
+call sep_add_doc_line("    ndim - integer")
+call sep_add_doc_line("           [16] Number of dips (saturation)")
+call sep_add_doc_line("")
+call sep_add_doc_line("    nazim - integer")
+call sep_add_doc_line("           [8] Number of azimuths (hue)")
+call sep_add_doc_line("")
+call sep_add_doc_line("    lightness - real")
+call sep_add_doc_line("           [.5] Lighness")
+call sep_add_doc_line("")
+call sep_add_doc_line("    mirror - integer")
+call sep_add_doc_line("           [0]  Mirror effect on color scheme")
+call sep_add_doc_line("")
+call sep_add_doc_line("    turn - real")
+call sep_add_doc_line("           [0.0]  Turn hue clockwise sirection in degrees")
+call sep_add_doc_line("")
+call sep_add_doc_line("    max_dip - real")
+call sep_add_doc_line("           [30.0]  Value of maximum dip will be displayed")
+call sep_add_doc_line("")
+call sep_add_doc_line("DESCRIPTION")
+call sep_add_doc_line("     Composing apparent dips (p and q components) to form a the true ")
+call sep_add_doc_line("        dip and azimuth composite data for color display")
+call sep_add_doc_line("")
+call sep_add_doc_line("EXAMPLES")
+call sep_add_doc_line("     Dip_azim dip1=dipx.H dip2=dipy.H >out.H fn_color=color")
+call sep_add_doc_line("")
+call sep_add_doc_line("     Grey  color=color  color16=y  bclip=0 eclip=1024. < out.H |Tube")
+call sep_add_doc_line("")
+call sep_add_doc_line("COMMENTS")
+call sep_add_doc_line("     COLOR DESIGN: A constant lightness hue-saturation color palette")
+call sep_add_doc_line("                   Total number of colors = nhue*nsaturation")
+call sep_add_doc_line("")
+call sep_add_doc_line("     COLOR MAPPING SCHEME: Azimuth (=arctan(q,p)) modulates the hue")
+call sep_add_doc_line("                           Dip (=sqrt(p^2+q^2)) modulates the saturation   ")
+call sep_add_doc_line("")
+call sep_add_doc_line("     KEY OPERATION: dip(:,:)=MIN(max_dip,dip(:,:))")
+call sep_add_doc_line("")
+call sep_add_doc_line("AUTHOR")
+call sep_add_doc_line("      Lin, I-Ching 'Michael'     ")
+call sep_add_doc_line("")
+call sep_add_doc_line("      Allied Geophysics Laboratories")
+call sep_add_doc_line("")
+call sep_add_doc_line("      Department of Computer Science")
+call sep_add_doc_line("")
+call sep_add_doc_line("      University of Houston")
+call sep_add_doc_line("")
+call sep_add_doc_line("CATEGORY")
+call sep_add_doc_line("    sep_graphics")
+call sep_add_doc_line("")
+
+call doc()
+CALL from_param('fn_color',fn_color,'dip_azim_plot.color')
+CALL from_param('dip1',fn_f1,'NONE')
+CALL from_param('dip2',fn_f2,'NONE')
+!CALL from_param('fn_out',fn_out,'dip_azim_plot.H')
+
+CALL from_param('ndip',ndip,16)
+CALL from_param('nazim',nazim,16)
+CALL from_param('lightness',lightness,0.5)
+CALL from_param('mirror',mirror,0)
+CALL from_param('turn',turn,0.0)
+CALL from_param('max_dip',max_dip,30.0)
+
+!CALL from_param('fn_prt',fn_prt,'dip_azim_plot.DRIBBLE')
+CALL from_param('IESX',char1,'n')
+iesx=(char1 == 'y')
+!wr_outfile=(fn_out /= 'NONE') ! almost always true
+
+tcolor=ndip*nazim
+!___________________________________________________________________________
+! check that minimum number of file names are supplied
+! check input parameters
+!___________________________________________________________________________
+input_error=0
+!IF(tcolor > 256)THEN
+!   WRITE(stderr,*) 'too many colors for SEP software!'
+!   input_error=input_error+1
+!END IF
+IF(fn_f1 == 'NONE') THEN 
+   input_error=input_error+1
+   WRITE(stderr,*) 'error! must enter the component of input vector file name after ', &
+                   qu//'fn_f1='//qu, ' on the command line!'
+END IF
+IF(fn_f2 == 'NONE') THEN 
+   input_error=input_error+1
+   WRITE(stderr,*) 'error! must enter the component of input vector file name after ', &
+                   qu//'fn_f2='//qu, ' on the command line!'
+END IF
+IF(input_error > 0) THEN
+   WRITE(stderr,*) 'program terminated due to ',input_error,' input errors'
+   STOP 'check command line arguments and resubmit!'
+END IF
+!___________________________________________________________________________
+! here is the color table
+!___________________________________________________________________________
+WRITE(stderr,'(/)')
+OPEN(lu_color_map,file=fn_color,status='UNKNOWN')
+IF(iesx) THEN
+   WRITE(stderr,*) 'generate IESX format color tables'
+ELSE
+   WRITE(stderr,*) 'generate SEP format color tables'
+END IF
+!___________________________________________________________________________
+! a hue-saturation color table:
+!              1 hue starting from 0 degree
+!              2 saturation from a non-zero value to 1.0
+!___________________________________________________________________________
+nhue=nazim
+dhue=360./nhue
+nsaturation=ndip
+dsaturation=1.0/nsaturation
+
+icolor=0
+!WRITE(stderr,'(/,i5,6a8)') 'color','h','l','s','r','g','b'
+
+! saturation: from almost neutral grey (no saturation=0) to 1.0
+DO jhue=0,nhue-1
+   hue=jhue*dhue
+   DO jsaturation=1,nsaturation
+	  saturation=jsaturation*dsaturation
+      CALL write_out_color(icolor, hue, lightness, saturation, iesx)
+      icolor=icolor+1
+   END DO
+END DO
+
+CLOSE(lu_color_map)
+WRITE(stderr,'(/)')
+WRITE(stderr,*) 'normal completetion. routine color_map'
+!___________________________________________________________________________
+!  read input data description from the history file #1
+!___________________________________________________________________________
+CALL from_aux(fn_f1,'n1',n1_f1)
+CALL from_aux(fn_f1,'n2',n2_f1)
+CALL from_aux(fn_f1,'n3',n3_f1)
+CALL from_aux(fn_f1,'d1',d1_f1)
+CALL from_aux(fn_f1,'d2',d2_f1)
+CALL from_aux(fn_f1,'d3',d3_f1)
+CALL from_aux(fn_f1,'o1',o1_f1)
+CALL from_aux(fn_f1,'o2',o2_f1)
+CALL from_aux(fn_f1,'o3',o3_f1)
+CALL from_aux(fn_f1,'esize',esize_f1)
+!___________________________________________________________________________
+! read input data description from the history file #2
+!___________________________________________________________________________
+CALL from_aux(fn_f2,'n1',n1_f2)
+CALL from_aux(fn_f2,'n2',n2_f2)
+CALL from_aux(fn_f2,'n3',n3_f2)
+CALL from_aux(fn_f2,'d1',d1_f2)
+CALL from_aux(fn_f2,'d2',d2_f2)
+CALL from_aux(fn_f2,'d3',d3_f2)
+CALL from_aux(fn_f2,'o1',o1_f2)
+CALL from_aux(fn_f2,'o2',o2_f2)
+CALL from_aux(fn_f2,'o3',o3_f2)
+CALL from_aux(fn_f2,'esize',esize_f2)
+!___________________________________________________________________________
+! compare for consistency (limited)
+!___________________________________________________________________________
+IF(n1_f1 /= n1_f2 .OR. n2_f1 /= n2_f2 .OR. n3_f1 /= n3_f2 .OR. &
+   d1_f1 /= d1_f2 .OR. d2_f1 /= d2_f2 .OR. d3_f1 /= d3_f2 .OR. &
+   o1_f1 /= o1_f2 .OR. o2_f1 /= o2_f2 .OR. o3_f1 /= o3_f2 .OR. &
+   esize_f1 /= esize_f2) THEN
+   WRITE(stderr,*) 'error! inconsistent history file values'
+   WRITE(stderr,'(3a20)') 'variable','file #1 (ux)','file #2 (uy)'
+   WRITE(stderr,'(a20,2i20)') 'n1',n1_f1,n1_f2,'n2',n2_f1,n2_f2, &
+      'n3',n3_f1,n3_f2,'esize',esize_f1,esize_f2
+   WRITE(stderr,'(a20,2f20.3)') 'd1',d1_f1,d1_f2,'d2',d2_f1,d2_f2, &
+      'd3',d3_f1,d3_f2,'o1',o1_f1,o1_f2,'o2',o2_f1,o2_f2, &
+      'o3',o3_f1,o3_f2
+   STOP 'check file names and resubmit!'
+END IF
+!___________________________________________________________________________
+! set up for operations
+!___________________________________________________________________________
+n1=n1_f2;n2=n2_f2;n3=n3_f2; d1=d1_f2;d2=d2_f2;d3=d3_f2;
+o1=o1_f2;o2=o2_f2;o3=o3_f2; esize=esize_f2
+
+y_first=NINT(o2)
+y_last=y_first+n2-1
+z_first=NINT(o3)
+z_last=z_first+n3-1
+!___________________________________________________________________________
+!  read other parameters from the command line (not yet available)
+!___________________________________________________________________________
+CALL from_param('start_time',start_time,o1)
+CALL from_param('end_time',end_time,o1+(n1-1)*d1)
+
+x_first=NINT(MAX(start_time-o1,0.)/d1)
+x_last=NINT(MIN(end_time-o1,(n1-1)*d1)/d1)
+!___________________________________________________________________________
+! allocate arrays 
+!___________________________________________________________________________
+nwords=(x_last-x_first+1)*(y_last-y_first+1)
+WRITE(stderr,'(/)')
+WRITE(stderr,*) 'go allocate ',nwords,' of memory for dx, dy, and...'
+ALLOCATE(in_f1(x_first:x_last,y_first:y_last), &
+         in_f2(x_first:x_last,y_first:y_last), &
+         dip(x_first:x_last,y_first:y_last), &
+         out_f(x_first:x_last,y_first:y_last), &
+         STAT=allocation_status)
+IF(allocation_status /= 0) STOP 'could not allocate memory for ux, uy,...'
+WRITE(stderr,*) 'memory successfully allocated!'
+!___________________________________________________________________________
+! open files
+!___________________________________________________________________________
+!write(stderr,*) 'open output printer file name. fn_prt = ',fn_prt
+!OPEN(file=fn_prt,unit=luprt,status='UNKNOWN')
+!___________________________________________________________________________
+! echo out input and derived control parameters.
+!___________________________________________________________________________
+!WRITE(luprt,'(/,a,/)') 'TEMPORAL parameters'
+!WRITE(luprt,'(a,t40,i5)') 'number of input samples (nt)',n1
+!WRITE(luprt,'(a,t40,i5)') 'first output sample',x_first
+!WRITE(luprt,'(a,t40,i5)') 'last output sample',x_last
+!WRITE(luprt,'(a,t40,f12.6)') 'output start time (s)',start_time
+!WRITE(luprt,'(a,t40,f12.6)') 'output end time (s)',end_time
+!WRITE(luprt,'(a,t40,f12.6)') 'input data sample interval (sec)',d1
+
+!WRITE(luprt,'(/,a,/)') 'IN LINE parameters'
+!WRITE(luprt,'(a,t40,i5)') 'number of cdps per line',n2
+!WRITE(luprt,'(a,t40,i5)') 'first_cdp',y_first,'last_cdp',y_last
+!WRITE(luprt,'(a,t40,f12.6)') 'inline trace spacing dx (m)',d2   
+  
+!WRITE(luprt,'(/,a,/)') 'CROSS LINE PARAMETERS'  
+!WRITE(luprt,'(a,t40,i5)') 'number of lines',n3
+!WRITE(luprt,'(a,t40,i5)') 'first_line',z_first,'last_line',z_last
+!WRITE(luprt,'(a,t40,f12.6)') 'crossline trace spacing dy (m)',d3   
+!WRITE(luprt,*)' '
+!CLOSE(lu_prt)
+!___________________________________________________________________________
+! write out the history files defining the size of the output.
+!___________________________________________________________________________
+o1=start_time
+o2=y_first
+o3=z_first
+
+IF(wr_outfile) THEN
+  ierr= sep_put_data_axis_par("out",1,n1,o1,d1,"")
+  ierr= sep_put_data_axis_par("out",2,n2,o2,d2,"")
+  ierr= sep_put_data_axis_par("out",3,n3,o3,d3,"")
+END IF
+!___________________________________________________________________________
+! read in a 2D x-y slice, one at a time
+!___________________________________________________________________________
+WRITE(stderr,'(/)')
+loop_over_lines: DO z=z_first,z_last
+!___________________________________________________________________________
+! read in dx, dy and dz data files 
+!___________________________________________________________________________
+!   CALL inittime(last_time(1))
+   WRITE(stderr,*) ' z_first, z, z_last ', &
+                       z_first, z, z_last
+   CALL sep_read(in_f1(:,:),fn_f1)
+   CALL sep_read(in_f2(:,:),fn_f2)
+   IF(z < z_first) CYCLE loop_over_lines ! would never happen!!!
+!   CALL addtime(total_time(1),last_time(1))
+!___________________________________________________________________________
+! convert the floating point data into bins
+!  1) define hue as the arctan of y/x
+!  2) define saturation (dip) as the sqrt of the sum of the squares
+!___________________________________________________________________________
+!   CALL inittime(last_time(2))
+
+   dip(:,:)=SQRT(in_f1(:,:)**2+in_f2(:,:)**2)
+   dip(:,:)=MIN(max_dip,dip(:,:))
+  
+   DO y=y_first,y_last
+      DO x=x_first,x_last
+
+         IF (mirror == 0) THEN  ! -: mirror
+            hue=ATAN2(in_f2(x,y),in_f1(x,y))*rad2deg
+         ELSE
+            hue=ATAN2(-in_f2(x,y),in_f1(x,y))*rad2deg
+         END IF
+
+         hue=hue+dhue/2.+turn ! turn
+         IF (hue >= 360.0) hue=hue-360
+         IF (hue < 0.0) hue=hue+360
+         jhue=FLOOR(hue/dhue) ! count from zero
+
+         ! jsaturation: from 0 to nsaturation-1
+         dsaturation=1.01/nsaturation
+         jsaturation=FLOOR( (dip(x,y)/max_dip) / dsaturation )
+
+         out_f(x,y)=jhue*nsaturation+jsaturation
+
+      END DO
+   END DO
+
+!   CALL addtime(total_time(2),last_time(2))
+!___________________________________________________________________________
+! write the results to disk.
+!___________________________________________________________________________
+!   CALL inittime(last_time(3))
+   IF(wr_outfile) THEN
+!      IF(fn_out(1:6) == 'STDOUT') THEN
+!         write(0,*) 'write to STDOUT'
+         CALL sep_write(out_f(:,:))
+!      ELSE
+!         CALL sep_write(out_f(:,:),fn_out) ! most likely write to a .H file
+!      END IF
+   END IF
+!   CALL addtime(total_time(3),last_time(3))
+END DO loop_over_lines
+  
+WRITE(stderr,*) 'end loop over lines'
+!___________________________________________________________________________
+! calculate the end time.
+!___________________________________________________________________________
+!CALL addtime(total_time(0),last_time(0))
+!___________________________________________________________________________
+! print out run time statistics.
+!___________________________________________________________________________
+WRITE(stderr,'(a40,a12)') 'task','time (s)'
+WRITE(stderr,'(a40,f12.0)')                &
+  ' read data',total_time(1),              &
+  ' calculate composite',total_time(2),    &
+  ' write results to disk',total_time(3),  &
+  ' total time',total_time(0)
+!___________________________________________________________________________
+! deallocate arrays 
+!___________________________________________________________________________
+DEALLOCATE(in_f1,in_f2,out_f,STAT=allocation_status)
+IF(allocation_status /= 0) STOP 'could not deallocate arrays'
+
+WRITE(stderr,*) 'normal completetion. routine dip_azim_plot'
+
+
+
+!___________________________________________________________________________
+! This subroutine converts a color from HLS to RGB 
+!___________________________________________________________________________
+CONTAINS
+
+SUBROUTINE write_out_color(icolor, hue, lightness, saturation, iesx)
+INTEGER, INTENT(IN) :: icolor
+REAL, INTENT(IN)    :: hue, lightness, saturation
+LOGICAL, INTENT(IN) :: iesx
+REAL                :: red, green, blue
+REAL                :: chue
+
+! correction for using hls_to_rgb function
+! in our program, zero degree is blue
+! in hls_to_rgb called function, zero degree is red
+chue=hue-120.
+IF (chue<0.) chue=chue+360.
+
+CALL hls_to_rgb(chue,lightness,saturation,red,green,blue)
+WRITE(stderr,'(i5,6f8.3)') icolor,hue,lightness,saturation,red,green,blue
+IF(iesx) THEN
+	WRITE(lu_color_map,'(i5,3i8)') icolor,NINT(red*255),NINT(green*255), &
+								NINT(blue*255)
+ELSE
+	WRITE(lu_color_map,'(i5,3f8.3)') icolor,red,green,blue
+END IF
+
+END SUBROUTINE write_out_color
+
+          
+END PROGRAM dip_azim_plot
+subroutine hls_to_rgb ( h, l, s, r, g, b )
+!
+!*******************************************************************************
+!
+!! HLS_TO_RGB converts HLS to RGB color coordinates.
+!
+!
+!  Definition:
+!
+!    The HLS color system describes a color based on the qualities of
+!    hue, lightness, and saturation.  A particular color has three
+!    coordinates, (H,L,S).  The L and S coordinates must be between
+!    0 and 1, while the H coordinate must be between 0 and 360, and
+!    is interpreted as an angle.
+!
+!    The RGB color system describes a color based on the amounts of the
+!    base colors red, green, and blue.  Thus, a particular color
+!    has three coordinates, (R,G,B).  Each coordinate must be between
+!    0 and 1.
+!
+!  Reference:
+!
+!    Foley, van Dam, Feiner, and Hughes,
+!    Computer Graphics, Principles and Practice,
+!    Addison Wesley, Second Edition, 1990.
+!
+!  Modified:
+!
+!    29 August 1998
+!
+!  Author:
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, real H, L, S, the HLS color coordinates to be converted.
+!
+!    Output, real R, G, B, the corresponding RGB color coordinates.
+!
+  real b
+  real g
+  real h
+  real hls_value
+  real l
+  real m1
+  real m2
+  real r
+  real s
+!
+  if ( l <= 0.5 ) then
+    m2 = l + l * s
+  else
+    m2 = l + s - l * s
+  end if
+                                                                                               
+  m1 = 2.0 * l - m2
+                                                                                               
+  if ( s == 0.0 ) then
+    r = l
+    g = l
+    g = l
+    b = l
+  else
+    r = hls_value ( m1, m2, h + 120.0 )
+    g = hls_value ( m1, m2, h )
+    b = hls_value ( m1, m2, h - 120.0 )
+  end if
+                                                                                               
+  return
+end
+function hls_value ( n1, n2, h )
+!
+!*******************************************************************************
+!
+!! HLS_VALUE is a utility function used by HLS_TO_RGB.
+!
+!
+!  Reference:
+!
+!    Foley, van Dam, Feiner, and Hughes,
+!    Computer Graphics, Principles and Practice,
+!    Addison Wesley, Second Edition, 1990.
+!
+!  Modified:
+!
+!    29 August 1998
+!
+!  Author:
+!
+!    John Burkardt
+!
+!
+!  Parameters:
+!
+!    Input, real N1, N2, H.
+!
+!    Output, real HLS_VALUE.
+!
+  real h
+  real hls_value
+  real hue
+  real n1
+  real n2
+  real r_modp
+!
+!  Make sure HUE lies between 0 and 360.
+!
+  hue = r_modp ( h, 360.0 )
+                                                                                               
+  if ( hue < 60.0 ) then
+    hls_value = n1 + ( n2 - n1 ) * hue / 60.0
+  else if ( hue < 180.0 ) then
+    hls_value = n2
+  else if ( hue < 240.0 ) then
+    hls_value = n1 + ( n2 - n1 ) * ( 240.0 - hue ) / 60.0
+  else
+    hls_value = n1
+  end if
+                                                                                               
+  return
+end
+function r_modp ( x, y )
+!
+!*******************************************************************************
+!
+!! R_MODP returns the nonnegative remainder of real division.
+!
+!
+!  Formula:
+!
+!    If
+!      REM = R_MODP ( X, Y )
+!      RMULT = ( X - REM ) / Y
+!    then
+!      X = Y * RMULT + REM
+!    where REM is always nonnegative.
+!
+!  Comments:
+!
+!    The MOD function computes a result with the same sign as the
+!    quantity being divided.  Thus, suppose you had an angle A,
+!    and you wanted to ensure that it was between 0 and 360.
+!    Then mod(A,360.0) would do, if A was positive, but if A
+!    was negative, your result would be between -360 and 0.
+!
+!    On the other hand, R_MODP(A,360.0) is between 0 and 360, always.
+!
+!  Examples:
+!
+!        I         J     MOD   R_MODP   R_MODP Factorization
+!
+!      107        50       7       7    107 =  2 *  50 + 7
+!      107        50       7       7    107 =  2 *  50 + 7
+!      107       -50       7       7    107 = -2 * -50 + 7
+!     -107        50      -7      43   -107 = -3 *  50 + 43
+!     -107       -50      -7      43   -107 =  3 * -50 + 43
+!
+!  Modified:
+!
+!    29 August 1998
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, real X, the number to be divided.
+!
+!    Input, real Y, the number that divides X.
+!
+!    Output, real R_MODP, the nonnegative remainder when X is divided by Y.
+!
+  real r_modp
+  real x
+  real y
+!
+  if ( y == 0 ) then
+    write ( *, * ) ' '
+    write ( *, * ) 'R_MODP - Fatal error!'
+    write ( *, * ) '  R_MODP ( X, Y ) called with Y = ', y
+    stop
+  end if
+  r_modp = mod ( x, y )
+                                                                                               
+  if ( r_modp < 0.0 ) then
+    r_modp = r_modp + abs ( y )
+  end if
+                                                                                               
+  return
+end
+

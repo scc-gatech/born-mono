@@ -1,0 +1,50 @@
+=head1 NAME
+
+
+sep3d_grab_grid_values - store  a grid
+
+
+=head1 SYNOPSIS
+
+
+C<call sep3d_grab_grid_values(struct,grid)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item grid - C<int(:)>
+
+      grid
+
+=back
+
+=head1 DESCRIPTION
+
+
+Grab grid values in C strucutre
+
+=head1 SEE ALSO
+
+
+L<sep3d_set_number_headers>
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

@@ -1,0 +1,450 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$Vconvert - Convert from one type of velocity to another
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Convert one type of velocity function to another
+!!$
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item  n1out    -   int
+!!$
+!!$       Output fast axis; only can change if outpar != inpar.
+!!$
+!!$=item  d1out     -   float
+!!$
+!!$       Ignored if outpar = inpar.
+!!$
+!!$=item  o1out    -   float
+!!$
+!!$       see above
+!!$
+!!$=item   label1  -   char*
+!!$
+!!$       see above
+!!$
+!!$=item  oversamp-   int
+!!$
+!!$       [1]oversampling rate (default is no oversampling)
+!!$
+!!$=item  lsinc   -   int
+!!$
+!!$       [12]oversampling interpolator length
+!!$       oversampling used with inpar != outpar only.
+!!$
+!!$=item  alpha   -   float
+!!$
+!!$       [0.01]  fraction of peak value at ends of gaussian taper
+!!$        on sinc interpolator for oversampling
+!!$
+!!$=item  invelopt-   int
+!!$
+!!$       [1] velocity
+!!$
+!!$=item  outvelopt-  int
+!!$
+!!$       [2] slowness
+!!$       3- slowness squared
+!!$       4- velocity squared
+!!$
+!!$
+!!$=item  intype    -int
+!!$
+!!$       [1] interval
+!!$
+!!$=item  outtype   -int
+!!$
+!!$       [2] rms
+!!$
+!!$=item  inpar      -int
+!!$
+!!$       [1] function of time
+!!$
+!!$=item  outpar    -int
+!!$
+!!$       [2] function of depth
+!!$
+!!$=back
+!!$
+!!$=head1 COMMENTS
+!!$
+!!$  NOTE: Vrms(z) [type=2 and par=2] is not understood by this routine.
+!!$
+!!$  NOTE: oversampling may improve v(z)<=>v(t) conversion if velocity
+!!$        field contains high wavenumber components.  It can introduce
+!!$        spurious high wavenumber jitter if the velocity field is smooth.
+!!$        Decreasing alpha may help.  Use with caution!
+!!$
+!!$
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/velan>
+!!$
+!!$=cut
+!!$
+!>
+!
+!
+!written October 1986 by Paul Fowler
+!October, 1986 added type and par options -Paul Fowler
+!2/88 changed to newer oversampling subroutines -Paul Fowler
+!2/88 added velocity squared sampling (velopt=4) -Paul Fowler
+!2/88 banned Vrms(z) and rewrote vconv.f logic -Paul Fowler
+!2/88 changed oversampling default to =1 (no oversampling) -P Fowler
+!2/88 added user specifiable alpha parameter -P Fowler
+!9/99 Changed to fortran-Bob
+!
+program Vconvert 
+  use sep
+  implicit none
+  integer lsinc!    /* length of sinc interpolator      */
+  integer n1in!    /* number of fast axis points on input    */
+  integer n1out!    /* number of fast axis points on output    */
+  integer n1pad
+  !    /* number of fast axis points after oversampling */
+  integer n2!    /* number of intermediate axis points     */
+  integer n3!    /* number of slow axis points       */
+  integer ovrsmp!    /* oversampling factor        */
+  integer points!    /* ovrsmp-1          */
+  integer vopt1!    /* input velocity sampling option    */
+  integer vopt2!    /* output velocity sampling option    */
+  integer vpar1!    /* input velocity parameter (time or depth)  */
+  integer vpar2!    /* output velocity parameter (time or depth)  */
+  integer vtype1!    /* input velocity type (interval or rms)  */
+  integer vtype2!    /* output velocity type (interval or rms)  */
+  real alpha
+  !    /* fraction of peak value at interpolator taper ends */
+  real d1in!    /* input fast axis sampling interval    */
+  real d1out!    /* output fast axis sampling interval    */
+  real o1in!    /* input fast axis origin      */
+  real o1out!    /* output fast axis origin      */
+  real,allocatable,dimension(:) :: data1
+  !  /* input data array        */
+  real,allocatable,dimension(:) :: data2
+  !  /* output data array        */
+  real,allocatable,dimension(:) :: osmpwt
+  !  /* oversampling interpolator coefficients  */
+  real,allocatable,dimension(:) :: work1!  /* work vector          */
+  real,allocatable,dimension(:) :: work2!  /* work vector          */
+  real,allocatable,dimension(:) :: work3!  /* work vector          */
+  real,allocatable,dimension(:) :: zin
+  !    /* converted values of input parameter    */
+!/* Input parameters from data history header and command line */
+  call SEP_ADD_DOC()
+  call SEP_INIT('')
+  call sep_begin_prog()
+  call getparameters( n1in,   n1out,  n2,     n3,     d1in,d1out,  o1in&
+    &,   o1out,  vopt1,  vopt2,vpar1,  vpar2,  vtype1, vtype2, lsinc&
+    &,points, n1pad,  ovrsmp, alpha             )
+!/* Close data header file */
+  call hclose()
+!/* Allocate space for work array */
+  allocate(data1( n1in * n2 ))
+  allocate(data2( n1out * n2  ))
+  allocate(work1( n1in ))
+  allocate(work2( n1pad ))
+  allocate(work3( n1out  ))
+  allocate(zin( n1pad  ))
+  allocate(osmpwt( lsinc * ovrsmp ) )
+!/* perform velocity conversion */
+  call vconv( data1,   data2,  n1in,n1out,  n2,     n3,     d1in,  d1out&
+    &,o1in,   o1out,  vopt1,  vopt2, vpar1,vpar2,  vtype1, vtype2,&
+    & lsinc, points,zin,     osmpwt,  work1,   work2,  work3,n1pad, &
+    & ovrsmp, alpha                       )
+  call sep_end_prog()
+end program 
+!END OF VCONVERT
+!/*
+! *  getparameters: gets values for all parameters from data processing
+! *  history file or from operating system command line for program
+! *  Vconvert
+! *  Note that all arguments are passed as pointers.
+! *
+! */
+subroutine getparameters( pn1in,   pn1out,  pn2,     pn3,     pd1in&
+  &,pd1out,  po1in,   po1out,  pvopt1,  pvopt2,pvpar1,  pvpar2,  pvtype1&
+  &, pvtype2, plsinc,ppoints, pn1pad,  povrsmp, palpha             )
+use sep_mod
+  implicit none
+  integer plsinc!  /* length of interpolator      */
+  integer pn1in!  /* number of fast axis points on input    */
+  integer pn1out!  /* number of fast axis points on output    */
+  integer pn1pad
+  !  /* number of fast axis points after oversampling */
+  integer pn2!  /* number of intermediate axis points     */
+  integer pn3!  /* number of slow axis points       */
+  integer povrsmp!  /* oversampling factor        */
+  integer ppoints!  /* ovrsmp-1          */
+  integer pvopt1!  /* input velocity sampling option    */
+  integer pvopt2!  /* output velocity sampling option    */
+  integer pvpar1!  /* input velocity parameter (time or depth)  */
+  integer pvpar2!  /* output velocity parameter (time or depth)  */
+  integer pvtype1!  /* input velocity type (interval or rms)  */
+  integer pvtype2!  /* output velocity type (interval or rms)  */
+  real palpha
+  !  /* fractio of peak value at ends of interpolator taper */
+  real pd1in!  /* input fast axis sampling interval    */
+  real pd1out!  /* output fast axis sampling interval    */
+  real po1in!  /* input fast axis origin      */
+  real po1out!  /* output fast axis origin      */
+  character(len=20) :: verbose!  /* verbose option         */
+  integer oflag1!    /* flag for invelopt found      */
+  integer pflag!    /* flag for param changing      */
+  integer pflag1!    /* flag for inpar found      */
+  integer tflag!    /* flag for type changing      */
+  integer tflag1!    /* flag for intype found      */
+  integer vflag!    /* verbose flag          */
+  integer :: ierr
+! /* Check for verbosity desired */
+  verbose="no"
+  vflag = 0
+  ierr= fetch("verbose","s",verbose)
+  if ( (verbose(1:1) .eq. 'y') .or. (verbose(1:1) .eq. 'Y') ) then
+    vflag = 1
+      if (0 .ne. putch ("verbose","s",verbose)) then
+        call erexit('trouble writing to file ')
+      end if
+  end if
+!/* Determine description of input data axes */
+  if (0.eq.hetch("n1","d",pn1in)) then
+    call seperr("Can't find n1 in history \n")
+  end if
+  if (0.eq.hetch("d1","f",pd1in)) then
+    call seperr("Can't find d1 in history \n")
+  end if
+  if (0.eq.hetch("o1","f",po1in)) then
+    call seperr("Can't find o1 in history \n")
+  end if
+  pn2 = 1
+  ierr=hetch("n2","d",pn2)
+  pn3 = 1
+  ierr=hetch("n3","d",pn3)
+  if ( (pn1in) <= 0 ) then
+    call seperr("n1 > 0 required on history. \n")
+  end if
+  if ( (pn2) <= 0 ) then
+    call seperr("n2 > 0 required on input. \n")
+  end if
+  if ( (pn3) <= 0 ) then
+    call seperr("n3 > 0 required on input. \n")
+  end if
+  if ((pd1in) <= 0.0) then
+    call seperr("d1 > 0.0 required on history. \n")
+  end if
+  if ( vflag .eq.1 ) then
+    call putlin("\t\tFound on input: \n")
+      if (0 .ne. putch ("n1","d",pn1in)) then
+        call erexit('trouble writing to file ')
+      end if
+      if (0 .ne. putch ("n2","d",pn2)) then
+        call erexit('trouble writing to file ')
+      end if
+      if (0 .ne. putch ("n3","d",pn3)) then
+        call erexit('trouble writing to file ')
+      end if
+      if (0 .ne. putch ("d1","f",pd1in)) then
+        call erexit('trouble writing to file ')
+      end if
+      if (0 .ne. putch ("o1","f",po1in)) then
+        call erexit('trouble writing to file ')
+      end if
+  end if
+!    determine input and output choice of velocity, slowness, or slowness
+!    squared.
+  pvopt1 = 2
+  oflag1 = 0
+  if (1.eq.fetch("invelopt","d",pvopt1)) then
+    oflag1 = 1
+  else if (1.eq.hetch("velopt","d",pvopt1)) then
+    oflag1 = 1
+  end if
+  pvopt2 = 2
+  if (1.eq.fetch("outvelopt","d",pvopt2)) then
+    if (oflag1.ne.1) then
+      call seperr("Can't find invelopt on history or command line\n")
+    end if
+  else
+    pvopt2 = pvopt1
+    call putlin("\t\tOutvelopt not specified; assumed equal to invelopt.\n"&
+      &)
+  end if 
+  if ( ((pvopt1) <1) .or. ((pvopt1) >4 )) then
+    call seperr("invelopt must be 1,2,3, or 4 \n")
+  end if
+  if ( ((pvopt2) <1) .or. ((pvopt2) >4 )) then
+    call seperr("outvelopt must be 1,2,3, or 4 \n")
+  end if
+  if ( vflag.eq.1 ) then
+      if (0 .ne. putch ("invelopt","d",pvopt1)) then
+        call erexit('trouble writing to file ')
+      end if
+      if (0 .ne. putch ("outvelopt","d",pvopt2)) then
+        call erexit('trouble writing to file ')
+      end if
+  end if
+! determine input and output choice of interval or rms
+  pvtype1 = 1
+  tflag1 = 0
+  if (1.eq.fetch("intype","d",pvtype1)) then
+    tflag1 = 1
+  end if
+  pvtype2 = 1
+  if (1.eq.fetch("outtype","d",pvtype2)) then
+    if (1.ne. tflag1) then
+      call seperr("Can't find intype on history or command line\n")
+    end if
+  else
+    pvtype2 = pvtype1
+    call putlin("\t\tOutvtype not specified; assumed equal to intype.\n"&
+      &)
+  end if 
+  if ( ((pvtype1) <1) .or. ((pvtype1) > 2 )) then
+    call seperr("intype must be 1 or 2 \n")
+  end if
+  if ( ((pvtype2) <1) .or. ((pvtype2) > 2 )) then
+    call seperr("outtype must be 1 or 2 \n")
+  end if
+  if ( (pvtype2) .ne. (pvtype1) ) then
+    if ( 1.ne.oflag1 ) then
+      call seperr("Must specify invelopt if intype != outtype.\n ")
+    end if
+  end if
+  tflag = 0
+  if ( (pvtype2) .ne. (pvtype1)) then
+    tflag = 1
+  end if
+  if ( vflag.eq.1 ) then
+      if (0 .ne. putch ("intype","d",pvtype1)) then
+        call erexit('trouble writing to file ')
+      end if
+      if (0 .ne. putch ("outtype","d",pvtype2)) then
+        call erexit('trouble writing to file ')
+      end if
+  end if
+! determine input and output choice of v(z) or v(t)
+  pvpar1 = 1
+  pflag1 = 0
+  if (1.eq.fetch("inpar","d",pvpar1)) then
+    pflag1 = 1
+  end if
+  pvpar2 = 1
+  if (1.eq.fetch("outpar","d",pvpar2)) then
+    if ( 1.ne.pflag1 ) then
+      call seperr("Can't find inpar on history or command line\n")
+    end if
+  else
+    pvpar2 = pvpar1
+    call putlin("\t\tOutvparam not specified; assumed equal to inpar.\n"&
+      &)
+  end if 
+  if ( ((pvpar1) <1) .or. ((pvpar1) > 2 )) then
+    call seperr("inpar must be 1 or 2 \n")
+  end if
+  if ( ((pvpar2) <1) .or. ((pvpar2) > 2 )) then
+    call seperr("outpar must be 1 or 2 \n")
+  end if
+  if ( (pvpar2) .ne. (pvpar1) ) then
+    if (1.ne.(oflag1)) then
+      call seperr("Must specify invelopt if inpar != outpar.\n")
+    end if
+  end if
+  pflag = 0
+  if ( (pvpar2) .ne. (pvpar1) ) then
+    pflag = 1
+  end if
+  if (1.eq. vflag ) then
+      if (0 .ne. putch ("inpar","d",pvpar1)) then
+        call erexit('trouble writing to file ')
+      end if
+      if (0 .ne. putch ("outpar","d",pvpar2)) then
+        call erexit('trouble writing to file ')
+      end if
+  end if
+  if ( (1.eq.tflag) .and. (1.ne.(pflag1)) ) then
+    call seperr("Must specify inpar if intype != outtype.\n")
+  end if
+  if ( (1.eq.pflag) .and. (1.ne.(tflag1)) ) then
+    call seperr("Must specify intype if inpar != outpar.\n")
+  end if
+  if ( (pvtype1 .eq. 2) .and. (pvpar1 .eq. 2) ) then
+    call   seperr("intype=2 and inpar=2 (Vrms(z)) is not understood by&
+      & Vconvert. \n")
+  end if
+  if ( (pvtype2 .eq. 2) .and. (pvpar2 .eq. 2) ) then
+    call  seperr("outtype=2 and outpar=2 (Vrms(z)) is not understood by&
+      & Vconvert. \n")
+  end if
+!/* Determine output data description */
+  pn1out = (pn1in)
+  pd1out = (pd1in)
+  po1out = (po1in)
+  plsinc = 12
+  povrsmp = 1
+  pn1pad = (pn1in)
+  palpha = 0.01
+  if (1.eq.pflag) then
+    if (1.ne.getch("n1out","d",pn1out)) then
+      call seperr("n1out not found in par file or command line")
+    end if
+    if (1.ne.getch("d1out","f",pd1out)) then
+      call seperr("d1out not found in par file or command line")
+    end if
+    if (1.ne.getch("o1out","f",po1out)) then
+      call seperr("o1out not found in par file or command line")
+    end if
+    if ( (pn1out) <= 0 ) then
+      call seperr("n1out > 0 required in parfile or command line. \n")
+    end if
+    if ( (pd1out) <= 0.0 ) then
+      call  seperr("d1out > 0.0 required in command line or par file.&
+        & \n")
+    end if
+      if (0 .ne. putch ("n1","d",pn1out)) then
+        call erexit('trouble writing to file ')
+      end if
+      if (0 .ne. putch ("d1","f",pd1out)) then
+        call erexit('trouble writing to file ')
+      end if
+      if (0 .ne. putch ("o1","f",po1out)) then
+        call erexit('trouble writing to file ')
+      end if
+    ierr=getch("lsinc","d",plsinc)
+      if (0 .ne. putch ("lsinc","d",plsinc)) then
+        call erexit('trouble writing to file ')
+      end if
+    if ( (plsinc) < 2) then
+      call seperr("lsinc >= 2 required\n")
+    else if (mod(plsinc,2) .ne. 0) then
+      plsinc =         plsinc +1
+      call putlin("\t\tlsinc must be even; larger value assumed.\n")
+        if (0 .ne. putch ("lsinc","d",plsinc)) then
+          call erexit('trouble writing to file ')
+        end if
+    end if
+    ierr=getch("oversamp","d",povrsmp)
+      if (0 .ne. putch ("oversamp","d",povrsmp)) then
+        call erexit('trouble writing to file ')
+      end if
+    if ( (povrsmp) < 1 ) then
+      call seperr("Oversamp >=1 required.\n")
+    end if
+    ierr=getch("alpha","f",palpha)
+      if (0 .ne. putch ("alpha","f",palpha)) then
+        call erexit('trouble writing to file ')
+      end if
+    if ( palpha <= 0.0 ) then
+      call seperr("alpha > 0.0 required.\n")
+    end if
+    if ( palpha >= 1.0 ) then
+      call  seperr("alpha < 1.0 required.\n")
+    end if
+    ppoints = (povrsmp) - 1
+    pn1pad = ( ( (pn1in)-1 ) * (povrsmp) ) + 1
+  end if
+end subroutine  

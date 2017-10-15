@@ -1,0 +1,692 @@
+
+ /*$
+
+=head1 NAME
+
+Taplot,Byte  - Convert floats to bytes
+
+=head1 SYNOPSIS
+
+Byte  par= < in.H > in.T
+ 
+=head1 DESCRIPTION
+
+Convert data to raster format .
+PLOT = clip{ [ (DATA - bias)*(it*d1+o1)**tpow ]**gpow }
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item tpow - float 
+
+      [0.]  gain(it) = (it*d1+o1)**tpow, it in samples
+
+=item pclip - int   
+
+      [99]  clip percentile
+
+=item clip - float 
+
+      clip value (if not specified defaults to pclip)
+
+=item phalf - int   
+
+      [85]  gpow percentile
+
+=item gpow  - float  
+
+      [1]  if given gpow<=0, sample gain power computed at phalf percentile
+
+=item bias  - float  
+
+      [0.0] plot = data - bias
+
+=item gainpanel - char* 
+
+      [1]-plane(s) where gpow and clip are estimated
+      i- ith plane is used ( i is integer )
+      all-all the planes are used
+      every -calculate gain parameters for every panel
+
+=item gaincube            
+
+      i- ith plane is used ( i is integer ) NOT YET
+      every -calculate gain parameters for every cube
+      all-all the planes are used NOT YET
+
+=item gainstep - float   
+
+      the subsampling rate used in estimating gpow and clip
+      default = max(1,nt/256) (>=1)
+
+=item allpos   - char    
+
+      [n]/y  if yes, map only positive values to 0-255
+
+=item transp   - char    
+
+      [no] if yes, saves Movie the trouble of transposing t and x.
+
+=item n1,n2,n3 - int      
+
+      cube dimensions
+
+=back
+
+ 
+
+=head1 OUTPUT PARAMETERS
+
+=over 4
+
+=item esize    - int    
+
+      [1]  raster data
+
+=item maxval, minval -float   
+
+      maximum and minimum value of data to be displayed 
+      by Ta2vplot. For use by Ta2vplot's wantscalebar
+      option.
+
+=back
+
+=head1 SEE ALSO 
+
+L<Grey>
+
+=head1 CATEGORY
+
+B<sep_graphics>
+
+=cut
+
+>*/
+
+/*
+
+ KEYWORDS esize plotting movie
+
+ SEE ALSO
+  Dd Movie
+
+ REMARKS
+  supports now piped input using make_unpipe()
+
+ WHERE
+  ./our/cube/plot/Taplot.c
+
+copyright (c) 1991 Stanford University
+*/
+
+/*
+ * Keyword: esize plotting movie : Dd
+ */
+
+/*
+AUTHOR: Rick Ottolini
+ADDRESS: Department of Geophysics, Stanford CA, 94305
+LANGUAGE: UNIX C
+HARDWARE: Convex, Sun 3/4 and Dec 3100 computers
+LAST REVISED: Nov. 26, 1981
+        May 5, 1982 - chopped into subroutines; bias argument
+      added; input, loading, and converting
+      parameters separated (nh, nha, and nhp,
+      for example) (Bert Jacobs)
+        June 23,1982 - corrected tpow=0.0 bug (Bert Jacobs)
+        December 3, 1982 - updated to run on AED767 (Chuck Sword)
+        December 14, 1982 - 'load' option adjusted.  It now allows 
+      for the fact that display area and AED memory are 
+      not the same size.  vzoom, hzoom, nvp, and nhp 
+      default so that the plot fits in the display
+      window.  If the user forces nvp and nhp to 
+      other values, the plot may extend outside of the
+      display window.  If there is not enough room
+      in the AED memory for all of the panels that
+      the user has specified (by setting nvp and nhp),
+      then each panel is windowed using
+      nva and nha so that the entire plot will fit in 
+      memory.
+      'transp' option debugged.  (Chuck Sword)
+       January 25, 1983 - found and corrected bug that was leaving
+      top line of plot blank.  The problem was in tpow,
+      where the programmer assumed that pow(0,0) = 1, while
+      C makes pow(0,0) = 0.
+       Feb 7 ,1983 - converted to seplib by jon
+       Feb 17,1983 - converted to seplib by stew
+         Still contains nasty rerouting of stdout when
+         load=yes is invoked.  This probably won't work
+         at all unless header is redirected via head=
+         or noheader=y flag specified. save= alternative
+         to out= dropped.
+       Feb 27,1983 - recognized n1=nt n2=nx n3=np  -JFC
+       Sep 28, 1983 - #include <aed.h> inserted
+    transpose option reversed
+       Jan 12, 1984 - Seplib rectification of names.  
+      New default of transp=no.  Movie now transposes if transp=no.
+          Fancy data structures for axis parameters.    -Bill
+       Feb 19, 84 - Rick fixed gpow and clip bugs
+    July 4, 1984 - Stew and Joe Freed program from first plane
+        all zeroes bug if clip specified.
+    3/2/85    - li seplibbed 'gainpar' and redefined
+               'tgain = (it*dt+t0)**tpow'
+    4/8/85    - li  fix the bug in pipe data into Taplot when 
+        load=y
+    4/12/85   - stew recorrected old tpow=0.0 bug (see above)
+        reintroduced by change of 3/2/85 
+    5/6/85   - li  modified so that gainpar() can estimate gain
+        parameters from the plane specified by
+        "gainpanel". Also user now have the control
+        of subsampling interval "gainstep"
+        used in gainpar(), in order to speed up
+        gainpar().  
+    8/27/85   -li  reduce the gpow table computation when
+        gpow=1.
+    1/7/86    -li   reduce computation tgain when tpow=0. 
+        change reed() in cnvrt() to read in a plane 
+        of data at once 
+    3/27/86  -clem  replace writing of tpow=,gpow=,pclip=,bias=, 
+                                phalf=
+              by tpow = .., gpow =..., etc.,  so as to avoid
+        confusion if the history file is read by 
+        another plotting program
+    1/6/87   -chuck Changed "cnvrt" subroutine into vectorizable
+        fortran subroutine cnvrt_, in file Taplotf.f
+    17/11/88 -clem  added allpos option
+    10/22/89 -lin  change the default gpow=1 and if given 
+        gpow<=0, compute the gpow from data.
+    11/29/89 -lin  stripped out AED
+    2/19/90  -steve changed %f to %g in puthead calls to avoid
+        truncation of small numbers.
+    12/10/90 -lin  eliminate anachonism np=n3
+    1/8/92   -jon  remove more anachronsims. nt,nx, dt,dx,
+    9/11/92  -dave  set correct output data format.
+    11/2/92  -martin reed correct number of bytes, not sizeof(float)
+    11/23/92 -martin use sgainpar, malloc/free/sreed
+         use sseek fixed version
+                12 July 94 - ray   forced plotting parameters to be taken
+                                   from the parameter line only rather than
+                                   from the input header.
+                19 Aug 94 - dave   support piped input using make_unpipe()
+    10/05/94 - david undid clem 3/27/86 change so that pars
+         clip,pclip,tpow,bias etc get written in 
+         standard seplib history file format.
+    4/17/95  -hector added computation of minimum and maximum
+                     value that will be displayed on plot,
+         when the Ta2vplot wantscalebar option is on.
+    4/96 -bob changed rite to srite to remove duplicate Taplot file problem
+    7/4/96  -Bob changed fsize to ssize
+    1/21/98  -Martin added support for 4D data sets, still sgainpar needs change
+                 if gainpanel=every,  each panel in each cube is processed for clip
+                 if gainpanel=all,  the first cube is processed for clip
+                 if gainpanel=n,    the first cube is processed for clip
+*/
+/*#include <stdio.h>*/
+
+#ifndef f2cFortran
+#define f2cFortran
+#endif
+#include <cfortran.h>
+
+#define FCNVRTF(IP,QCLP,NP,NX,NT,DATA,BUF,TB1,BIAS,OUTFD,NH,NV,VINC,HINC,TEI,TGAIN,PBIAS,TPOW) \
+  CCALLSFSUB18(CNVRTF,cnvrtf,INT,FLOAT,INT,INT,INT,FLOATV,PVOID,PVOID,FLOAT,INT,INT,INT,INT,INT,INT,FLOATV,FLOAT,FLOAT, \
+IP,QCLP,NP,NX,NT,DATA,BUF,TB1,BIAS,OUTFD,NH,NV,VINC,HINC,TEI,TGAIN,PBIAS,TPOW)
+
+#define TSIZE 4096
+#define YES 1
+#define NO  0
+char transp[5]="no";
+char gainpanel[10]="1";
+char gaincube[10]="1";
+static int  allpos;
+
+ADD_DEF_SEP_DOC
+
+
+extern int tbinit (float gpow,float tpow,float clp,char *tbl,float *tgain,float t0,int nt,int *hinc,int *vinc,int nh,float dt);
+extern int prntr (int nx,int nt,int np,float tpow,float pbias,float clp,float qclp,float gpow,float phalf,char gainpanel[10],int gainstep);
+extern int cnvrt(int ip,float qclp,int np,int nx,int nt,float *data,char *buf,char *tbl,float bias,int sfil,int nh,int nv,int vinc,int hinc,char *te, float *tgain,float pbias,float tpow);
+
+#include <stdlib.h>
+#include <sepaux.h>
+#include <sep.main>
+int MAIN(void)
+{
+    int n4=1,i4;
+    int nt,nx,np=1,n3=1,it,ip,nh,nv,h0=0,hinc,vinc,garg,nbytes,gainstep=0,gainip=1;
+    int gainicube=1;
+    int hbytes=0;
+    int iclip=0, igpow=0, tei;
+    float tpow=0.0,t0=0.0,dt=1.,clp=0.0,qclp=99.0,gpow=0.0,phalf=85.0, bias;  
+    float paramgainip,paramphalf;
+    int nall;
+    float maxval, minval, max, min;
+/*
+   double pow(),log(),exp();
+*/
+    float *tgain,*data,pbias;
+    char *tbl,*te, *buf;
+    extern int args1();
+
+    paramphalf = phalf;
+    /* grab conversion arguments */
+    garg = args1 (&nt,&nx,&np,&nh,&nv,&tpow,&t0,&clp,&gpow,&qclp,&phalf,&dt);
+    n3 = np;
+  fetch("n4","i",&n4);
+    if (qclp<=0. || qclp>100.) seperr("pclip is wrong");
+    if (phalf<=0. || phalf>100.) seperr("phalf is wrong");
+    paramphalf = phalf;
+    if (clp!=0.0)  iclip = 1;
+    if (gpow!=0.0)  igpow = 1;
+    if (clp==0. || gpow==0.)  {
+  if(nt > 256) gainstep = nt / 256. + .5 ; 
+  getch("gainstep","d",&gainstep);
+  getch("gainpanel","s",gainpanel);
+  if (gainpanel[0] == 'a') gainip = -1;
+  else if (gainpanel[0] == 'e')   gainip = 1;
+  else sscanf(gainpanel,"%d  ",&gainip);
+    paramgainip = gainip;
+  getch("gaincube","s",gaincube);
+  if (gainpanel[0] == 'a') gainicube = -1;
+  else if (gaincube[0] == 'e')   gainicube = 1;
+  else sscanf(gaincube,"%d  ",&gainicube);
+/*
+    if (gaincube[0]=='a' & gainpanel[0]=='a') seperr("sorry cannot do gaincube=all and gainpanel=all ");
+*/
+    /* if (gaincube[0]=='a' ) gainpanel[0]='a' ; */
+
+    }
+    allpos = NO ; getch("allpos","1",&allpos);
+    pbias = 0.0; getch("bias","f",&pbias);
+
+    /* allocate memory */
+    data = (float*) alloc( nt*nx*sizeof(float) );
+    tgain = (float*) alloc( nt*sizeof(float) );
+    buf = (char*) alloc( nv*nh*sizeof(float) );
+    tbl = (char*) alloc( TSIZE +1);
+
+    /* gain and clip parameters, initialize the gain table, tgain, */
+    /*  hinc and vinc */
+    if (garg) {
+      /*   gainpar is called if user does not specify clip or gpow. */
+  
+  make_unpipe("in");
+  
+    if (gaincube[0]=='a') {
+      nall = n3 * np;
+    sgainpar ("in",data,&nt,&hbytes,&nx,&gainstep,&tpow,
+              &t0,&qclp,&phalf,&clp,&gpow,&pbias,&dt,&nall,&gainip);
+    }
+    else {
+    sgainpar ("in",data,&nt,&hbytes,&nx,&gainstep,&tpow,
+              &t0,&qclp,&phalf,&clp,&gpow,&pbias,&dt,&n3,&gainip);
+    }
+
+
+  if ((gainpanel[0] != 'e') && (clp == 0)) {
+      if (clp==0) {
+    seperr ("clip=0; your data on given plane is all zeros or use a higher pclip\n"); 
+      }
+  }
+  if ((gainpanel[0] == 'e') && (clp == 0)) { clp = 1.e-10; }
+
+    }
+
+
+  /* gpow and pclip has been found  or was specified for this cube */
+
+
+
+/* seek to beginning */
+    sseek("in",0,0);
+/* read all the data in a panel */
+    sreed("in",(char *)data,nt*nx*4);
+
+    te = tbl + TSIZE;
+    tbinit (gpow,tpow,clp,tbl,tgain,t0,nt,&hinc,&vinc,nh,dt);
+    if( allpos == NO )  bias = TSIZE/2.;
+    else          bias = 0;
+
+
+    /* print parameters */
+    prntr (nx,nt,np,tpow,pbias,clp,qclp,gpow,phalf,gainpanel,gainstep);
+    
+    /* set the correct format in the output */
+    set_format("out","native_byte");
+/*	 putch("data_format","s","native_byte");*/
+
+
+    /* Compute maximum and minimum of data (first panel only) */
+    max = min = data[0];
+    for (it=1; it<nt*nx; it++) {
+  if(max < data[it]) max=data[it];
+  if(min > data[it]) min=data[it];
+    }
+    /* Compute maximum and minimum value that will be displayed on plot */
+    /* Values are used by Ta2vplot, when its wantscalebar option is on */
+    if(max <=0 && min < 0) {
+  /* Case all data values are negative */
+  maxval = pbias;
+  minval = -clp + pbias;
+    } else if(min >=0 && max > 0) {
+  /* Case all data values are positive */
+  maxval = clp + pbias;
+  minval = pbias;
+    } else {
+  /* Both positive and negative data values */
+  maxval = MIN (max, clp + pbias);
+  minval = MAX (-clp + pbias, min);
+    }
+    puthead("        maxval=%f \n", maxval);
+    puthead("        minval=%f \n", minval);
+
+    /* done processing header */
+    hclose();
+
+
+
+/* seek to beginning */
+    sseek("in",0,0); 
+
+/* this is the actual loop to convert all the panels in a cube */
+  /* convert and load each cube */
+  for (i4=0;i4<n4;i4++)  {
+    if (gaincube[0] == 'e') { /* determine clip in this cube */
+       gainip = paramgainip;
+       /* if clip and gpow != 0 then reset to iclip and igpow */
+    gpow *= igpow;
+    clp *= iclip;
+                phalf = paramphalf;
+    /* seek to beginning  of current cube */
+    sseek("in", i4*n3*nt*nx*4,0);
+    /* find all or specific gainip  */
+    sgainpar ("in",data,&nt,&hbytes,&nx,&gainstep,&tpow,
+          &t0,&qclp,&phalf,&clp,&gpow,&pbias,&dt,&n3,&gainip);
+    /* seek to beginning  of current cube */
+    sseek("in", i4*n3*nt*nx*4,0);
+    if (clp == 0.) {  clp = 1.e-10;  }
+      te = tbl + TSIZE;
+      tbinit (gpow,tpow,clp,tbl,tgain,t0,nt,&hinc,&vinc,nh,dt);
+      if( allpos == NO ) bias = TSIZE/2.;
+      else         bias = 0;
+    }
+    /* convert and load each panel */
+    for (ip=0; ip<np; ip++) {
+      /* make sure data contains the first panel, because cnvrt */
+      if(ip == 0 & qclp != 0.) sreed("in",data,nt*nx*4);
+      /* for every every panel except first this is done */
+    if (ip!=0 && gainpanel[0] == 'e') {
+      if (garg) {
+       /* if clip and gpow != 0 then reset to iclip and igpow , hhalf*/
+    gpow *= igpow;
+    clp *= iclip;
+                phalf = paramphalf;
+    gainip = ip + 1;
+/* seek to beginning  of current cube , sseek needs change */
+    sseek("in", i4*n3*nt*nx*4,0);
+
+/* determine gain */
+    sgainpar ("in",data,&nt,&hbytes,&nx,&gainstep,&tpow,
+          &t0,&qclp,&phalf,&clp,&gpow,&pbias,&dt,&n3,&gainip);
+
+/* seek to current start of panel  from beginning of cube */
+    sseek("in",ip*(nx*hbytes+nt*nx*4)+i4*np*nt*nx*4,0);
+    if (clp == 0.) {  clp = 1.e-10;  }
+      }
+      te = tbl + TSIZE;
+      tbinit (gpow,tpow,clp,tbl,tgain,t0,nt,&hinc,&vinc,nh,dt);
+      if( allpos == NO ) bias = TSIZE/2.;
+      else         bias = 0;
+  }
+
+  /* if gainpanel = all  use previously determined clip and convert */
+ 
+  /* cnvrt assumes that data contains the first panel of the current cube */
+
+  /* convert panel */
+#if defined(RS6000) 
+  tei = te-tbl;
+  /*  To call fortran version of cnvrt: */
+  FCNVRTF(ip,qclp,np,nx,nt,data,buf,tbl,bias,outfd,nh,nv,vinc,                           hinc,tei,tgain,pbias,tpow); 
+#else
+#if defined(CONVEX)
+  /* convex can't handle that many macros */
+  /*  To call fortran version of cnvrt: */
+  tei = te-tbl;
+  cnvrtf_(&ip,&qclp,&np,&nx,&nt,data,buf,tbl,&bias,&outfd,                               &nh,&nv,&vinc,&hinc,&tei,tgain,&pbias,&tpow);
+#else
+  cnvrt(ip,qclp,np,nx,nt,data,buf,tbl,bias,outfd,                                      nh,nv,vinc,hinc,te,tgain,pbias,tpow);
+#endif
+#endif
+  
+    }   /* end of loop over all panels */
+
+   }   /* end of loop over all cubes */
+
+
+
+
+return(EXIT_SUCCESS);
+}
+
+/*  Function initializes the conversion table, the gain vector,
+  and sets hinc and vinc.
+*/
+int tbinit (float gpow,float tpow,float clp,char *tbl,float *tgain,float t0,int nt,int *hinc,int *vinc,int nh,float dt)
+{
+int it;
+double t;
+
+/* initialize the conversion table */
+if ( gpow != 1.)
+  {
+  if      ( allpos == NO ) 
+  for (it=1; it<=TSIZE/2; it++)
+    {
+    tbl[TSIZE-it] =
+    (252*(pow((double)((TSIZE-2.*it)/TSIZE),gpow)+1.))/2.+3.;
+    tbl[it] = 255 - tbl[TSIZE-it] + 2.;
+    }
+  else if ( allpos == YES )
+  for( it=1; it < TSIZE ; it++ )
+    tbl[it] = 256*( (double) (it-1)/TSIZE );
+  }
+else
+  {
+  if      ( allpos == NO ) 
+  for (it=1; it<=TSIZE/2; it++)
+
+    {
+    tbl[TSIZE-it] =
+    (252*((double)((TSIZE-2.*it)/TSIZE)+1.))/2.+3.;
+    tbl[it] = 255 - tbl[TSIZE-it] + 2.;
+    }
+  else if ( allpos == YES )
+  for( it=1; it < TSIZE ; it++ )
+    tbl[it] = 256*( (double) (it-1)/TSIZE );
+  }
+tbl[0] = tbl[1];
+tbl[TSIZE] = tbl[TSIZE-1];
+
+/* initialize the gain vector */
+if ( tpow != 0.)
+  {
+  if( allpos == NO )
+  for (it=0; it<nt; it++)
+    {
+    t=(it+1)*dt+t0;
+  tgain[it] = ((t == 0.0) && (tpow == 0.0)) ? 1.0 : pow (fabs(t),tpow);
+    tgain[it] *= TSIZE/(2.*clp);
+    }
+
+  else if ( allpos == YES )
+       for (it=0; it<nt; it++)
+              {
+              t=(it+1)*dt+t0;
+       tgain[it] = ((t == 0.0) && (tpow == 0.0)) ? 1.0 : pow (fabs(t),tpow);
+              tgain[it] *= TSIZE/(clp);
+              }
+  } 
+else {
+  if( allpos == NO ) tgain[0] = TSIZE/(2.*clp);
+  else         tgain[0] = TSIZE/(clp);
+      }
+
+/* set hinc and vinc */
+if (*transp!='y')
+  {
+  *hinc = 1;
+  *vinc = nh;
+  }
+else
+  {
+  *hinc = nh;
+  *vinc = 1;
+  }
+return(0);
+}
+
+
+/* This subroutine is no longer called.  It has been replaced by a separate
+   vectorizable fortran routine.  I am retaining it here in case someone needs
+   it who doesn't have a vectorizing fortran compiler.  Chuck Sword 1/6/87.
+ */
+int cnvrt(int ip,float qclp,int np,int nx,int nt,float *data,char *buf,char *tbl,float bias,int sfil,int nh,int nv,int vinc,int hinc,char *te, float *tgain,float pbias,float tpow)
+{
+int ix,it; float *dp,*de; register float *sp,ierr;
+register char *bp,*tp; char *bs;
+float tmp;
+ if(ip != 0 || qclp == 0.)
+  sreed("in",data,nt*nx*4);
+/* convert each panel */
+if (tpow != 0.)
+  {
+  for (ix=0, bs=buf; ix<nx; ix++,bs += vinc)
+    {
+    sp = tgain; bp = bs;
+    for (dp=data+ix*nt, de=dp+nt; dp<de; dp++,sp++,bp += hinc)
+      {
+      /* tp = tbl + (int)((*dp - pbias)+bias); */
+      tp = tbl + (int)((*dp - pbias)*(*sp)+bias);
+      if (tp>te) tp = te;
+      else if (tp<tbl) tp = tbl;
+      *bp = *tp;
+      }
+    }
+   } 
+else 
+  {
+  tmp = tgain[0];
+  for (ix=0, bs=buf; ix<nx; ix++,bs += vinc)
+    {
+    bp = bs;
+    for (dp=data+ix*nt, de=dp+nt; dp<de; dp++,bp += hinc)
+
+      {
+      tp = tbl + (int)((*dp - pbias)*tmp+bias);
+      if (tp>te) tp = te;
+      else if (tp<tbl) tp = tbl;
+      *bp = *tp;
+      }
+    }
+  } 
+
+/* save panel */
+if (sfil)
+  for (it=0; it<nv; it++)
+
+/*    rite (sfil,buf+it*nh,nh);*/
+    if(nh != srite("out",buf+it*nh,nh))
+      seperr("trouble writing out data \n");
+  return(0);
+}
+
+int prntr (int nx,int nt,int np,float tpow,float pbias,float clp,float qclp,float gpow,float phalf,char gainpanel[10],int gainstep)
+{
+  float r; int i;
+  struct dimensions {
+    int ni;   /* input dimensions */
+    float oi;
+    float di;
+    char labeli[100];
+    } dm[4],*p0,*p1,*p2,*p3;
+
+
+  for(i=0; i<=3; i++) {
+    dm[i].ni = 1; dm[i].oi = 0.; dm[i].di = 1.;
+    dm[i].labeli[0] = '\0';
+    }
+    
+  if(!fetch("n1","d",&i)) i = nt; dm[1].ni = i;
+  if(!fetch("n2","d",&i)) i = nx; dm[2].ni = i;
+  if(!fetch("n3","d",&i)) i = np; dm[3].ni = i;
+
+  if(!fetch("d1","f",&r)) r = 1.; dm[1].di = r;
+  if(!fetch("d2","f",&r)) r = 1.; dm[2].di = r;
+  if(!fetch("d3","f",&r)) r = 1.; dm[3].di = r;
+
+  if(!fetch("o1","f",&r)) r = 0.; dm[1].oi = r;
+  if(!fetch("o2","f",&r)) r = 0.; dm[2].oi = r;
+  if(!fetch("o3","f",&r)) r = 0.; dm[3].oi = r;
+
+  fetch("label1","s",dm[1].labeli);
+  fetch("label2","s",dm[2].labeli);
+  fetch("label3","s",dm[3].labeli);
+
+  p0 = dm; p1 = dm + 1; p2 = dm + 2; p3 = dm + 3;
+  if (*transp=='y') { p0 = p1 ; p1 = p2 ; p2 = p0; }
+
+  
+  puthead ("  transp=%s \n",transp);
+  puthead ("  gainpanel=%s   gainstep=%d\n",gainpanel,gainstep);
+  puthead ("  n1=%d   n2=%d   n3=%d\n",nt,nx,np);
+  puthead ("    tpow=%g   bias=%g\n",tpow,pbias);
+  puthead ("    clip=%g   pclip=%g\n",clp,qclp);
+  puthead ("    gpow=%g   phalf=%g\n",gpow,phalf);
+  puthead("  esize=1   n1=%d   n2=%d   n3=%d\n",p1->ni,p2->ni,p3->ni);
+  puthead("  o1=%g   o2=%g   o3=%g\n",p1->oi,p2->oi,p3->oi);
+  puthead("  d1=%g   d2=%g   d3=%g\n",p1->di,p2->di,p3->di);
+  puthead("  label1=\"%s\"  label2=\"%s\"  label3=\"%s\"\n",
+    p1->labeli,p2->labeli,p3->labeli);
+return(0);
+}
+
+
+int args1 (nt,nx,np,nh,nv,tpow,t0,clp,gpow,qclp,phalf,dt)
+int *nt,*nx,*np,*nh,*nv;
+float *tpow,*t0,*clp,*gpow,*qclp,*phalf,*dt;
+{
+int garg; float d1;
+
+/* modes */
+getch("transp","s",transp);
+
+/* dataset geometry parameters */
+if (!fetch("n1","d",nt))
+  seperr ("n1= missing\n");
+*np = 1; fetch("n3","d",np);
+if (!fetch("n2","d",nx))
+  {
+  *nx = ssize ("in")/((*nt)*(*np));/* won't work in back of header*/
+  *nx /= 4; 
+  }
+
+/* display parameters */
+if (*transp == 'y') { *nh = *nx; *nv = *nt; }
+else { *nh = *nt; *nv = *nx; }
+  getch("tpow","f",tpow);
+  fetch("o1","f",t0); d1 = 1; fetch("d1","f",&d1);
+         if(getch("gpow","f",gpow) == 0)
+          *gpow = 1.;
+    else if(*gpow <= 0)
+    *gpow = 0.;
+  garg = 0; *dt = d1;
+  if (getch("clip","f",clp)==0 || *gpow == 0.)
+    {
+    garg = 1;
+    if (getch("pclip qclip","f",qclp)==0) *qclp=99;
+    if (getch("phalf","f",phalf)==0) *phalf=85;
+    }
+return (garg);
+}

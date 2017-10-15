@@ -1,0 +1,61 @@
+=head1 NAME
+
+
+Fx2d - 2D FX decon
+
+=head1 SYNOPSIS
+
+
+ Fx2d < in.H > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item w1,w2     - integer
+
+      window sizes in samples to calculate the
+      noise filters in.  The noise and signal should
+      be stationary within these windows.
+
+=item k1,k2     - integer
+
+      number of windows in each direction
+
+=item noper     - integer
+
+      PEF (prediction error filter) size.
+
+=item lambda    - real
+
+      stabilization factor
+
+=back
+
+=head1 COMMENTS
+
+
+     default   w1=20, w2=10
+               noper=5  -  5 is generally good, less than 4 may produce
+                           poor answers, more than 7 wastes time, and the
+                           results are generally insensitive to values
+                           between 5 and 7.
+               k1 = 1.5 * n1/(w1+1.)
+               k2 = 1.5 * n2/(w2-noper+1.)
+               lambda = 0.0  -- real data generally has enough noise
+                                to keep the process stable.  Synthetic
+                                data may need a small lambda, say 0.001.
+
+=head1 DESCRIPTION
+
+
+ 2-D FX decon
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

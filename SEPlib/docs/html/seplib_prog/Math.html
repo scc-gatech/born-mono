@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Math - Perform mathematical operations on data</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<ul>
+
+		<li><a href="#math">Math</a></li>
+		<li><a href="#pow">Pow</a></li>
+		<li><a href="#gpow">Gpow</a></li>
+		<li><a href="#generic_parameters">Generic parameters</a></li>
+	</ul>
+
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Math - Perform mathematical operations on data</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Math  pars &gt;out.H    [pars]        Generic math routine</p>
+<p>Rtoc  &lt;in.H &gt;out.H   [pars]        Real to complex</p>
+<p>Cmplx  real.H imag.H &gt;out.H [pars] Form complex from two files</p>
+<p>Real  &lt;in.H  &gt;out.H  [pars]        Output just real part of complex file</p>
+<p>Imag  &lt;in.H  &gt;out.H  [pars]        Output just imaginary part of complex file</p>
+<p>Conj  &lt;in.H  &gt;out.H  [pars]        Form the conjugate of a complex number</p>
+<p>Cabs  &lt;in.H  &gt;out.H  [pars]        Output absolute value of complex number</p>
+<p>Cabs2 &lt;in.H  &gt;out.H  [pars]        Output absolute value^2 of complex number</p>
+<p>Pow   &lt;in.H  &gt;out.H pow=  [pars]   Data raised to power, sign preserved</p>
+<p>Gpow &lt;in.H &gt;out.H gpow= [pars]  Data raised to power gpow</p>
+<p>Add   file1.H file2.H file3.H mode=[sum],prod,div &gt; out.H Add, multiply, or divide  datasets</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<p>
+</p>
+<h2><a name="math">Math</a></h2>
+<dl>
+<dt><strong><a name="item_exp__2d_char_2a">exp      - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [file1] Expression to perfom on history files</pre>
+</dd>
+<dt><strong><a name="item_file_5b1_2e_2e10_5d__2d_sepfile">file[1..10] - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [in]  Name of this history file</pre>
+</dd>
+<dt><strong><a name="item_exp_real__2d_char_2a">exp_real - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [exp]   If complex function for the real values</pre>
+</dd>
+<dt><strong><a name="item_exp_imag__2d_char_2a">exp_imag - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [exp]   If complex function for the imaginary values</pre>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="pow">Pow</a></h2>
+<dl>
+<dt><strong><a name="item_pow__2d_float">pow      -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Power to raise data to</pre>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="gpow">Gpow</a></h2>
+<dl>
+<dt><strong><a name="item_gpow__2d_float">gpow      -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Power to raise data to</pre>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="generic_parameters">Generic parameters</a></h2>
+<dl>
+<dt><strong><a name="item_maxsize__2d_int">maxsize  -    int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [20]   Maximum amount of memory to consume</pre>
+</dd>
+<dt><strong><a name="item_verb__2d_int">verb     -    int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]    Whether or not to be verbose</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Performs mathematical operation of seplib files</p>
+<p>Supported Functions (specified by @ at begining):</p>
+<p>COS SIN TAN
+ACOS  ASIN  ATAN
+COSH  SINH  INT
+EXP LOG SQRT
+ABS SGN</p>
+<p>Example 1:  Add two real files
+Math  file1=in file2=out2.H exp=file1+file2 &gt;out.H</p>
+<p>Example 2: Tpow (2.) on one file
+Math exp='file1^2' &gt;out.H</p>
+<p>Example 3: Multiply two complex files
+Math  file1=a.H file2=b.H exp_real='file1.re*file2.re-file1.im*file2.im' 
+  exp_imag='file1.re*file2.im+file1.im*file2.re'</p>
+<dl>
+<dt><strong><a name="item_notes">NOTES</a></strong><br />
+</dt>
+<dd>
+Math is not automatically complex aware.
+If you are doing addition,subtraction with files it
+will do the right thing. If you are trying to multiplication
+or division you need to code the exp_real and exp_imag yourself.
+If you are using it with the old 'Add' functionality it will
+do the correct thing.
+</dd>
+<dd>
+<p>For most cases you can just go
+Math exp='a.H+b.H' &gt;c.H</p>
+</dd>
+<dd>
+<p>Math is just a script interface Math_base the real workhorse</p>
+</dd>
+<p></p></dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>Clip</em>,<em>Add</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/vector</strong></p>
+
+</body>
+
+</html>

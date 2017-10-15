@@ -1,0 +1,58 @@
+=head1 NAME
+
+
+sep3dc_section_tag - Section a tag
+
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3dc_section_tag(sep3d *sep3dc,int axis,char *pattern,int nsect,int master_data){
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  sep3dc  -  sep3d
+
+     structure 
+
+=item  axis  -  int
+
+     axis to section along
+
+=item  pattern  -  char*
+
+     Distribution pattern (BLOCK, SPREAD)
+
+=item  nsect  -  int
+
+     number of sections
+
+=item  master_data  -  int
+
+     Whether (1) or not (0) the master thread will hold data
+
+
+=back
+
+=head1 DESCRIPTION
+
+
+Section a tag
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

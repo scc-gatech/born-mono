@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Log - Take the log of data</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Log - Take the log of data</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>&lt;in.H  Log  [range=3 centered=2] &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_range__2dreal">range   -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      defines the smallest allowed value.
+      Defining max to be the maximum of the logs (best
+      signal), output values (bad signal) below (max-range)
+      are set to (max-range). Often you might choose range
+      to be a small integer, for example, range=3 means
+      each input handled as max(input, biggest/1000).</pre>
+</dd>
+<dt><strong><a name="item_centered__2dinteger">centered -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        defines method of shifting mean of log.
+        0-The max is subtracted so all logs are negative.
+        label2='log base 10' is putched
+        1- The average of max and (max-range) is subtracted.
+        (effectively scaling the original data)
+        pclip=100 is putched.
+        2-The average value of all the logs is subtracted.
+        range=2*(max-avg) is putched.</pre>
+</dd>
+<dt><strong><a name="item_maxsize__2d_integer">maxsize  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10] Maximum memory to use in Megabytes</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Base ten logarithm of absolute values.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Math.html">the Math manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/vector</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,68 @@
+=head1 NAME
+
+
+Bandpass,Lpfilt - Bandpass dataset
+
+=head1 SYNOPSIS
+
+
+       Bandpass <in.H  flo=0. fhi=0.5/dt
+                 nplo=6 nphi=6 phase=0 > out.H
+
+       Lpfilt <in.H  f3db= order=6  > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item    flo,fhi,f3db - real      
+
+         low and high cutoff frequencies;
+         flo for lowcut filter (no default); fhi=[0.5/dt] for highcut;
+	     gain at flo and fhi is: -6db for zero-phase filter
+				-3db for minimum-phase filter. flo and f3db are equivalent
+
+=item   nplo,nphi,order - integer 
+
+        number of poles for low and high cutoffs;
+	    filter roll-off rate is proportional to number of poles 
+      (order,nplo are equvilant)
+
+=item    phase - integer     
+
+         [0]: for zero-phase; =1 for minimum-phase
+
+=back
+
+=head1 DESCRIPTION
+
+
+Butterworth bandpass filter.
+
+=head1 EXAMPLED
+
+
+       Bandpass <in.H in=stdin out=stdout flo=0. fhi=0.5/dt
+                                    nplo=6 nphi=6 phase=0 > out.H
+
+=head1 REFERENCE
+
+
+Technical reference: Oppenheim, A.V., and Schafer, R.W., 1975,
+Digital signal processing, Prentice-Hall Inc.
+
+=head1 SEE ALSO
+
+
+L<Lpfilt>
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+
+
+=cut
+

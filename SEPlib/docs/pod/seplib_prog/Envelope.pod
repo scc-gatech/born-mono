@@ -1,0 +1,42 @@
+=head1 NAME
+
+
+Envelope - calculate signal amplitude
+
+=head1 SYNOPSIS
+
+
+       <in.H  Envelope  [tc1=1 tc2=1 freq=0]  >out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  tc1   - integer
+
+       half width of smoothing triangle on 1-axis.
+
+=item tc2   - integer
+
+      half width of smoothing triangle on 2-axis.
+      units of tc are sample points.
+
+=item freq  - integer
+
+      [1] produce instantaneous frequency instead of envelope
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Analytic signal amplitude.
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

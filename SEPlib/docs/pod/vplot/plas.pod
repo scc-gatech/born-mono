@@ -1,0 +1,52 @@
+=head1 NAME
+
+
+plas - (PLot ASsembler) deformat vector plot commands
+
+=head1 SYNOPSIS
+
+
+plas < asciifile > binaryfile
+
+
+=head1 DESCRIPTION
+
+
+        Reads stdin; writes stdout.  Complement to 'pldb'.
+        Converts vplot-language files in ascii (human-readable) form
+        into the hybrid ascii/binary form that the 'pen' filters understand.
+
+   A backslash at the end of a line of text allows multi-line text strings.
+
+
+=head1 OPTIONS
+
+
+=over 4
+
+=item      C<-v>: Use vplot units (the default)
+
+=item      C<-i>: Use inches
+
+=item      C<-c>: Use centimeters
+
+=back
+
+  Note that these options apply to ALL geometric attributes,
+  including line width and character height scale factors.
+
+The default may be set within the file by having as the first line
+C<#plas: X> where X is one of V, C, or I for Vplot, Cm, or Inches
+
+=head1 SEE ALSO
+
+
+L<vplot>,L<pen>,L<pldb>
+
+=head1 CATEGORY
+
+
+B<graphics/vplot>
+
+=cut
+

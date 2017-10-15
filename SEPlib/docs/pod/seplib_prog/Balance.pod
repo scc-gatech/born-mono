@@ -1,0 +1,61 @@
+=head1 NAME
+
+
+Balance - Perform trace balancing
+
+=head1 SYNOPSIS
+
+
+Balance < in.H bal= oper=0 rms=2000 > out.H 
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item oper -  integer 
+
+	[0]:  compute balance factors from input data, and apply them 
+		to create output.
+	  1:  compute balance factors from input data, and output the 
+		balance factors.
+	  2:  read in balance factors from auxiliary dataset (bal=), 
+		apply them to main input, and output the trace-balanced data.
+
+=item rms  -  real    
+
+	[2000]: desired output rms level. If rms=0, balance factors will 
+		be computed to match the rms level of the first live trace.
+
+=item n1,n2,n3-integer  
+
+      input cube dimensions
+
+=item bal - char*  
+
+      name of auxiliary file containing balance factors (if oper==2)
+
+=back
+
+=head1 DESCRIPTION
+
+
+   Trace balancing of an entire trace (no windowing).
+
+=head1 EXAMPLES
+
+
+	Balance < in.H bal=mybal.txt oper=2 > out.H 
+	Apply balance factors contained in file mybal.txt
+
+	Balance < in.H oper=0 rms=2000> out.H 
+	Compute balance factors in a 2000 ms window and 
+	apply to the data.
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

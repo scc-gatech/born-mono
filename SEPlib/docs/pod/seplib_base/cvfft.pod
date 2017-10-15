@@ -1,0 +1,57 @@
+=head1 NAME
+
+
+cvfft - Complex fft
+
+=head1 SYNOPSIS
+
+
+     void cvfft (x,lx,nx,isign,scale)
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  x   - complex     
+
+       input/output array
+
+=item  lx  - int         
+
+       length of complex vectors
+
+=item  nx  - int         
+
+       number of vectors; must be a power of 2
+
+=item  isign-int         
+
+       sign of sqrt(-1)
+
+=item  scale-double     
+
+       scale factor; sqrt(1./lx) conserves energy
+
+=back
+
+=head1 DESCRIPTION
+
+
+     Complex fast Fourier transform between vectors of an array.  
+     Cvfft takes a 2D panel and does a complex fast fourier
+     transform across the second dimension, of all the time 
+     samples. The arguments are as follows:
+
+=head1 SEE ALSO
+
+
+L<refft>,L<rvfft>,L<cvfft>
+
+=head1 LIBRARY
+
+
+B<sepfft>
+
+=cut
+

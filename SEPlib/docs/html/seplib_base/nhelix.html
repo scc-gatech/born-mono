@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>nhelix - module containing allocate and deallocate of a  nhelix filter</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>nhelix - module containing allocate and deallocate of a  nhelix filter</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call nallocate(aa,nh,pch)</code></p>
+<p><code>call ndeallocate(aa)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_type">aa - <code>type(helix)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Filter</pre>
+</dd>
+<dt><strong><a name="item_int">nh - <code>int(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of coefficients for each filter</pre>
+</dd>
+<dt><strong>pch - <code>int(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      For a given model space location the filter that should be applied</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Allocate and deallocation of a nhelix filter.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p><a href="#item_type"><code>type(nfilter)</code></a> :</p>
+<dl>
+<dt><strong>hlx - <code>type(filter)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      filters making up nhelix</pre>
+</dd>
+<dt><strong><a name="item_real">mis  - <code>real(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      boundary conditions</pre>
+</dd>
+<dt><strong>pch  - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      patches</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/helix.html">the helix manpage</a>,<em>mshelix</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

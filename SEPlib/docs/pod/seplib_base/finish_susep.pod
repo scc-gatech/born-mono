@@ -1,0 +1,23 @@
+=head1 NAME
+
+
+finish_susep - finish i/o for a SU like program using sep3d data
+
+=head1 SYNOPSIS
+
+
+finish_susep()
+
+=head1 DESCRIPTION
+
+
+Correct the number of traces in the sep3d output if it has
+changed from input.
+
+=head1 LIBRARY
+
+
+B<sepsu>
+
+=cut
+

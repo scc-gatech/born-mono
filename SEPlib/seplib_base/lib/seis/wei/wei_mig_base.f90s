@@ -1,0 +1,298 @@
+module wei_mig_base
+  use wei_basics_mod
+  use wei_slow_mod
+  use wei_imaging_mod
+  use wei_data_mod
+ use wei_cig
+  use wei_image_mod
+  use wei_wavespace_mod
+  use wei_fft_mod
+  use wei_wc_mod
+  use wei_kmap_mod
+  use wei_xmap_mod
+  use wei_z_mod
+  implicit none
+  type(sep3d), private, save :: wsep,ssep,wsep_pad
+  complex, pointer :: wfld(:,:,:,:,:),image(:,:,:,:,:)
+  logical, private, save :: cd,cr
+
+
+contains
+!!$
+!!$=head1 
+!!$
+!!$ weimig_init - Initialize migration operator
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$  call weimig_init(SLin,WCin,FKin,FXin,IGin,in6,in7,in8,in9)
+!!$
+!!$=head1 PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item SLin - Slowness operator init  L<weislo1_init>
+!!$
+!!$=item WCin - WCop operator init  L<weikxmig1_init>
+!!$
+!!$=item FKin - FK operator init  L<weiwem_init>
+!!$
+!!$=item FXin - FX operator init  L<weissf_init>
+!!$
+!!$=item IGin - image gather creation operator init  L<weihcig_init>
+!!$
+!!$=item in6,..in9 -  integer,optional
+!!$
+!!$ Dummy operators for future expansion
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Initialize migration/modeling operator
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$ L<weimig> L<wei>
+!!$
+!!$=head1 LIBRARY
+!!$
+!!$ sepweif90
+!!$
+!!$=cut
+!!$
+  !----------------------------------------------------------------
+  subroutine weimigz_init(eraseR,eraseD,SLin,WCin,FKin,FXin,IGin,in7,in8,in9)
+    integer,external,optional ::                     in7,in8,in9
+    integer :: st,er,ierr
+    type(sep3d) :: dsep
+    type(sep3d) :: rsep
+    character(len=128) :: stag
+    logical  :: eraseR,eraseD
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weimig_init'
+#endif
+    interface !!-------------------------
+       integer function    SLin() result(st)
+       end function SLin
+       integer function WCin() result(st)
+       end function WCin
+       integer function    FKin() result(st)
+       end function FKin
+       integer function    FXin() result(st)
+       end function FXin
+       integer function    IGin() result(st)
+       end function IGin
+    end interface !!---------------------
+
+    if(.not. init_wei_basics()) &
+      call seperr("trouble initializing wei basics")
+
+    !INITIALZE WAVEFIELD SPACE
+    if(my_verb()) write(0,*) "BEFORE INITIALIZE WAVE SPACE"
+    if(.not. init_reg_wave_space(wsep)) &
+      call seperr("trouble initializing wave space")
+    call store_current_wave_space(wsep)
+    call grab_current_wave_space_pad(wsep_pad)
+
+    !INITIALIZE IMAGE
+    if(my_verb()) write(0,*) "BEFORE INITIALIZE IMAGE"
+    if(.not. init_image(eraser,"R",rsep,CR)) &
+      call seperr("trouble initializing image")
+
+    !INITIALIZE DATA
+    if(my_verb()) write(0,*) "BEFORE INITIALIZE DATA"
+    if(.not. init_data(erased,"D",dsep,CD)) &
+      call seperr("")
+
+      
+
+    !INITIALZE SLOWNESS
+    if(my_verb()) write(0,*) "BEFORE INITIALIZE SLOWNESS"
+    if(.not. init_slow()) &
+      call seperr("")
+
+    !INITIALZE SLOWNESS FROM FILE
+    if(my_verb()) write(0,*) "BEFORE INITIALIZE SLOWNESS FILE"
+    if(.not. init_slow_tag("S",stag,ssep)) &
+      call seperr("")
+
+    call store_slowness_masters((/ssep/),(/stag/))
+
+    !INITIALIZE SLOWNESS OPERATOR
+    if(my_verb()) write(0,*) "BEFORE INITIALIZE SLOWNESS OPERATOR"
+    st=SLin()     !! slownesses init
+
+    !INITIALIZE CIG OPERATOR
+    if(my_verb()) write(0,*) "BEFORE INITIALIZE IMAGING OPERATOR"
+    st=IGin()     !! cig op init
+
+    !INITIALIZE KMAPS
+    if(my_verb()) write(0,*) "BEFORE INITIALIZE MAPS"
+    call weikmap_init(wsep_pad)
+    call weixmap_init(wsep_pad)
+    call show_mem("map")
+
+    if(my_verb()) write(0,*) "BEFORE INITIALIZE FK"
+    st=FKin()     !! FK op init
+    if(my_verb()) write(0,*) "BEFORE INITIALIZE FX"
+    st=FXin()     !! FX op init
+    if(my_verb()) write(0,*) "BEFORE INITIALIZE WC"
+    st=WCin()     !! WCop init
+    if(my_verb()) write(0,*) "BEFORE INITIALIZE PATH"
+    st=Path_z_init()   !! Path init
+
+    !INTIALIZE IMAGING OPERATOR
+    if(my_verb()) write(0,*) "BEFORE IMAGING SUB INIT"
+    call weiimage_init() 
+
+    if(my_verb()) write(0,*) "BEFORE SPACE LOGIC "
+    if(.not. check_space_logic(wsep,(/dsep/),(/rsep/),(/ssep/))) &
+    	call seperr("spaces don't conform" )
+     
+    if(my_verb()) write(0,*) "BEFORE MEMORY ALLOCATION"
+    if(.not. wem_allocate_memory(wsep_pad,my_nomp()))&
+      call seperr("trouble allocating memory")
+
+    !INITIALIZE FFTS after memory allocation
+    if(my_verb()) write(0,*) "BEFORE FFT INIT"
+    call assign_wave_space(wfld)  !get memory for wfld
+    call weifft_init(wfld)  
+    call clear_wave_space()  !get memory for wfl
+    if(my_verb()) write(0,*) "BEFORE STRUCTURE DELETE"
+    call sep3df_delete(dsep,"D")
+    call sep3df_delete(rsep,"R")
+
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+  end subroutine
+
+  integer function weimigz(adj,add,mod_,dat_,SLop,  WCop,FKop,FXop,IGop,op7,op8,op9)
+  logical,            intent(in) :: adj,add
+  character(len=128), intent(in) :: mod_,dat_
+  integer,external,optional :: WCop,FKop,FXop,IGop,op7,op8,op9
+  real , pointer :: dstep(:),omega(:)
+  integer :: i,path,ierr,iz,iw,ith,iws,izs
+  character(len=60) :: string,wave_out
+  complex, pointer :: image(:,:,:,:,:)
+  type(sep3d) :: dsep
+  logical :: ipath,logic,write_bot
+  type(sep3d) :: r
+  integer,external :: srite
+  integer :: nwind(5),fwind(5)
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weimigs'
+#endif
+    interface !!----------------------------------------------
+       integer function SLop() result(st)
+       end function SLop
+    end interface !!------------------------------------------
+                                                                                           
+#ifdef DEBUG
+    if(run%debug) call in(unit)
+#endif
+  
+   call init_sep3d(dat_,dsep,"SCRATCH")
+   call init_sep3d(mod_,r,"SCRATCH")
+   call store_current_data_space(dsep)
+   call store_current_data_tag(dat_)
+   call store_current_add(add)
+   call store_current_adj(adj)
+
+
+   if(.not. operation_check(adj,cD,cR)) &
+     call seperr("")
+
+   call store_current_image_space(r)  !i don't like this RGC
+   call store_current_image_tag(mod_)
+    
+   if(.not. my_restart()) then
+     if(.not. add)  then
+       if(.not. adj) then
+          if(.not. zero_data(dat_,dsep)) &
+           call seperr("trouble zeroing data")
+       else
+         if(.not. zero_image(mod_,r)) &
+           call seperr("trouble zeroing image")
+       end if
+     end if
+   end if
+   call sep_begin_prog() !it is now safe for other jobs to be started on 
+      !this thread
+
+
+
+     
+   call assign_wave_space(wfld)  !get memory for wfld
+   call assign_image_space(image) !get memory for image
+
+
+
+   nullify(dstep,omega)
+   if(.not. path_z_begin()) call seperr("trouble initializing path")
+
+
+   string="modeling"
+   if(adj) string="migration"
+
+
+     if(.not. path_z_op(mode_begin,wfld,image,dstep,omega)) &!Grab the first block
+       call seperr("trouble grabbing first path block")
+
+!   call set_no_putch()
+   call from_param("write_wave_bot",write_bot,.false.)
+   call from_param("wave_out",wave_out,"none")
+   if(.not. adj .or. wave_out(1:4)=="none") write_bot=.false.
+   
+   if(write_bot) then
+     call sep3d_write_description('wave_out',dsep)
+   end if
+     
+     do while(associated(omega))  !{Go until we hit an error or are finished
+        call store_current_s_r(.true.)
+        ierr=SLop()
+        do iw=1,size(omega) !{ loop over the frequencies in the block
+          call store_current_omega(omega(iw))
+          ith=1
+          do iz=1,size(dstep) !{ loop over the the depths in this block
+            call store_current_izs(iz)
+            call store_current_dstep(dstep(iz))
+            if(adj) call weiimgW2R(iz,iw,ith,image,wfld,IGop)
+            call  weikxmig_1wave(wfld,iw,iz,ith,WCop,FKop,FXop)
+            if(.not. adj) call weiimgR2W(iz,iw,ith,image,wfld,IGop)
+            call print_progress(string)
+          end do ! }
+        end do! }
+        if(.not.path_z_op(mode_end,wfld,image,dstep,omega)) &
+            call seperr("Trouble finishing block")
+
+       if(write_bot) then
+          nwind=dsep%n 
+          fwind=0
+          nwind(5)=1
+          do i=1,size(omega) 
+            fwind(5)=nint((omega(i)-dsep%o(5))/dsep%d(5))
+            if(.not. sep3d_write_data("wave_out",dsep, &
+               wfld(:,:,:,:,i),nwind=nwind,fwind=fwind)) &
+             call seperr("trouble writing out wavefield")
+          end do
+       end if
+
+       if(.not.path_z_op(mode_begin,wfld,image,dstep,omega)) then
+          call seperr("Trouble grabbing next block")
+       end if
+     end do !}
+
+
+   call clear_wave_space()  !get memory for wfld
+   call clear_image_space() !get memory for image
+
+    
+!if(sep_thread_num()==0) call print_timers()
+    weimigz=0
+#ifdef DEBUG
+    if(run%debug) call out(unit)
+#endif
+  end function
+end module wei_mig_base

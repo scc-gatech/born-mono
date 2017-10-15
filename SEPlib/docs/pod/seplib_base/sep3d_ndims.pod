@@ -1,0 +1,38 @@
+=head1 NAME
+
+
+sep3d_ndims - number of dimensions in sep3d datasets
+
+
+=head1 SYNOPSIS
+
+
+C<call sep3d_inorder(struct)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Establish that the data and the headers are synched
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

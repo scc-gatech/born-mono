@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>fetch - grab a parameter from the command line or history file</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#return_value">RETURN VALUE</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#diagnostics">DIAGNOSTICS</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+	<li><a href="#keywords">KEYWORDS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>fetch - grab a parameter from the command line or history file</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>int fetch(name, format, variable)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_char_2a__2d_name">char* - name</a></strong><br />
+</dt>
+<dd>
+<pre>
+      parameter name</pre>
+</dd>
+<dt><strong><a name="item_char_2a__2d_format">char* - format</a></strong><br />
+</dt>
+<dd>
+<pre>
+      format of variable (d,f,s)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_variable__2d_void_2a">variable - void*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       variable value of variable</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_value">RETURN VALUE</a></h1>
+<dl>
+<dt><strong><a name="item_x__3d_number_of_matches_found">x = number of matches found</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>This function extracts values from input history file and command line
+expressions of the form `name=value'.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>More than one name may be searched by separating the alternatives by blanks 
+or commas.  Possible format conversions are ``d'' (or ``i''), ``f'' (or ``r''), ``g'', 
+``s'' and ``1'' for integer, floating point, double precision, strings, 
+and boolean respectively.  (For boolean, y, Y, or 1 are returned 
+as integer 1 and n, N, or 0 are returned as integer 0.)  
+If no match is found, the variable is not altered.</p>
+<p>When a keyword `par=filename' is encountered on the command line, that
+file (and any that it might in turn point to) is scanned as well.
+Fetch returns a count of the number of matches it found.  It also
+copies the input history file to the output history file if this has
+not already been done.</p>
+<p>Search and copy of the input history file can be supressed using the command
+line parameter `noheader=y'.</p>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<p><table cellspacing="0" cellpadding="0"><tr><td>Some examples of how this routine works:
+<tr><td>Command<td>Input<td>Result</table></p>
+<p><code>fetch(&quot;nx&quot;,&quot;d&quot;,&amp;nx)</code>nx=100		nx is set to 100, 1 argument found</p>
+<p><code>fetch(&quot;nx&quot;,&quot;d&quot;,&amp;nx)</code>nx=		0 arguments found</p>
+<p><code>fetch(&quot;nx nxx&quot;,&quot;d&quot;,&amp;nx)</code>nxx=30		nx is set to 30, 1 argument found</p>
+<p><code>fetch(&quot;nx&quot;,&quot;d&quot;,&amp;nx)</code>nx=50 nx=60	nx is set to 60, 2 arguments found</p>
+<p><code>fetch(&quot;nt&quot;,&quot;d&quot;,&amp;nx)</code>	nx=80		0 arguments found</p>
+<p><code>fetch(&quot;nt ntt&quot;,&quot;d&quot;, &amp;nt)</code> ntt=30 nt=40	nt is set to 40, 2 arguments found</p>
+<p><code>fetch(&quot;nt ntt&quot;,&quot;d&quot;, &amp;nt)</code> nt=30 ntt=40	nt is set to 40, 2 arguments found</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/getch.html">the getch manpage</a>, <a href="./../seplib_base/hetch.html">the hetch manpage</a>, <a href="./../seplib_base/putch.html">the putch manpage</a>, <a href="./../seplib_base/auxpar.html">the auxpar manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="diagnostics">DIAGNOSTICS</a></h1>
+<p>Program execution is terminated with extreme prejudice if a par file
+cannot be opened or the command argument list cannot be found.</p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<p>It should be possible to limit the length of retrieved strings and
+to extract individual characters.  It is also not presently possible
+to redirect search to an internal argument list.</p>
+<p>
+</p>
+<hr />
+<h1><a name="keywords">KEYWORDS</a></h1>
+<p>parameter input fetch</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep</strong></p>
+
+</body>
+
+</html>

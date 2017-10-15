@@ -1,0 +1,78 @@
+=head1 NAME
+
+
+Spike - make delta functions and impulsive plane waves.
+
+
+=head1 SYNOPSIS
+
+
+Spike [n1= n2= n3= k1= k2= k3= mag=1 d1= d2= d3= nsp=1] > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item n1,n2,n3,n4,n5   -   integer  
+
+      output cube dimensions.
+
+=item k1,k2,k3,k4,k5   -   integer  
+
+      specify Fortran index of location of delta function
+      If a kN is absent, the delta function
+      becomes a constant function in the N-th dimension.
+      If any kN is -1, no spike will be produced.
+
+=item mag        -   real
+
+      real     [1.] determines the magnitude of the spike.
+      Crossing spikes add their magnitudes.
+
+=item nsp        -   integer  
+
+      [1] number of spikes (maximum 15)
+
+=item title      -   char*    
+
+       ' '  get putched into output header file .
+
+=item o1,o2,o3,o4,o5   -   real     
+
+      [0.] standard seplib
+
+=item d1,d2,d3,d4,d5   -   real     
+
+      [.004],[.1],[.1] standard seplib parameters
+
+=item label1..3  -   char*    
+
+       ['sec'],['km],['km']  standard seplib meaning
+
+=back
+
+=head1 DESCRIPTION
+
+
+Make delta functions and impulsive plane waves.
+
+=head1 COMMENTS
+
+
+Spike n1=8 n2=6 n3=4 nsp=3 k1=6,3,7 k2=5,0,3 k3=1 | Disfil
+will put a spike at (6,5,1), a plane with n1=3, and n2,n3
+variable and a line with n1=7, n2=3, n3 variable).
+
+=head1 SEE ALSO
+
+
+L<Gauss>, L<Vel>
+
+=head1 CATEGORY
+
+
+B<seis/model>
+
+=cut
+

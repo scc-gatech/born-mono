@@ -1,0 +1,70 @@
+=head1 NAME
+
+
+seperr - print line and exit with a failure code
+
+=head1 SYNOPSIS
+
+
+C<void seperr(string)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item	char* -  string 
+
+      C print statement, see comments
+
+=back
+
+
+=head1 DESCRIPTION
+
+
+This function permits the programmer to terminate program execution
+and print an error message using printf (3) format control.  The
+message is prefixed with the program name to prevent confusion.
+
+From fortran you can only specify a string to print, no format control
+is available.
+
+=head1 COMMENTS
+
+From C:
+
+C<seperr(format, value1, value2, ...)>
+char *format
+
+From Fortran:
+
+C<call seperr('error message')>
+
+=head1 SEE ALSO
+
+
+printf(3), seplib, L<sepwarn>
+
+=head1 DIAGNOSTICS
+
+
+The system exit code used is -1.
+
+=head1 BUGS
+
+
+Fortran programmers can only pass string values.
+
+=head1 KEYWORDS
+
+
+error exit quit
+
+=head1 LIBRARY
+
+
+B<sep>
+
+=cut
+

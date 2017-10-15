@@ -1,0 +1,148 @@
+module wei_ssf
+  !! Split-Step Fourier
+  use wei_slow_mod
+  use wei_z_mod
+  !---------------
+  implicit none
+
+contains
+  !----------------------------------------------------------------
+!!$
+!!$=head1 NAME
+!!$
+!!$ weissf_init - Initialize split step operator
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ ierr=weissf_init()
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Initialize split step operator
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<weissf>
+!!$
+!!$=head1 LIBRARY
+!!$
+!!$ sepweif90
+!!$
+!!$=cut
+!!$
+  integer function weissf_init() result(st)
+    integer :: er
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weissf_init'
+    if(my_debug()) call in(unit)
+#endif
+    !! do nothing
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+    st=OK
+  end function weissf_init
+  !----------------------------------------------------------------
+!!$
+!!$=head1 NAME
+!!$
+!!$ weissf - Split step operator
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ ierr=weissf_init(iws,izs,ifk,ith,wfld)
+!!$
+!!$=head1 PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item iws - integer
+!!$
+!!$  Current frequency slice
+!!$
+!!$=item izs - integer
+!!$
+!!$  Current depth slice
+!!$
+!!$=item ifk - integer
+!!$
+!!$  Current fk operation
+!!$
+!!$=item ith - integer
+!!$
+!!$  Current thread
+!!$
+!!$=item wfld - complex(:,:,:,:,:)
+!!$
+!!$ Wavefield
+!!$
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Split step operator. Apply first order slowness correction
+!!$  to wthe wavefield given difference between velocity at
+!!$  location and reference velocity.
+!!$
+!!$=head1 SEE ALSO
+!!!$
+!!$L<weissf_init>
+!!$
+!!$=head1 LIBRARY
+!!$
+!!$ sepweif90
+!!$
+!!$=cut
+!!$
+!! Split-step
+  integer function weissf(iws,izs,ifk,ith,wfld) result(st)
+    integer, intent(in) :: iws,izs,ifk,ith
+    complex, dimension(:,:,:,:,:), pointer :: wfld
+    type(sep3d) :: wsep
+    real    ::  w,j,k,dstep,s0
+    integer :: i1,i2,i3,i4,n1,n2,n3,n4,opsign,ierr
+    complex :: iwdz
+    real, allocatable :: sxy(:,:),ks(:,:)
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weissf'
+    if(my_debug()) call in(unit)
+#endif
+    call grab_current_omega(w)
+    call grab_current_opsign(opsign)
+    call grab_current_dstep(dstep)
+    call grab_current_slow0(s0)
+
+    j =  opsign*w*dstep
+    
+
+
+    n4=size(wfld,4)
+    n3=size(wfld,3)
+    n2=size(wfld,2)
+    n1=size(wfld,1)
+    allocate(sxy(n1,n2))
+    call add_mem(size(sxy))
+
+    do i4=1,size(wfld,4);do i3=1,size(wfld,3)
+      call store_current_ihx_ihy(i3,i4)
+      call grab_slow_mid_map(sxy)
+       do i2=1,n2
+         do i1=1,n1
+           k= (sxy(i1,i2) - s0)*j
+           wfld(i1,i2,i3,i4,iws) = wfld(i1,i2,i3,i4,iws)*cmplx(cos(k),sin(k))
+         end do
+      end do
+    end do
+    end do
+   call del_mem(size(sxy))
+   deallocate(sxy)
+
+
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+    st=OK
+  end function weissf
+  !----------------------------------------------------------------
+end module wei_ssf

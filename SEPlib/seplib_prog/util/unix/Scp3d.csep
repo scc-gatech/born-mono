@@ -1,0 +1,164 @@
+/*$
+
+=head1 NAME
+
+ Cp,Cp3d - Copy a seplib dataset
+
+=head1 DESCRIPTION
+
+ Copy seplib dataset
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item max_size - int
+
+	[20] maximum memory usage in megabytes
+
+=item copy_data - int
+
+	[1] copy the data
+
+=back 
+
+=head1 SYNOPSIS
+
+ Cp,Cp3d Header1 Header2 [ out= datapath= ]
+
+=head1 SEE ALSO
+
+L<Mv>,L<Rm>
+
+=head1 CATEGORY
+
+B<util/unix>
+
+=cut
+
+>*/
+/*
+ *
+ *
+ * Author: Stewart A. Levin   4/9/83  Stanford University Dept Geophysics
+ * Modified:   ""	dropped stream I/O from copy
+ * Modified:   ""          9/22/85  Delay increment of argc until newargv
+ *				complete.
+ * Modified: Martin Karrenbach 1/28/92 Changed err() to seperr()
+ * Modified: Dave Nichols 10/15/92 Added return 0 from main.
+ * Modified: Martin Karrenbach 10/23/92 Changed type of strlen for CRAY
+ * Modified: Dave Nichols 8/17/94 Changed to sreed_raw/srite_raw
+ * Modified: Bob rewritten
+ */
+/*
+ * Keyword: copy  : Mv
+ */
+
+#include <sepConfig.h>
+#include <stdlib.h>
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#include <seplib.h>
+#include <sep3d.h>
+int main(int argc,char **argv,char **envp)
+{
+ extern int sepxargc;
+ extern char **sepxargv ;
+ int i,iin,iout;
+ char tag_in[1024],tag_out[1024];
+ char tag1h[1024],tag2h[1024];
+ char tag1g[1024],tag2g[1024];
+ char *buf,temp_ch[1024],*pt,*format;
+ int nbuf,nread,ierr,follow_h;
+ int hff,gff,copy_data;
+
+
+ iin=0;iout=0;follow_h=0;
+ strcpy(tag_out,"out");
+ strcpy(tag_in,"in");
+ for(i=1;i<argc;++i) {
+   if(0 == index(argv[i],'=')){
+     if(iin==0){ strcpy(tag_in,argv[i]); iin=1; }
+     else if(iout==0){ strcpy(tag_out,argv[i]); iout=1; }
+    }
+    else{
+      if(0==strncmp(argv[i],"out=",4)){
+          pt=&argv[i][4];
+          follow_h=1;
+       }
+    }
+ }
+ initpar(argc,argv); 
+ init_3d();
+ADD_SEP_DOC
+ doc(SOURCE);
+if(follow_h==1 && iout==1){
+  if(strcmp(pt,"stdout")==0) sprintf(temp_ch,"%s.out=follow_hdr",tag_out);
+  else sprintf(temp_ch,"%s.out=%s",tag_out,pt);
+  getch_add_string(temp_ch);
+}
+
+ if(0!=strcmp("out",tag_out)) copy_history(tag_in,tag_out);
+ hff=0; gff=0;
+ auxputch("copy_intag","s",tag_in,tag_out);
+
+ /*setup a history file copy*/
+ if(iout==1) {
+   sprintf(temp_ch,"stdout=%s",tag_out);
+   getch_add_string(temp_ch);
+ }
+ if(iout==1) {
+   sprintf(temp_ch,"stdin=%s",tag_in);
+   getch_add_string(temp_ch);
+ }
+ if(0==getch("copy_data","d",&copy_data)) copy_data=1;
+ if(0==getch("max_size","d",&nbuf)) nbuf=20;
+ nbuf=nbuf*1000*1000;
+
+
+
+ if(0==fget_header_format_tag(tag_in,tag1h)){
+   if(0!=strcmp(tag1h,"-1")){
+     hff=1; ierr=sep_copy_hff(tag_in,tag_out);
+   } 
+ }
+
+ if(0==fget_grid_format_tag(tag_in,tag1g)){
+    if(0!=strcmp(tag1g,"-1")){
+      gff=1;
+      ierr=sep_copy_gff(tag_in,tag_out);
+    }
+ }
+  
+ buf=(char*)malloc(sizeof(char)*nbuf);
+
+ format=get_format(tag_in);
+ set_format(tag_out,format);
+ free(format);
+ if(copy_data==1){
+   while (0 < (nread = sreed_raw(tag_in,buf,nbuf) )) 
+     (void)srite_raw(tag_out,buf,nread);
+ } 
+
+ if(1==hff){
+   if(0!=fget_header_format_tag(tag_out,tag2h))
+     seperr("trouble getting hff for out \n");
+   while (0 < (nread = sreed_raw(tag1h,buf,nbuf))) {
+     (void)srite_raw(tag2h,buf,nread);
+   }
+  if(gff==1){
+    ierr= fget_grid_format_tag(tag_out, tag2g);
+    if(0!=fget_grid_format_tag(tag_out,tag2g))
+      seperr("trouble getting gff for out \n");
+     format=get_format(tag1g);
+     set_format(tag2g,format);
+      free(format);
+     while (0 < (nread = sreed_raw(tag1g,buf,nbuf) )) {
+          (void)srite_raw(tag2g,buf,nread);
+     }
+   }
+ }
+/* auxclose(tag_out);*/
+ return(EXIT_SUCCESS);
+}

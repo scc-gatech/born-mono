@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>signoi - signal and noise separation</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>signoi - signal and noise separation</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call signoi_init(nn,ss,niter,nd,eps)</code></p>
+<p><code>ierr=signoi_lop(adj,add,data,sign)</code></p>
+<p><code>call signoi_close()</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_type">nn   <code>type(filter)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+       Noise filter</pre>
+</dd>
+<dt><strong>ss   <code>type(filter)</code></strong><br />
+</dt>
+<dd>
+<pre>
+       Signal filter</pre>
+</dd>
+<dt><strong><a name="item_niter_integer">niter integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of itterations</pre>
+</dd>
+<dt><strong><a name="item_nd_integer">nd    integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of data points</pre>
+</dd>
+<dt><strong><a name="item_eps_real">eps   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Epsilon</pre>
+</dd>
+<dt><strong><a name="item_adj_2cadd_2cdata_2csign">adj,add,data,sign</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Standard operator parameters</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Signal an noise separation Claerbout style</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/pef.html">the pef manpage</a>,<a href="./../seplib_base/helicon.html">the helicon manpage</a>,<a href="./../seplib_base/solver_prec.html">the solver_prec manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

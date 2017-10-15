@@ -1,0 +1,354 @@
+!!$=head1 NAME
+!!$
+!!$Mute - Mute a SEP77 dataset
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Mute par=  < in.H > out.H
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item vmute    - real
+!!$
+!!$	[1.45]: outer mute velocity.
+!!$	0.0: Special case - Flat mute.
+!!$
+!!$=item vfile    - file
+!!$
+!!$	[vmute]: vmute as a function of space.
+!!$
+!!$=item tmute    - real
+!!$
+!!$	[0.0]:  start time of (hyperbolic) outer mute
+!!$
+!!$=item tfile    - file
+!!$
+!!$	[tmute]: tmute as a function of space.
+!!$
+!!$=item tramp    - real
+!!$
+!!$	[0.25]: linear mute time ramp in seconds.
+!!$
+!!$=item Scale(t<Tmute)- real
+!!$
+!!$	[0.0]: Scale(t>Tmute+tramp) = 1.
+!!$
+!!$=item tpow   - real
+!!$
+!!$	[0]: gain trace data by  t**tpow
+!!$
+!!$=item xpow   - real
+!!$
+!!$	[0]: scale offset (x) traces by (x/xmin)**xpow
+!!$
+!!$=item trcbal - integer
+!!$
+!!$	[0]: no trace balancing
+!!$    1: trace balance by sum of absolute values
+!!$	  2: trace balance by rms amplitude value
+!!$	  3: trace balance by trace energy (sum of squared values)
+!!$
+!!$=item weight - real
+!!$
+!!$	[0]: no weighting
+!!$	  1: Jon's weight by 1/(t+xmax/vmute),
+!!$			like dividing by the number of traces:
+!!$			radial weight by r / ( 1. + (r*r)**2 )
+!!$			r = r0 * x / (t * vmute)
+!!$			r0 = sqrt( sqrt( drop - 1. ) )
+!!$
+!!$=item  drop   - real
+!!$
+!!$	[10.]: good till
+!!$
+!!$=item  tape   - real
+!!$
+!!$	[0]: no taper
+!!$	  N: linear taper on the last N traces at either end of gather.
+!!$
+!!$=item  kill   - integer[]
+!!$
+!!$	[list]: list of trace numbers to kill
+!!$       (first trace no. is 1)
+!!$
+!!$=item  emute  - real
+!!$
+!!$       end of trace  ; start time for end of data mute
+!!$
+!!$=item  eramp  - real
+!!$
+!!$	[0.25]: ramp length at end of trace
+!!$
+!!$=back
+!!$
+!!$=head1  DESCRIPTION
+!!$
+!!$   Apply linear outer mute to gather + preprocess for velocity analysis
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/filter>
+!!$
+!!$=cut
+!!$
+!>
+!
+! Author - JFC
+!
+! Major Revamp - Lumley - 2/24/92
+! Revised - Stew - 6/11/94  Added kill= option and hyperbolic outside mute
+!                           Added end of trace mute
+! david 10-17-94:	changed parameters to be read from "par", not "either".
+! Morgan 27Sept2002: Added flat mute (vmute=0.0) option.
+!                    Added tfile and vfile options.
+!
+! ----------
+!  Keyword:  Velan  NMO  velocity-analysis  mute
+! ----------
+!
+!--------------------------------------------------------------------------------
+program Mute_it 
+  use sep
+  implicit none
+  integer nt,nx,  n3
+  integer trcbal, weight, taper, nread, naux
+  real tramp, xpow
+  real eramp, emute
+  real t0, dt,  x0, dx, tmute0, vmute, tpow
+  real, allocatable :: trace(:),scale(:),tvect(:),vvect(:)
+  integer,allocatable :: kill(:)
+  logical,allocatable :: lkill(:)
+  character (len = 80)              :: file
+  call SEP_ADD_DOC()
+  call SEP_INIT('')
+  call sep_begin_prog()
+! get parameters
+  call from_history("o1",t0)
+  call from_history("o2",x0)
+  call from_history("d1",dt)
+  call from_history("d2",dx)
+  call from_history("d2",dx)
+  call from_history("n1",nt)
+  call from_history("n2",nx)
+  call from_history("n3",n3)
+    call from_param("tmute",tmute0,0.)
+    call from_param("tramp",tramp,0.25) 
+    call from_param("xpow",xpow,0.0)
+    call from_param("tpow",tpow,0.0)
+    call from_param("trcbal",trcbal,0)
+    call from_param("vmute",vmute,1.45) 
+    call from_param("weight",weight,0)
+    call from_param("taper",taper,0)
+  emute=t0+nt*dt
+    call from_param("eramp",eramp,0.25)
+    call from_param("emute",emute,t0+nt*dt)
+! allocate working space
+  allocate( trace(nt), scale(nt), vvect(n3), tvect(n3) )
+  allocate( kill(nx))
+  allocate( lkill(nx))
+  vvect=vmute
+  tvect=tmute0
+  if ( getch('vfile','s',file) /= 0) then
+    nread=sreed('vfile', vvect, 4*n3)
+  end if
+  if ( getch('tfile','s',file) /= 0) then
+    nread=sreed('tfile', tvect, 4*n3)
+  end if
+! call subroutine to do the actual work
+  call mute(t0,x0,dt,dx,nt,nx,n3,vvect,tvect,tramp,tpow,xpow,trcbal&
+    &,weight,taper,trace,scale,kill,lkill,emute,eramp)
+  call sep_end_prog()
+end program
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+subroutine mute(t0,x0,dt,dx,nt,nx,n3,vvect,tvect,tramp,tpow,xpow,trcbal&
+  &,weight,taper,trace,scale,kill,lkill,emute,eramp)
+  use sep
+  implicit none
+  real t0,x0,dt,dx,vmute,tmute0,tramp,tpow,xpow,emute,eramp
+  integer nt,nx,n3,trcbal,weight,taper,n4,n5,n6,n7
+  integer nread,it,ix,i3
+  integer ierr
+  real trace(nt),scale(nt), vvect(n3), tvect(n3)
+  logical lkill(nx)
+  integer kill(nx),nkill
+  real tpower, tmute, xpower, xratio, eps
+  real t, x, w, r0, r,drop,xmin,xmax
+  call from_history("n4",n4,1)
+  call from_history("n5",n5,1)
+  call from_history("n6",n6,1)
+  call from_history("n7",n7,1)
+  nkill = getch('kill','i',kill)
+  if (nkill > 0) then
+    do ix=1,nx
+      lkill(ix) = .false.
+    end do 
+    do ix=1,nkill
+      lkill(kill(ix)) = .true.
+    end do
+  end if
+  call hclose()	! header close no pipes allowed.
+! Initializations...
+  eps= 1.0e-12
+  drop = 10.
+  r0 = sqrt(sqrt( drop -1. ))
+  xmin = min(abs(x0), abs(x0+(nx-1)*dx))
+  xmax = max(abs(x0), abs(x0+(nx-1)*dx))
+! Main loops...
+  do i3 = 1, n3*n4*n5*n6*n7  
+    do ix = 1, nx  
+      x = x0 + (ix-1)*dx
+! Read a trace...
+      nread = sreed('in', trace, 4 * nt)
+      if (nread .ne. 4*nt) then
+        call erexit('read failed')
+      end if
+! handle trace kills
+      if (nkill .ne. 0) then
+        if (lkill(ix)) then
+          do it=1,nt
+            trace(it) = 0.0
+          end do 
+          ierr= srite ('out' , trace, 4*nt)
+          cycle
+        end if
+      end if
+! Scale trace by tpow...
+      if (tpow .ne. 0) then
+        do it = 1, nt  
+          tpower = (t0 + (it-1) * dt) ** tpow 
+          trace(it) = trace(it) * tpower
+        end do
+      end if
+! Do trace balancing...
+      if (trcbal .ne. 0) then
+        if (trcbal .eq. 1) then
+          call absnorm(nt, trace)
+        end if
+        if (trcbal .eq. 2) then
+          call rmsnorm(nt, trace)
+        end if
+        if (trcbal .eq. 3) then
+          call e2norm(nt, trace)
+        end if
+      end if
+! Scale trace by xpow...
+      if (xpow .ne. 0) then
+        xratio = x/(xmin + eps)
+        xpower = xratio ** xpow
+        do it = 1, nt  
+          trace(it) = trace(it) * xpower
+        end do
+      end if
+! Calculate and apply mute scale mask...
+      if ( vvect(i3).eq.0.0) then
+        tmute = tvect(i3)
+      else
+        tmute = sqrt(max(0.0,tvect(i3)**2 + (x/vvect(i3))**2))
+      end if 
+      do it = 1, nt  
+        t = t0 + (it-1)*dt 
+! front mute
+        if (t <= tmute) then
+          scale(it) = 0.
+        else if (t <= tmute+tramp) then
+          scale(it) = (t-tmute)/(tramp+1.e-20)
+        else
+          scale(it) = 1.
+        end if 
+! tail mute
+        if (t >= emute+eramp) then
+          scale(it) = 0.
+        else
+          if (t > emute) then
+            scale(it) = scale(it)*(1.0-(t-emute)/(eramp+1.e-20))
+          end if
+        end if 
+        trace(it) = scale(it)*trace(it)
+      end do 
+! Do Jon's weighting...
+      if ( weight .ne. 0) then
+        do it = 1, nt  
+!					trace(it) = trace(it)/(t0+(it-1)*dt+xmax/vmute)
+          trace(it) = trace(it)/(t0+(it-1)*dt+xmax/vvect(i3))
+        end do 
+        x = x0 + (ix-1) * dx
+        x = abs(x)
+        do it = 1, nt  
+          t = t0 + it * dt
+!			   		r =  r0*x/(vmute*t+1.e-20)
+          r =  r0*x/(vvect(i3)*t+1.e-20)
+          w =  r/(1.+(r*r)**2)
+! denominator is 1/drop at cutoff.
+          trace(it) = trace(it)*w
+        end do
+      end if
+! Do gather boundary tapers...
+      if (taper .ne. 0) then
+        if (ix <= taper) then
+          do it = 1, nt  
+            trace(it) = trace(it)*(ix-1)/(1.*taper)
+          end do
+        else if (ix >= nx-taper+1) then
+          do it = 1, nt  
+            trace(it) = trace(it)*(nx-ix)/(1.*taper)
+          end do
+        end if
+      end if
+! Write out the muted trace...
+      ierr= srite('out', trace, nt*4)
+    end do
+  end do
+end subroutine
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+subroutine absnorm(n, x)
+  implicit none
+  integer  i, n
+  real x(n), avg
+  avg = 1.e-30
+  do i = 1, n
+    avg = avg + abs(x(i))
+  end do 
+  avg = avg / n
+  do i = 1, n
+    x(i) = x(i) / avg
+  end do 
+  return
+end subroutine
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+subroutine rmsnorm(n, x)
+  implicit none
+  integer  i, n
+  real x(n), avg
+  avg = 1.e-30
+  do i = 1, n
+    avg = avg+x(i)*x(i)
+  end do 
+  avg = sqrt(avg)/n
+  do i = 1, n
+    x(i) = x(i) / avg
+  end do 
+  return
+end subroutine
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+subroutine e2norm(n, x)
+  implicit none
+  integer  i, n
+  real x(n), avg
+  avg = 1.e-30
+  do i = 1, n
+    avg = avg+x(i)*x(i)
+  end do 
+  avg = avg/n
+  do i = 1, n
+    x(i) = x(i)/avg
+  end do 
+  return
+end subroutine
+!--------------------------------------------------------------------------------
+  

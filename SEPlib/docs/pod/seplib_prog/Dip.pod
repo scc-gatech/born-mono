@@ -1,0 +1,110 @@
+=head1 NAME
+
+
+Dip - Calculate dip
+
+=head1 DESCRIPTION
+
+
+Calculates the dip of dataset using one of several methods
+
+=head1 SYNOPSIS
+
+
+Dip < in.H > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item verb      - logical
+
+      [n]: Whether or not to be verbose
+
+=item max_size      - integer
+
+      [100]: Maximum memory in megabytes to use
+
+=item v3d      - logical
+
+      [n]: Whether [y] or not [n] to run 3-D version (smooth between slices,
+
+           more memory intensive and slower)
+
+
+=item method      -  char*
+
+      [sergey_f]: Sergey's fast method
+
+=over 4
+
+=item eps      -  real
+
+      [.0001]:   - Smoothness of axis1
+
+=item eps2      -  real
+
+      [.0001]:   - Smoothness  of axes2 and 3
+
+=item nl_iter      -  integer
+
+      [10]:   - Number of non-linear iterations
+
+
+=back
+
+      [sergey_s]: Sergey's slow method
+
+=over 4
+
+=item eps      -  real
+
+      [.01]:   - Smoothness of
+
+=item nl_iter      -  integer
+
+      [10]:   - Number of non-linear iterations
+
+=item niter      -  integer
+
+      [30]:   - Number of linear iterations
+
+=back
+
+      [puck_f]: Puck fast method
+
+=over 4
+
+=item nwind      -  integer(3)
+
+      [min(n,5)]:   - Smoothing of dx and dt
+
+=back
+
+
+      [puck_s]: Puck slow method
+
+
+=over 4
+
+=item nwind      -  integer(3)
+
+      [min(n,5)]:   - Moving window to calculate dx and dt
+
+=back
+
+=back
+
+=head1 SEE ALSO
+
+
+L<Ft3d>
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

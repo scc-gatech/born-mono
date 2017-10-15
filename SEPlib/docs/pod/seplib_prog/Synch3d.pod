@@ -1,0 +1,44 @@
+=head1 NAME
+
+
+Synch3d - Synchronize headers and data
+
+=head1 SYNOPSIS
+
+
+Synch3d.x  <in.H >out.H 
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item maxsize-  int    
+
+      [5] Maximum amount of memory to use for headers in 
+      megabytes
+
+
+=item verb-int    
+
+      [0]  Whether or not to be verbose
+
+=back
+
+=head1 DESCRIPTION
+
+
+Synchs headers and data
+
+=head1 SEE ALSO
+
+
+B<sep_reorder_data>
+
+=head1 CATEGORY
+
+
+B<util/headers>
+
+=cut
+

@@ -1,0 +1,6 @@
+export FC=no
+export CFLAGS="-I/usr/local/include"
+export LIBS="-L/usr/local/lib -lrpclib"
+./configure  --with-local
+make
+#make reconfig

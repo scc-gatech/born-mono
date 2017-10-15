@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sep3d_reshape - reshape a dataset</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sep3d_reshape - reshape a dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call  sep3d_reshape(struct)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_struct__2d_sep3d">struct  -  sep3d</a></strong><br />
+</dt>
+<dd>
+<pre>
+      structure</pre>
+</dd>
+<dt><strong><a name="item_n__2d_int_2a">n  -  int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      axis remapping</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Change the dimensions of a dataset</pre>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<pre>
+ Given data%n=(/10,20,10/)  n=(/1,2,3,3/) --&gt; data%n(/10,20,10,1/)</pre>
+<pre>
+ Given data%n=(/10,20,10/)  n=(/1,3/) --&gt; data%n(/10,200/)</pre>
+<pre>
+ Given data%n=(/10,20,10/)  n=(/1,2,2,3/) --&gt; data%n(/10,1,20,10/)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>supersetf90</strong></p>
+
+</body>
+
+</html>

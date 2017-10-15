@@ -1,0 +1,66 @@
+=head1 NAME
+
+
+createmshelix - create a multi-scale helix filter
+
+
+=head1 SYNOPSIS
+
+
+C<aa=createmshelix(nd,center,gap,jump,na)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item nd      - C<integer(:)>
+
+      size of data
+
+=item center  - C<integer(:)>
+
+      location of the 1 of the filter within na box
+
+=item jump     - C<integer(:)>
+
+      stretches
+
+=item gap     - C<integer(:)>
+
+      distance along each axis before filter coef
+
+=item na      - C<integer(:)>
+
+      size of box arround filter
+
+=back
+
+=head1 RETURN VALUE
+
+
+=over 4
+
+=item aa       - C<type(nfilter)>
+
+      Helix filter
+
+=back
+
+=head1 DESCRIPTION
+
+
+Create a multi-scale helix filter
+
+=head1 SEE ALSO
+
+
+L<createhelix>,L<mshelix>,L<createnhelix>,L<createmshelix>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>No Title</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<pre>
+ Txdec</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+  TX domain noise removal, 2- or 3-D</pre>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+  Txdec &lt; in.H &gt; out.H</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_w1_2cw2_2cw3__2d_integer">w1,w2,w3  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+                             window sizes in samples to calculate the</pre>
+</dd>
+<dd>
+<pre>
+                             noise filters in.  The noise and signal should</pre>
+</dd>
+<dd>
+<pre>
+                             be stationary within these windows.
+=item   k1,k2,k3  - integer</pre>
+</dd>
+<dd>
+<pre>
+                             number of windows</pre>
+</dd>
+<dt><strong><a name="item_a1_2ca2_2ca3__2d_integer">a1,a2,a3  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+                             PEF sizes (time,along w2,along w3)</pre>
+</dd>
+<dt><strong><a name="item_lag1_2clag2_2c_2d_integer">lag1,lag2,- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+                             Filter lags (time,along w2,along w3)</pre>
+</dd>
+<dt><strong><a name="item_lag3">lag3</a></strong><br />
+</dt>
+<dt><strong><a name="item_lambda__2d_real">lambda    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+                              stabilization factor</pre>
+</dd>
+</dl>
+<pre>
+   defaults</pre>
+<pre>
+          a1=5,a2=2,a3=1     In-line or 2-D PEFs only.</pre>
+<pre>
+                             For a 3-D PEF, use something like a2=2,a3=2.</pre>
+<pre>
+                             Be warned, as the number of filter coefficients</pre>
+<pre>
+                             increases, the run time increases by about</pre>
+<pre>
+                             the cube of the number of filter coefficients.</pre>
+<pre>
+          w1=min(n1,20)</pre>
+<pre>
+          w2=min(n2,20)</pre>
+<pre>
+          w2=min(n3,6)</pre>
+<pre>
+          k1= 1.5 * n1/(w1-a1+1.)</pre>
+<pre>
+          k2= 1.5 * n2/(w2-a2+1.)</pre>
+<pre>
+          k3= 1.5 * n3/(w3-a3+1.)</pre>
+<pre>
+          lag1 = (a1/2)+1</pre>
+<pre>
+          if a3 is 1, then lag2 =(a2/2)+1,  else  lag2 = 1</pre>
+<pre>
+          lag3=1</pre>
+<pre>
+ Author- Ray Abma, 1995</pre>
+
+</body>
+
+</html>

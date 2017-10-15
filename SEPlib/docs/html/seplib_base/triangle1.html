@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>triangle1 - triangle smoothing</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>triangle1 - triangle smoothing</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>initializer- <code>call triangle1_init(nbox,dat)</code></p>
+<p>operator  - <code>int=triangle1_lop(adj,add,x,y)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_nbox__2d_int">nbox - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      size of the box</pre>
+</dd>
+<dt><strong><a name="item_ndat__2d_int">ndat - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of data points</pre>
+</dd>
+<dt><strong><a name="item_adj__2d_logical">adj  - logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+      whether or not run adjoint</pre>
+</dd>
+<dt><strong><a name="item_add__2d_logical">add  - logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+      wherther or not to add output to input</pre>
+</dd>
+<dt><strong><a name="item_real">mod    - <code>real(ndat)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      model</pre>
+</dd>
+<dt><strong>dat    - <code>real(ndat)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      data</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Triangle smoothing using helix filters</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/triangle2.html">the triangle2 manpage</a>,<a href="./../seplib_base/helicon.html">the helicon manpage</a>,<a href="./../seplib_base/polydiv.html">the polydiv manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

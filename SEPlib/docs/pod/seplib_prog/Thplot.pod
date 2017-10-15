@@ -1,0 +1,125 @@
+=head1 NAME
+
+
+Thplot - Create a hidden line plot
+
+=head1 DESCRIPTION
+
+
+Hidden line plotting program.
+
+=head1 SYNOPSIS
+
+
+Thplot par= < Hin | Pen
+
+=head1 INPUT PARAMETERS:
+
+
+=over 4
+
+=item n3  -    int     
+
+      [1]  (It erases the screen between frames (for a movie))
+
+=item (zc,xc) -   float   
+
+      position of the lower left hand corner of the plot
+      from the corner of the page in inches.
+      xc defaults so as to center the plot.
+
+=item sz      -   float   
+
+      vertical scale.
+
+=item alpha   -   float   
+
+      apparent angle in degrees; |alpha| < 89
+
+=item uflag   -   int     
+
+      [1] - plot upper side of the surface,
+      0 - do not plot upper side. (yellow).
+
+=item dflag   -   int     
+
+      the same but for the down side. (red).
+
+=item clip,gpow,tpow,epow,plot - int
+
+      clipping {( data * e**epow*t * t**tpow )**gpow}
+
+=item norm    -   char     
+
+      [n] for no clipping.
+
+=item pclip   -   int      
+
+      percentile to set the clip
+
+=item dclip   -   float    
+
+      change the clip: clip = (clip set by pclip)*dclip 
+
+=item zmax,zmin-  float    
+
+      [0],[1] max, min (relative to clip) values to 
+       use in scaling plot
+
+=item xlength -   float    
+
+      Number of inches wide the plot device is; Use 10.24 
+      unless you are using absolute scaling.
+
+=item script -    file     
+
+      Name of a file from which to get the titles in
+      a Movie, one title per line.
+
+=item axis,axis1,axis2,axis3- char
+
+      [y] any not-y character will turn off axis
+
+=item label1,label2,label3- char* 
+
+      axis labels
+
+=item axissz    -int      
+
+      [6] size of axis labels 
+
+=item axisfat    -int      
+
+      [2] makes axes fat
+
+=item title      -char*    
+
+      ['input file name']
+
+=item titlesz    -int      
+
+      [6] size of title
+
+=item titlefat   -int      
+
+      [2] makes title fat
+
+=back
+
+=head1 SEE ALSO
+
+
+L<Grey>,L<Cubeplot>,L<Contour>
+
+=head1 CATEGORY
+
+
+B<sep_graphics>
+
+=head1 COMPILE LEVEL
+
+
+DISTR
+
+=cut
+

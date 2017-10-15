@@ -1,0 +1,65 @@
+=head1 NAME
+
+sep_get_key_index - get the index of a key
+
+=head1 SYNOPSIS
+
+
+C<int sep_get_key_index(tag_history,key_name,key_index)>
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item   char* - tag_history      
+
+        tag of History File
+
+=item   char* - key_name         
+
+        Key Name of Header Key
+
+=back
+
+=head1 OUTPUT PARAMETER
+
+
+=over 4
+
+=item   int*  - key_index        
+
+        Key Index of Header Key
+
+=back
+
+=head1 RETURN VALUE
+
+
+ -1= if fails for other reasons
+
+ 0= if successful
+
+ +1= if tag_history is an Sep77 History File
+
+ +2= if tag_history is a Sep3d History File but
+      no matching Key Name is in Header Format File
+
+=head1 DESCRIPTION
+
+
+   auxpar from the Header Format File for the parameter hdrindex"#"
+   for a given key_name
+
+=head1 SEE ALSO
+
+
+L<sep_get_key_name>
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

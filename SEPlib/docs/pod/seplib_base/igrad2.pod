@@ -1,0 +1,44 @@
+=head1 NAME
+
+
+igrad2 - 2D gradient operator
+
+=head1 SYNOPSIS
+
+
+C<ierr=igrad2_init(n1,n2)>
+
+C<ierr=igrad2_lop(adj,add,xx,yy)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item n1,n2  - integer
+
+      dimensions of dataset
+
+=item adj,add,xx,yy -
+
+      standard operator interface
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Calculate 2-D gradient
+
+=head1 SEE ALSO
+
+
+L<igrad1>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

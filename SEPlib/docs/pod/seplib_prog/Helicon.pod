@@ -1,0 +1,62 @@
+=head1 NAME
+
+
+Helicon - Helix convolution and deconvolution (N-dimensional!)
+
+=head1 SYNOPSIS
+
+
+Helicon < in.H filt= adj=0 div=0 > out.H
+
+=head1 DESCRIPTION
+
+
+Applies helix convolution (polynomial multiplication) or deconvolution
+(polynomial division). One is the exact inverse of the other. Watch
+for helical boundary conditions.
+
+=head1 PARAMETERS
+
+
+=over 3
+
+=item from history
+
+B<integer array> I<n> - reads I<n1>, I<n2>, I<n3>, ... 
+
+=item from par
+
+B<filename> I<filt> - helix filter file
+
+B<integer> I<adj>=0 - apply adjoint (backward) filtering
+
+B<integer> I<div>=0 - apply inverse recursive filtering (polynomial division)
+
+B<logical> I<regrid>=1 - regrid the filter
+
+B<logical> I<regrid>=0 - bound the filter
+
+
+=item from aux (filt)
+
+B<integer array> I<h> - helix grid (can be I<h1>, I<h2>, ...)
+;
+B<integer array> I<lag>=1,...,n1 - comma separated list of filter lags
+
+B<real> I<a0>=1 - zero-lag filter coefficient
+
+=back
+
+=head1 EXAMPLES
+
+
+F<gee/hlx/helderiv/>, F<gee/hlx/helicon90/>, F<gee/hlx/helocut90/>,
+F<gee/mda/morgan/>, F<gee/prc/sep95/>
+
+=head1 MODULES
+
+
+F<helicon.lop>, F<polydiv.lop>, F<regrid.r90>, F<helix.r90>
+
+=cut
+

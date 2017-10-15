@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>auxpar - get parameter from auxilary file</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#return_value">RETURN VALUE</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>auxpar - get parameter from auxilary file</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>int auxpar (name, format, variable, tag)</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_char_2a__2d_name">char* - name</a></strong><br />
+</dt>
+<dd>
+<pre>
+      parameter name</pre>
+</dd>
+<dt><strong><a name="item_char_2a__2d_type">char* - type</a></strong><br />
+</dt>
+<dd>
+<pre>
+      format of variable (d,f,c,s)</pre>
+</dd>
+<dt><strong><a name="item_char_2a__2d_tag">char* - tag</a></strong><br />
+</dt>
+<dd>
+<pre>
+      name tag of history file</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_type_2a__2d_variable">type* - variable</a></strong><br />
+</dt>
+<dd>
+<pre>
+         value of parameter</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_value">RETURN VALUE</a></h1>
+<dl>
+<dt><strong><a name="item_x__3d">x =</a></strong><br />
+</dt>
+<dd>
+<pre>
+       number of values found matching given parameter last occurence</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Read parameters to an auxilary history file</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+       This function implements &quot;hetch&quot; for extracting values from
+       expressions of the form `name=value' from an auxiliary input
+       header. The fourth argument, tag, is used to determine the
+       location of the auxiliary input header according the 
+       following rules.</pre>
+<pre>
+       Look for 'tag=header' on the command line.</pre>
+<pre>
+       Use 'tag' as the auxiliary header name.</pre>
+<pre>
+       When a keyword `par=filename' is encountered in the file, 
+       that file (and any that it might in turn point to) is scanned 
+       as well. Note auxpar() with tag=&quot;in&quot; is now identical to hetch().</pre>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep</strong></p>
+
+</body>
+
+</html>

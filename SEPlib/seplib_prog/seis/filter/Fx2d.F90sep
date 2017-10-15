@@ -1,0 +1,646 @@
+!!$=head1 NAME
+!!$
+!!$ Fx2d - 2D FX decon
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ Fx2d < in.H > out.H
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item w1,w2     - integer
+!!$
+!!$      window sizes in samples to calculate the
+!!$      noise filters in.  The noise and signal should
+!!$      be stationary within these windows.
+!!$
+!!$=item k1,k2     - integer
+!!$
+!!$      number of windows in each direction
+!!$
+!!$=item noper     - integer
+!!$
+!!$      PEF (prediction error filter) size.
+!!$
+!!$=item lambda    - real
+!!$
+!!$      stabilization factor
+!!$
+!!$=back
+!!$
+!!$=head1  COMMENTS
+!!$
+!!$     default   w1=20, w2=10
+!!$               noper=5  -  5 is generally good, less than 4 may produce
+!!$                           poor answers, more than 7 wastes time, and the
+!!$                           results are generally insensitive to values
+!!$                           between 5 and 7.
+!!$               k1 = 1.5 * n1/(w1+1.)
+!!$               k2 = 1.5 * n2/(w2-noper+1.)
+!!$               lambda = 0.0  -- real data generally has enough noise
+!!$                                to keep the process stable.  Synthetic
+!!$                                data may need a small lambda, say 0.001.
+!!$
+!!$=head1  DESCRIPTION
+!!$
+!!$ 2-D FX decon
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/filter>
+!!$
+!!$=cut
+!>
+!
+!!$ Author- Ray Abma, 1995
+! ----------
+!  Keyword:  f-x decon, noise attenuation, signal separation, Fourier-transform
+! ----------
+program fx2d 
+  use sep
+  implicit none
+  real,allocatable :: modl(:,:), resi(:,:), luna(:,:), dmod(:,:)
+  integer	n1,n2, w1,w2, k1,k2, noper,n3
+  real lambda
+  call SEP_ADD_DOC()
+  call sep_init('')
+  call sep_begin_prog()
+! get parameters from history and parameter files and set defaults
+   call from_history("n1",n1)
+   call from_history("n2",n2)
+   call from_history("n3",n3)
+    call from_param("w1",w1,20)
+    call from_param("w2",w2,10)
+    call from_param("noper",noper,2)
+    call from_param("k1",k1,floor( 1.5*n1/(w1+1.)))
+    call from_param("k2",k2,floor( 1.5*n2/(w2-noper+1.)))
+    call from_param("lambda",lambda,0.)
+! allocate working space
+  allocate( modl(n1,n2), resi(n1,n2), luna(n1,n2), dmod(n1,n2))
+! call subroutine to do the actual work
+  call doit(n1,n2,n3, modl, resi, luna, w1,w2, k1,k2, noper, dmod,lambda&
+    &)
+  call sep_end_prog()
+end program 
+subroutine doit(n1,n2,n3, modl, resi, luna, w1,w2, k1,k2,  noper,  dmod&
+  &,lambda)
+use sep_mod
+  implicit none
+integer :: ierr
+  integer     n1,n2,n3,                   w1,w2, k1,k2,  noper
+  real                                                               &
+    & lambda
+  real                  modl(n1,n2), resi(n1,n2), luna(n1,n2),   dmod&
+    &(n1,n2)
+  integer i1,i2,i3
+  real big, rand01
+  do i3=1,n3  
+    ierr= sreed('in', modl,  4*n1*n2)	! read in one data plane
+    big= 0.
+    call fxwindow(  w1,w2, modl,n1,n2, resi, noper,k1,k2,lambda)
+    do i1=1,n1  
+      do i2=1,n2  
+        luna(i1,i2) = modl(i1,i2) - resi(i1,i2)
+      end do
+    end do 
+    ierr= srite('out', resi, 4*n1*n2)	
+    ! write out one filtered data plane
+  end do 
+  call hclose()
+end subroutine 
+!####################################################################
+!                        Subroutine predict                         #
+!####################################################################
+!                    complex prediction - for fx decon              #
+!####################################################################
+subroutine predict(data,   n,noper,cfilter,       lambda)
+use sep_mod
+  implicit none
+  integer                n,noper
+  real                                          lambda
+  complex	       data(n)     
+  complex                        cfilter(noper)
+  integer i,j,k,m,i1,i2,nd
+  complex	csum   
+  complex d(noper+n-1-1)
+  complex g(noper)
+  complex filter(noper)
+  complex a(noper,noper)
+!--- save an extra trace for forward prediction ---
+  m = n-1
+  nd = noper+m-1
+!--- create the desired output trace, the input shifted by one sample ---
+  do i=1,m  
+    d(i) = data(i+1)
+  end do 
+  do i=m+1,nd  
+    d(i) = cmplx(0.0,0.0)
+  end do 
+!--- cross correlate the desired output with the input ---
+  call cccorr(g,noper, data,d, m)
+! --- create the complex autocorrelation ---
+  call cacor( data, m, a, noper )
+!---- if the input is zero, return zeros ----
+  if (real(a(1,1)) .eq. 0.0) then
+    do i=1,n  
+      data(i) = cmplx(0.0,0.0)
+    end do 
+    return
+  end if
+  if (lambda .ne. -999) then
+    do i=1,noper  
+      a(i,i) = a(i,i) * ( 1.0 + lambda*lambda)
+    end do
+  end if
+!---- simple Gaussian elimination ----
+  if (lambda .ne. -999) then
+    call NGAUSS(noper,a, noper, g, filter)
+  else
+    do i=1,noper 
+      filter(i) = g(i)/a(1,1)
+    end do
+  end if 
+  do i=1,noper 
+    cfilter(i) = filter(i)
+  end do 
+!--- apply the calculated filter ---
+  call cfiltfx( data, n, filter, noper )
+end subroutine 
+!##################################################################
+!                      Subroutine cccorr                          #
+!##################################################################
+!  --- cross correlate the desired output with the input ---      #
+!##################################################################
+subroutine cccorr(g,noper, data,d, m)
+use sep_mod
+  implicit none
+  integer m,noper
+  complex g(noper), data(m), d(m)
+  integer i,j,k
+  do i=1,noper  
+    g(i) = cmplx(0.0,0.0)
+  end do 
+  do j=1,noper  
+    k = 0
+    do i=j,m  
+      k = k + 1
+      g(j) = g(j) + conjg( data(k) ) * d(i)
+    end do
+  end do
+end subroutine 
+!##################################################################
+!                      Subroutine cacor                           #
+!##################################################################
+! --- create the complex autocorrelation ---                      #
+!##################################################################
+subroutine cacor(data, m, a, noper)
+use sep_mod
+  implicit none
+  integer m, noper
+  complex acor(noper)
+  complex data(m), a(noper,noper)
+  integer i,j,k, i1, i2
+  do i=1,noper  
+    acor(i) = cmplx(0.0,0.0)
+  end do 
+  do j=1,noper  
+    k = 0
+    do i=j,m  
+      k=k+1
+      acor(j) = acor(j) + conjg( data(k)) * data(i)
+    end do
+  end do 
+! --- fill in the autocorrelation  matrix ---
+  do i1=1,noper  
+    do i2=1,noper  
+      k = i2-i1+1
+      if (i1 .ge. i2) then
+        k = i1-i2+1
+      end if
+      a(i1,i2) = acor(k)
+      if (i1 .lt. i2) then
+        a(i1,i2) = conjg(acor(k))
+      end if
+    end do
+  end do
+end subroutine 
+!##################################################################
+!                      Subroutine cfiltfx                         #
+!##################################################################
+!   --- apply the calculated filter ---	                          #
+!##################################################################
+subroutine cfiltfx(data, n, filter, noper)
+use sep_mod
+  implicit none
+  integer n, noper
+  complex data(n), filter(noper)
+  integer i, j, k
+  complex dcopy(n+noper)
+  complex out(n+1)
+  do i=1,n  
+    dcopy(i) = data(i)
+  end do 
+  do i=n+1,n+noper  
+    dcopy(i) = cmplx(0.0,0.0)
+  end do 
+  do i=1,n  
+    out(i) = cmplx(0.0,0.0)
+  end do 
+  do j=1,n-1  
+    k = min(noper,j)
+    do i=1,k  
+      out(j+1) = out(j+1) + filter(i) * dcopy(j-i+1)
+    end do
+  end do 
+  data(1) = cmplx(0.0,0.0)
+  do i=2,n  
+    data(i) = out(i)
+  end do
+end subroutine 
+!##################################################################
+!                      Subroutine fxdecon                         #
+!##################################################################
+!                           fx decon                              #
+!##################################################################
+subroutine fxdecon(data,       n1,n2, noper,n1pow2,lambda)
+use sep_mod
+  implicit none
+  integer                    n1,n2, noper,n1pow2
+  real           data(n1,n2)     
+  real                                           lambda
+  integer i1,i2,i
+  integer pad2
+  real scale
+  complex fdata(n1pow2,n2)
+  complex fwdata(n2)
+  complex rdata(n2)
+  complex rrdata(n2)
+  complex filter(n1pow2,noper+1)
+  real rfilter(n1pow2,noper+1)
+  complex cfilter(noper)
+!   --- convert to complex and zero pad ---
+  do i2=1,n2  
+    do i1=1,n1         
+      fdata(i1,i2) = cmplx(data(i1,i2),0.0)
+    end do 
+    do i1=n1+1,n1pow2  
+      fdata(i1,i2) = cmplx(0.0,0.0)
+    end do 
+    call ftu(-1.0, n1pow2, fdata(1,i2))
+  end do 
+  do i1=1,n1pow2  
+!   --- forward prediction ----
+    do i=1,n2  
+      fwdata(i) = fdata(i1,i)
+    end do 
+    call predict(fwdata(1), n2,noper,cfilter,lambda)
+    do i=1,noper 
+      filter(i1,i+1) = cfilter(i)
+    end do 
+    filter(i1,1) = 1.0
+!   --- reverse prediction ---
+    do i=1,n2  
+      rdata(i) = fdata(i1,n2-i+1)
+    end do 
+    call predict(rdata(1), n2,noper,cfilter,lambda)
+    do i=1,n2  
+      rrdata(i) = rdata(n2-i+1)
+    end do 
+!   --- merge into output ---
+    fdata(i1,1) = rrdata(1)
+    fdata(i1,n2) = fwdata(n2)
+    do i=2,n2-1  
+      fdata(i1,i) = (rrdata(i) + fwdata(i))/2.0
+    end do
+  end do 
+  do i2=1,n2  
+!     --- fft and convert back to real ---
+    call ftu(+1.0, n1pow2, fdata(1,i2))
+    do i1=1,n1  
+      data(i1,i2) = real(fdata(i1,i2))
+    end do
+  end do 
+!-------- filter output -----
+  do i2=1,noper+1  
+    call ftu(+1.0, n1pow2, filter(1,i2))
+  end do 
+  scale = real(filter(1,1))
+  do i2=1,noper+1  
+    do i1=1,n1pow2  
+      i = i1 + n1pow2/2 - 1
+      if (i1 .gt. n1pow2/2+1) then
+        i = i1-n1pow2/2-1
+      end if
+      if (i2 .ne. 1) then
+        rfilter(i,i2) = -real(filter(i1,i2))/scale
+      else
+        rfilter(i,i2) = real(filter(i1,i2))/scale
+      end if
+    end do
+  end do 
+!  call snap('oper-fxdecon.H',n1pow2,(noper+1), rfilter)
+end subroutine 
+!##################################################################
+!                      Subroutine fxwindow                         #
+!##################################################################
+subroutine fxwindow(w1,w2,data,       n1,n2, resid,       noper,k1,k2&
+  &,lambda)
+use sep_mod
+  implicit none
+  integer	        w1,w2,            n1,n2,              noper,k1,k2
+  real                  data(n1,n2),       resid(n1,n2)
+  real                                                             &
+    & lambda 
+  integer	i1,i2
+  real dot
+  integer n1pow2, pad2
+  real pdata(w1,w2), dpres (w1*w2*2+noper), windwt(w1,w2), wallwt(n1,n2&
+    &)
+  call null(resid, n1*n2)
+! make the wall weights
+  call fxwallwt( k1,k2, windwt, w1,w2, wallwt, n1,n2,noper)
+  n1pow2 = pad2(w1)
+  do i2= 1, k2  
+    call fxwindwt(noper, windwt, w1,w2, i2,k2)
+    do i1= 1, k1  
+      call patch(0, 0, i1,i2, k1,k2, data, n1,n2, pdata, w1,w2)
+      call fxdecon(pdata, w1,w2, noper,n1pow2,lambda)
+!  --- apply window weights ----
+      call diag(0, 0, windwt, w1*w2, pdata, pdata)
+      call patch(1, 1, i1,i2, k1,k2, resid, n1,n2, pdata, w1,w2)
+    end do
+  end do 
+!  --- apply wall weights ----
+  call diag (0, 0, wallwt, n1*n2, resid, resid)
+end subroutine 
+!##################################################################
+!                      Subroutine fxwindwt                        #
+!##################################################################
+subroutine fxwindwt(noper, windwt,      w1,w2, indx2,k2)
+use sep_mod
+  implicit none
+  integer 	    noper,              w1,w2,     i1,i2, s1,s2, e1,e2
+  real 				   windwt(w1,w2)
+  integer                                    indx2,k2
+  real mid1,mid2, wide1,wide2, x, y
+  call null(windwt, w1*w2)
+  s1= 1
+  e1= w1
+  mid1=(e1+s1)/2.
+  wide1=(e1-s1+1.)/2.
+  s2= 1
+  e2= w2
+  mid2=(e2+s2)/2.
+  wide2=(e2-s2+1.)/2.
+  if (indx2 .gt. 1 .and. indx2 .lt. k2) then
+    do i1= s1, e1  
+      do i2= s2, e2  
+        windwt(i1,i2) = 1.0
+        if (i2 .le. noper) then
+          windwt(i1,i2) = 0.0
+        end if
+        if (e2 - i2 .lt. noper) then
+          windwt(i1,i2) = 0.0
+        end if
+      end do
+    end do
+  else
+    do i1= s1, e1  
+      do i2= s2, e2  
+        windwt(i1,i2) = 1.0
+        if (i2 .le. noper .and. indx2 .ne. 1) then
+          windwt(i1,i2) = 0.0
+        end if
+        if (e2 - i2 .lt. noper .and. indx2 .ne. k2 ) then
+          windwt(i1,i2) = 0.0
+        end if
+      end do
+    end do
+  end if
+end subroutine 
+subroutine diag(conj, add, lambda,   n,  pp,    qq)
+use sep_mod
+  implicit none
+  integer     conj, add,           n 		      ! equivalence (pp,qq) OK
+  real 			       lambda(n),    pp(n), qq(n)
+  integer i
+  if (conj .eq. 0) then
+    if (add .eq. 0) then
+      do i=1,n  
+        qq(i) = lambda(i) * pp(i)
+      end do
+    else
+      do i=1,n  
+        qq(i) = qq(i) + lambda(i) * pp(i)
+      end do
+    end if
+  else
+    if (add .eq. 0) then
+      do i=1,n  
+        pp(i) = lambda(i) * qq(i)
+      end do
+    else
+      do i=1,n  
+        pp(i) = pp(i) + lambda(i) * qq(i)
+      end do
+    end if
+  end if
+end subroutine 
+!##################################################################
+!                      Subroutine patch                           #
+!##################################################################
+!  copy a patch of information from a wall into a window.         #
+!##################################################################
+subroutine patch(conj,add,j1,j2,k1,k2,wall,       n1,n2,wind,      w1&
+  &,w2)
+use sep_mod
+  implicit none
+  integer      conj,add,j1,j2,k1,k2,            n1,n2,           w1,w2
+  real                              wall(n1,n2),      wind(w1,w2)
+  integer i1,i2,s1,s2,d1,d2
+  call conjnull(conj,add,wall, n1*n2, wind, w1*w2)
+  if ( k2 .ne. 1) then
+    s2 = 1.5 + (n2 - w2) * (j2-1.)/(k2-1.)
+  else
+    s2= 1
+  end if 
+  if ( k1 .ne. 1) then
+    s1 = 1.5 + (n1 - w1) * (j1-1.)/(k1-1.)
+  else
+    s1= 1
+  end if 
+  do i2= 1, w2  
+    d2= i2 + s2 - 1
+    do i1= 1, w1  
+      d1= i1 + s1 - 1
+      if ( conj .eq. 0 ) then
+        wind( i1,i2) = wind( i1,i2) + wall( d1,d2)
+      else
+        wall( d1,d2) = wall( d1,d2) + wind( i1,i2)
+      end if
+    end do
+  end do
+end subroutine 
+!##################################################################
+!                      Subroutine fxwallwt                        #
+!##################################################################
+! make wall weights from window weights.                          #
+!##################################################################
+subroutine fxwallwt( k1,k2, windwt, w1,w2,  wallwt, n1,n2, noper)
+use sep_mod
+  implicit none
+  integer          k1,k2,         w1,w2,          n1,n2, noper
+  real                    windwt( w1,w2), wallwt( n1,n2)
+  integer i1,i2
+  call null(wallwt, n1*n2)
+  do i1= 1, k1  
+    do i2= 1, k2  
+      call fxwindwt(noper, windwt, w1,w2, i2,k2)
+      call patch(1, 1, i1,i2, k1,k2, wallwt, n1,n2, windwt,w1,w2)
+    end do
+  end do 
+  do i2= 1, n2  
+    do i1= 1, n1  
+      if (wallwt(i1,i2) .ne. 0.) then
+        wallwt(i1,i2) = 1. / wallwt(i1,i2)
+      end if
+    end do
+  end do
+end subroutine 
+!
+! PAGE 208-209: NUMERICAL MATHEMATICS AND COMPUTING, CHENEY/KINCAID, 1985
+!
+! FILE: NGAUSS.FOR
+!
+! NAIVE GAUSSIAN ELIMINATION TO SOLVE LINEAR SYSTEMS (NGAUSS)
+!
+SUBROUTINE NGAUSS(N,A,IA,B,X)
+!
+!    Solve  B = A X  for X
+!
+!
+!
+!    n = number of columns in a
+!    ia = number of physical rows in a, used rows must be n
+!    b = left hand side
+!    x = solution
+!
+  implicit none
+  INTEGER K,N,I,J,IA
+  COMPLEX A(IA,N),B(N),X(N)     
+  COMPLEX XMULT,SUM
+  DO  K = 1,N-1  
+    DO  I = K+1,N    
+      XMULT = A(I,K)/A(K,K)       
+      DO  J = K+1,N    
+        A(I,J) = A(I,J) - XMULT*A(K,J)
+      end do 
+      A(I,K) = XMULT
+      B(I) = B(I) - XMULT*B(K)
+    end do
+  end do 
+  X(N) = B(N)/A(N,N)
+  DO  I = N-1,1,-1  
+    SUM = B(I)
+    DO  J = I+1,N   
+      SUM = SUM - A(I,J)*X(J)
+    end do 
+    X(I) = SUM/A(I,I)
+  end do
+end subroutine 
+subroutine conjnull(conj, add, x, nx,  y, ny)
+use sep_mod
+  implicit none
+  integer         conj, add,    nx,     ny
+  real                       x( nx), y( ny )
+  integer ix,iy
+  if (add .eq. 0) then
+    if (conj .eq. 0) then
+      do iy= 1, ny  
+        y(iy) = 0.
+      end do
+    else
+      do ix= 1, nx  
+        x(ix) = 0.
+      end do
+    end if
+  end if
+end subroutine 
+!##################################################################
+!                      Subroutine ftu                             #
+!##################################################################
+!   complex fourier transform with unitary scaling                #
+!                                                                 #
+!               1         nx          signi*2*pi*i*(j-1)*(k-1)/nx #
+!   cx(k)  =  -------- * sum cx(j) * e                            #
+!             sqrt(nx)   j=1          for k=1,2,...,nx=2**integer #
+!##################################################################
+subroutine ftu (signi, nx, cx)
+use sep_mod
+  implicit none
+  integer nx
+  real signi 
+  complex cx(nx)
+  integer	i, j, k, m, istep, pad2
+  real	scale, arg
+  complex	cmplx, cw, cdel, ct
+  if (nx .ne. pad2(nx)) then
+    call erexit('ftu: nx not a power of 2')
+  end if
+  scale = 1. / sqrt(1.*nx)
+  do i= 1, nx  
+    cx(i) = cx(i) * scale
+  end do 
+  j = 1
+  k = 1
+  do i= 1, nx  
+    if (i<=j) then
+      ct = cx(j)
+      cx(j) = cx(i)
+      cx(i) = ct
+    end if
+    m = nx/2
+    do while  (j>m .and. m>1)
+      j = j-m
+      m = m/2
+    end do 
+! "&" means .AND.
+    j = j+m
+  end do 
+  do while (1.eq.1)
+    istep = 2*k
+    cw = 1.
+    arg = signi*3.14159265/k
+    cdel = cmplx( cos(arg), sin(arg))
+    do m= 1, k  
+      do i= m, nx, istep  
+        ct=cw*cx(i+k)
+        cx(i+k)=cx(i)-ct
+        cx(i)=cx(i)+ct
+      end do 
+      cw = cw * cdel
+    end do 
+    k = istep
+    if (k>=nx) then
+      exit
+    end if
+  end do
+end subroutine 
+subroutine null(xx, n)
+  implicit none
+  integer n
+  real xx( n)
+  integer i
+  do i= 1, n  
+    xx(i) = 0.
+  end do
+end subroutine 
+integer function pad2(n)
+  integer n
+  pad2 = 1
+  do while ( pad2 < n)
+    pad2 = pad2 * 2
+  end do 
+end function  

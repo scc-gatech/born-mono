@@ -1,0 +1,83 @@
+
+
+=head1 NAME
+
+superset - UNDEFINED
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+UNDEFINED
+
+=head1 FUNCTIONS
+
+
+
+L<sep3d_grab_sep3d> -  Grab the internal structure
+
+
+
+L<sep3d_set_sep3d> - Store to the internal structure
+
+L<init_sep3d_tag> - Initialize a structure from a tag
+
+L<init_sep3d_par> - Initialize a structure from parameters
+
+L<sep3d_initialize> - Initialize a structure
+
+L<sep3d_key_allocate> - Allocate keys for a structure
+
+L<sep3d_axes_allocate> - Allocate axes for a structure
+
+L<sep3dc_delete> - Delete a structure
+
+L<sep3dc_clean> - Clean a structure
+
+L<sep3dc_grab_headers> - Grab a window of the headers
+
+L<sep3dc_copy> - Copy the contents of one structure to another
+
+L<sep3dc_read_data> - Read the data assoicated with a given window
+
+L<sep3dc_write_description> - Write a description of the dataset
+
+L<sep3dc_write_status> - Set write status
+
+L<sep3dc_rite_num_traces> - write the number of traces
+
+L<sep3dc_ndims> - the last axis of length >1
+
+L<sep3dc_ge_space> - whether space1 contains space 2
+
+L<sep3dc_conform> - whether space1 and  space2 conform
+
+L<sep3dc_key_index> - The index of a given key
+
+L<sep3dc_grab_key_vals> - Grab header values based on keyname
+
+L<sep3dc_set_key_vals> - Set header values based on keyname
+
+L<sep3dc_grab_key_vali> - Grab header values based on index
+
+L<sep3dc_grab_grid_values> - Grab grid values
+
+L<sep3dc_set_grid_values> - Set grid values
+
+L<sep3dc_coord_copy> - Copy the coordinates from one structure to another
+
+L<sep3dc_header_copy> - Copy the headers from one structure to another
+
+L<sep3dc_grid_copy> - Copy the grid from one structure to another
+
+L<sep3dc_set_number_headers> - Set the number of headers in memory
+
+L<sep3dc_update_ntraces> - Update number of traces
+
+L<sep3dc_inorder> - Signify that the data and headers are synched
+
+L<sep3dc_reshape> - Reshape a dataset
+
+=cut 

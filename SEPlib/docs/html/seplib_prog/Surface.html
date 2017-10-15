@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Surface - make surfaces</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Surface - make surfaces</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Surface [n1= n2= n3=1 nsurf=1 ] &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n1_2cn2_2cn3__2d_integer">n1,n2,n3   -   integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      output cube dimensions.</pre>
+</dd>
+<dt><strong><a name="item_mag__2d_real">mag        -   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      real     [1.] determines the magnitude of the spike.
+      Crossing spikes add their magnitudes.</pre>
+</dd>
+<dt><strong><a name="item_nsurf__2d_integer">nsurf        -   integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] number of surfaces</pre>
+</dd>
+<dt><strong><a name="item_a__2d_float_2a">a            -    float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [n1/2]   - static shift</pre>
+</dd>
+<dt><strong><a name="item_b2__2d_float_2a">b2           -    float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] what to scale the 2nd axis by (b2*(o2+d2*i2))</pre>
+</dd>
+<dt><strong><a name="item_b3__2d_float_2a">b3           -    float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] what to scale the 3rd axis by (b3*(o3+d3*i3))</pre>
+</dd>
+<dt><strong><a name="item_c2__2d_float_2a">c2           -    float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] what to scale the 2nd axis by (c2*(o2+d2*i2)^2)</pre>
+</dd>
+<dt><strong><a name="item_c3__2d_float_2a">c3           -    float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] what to scale the 3rd axis by (c3*(o3+d3*i3)^3)</pre>
+</dd>
+<dt><strong><a name="item_min_ext2__2d_float_2a">min_ext2     -    float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o2]  minimum extent along extent</pre>
+</dd>
+<dt><strong><a name="item_min_ext3__2d_float_2a">min_ext3     -    float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o3]  minimum extent along extent</pre>
+</dd>
+<dt><strong><a name="item_max_ext2__2d_float_2a">max_ext2     -    float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o2+d2*(n2-1)]  minimum extent along extent</pre>
+</dd>
+<dt><strong><a name="item_max_ext3__2d_float_2a">max_ext3     -    float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o3+d3*(n3-1)]  minimum extent along extent</pre>
+</dd>
+<dt><strong><a name="item_title__2d_char_2a">title      -   char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       ' '  get putched into output header file .</pre>
+</dd>
+<dt><strong><a name="item_o1_2co2_2co3__2d_real">o1,o2,o3   -   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.] standard seplib</pre>
+</dd>
+<dt><strong><a name="item_d1_2cd2_2cd3__2d_real">d1,d2,d3   -   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.004],[.1],[.1] standard seplib parameters</pre>
+</dd>
+<dt><strong><a name="item_add__2d_integer">add       - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1]   Add crossing surfaces (1) or replace value (0)</pre>
+</dd>
+<dt><strong><a name="item_layers__2d_integer">layers    - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0]   If 1, perform causal integration</pre>
+</dd>
+<dt><strong><a name="item_label1_2e_2e3__2d_char_2a">label1..3  -   char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       ['sec'],['km],['km']  standard seplib meaning</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Make linear and parolbic surfaces. Spikes
+are placed at nearest integer location corresponding to the
+formula:</p>
+<p>iz=floor(((a+b2*(o2+d2*i2)+b3*(o3+d3*i3)+
+     c2*(o2+d2*i2)^2 + c3*(o3+d3*i3)^2)-o1)/d1+.5)</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Gauss.html">the Gauss manpage</a>, <a href="./../seplib_prog/Vel.html">the Vel manpage</a>, <a href="./../seplib_prog/Surface.html">the Surface manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/model</strong></p>
+
+</body>
+
+</html>

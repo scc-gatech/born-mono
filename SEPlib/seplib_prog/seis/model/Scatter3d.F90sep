@@ -1,0 +1,382 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$ Scatter3d -Create a 3-D scatter model for Kirmod3d
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ Scatter3d [parameters - drho,dlambda,dmu,depth]
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item  mode - int
+!!$
+!!$     [1]  Isotropic perturbations (default)
+!!$      2   lambda, mu & rho perturbations for Rayleigh scattering
+!!$      3   dipping plane synthetic w/wavelet
+!!$
+!!$
+!!$=item  surface locations given by :
+!!$
+!!$    n1,o1,d1-sep_standard model dimension axis 1 (if mode=3)
+!!$    n2,o2,d2-sep_standard model dimension axis 2
+!!$    n3,o3,d3-sep_standard model dimension axis 3
+!!$
+!!$
+!!$=item dip2    -real
+!!$
+!!$      Dip of plane in 2-direction (degrees)
+!!$
+!!$=item dip3    -real
+!!$
+!!$       3-direction
+!!$
+!!$=item depth   -real
+!!$
+!!$      [1.]  Depth at physical origin (x=y=0.) (mode=1 or 2)
+!!$
+!!$=item t0   -real
+!!$
+!!$      [1.]  Time at physical origin (x=y=0.) (mode=3)
+!!$
+!!$=item v0   -real
+!!$
+!!$      [2.]  Velocity for time-depth conversion (mode=3)
+!!$
+!!$=item mag     -real
+!!$
+!!$       [1.]  mode=1,3 Magnitude
+!!$
+!!$=item  drho    -real
+!!$
+!!$       [0.]
+!!$
+!!$=item dlambda -real
+!!$
+!!$      [0.]  mode=2 Strength of perturbations
+!!$
+!!$=item  dmu     -real
+!!$
+!!$      [0.]
+!!$
+!!$=item  rickerf    -real
+!!$
+!!$      [45.] center frequency of Ricker wavelet
+!!$
+!!$=item  deriv      -logical
+!!$
+!!$      [n]   use Ricker derivative instead of Ricker
+!!$
+!!$=back
+!!$
+!!$=head1 COMMENTS
+!!$
+!!$ Assumes a 3-D model with consistent sampling in all 3 directions.
+!!$
+!!$ Output for mode=3 is an n1 x n2 x n3 regular seplib array
+!!$
+!!$ For modes 1,2 n1=4 or 6 seplib array with row 1=n1,
+!!$                                           row 2=n2,
+!!$                                           row 3=n3,
+!!$                              row 4 = mag  or  drho
+!!$                              row 5 =          dlambda
+!!$                              row 6 =          dmu
+!!$
+!!$=head1  DESCRIPTION
+!!$
+!!$ Generates a plane of scatters for use with Kirmod3D modelling program
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Marine_geom3d>, L<Scat3d>, L<Gfgradz>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/model>
+!!$
+!!$=cut
+!>
+program zyxabc
+use sep
+implicit none
+real, allocatable, dimension (:) :: out
+integer n1, n2, n3, mode
+call SEP_ADD_DOC()
+call sep_init('')
+  if (0>= getch('n2','d',n2 )) then
+    call erexit('Trouble reading  n2 from param  ')
+  end if
+  if (0.ne.putch('Read  from param: #n2 ','d',n2)) then
+    call erexit('Trouble writing n2 to history')
+  end if
+  if (0>= getch('n3','d',n3 )) then
+    call erexit('Trouble reading  n3 from param  ')
+  end if
+  if (0.ne.putch('Read  from param: #n3 ','d',n3)) then
+    call erexit('Trouble writing n3 to history')
+  end if
+  if (0>= getch('mode','d',mode )) then
+    mode = 1
+  end if
+  if (0.ne.putch('Read  from param: #mode ','d',mode)) then
+    call erexit('Trouble writing mode to history')
+  end if
+ if (mode.eq.1) then
+    n1=4
+ else if (mode .eq. 2) then
+    n1=6
+ else
+    if (0>= getch('n1','d',n1 )) then
+      call erexit('Trouble reading  n1 from param  ')
+  end if 
+end if 
+allocate (out(n1))
+call gotoworkbrother (n1,n2,n3,mode,out)
+end program zyxabc 
+subroutine gotoworkbrother(n1,n2,n3,mode,out)
+use sep_mod
+integer  n1,n2,n3, i1,i2,i3, mode
+integer :: ierr
+real o1,o2,o3, d1,d2,d3, pi,dip2,dip3, x2,x3,tantheta2,tantheta3
+real drho,dlambda,dmu,mag,depth,rickerf,depthz,v0,z1
+real pift1,pift2,x0,y0,z0,alpha,alpha1
+real out(n1)
+logical deriv
+call sep_begin_prog()
+  if (0>= fetch('o1','f',o1 )) then
+    o1 = 0.
+  end if
+  if (0>= fetch('o2','f',o2 )) then
+    o2 = 0.
+  end if
+  if (0>= fetch('o3','f',o3 )) then
+    o3 = 0.
+  end if
+
+  if (mode .eq. 3) then
+	  if (0.ne.putch('Read  from param: o1','f',o1)) then
+	    call erexit('Trouble writing o1 to history')
+	  end if
+	  if (0.ne.putch('Read  from param: o2','f',o2)) then
+	    call erexit('Trouble writing o2 to history')
+	  end if
+	  if (0.ne.putch('Read  from param: o3','f',o3)) then
+	    call erexit('Trouble writing o3 to history')
+	  end if
+  endif
+
+  if (0>= getch('d1','f',d1 )) then
+    d1 = 1.
+  end if
+  if (mode .eq. 3) then
+  if (0.ne.putch('Read  from param: d1','f',d1)) then
+    call erexit('Trouble writing d1 to history')
+  end if
+  else
+  if (0.ne.putch('Read  from param: #d1 ','f',d1)) then
+    call erexit('Trouble writing d1 to history')
+  end if
+  end if
+  if (0>= getch('d2','f',d2 )) then
+    d2 = 1.
+  end if
+  if (mode .eq. 3) then
+  if (0.ne.putch('Read  from param: d2','f',d2)) then
+    call erexit('Trouble writing d2 to history')
+  end if
+  else
+  if (0.ne.putch('Read  from param: #d2 ','f',d2)) then
+    call erexit('Trouble writing d2 to history')
+  end if
+  end if
+  if (0>= getch('d3','f',d3 )) then
+    d3 = 1.
+  end if
+  if (mode .eq. 3) then
+  if (0.ne.putch('Read  from param: d3','f',d3)) then
+    call erexit('Trouble writing d3 to history')
+  end if
+  else
+  if (0.ne.putch('Read  from param: #d3 ','f',d3)) then
+    call erexit('Trouble writing d3 to history')
+  end if
+  end if
+  if (0>= getch('dip2','f',dip2 )) then
+    dip2 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #dip2 ','f',dip2)) then
+    call erexit('Trouble writing dip2 to history')
+  end if
+  if (0>= getch('dip3','f',dip3 )) then
+    dip3 = 0.
+  end if
+  if (0.ne.putch('Read  from param: #dip3 ','f',dip3)) then
+    call erexit('Trouble writing dip3 to history')
+  end if
+  if (0>= getch('drho','f',drho )) then
+    drho = 0.
+  end if
+  if (0.ne.putch('Read  from param: #drho ','f',drho)) then
+    call erexit('Trouble writing drho to history')
+  end if
+  if (0>= getch('dlambda','f',dlambda )) then
+    dlambda = 0.
+  end if
+  if (0.ne.putch('Read  from param: #dlambda ','f',dlambda)) then
+    call erexit('Trouble writing dlambda to history')
+  end if
+  if (0>= getch('dmu','f',dmu )) then
+    dmu = 0.
+  end if
+  if (0.ne.putch('Read  from param: #dmu ','f',dmu)) then
+    call erexit('Trouble writing dmu to history')
+  end if
+  if (0>= getch('mag','f',mag )) then
+    mag = 1.
+  end if
+  if (0.ne.putch('Read  from param: #mag ','f',mag)) then
+    call erexit('Trouble writing mag to history')
+  end if
+  if (0>= getch('rickerf','f',rickerf )) then
+    rickerf = 45.
+  end if
+  if (0.ne.putch('Read  from param: #rickerf ','f',rickerf)) then
+    call erexit('Trouble writing rickerf to history')
+  end if
+  if (0>= getch('deriv','1',deriv )) then
+    deriv = .false.
+  end if
+  if (0.ne.putch('Read  from param: #deriv ','1',deriv)) then
+    call erexit('Trouble writing deriv to history')
+  end if
+  
+  v0 = 0.0
+  if (0 >= getch('depth','f',depth )) then
+    if(mode .eq. 3) then
+       if (0 >= getch('t0','f',depth )) then
+         depth = 1.0
+       endif
+       if (0 >= getch('v0','f',v0 )) then
+         v0 = 2.0
+       endif
+    else
+       depth = 1.0
+    endif
+  end if
+  if (mode .eq. 3) then
+  if (0.ne.putch('Read  from param: #t0 ','f',depth)) then
+    call erexit('Trouble writing t0 to history')
+  end if
+  if (0.ne.putch('Read  from param: #v0 ','f',v0)) then
+    call erexit('Trouble writing v0 to history')
+  end if
+  else
+  if (0.ne.putch('Read  from param: #depth ','f',depth)) then
+    call erexit('Trouble writing depth to history')
+  end if
+  end if
+pi=4.0*atan(1.)
+tantheta2=tan(dip2*pi/180)
+tantheta3=tan(dip3*pi/180)
+if(mode .eq. 3) then
+   alpha1 = sqrt(1+tantheta2**2+tantheta3**2)
+   z0 = v0*depth*0.5/alpha1
+   x0 = -z0*tantheta2
+   y0 = -z0*tantheta3
+   alpha = 2.0/(v0*alpha1)
+else
+   x0 = 0.0
+   y0 = 0.0
+   z0 = depth
+   alpha = 1.0
+endif
+do i3=1,n3  
+  x3 = (i3-1)*d3+o3
+  do i2=1,n2  
+    x2 = (i2-1)*d2+o2
+    depthz=((x2-x0)*tantheta2+(x3-y0)*tantheta3+z0)*alpha
+    if (mode .eq. 3) then
+       do i1=1,n1
+         z1 = depthz - (o1 + (i1-1) * d1)
+         pift1 = z1*(pi*rickerf)**2
+         pift2 = (pi*rickerf*z1)**2
+         if(pift2 .gt. 87.45) then
+            out(i1) = 0.0
+         else
+            if(deriv) then
+               out(i1) = -2.0*pift1*mag*(3.0-2.0*pift2)*exp(-pift2)
+            else
+               out(i1) = mag*(1.0-2.0*pift2)*exp(-pift2)
+            endif
+         endif
+       enddo
+    else
+       out(1)=depthz
+       out(2)=x2
+       out(3)=x3
+       if (mode.eq.1) then
+         out(4)=mag
+       else
+         out(4)=drho
+         out(5)=dlambda
+         out(6)=dmu
+       end if
+    end if
+    ierr= srite('out',out,n1*4)
+    if(ierr .ne. n1*4) then
+       call erexit('Trouble trace n1 to output  ')
+    endif
+  end do
+end do 
+  if (0.ne. putch('n1','d',n1 )) then
+    call erexit('Trouble writing n1 to history  ')
+  end if
+  if(mode .eq. 3) then
+     if (0.ne. putch('n2','d',n2 )) then
+       call erexit('Trouble writing n2 to history  ')
+     end if
+     if (0.ne. putch('n3','d',n3 )) then
+       call erexit('Trouble writing  n3 to history  ')
+     end if
+     if (0.ne. putch('label1','s','Time(sec)')) then
+       call erexit('Trouble writing  label1 to history  ')
+     end if
+     if(v0 .le. 20.0) then
+        if (0.ne. putch('label2','s','X(km)')) then
+          call erexit('Trouble writing  label2 to history  ')
+        end if
+        if (0.ne. putch('label3','s','Y(km)')) then
+          call erexit('Trouble writing  label2 to history  ')
+        end if
+     else
+        if (0.ne. putch('label2','s','X(m)')) then
+          call erexit('Trouble writing  label2 to history  ')
+        end if
+        if (0.ne. putch('label3','s','Y(m)')) then
+          call erexit('Trouble writing  label2 to history  ')
+        end if
+     endif
+  else
+     if (0.ne. putch('n2','d',n2*n3 )) then
+       call erexit('Trouble writing n2 to history  ')
+     end if
+     if (0.ne. putch('n3','d',1 )) then
+       call erexit('Trouble writing  n3 to history  ')
+     end if
+  endif
+  if (0.ne. putch('esize','d',4 )) then
+    call erexit('Trouble writing esize to history  ')
+  end if
+  if (mode .eq. 3) then
+     if (0.ne. putch('hff','d',-1 )) then
+       call erexit('Trouble writing hff to history  ')
+     end if
+     if (0.ne. putch('gff','d',-1 )) then
+       call erexit('Trouble writing hff to history  ')
+     end if
+  endif
+call hclose()
+call sep_end_prog()
+end   

@@ -1,0 +1,29 @@
+
+
+=head1 NAME
+
+sepaux - Useful functions that don't fit anywher else
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Useful functions that don't fit anywher else
+
+=head1 FUNCTIONS
+
+
+
+L<pad_it> -  Pad an array
+
+
+
+L<cent> - nth percentile of an array
+
+L<pqueue> - heap priority queue
+
+L<sgainpar> - gain seismic data
+
+=cut 

@@ -1,0 +1,9 @@
+setenv PPM_LD "-L/usr/lib -lppm -lpbm -lpgm"
+setenv PERL "/usr/bin/perl"
+setenv F90 ifc
+setenv CPPFLAGS "-I/scr1/bob/SEP/include"
+setenv F90FLAGS "-I/scr1/bob/SEP/include"
+setenv LDFLAGS "-L/scr1/bob/SEP/lib"
+setenv SEPRAT77 "/scr1/bob/SEP/bin/ratsep77"
+setenv SEPRAT90 "/scr1/bob/SEP/bin/ratsep90"
+setenv ifc_f90 "/scr1/bob/SEP/bin/ifc_f90"

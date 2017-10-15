@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Wiggle - plots wiggle traces</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+	<li><a href="#compile_level">COMPILE LEVEL</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Wiggle - plots wiggle traces</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Wiggle &lt; in.H &gt; out.v</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Plotting program; displays data as wiggly traces</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_tpow__2d_float">tpow - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.]  gain(it) = (it*d1+o1)**tpow, it in samples</pre>
+</dd>
+<dt><strong><a name="item_pclip_2d_int">pclip- int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [99]  clip percentile</pre>
+</dd>
+<dt><strong><a name="item_clip__2d_float">clip - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      clip value (if not specified defaults to pclip)</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3__2d_int">n1,n2,n3 - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      cube dimensions</pre>
+</dd>
+<dt><strong><a name="item_xpos__2d_file">xpos  - file</a></strong><br />
+</dt>
+<dd>
+<pre>
+      header file containing n2 X values for the n2 traces</pre>
+</dd>
+<dt><strong><a name="item_overplot_2cpreder_2cseeman__2d_char">overplot,preder,seeman - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]  (0,1 n,y)</pre>
+</dd>
+<dt><strong><a name="item_poly__2d_char">poly   -    char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]   (0,1 n,y) Fills the wiggle trace where it is positive</pre>
+</dd>
+<dt><strong><a name="item_fatp_2c_xmask_2c_ymask__2d_char">fatp, xmask, ymask  - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      see libvplot vp_area.</pre>
+</dd>
+<dt><strong><a name="item_pad__2d_char">pad    - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (0,1 n,y)  (If user specifies mins or maxes then
+      padding is turned off unless pad is specified.
+      pad is useful if you want the length of the plot
+      to be the same as the length of the graph.</pre>
+</dd>
+<dt><strong><a name="item_zplot__2dfloat">zplot  -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.75]</pre>
+</dd>
+<dt><strong><a name="item_transp__2d_char">transp  - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] whether or not to transpose output (standard vplot)</pre>
+</dd>
+<dt><strong><a name="item_xreverse_2cyreverse__2dchar">xreverse,yreverse -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard vplot definitions for output file</pre>
+</dd>
+<dt><strong><a name="item_screenht_2dfloat">screenht-float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10.24] height of output medium</pre>
+</dd>
+<dt><strong><a name="item_screenwd_2dfloat">screenwd-float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [13.75] width of output medium</pre>
+</dd>
+<dt><strong><a name="item_screeratio_2dfloat">screeratio-float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.75] ratio of screen height to width</pre>
+</dd>
+<dt><strong><a name="item_xll_2cyll_2cxur_2cyur__2d_float">xll,yll,xur,yur - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+          set B&lt;l&gt;ower B&lt;l&gt;eft and B&lt;u&gt;pper B&lt;r&gt;ight coordinates</pre>
+</dd>
+<dt><strong><a name="item_xinch__2d_float">xinch - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10.24] standard vplot definition</pre>
+</dd>
+<dt><strong><a name="item_yinch__2d_float">yinch - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [7.5] standard vplot definition</pre>
+</dd>
+<dt><strong><a name="item_crowd_2ccrowd1_2ccrowd2__2d_float">crowd,crowd1,crowd2 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.75]  crowd1=crowd  crowd2=crowd 
+      (.75&lt; crowd &lt; 1.) crowd labels off the 
+      screen by expanding data on 1 or 2 axis.</pre>
+</dd>
+<dt><strong><a name="item_wantframe_2cwantframenum__2d_char">wantframe,wantframenum - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard vplot definitions (0,1, n,y)</pre>
+</dd>
+<dt><strong><a name="item_wantaxis_2cwantaxis1_2cwantaxis2__2d_char">wantaxis,wantaxis1,wantaxis2 - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] standard vplot definition (0,1 n,y)</pre>
+</dd>
+<dt><strong><a name="item_min1_2cmin2_2cmax1_2cmax__2d_float">min1,min2,max1,max - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard vplot definitions</pre>
+</dd>
+<dt><strong><a name="item_axisor1_2caxisor2__2d_float__5bmin1_5d_2c_5bmin2_5">axisor1,axisor2  - float [min1],[min2]</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard vplot definition</pre>
+</dd>
+<dt><strong><a name="item_o1num_2co2num_2cd1num_2cd2num__2d_float">o1num,o2num,d1num,d2num - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard vplot definition</pre>
+</dd>
+<dt><strong><a name="item_n1tic_2cn2tic__2d_int">n1tic,n2tic - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] number of tics</pre>
+</dd>
+<dt><strong><a name="item_wheretics__2d_char">wheretics - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [f] (f,a) where to put tics (frame, axes)</pre>
+</dd>
+<dt><strong><a name="item_wheretitle__2dchar">wheretitle -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [t] (t,b,l,r) where to put title</pre>
+</dd>
+<dt><strong><a name="item_wherexlabel__2d_char">wherexlabel - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [b] (t,b) where to put x label</pre>
+</dd>
+<dt><strong><a name="item_whereylabel__2d_char">whereylabel - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [l] (l,r) where to put y label</pre>
+</dd>
+<dt><strong><a name="item_titlefat_2clabelfat__2d_int">titlefat,labelfat - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] makes title and label fat</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Graph.html">the Graph manpage</a>,<a href="./../seplib_prog/Grey.html">the Grey manpage</a>,<em>xtpen</em>,<a href="./../seplib_prog/Thplot.html">the Thplot manpage</a>,<a href="./../seplib_prog/Cubeplot.html">the Cubeplot manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+<p>
+</p>
+<hr />
+<h1><a name="compile_level">COMPILE LEVEL</a></h1>
+<p>DISTR</p>
+
+</body>
+
+</html>

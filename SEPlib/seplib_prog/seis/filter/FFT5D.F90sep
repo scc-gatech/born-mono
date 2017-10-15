@@ -1,0 +1,209 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$5dFFT - 5-D in core FFT 
+!!$
+!!$=head1 INPUT
+!!$
+!!$=over 4
+!!$
+!!$=item axis1  
+!!$
+!!$Depth/kz
+!!$
+!!$=item axis2  
+!!$
+!!$hx/khx
+!!$
+!!$=item axis3  
+!!$
+!!$hy/khy
+!!$
+!!$=item axis4  
+!!$
+!!$mx/kmx
+!!$
+!!$=item axis5  
+!!$
+!!$my/kmy
+!!$
+!!$=item axis6  
+!!$
+!!$Loop over
+!!$
+!!$=back
+!!$
+!!$=head1 RUN TIME PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item verb - logical
+!!$
+!!$[.false.] verbosity level
+!!$
+!!$=item adj - logical
+!!$
+!!$[.false.] forward or reverse
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ 5 Dimensional in core FFT.  Used to transform to
+!!$
+!!$ and from fourier space for Stolt migration.
+!!$
+!!$ Forward - z,hx,hy,mx,my -> kz,khx,khy,kmx,kmy
+!!$
+!!$
+!!$=cut
+!!$
+
+program FFT5d_
+!! 5-D FFT
+!! Paul Sava (paul@sep.stanford.edu)
+!! 12/1/00
+
+!! complex input/output
+!! input  is  z- hx- hy- mx- my-ro
+!! output is kz-khx-khy-kmx-kmy-ro
+
+  use sep
+  use utilities_mod
+#ifdef USE_FFTW
+  use, intrinsic :: iso_c_binding
+  include "fftw3.f03"
+#else
+  use fftw_flags_mod
+  use fftw_sep_fake_mod
+#endif
+
+  logical :: adj, verb
+  integer :: stat,ierr
+integer, parameter  :: dbl=selected_real_kind(10,50)
+
+  real :: scale, pi, arg, sign
+  integer(kind=dbl)   :: plan
+
+  type(paxis) :: az,ahx,ahy,amx,amy,ar
+  integer     :: iz,ihx,ihy,imx,imy,ia,esize
+
+  !! z-hx-hy-mx-my-nimages
+  complex, dimension(:,:,:,:,:), pointer :: data
+  complex, dimension(:,:,:),     pointer :: sft
+  integer, dimension(5) :: ni
+
+  call sep_init('')
+  call SEP_ADD_DOC()
+
+  call from_param("adj",adj,.false.)
+  call from_param("verb",verb,.false.)
+  call from_history("esize",esize,4)
+  if(esize/=4) call seperr("data should be complex")
+
+  call pinaxis(az ,1); az%l ="z";  call pouaxis(az ,1)
+  call pinaxis(ahx,2); ahx%l="hx"; call pouaxis(ahx,2)
+  call pinaxis(ahy,3); ahy%l="hy"; call pouaxis(ahy,3)
+  call pinaxis(amx,4); amx%l="mx"; call pouaxis(amx,4)
+  call pinaxis(amy,5); amy%l="my"; call pouaxis(amy,5)
+  call pinaxis(ar ,6); ar%l ="ro"; call pouaxis(ar ,6)
+
+  call sep_close()
+
+  !----------------------------------------------------------------
+  ni = (/az%n,ahx%n,ahy%n,amx%n,amy%n/)
+  allocate(data(az%n,ahx%n,ahy%n,amx%n,amy%n), stat=stat)
+  if(stat /=0) call seperr("cant allocate data")
+  data = 0.
+  !----------------------------------------------------------------
+  !! reserve enough disk space for the entire output
+  if(verb) write(0,*) "reserving disk space"
+  do ir=1,ar%n
+     call sep_write(data)
+  end do
+  ierr= sseek('out',0,0)
+  if(verb) write(0,*) "OK"
+
+  !----------------------------------------------------------------
+  scale = 1./sqrt(1.*product(ni))
+
+
+  if(adj) then
+      call sfftw_plan_dft(plan,5,ni,data(1,1,1,1,1),data(1,1,1,1,1),&
+       FFTW_BACKWARD,1)
+
+     sign = +1.
+  else
+      call sfftw_plan_dft(plan,5,ni,data(1,1,1,1,1),data(1,1,1,1,1),&
+       FFTW_FORWARD,1)
+     sign = -1.
+  end if
+  !----------------------------------------------------------------
+  allocate(sft(az%n,ahx%n,ahy%n), stat=stat)
+  if(stat /=0) call seperr("cant allocate sft")
+  sft=cmplx(1.,0.)
+
+  if(az%o/=0. .or. ahx%o/=0. .or. ahy%o/=0 ) then
+     pi = acos(-1.)
+     do iz=1,az%n
+        do ihx=1,ahx%n
+           do ihy=1,ahy%n
+
+              arg = 2*pi &
+              * ( (iz -1.)/ az%n * az%o / az%d &
+              +   (ihx-1.)/ahx%n * ahx%o/ahx%d &
+              +   (ihy-1.)/ahy%n * ahy%o/ahy%d )
+              
+              sft(iz,ihx,ihy) = &
+              cmplx(cos(arg),(sign)*sin(arg))
+
+           end do
+        end do
+     end do
+  end if
+  !----------------------------------------------------------------
+
+  if(adj) then
+     do ir=1,ar%n
+        if(verb) write(0,*) ir,'/',ar%n
+        call sep_read(data)
+
+        do imx=1,amx%n
+           do imy=1,amy%n
+              data(:,:,:,imx,imy)= data(:,:,:,imx,imy) * sft
+           end do
+        end do
+
+!        call fftwnd_f77_one(plan,data,0)
+        call sfftw_execute(plan);
+        data = data * scale
+
+        call sep_write(data)
+     end do
+  else
+     do ir=1,ar%n
+        if(verb) write(0,*) ir,'/',ar%n
+        call sep_read(data)
+
+!        call fftwnd_f77_one(plan,data,0)
+        call sfftw_execute(plan);
+        data = data * scale
+
+        do imx=1,amx%n
+           do imy=1,amy%n
+              data(:,:,:,imx,imy)= data(:,:,:,imx,imy) * sft
+           end do
+        end do
+
+        call sep_write(data)
+     end do
+  end if
+  !----------------------------------------------------------------
+
+  deallocate(data, stat=stat)
+  if(stat /=0) call seperr("cant deallocate data")
+  deallocate(sft,  stat=stat)
+  if(stat /=0) call seperr("cant deallocate sft")
+
+  call exit(0)
+end program FFT5d_

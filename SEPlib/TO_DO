@@ -1,0 +1,61 @@
+11. Add manual
+14. Check SELF-DOC variable and fix RPM CREATION
+18. Test with OMP
+19. Test with MPI
+20. Test on Solaris
+21. Test with-local not with-local
+22. OMP/MPI/VTK on SOLARIS
+23. Final test on SOLARIS
+25. Add tests for SRME
+26. Add tests for AMO
+28. Fix SU support to new standard (and in the manual)
+30. Fix RPM building
+31. Extract documentation
+32. Add SRME, Phase, Comaz, WEI, AMO to manual
+33. Add on the fly stuff
+OSX cpp in different place
+
+-------------------------- To DO
+Add manual
+Redo SELF-doc
+Test at 3DGeo
+Convert an SU program
+Test on OSX
+Test on Solaris
+Test without F90
+Put WEI back in
+-------------------NOT NOW
+Generic Smooth
+Filter/Roughen
+Stolt
+pspen on greater than 8 bit graphics
+AMO
+Additional OFF2ANG
+Graphics enviro --- OpenGL directly Java 
+Smooth shouldn't be size limited
+Add transfer of SEP3d datasets
+SEPlib distributed dataset
+Kirchoff Code
+
+------------------- DONE
+Cp,Cp3d
+Mv,Mv3d  -shell script
+Rm,Rm3d - Shell Script
+Get rid of In?
+Reshape
+Superset C interface
+Infill3d, Stack3d, Stack Merge
+Transp as a shell script so it will work with SEP3d?
+Combine Cat3d, Merge, Cat - would have to add space option
+Fold3d dies sometimes
+Gpow should be a Math interface
+Lpfilt should be a call to Bandpass
+Scale - get rid of
+Clip should be combined Scale
+Again should be a script and merged with Scale
+Xtpen won't accept command line arguments
+Window3d piping in dies, no/RT idea why
+Put in Pef
+Put in  Miss
+Put in Filter/IO
+Put in Dip3d

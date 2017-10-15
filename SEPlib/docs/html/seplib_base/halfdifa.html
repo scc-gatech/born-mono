@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>halfdifa - half causal derivative</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>halfdifa - half causal derivative</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+ call halfdifa(adj,add,n,xx,yy)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_adj__2d_integer">adj - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      1=adjoint, 0=forward</pre>
+</dd>
+<dt><strong><a name="item_add__2d_integer">add - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       1=add to output, 0=erase output</pre>
+</dd>
+<dt><strong><a name="item_n__2d_integer">n - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      size of data</pre>
+</dd>
+<dt><strong><a name="item_real">xx - <code>real(n)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      model</pre>
+</dd>
+<dt><strong>yy - <code>real(n)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      data</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Half order causal derivative.  OK to equiv(xx,yy)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Halfint.html">the Halfint manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepfilterf90</strong></p>
+
+</body>
+
+</html>

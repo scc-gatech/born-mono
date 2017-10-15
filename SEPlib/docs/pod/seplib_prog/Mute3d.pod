@@ -1,0 +1,75 @@
+=head1 NAME
+
+
+Mute3d - Muting in sep3d datasets
+
+=head1 SYNOPSIS
+
+
+Mute3d  <in.H >out.H pars
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  verb   -  integer
+
+       [0] Whether (1) or not(0) to be verbose
+
+=item  maxsize-  integer
+
+       [10]Number of megabytes of traces to hold
+
+=item  vmute    -  float
+
+       [1.45] -  Outer mute velocity
+        0.0   -  Flat mute in offset
+
+=item  tmute    -  float
+
+       [0.0]  start time of (hyperbolic) outer mute
+
+=item  tramp    -  float
+
+       [0.25]  linear mute time ramp in seconds
+
+=item  off_keys- integer(:)
+
+       Offset float key(s) describing
+
+=item  off_axes- integer(:)
+
+       Offset axes
+
+=back
+
+
+
+=head1 DESCRIPTION
+
+
+  Performs Muting on regular or irregular dataset
+
+=head1 SEE ALSO
+
+
+L<NMO>, L<Velan3d>
+
+=head1 COMMENTS
+
+
+ off_keys and off_axes, are somewhat optional
+ If none of these are suplied checks keys and then axes for
+ aoffset, offset_x, and offset_y.
+
+ If you supply a key number > key number of data_record_number subtract 1
+ to the parameter (data_record_number is not stored with the headers)
+
+=head1 CATEGORY
+
+
+B<seis/velan>
+
+=cut
+

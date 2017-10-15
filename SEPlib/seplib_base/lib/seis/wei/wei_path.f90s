@@ -1,0 +1,478 @@
+module wei_z_mod
+use wei_basics_mod
+use wei_slow_mod
+use wei_image_mod
+use wei_data_mod
+use sep3d_struct_mod
+implicit none
+type(sep3d), private, save              :: ssep(2)
+character(len=128) ,private,save        :: s_tag(2)
+integer ,private,save                   :: nslows
+real, pointer    ,private,save          :: dzstep(:)
+logical, pointer   ,private,save        :: iz_iw_do(:,:),iz_iw_io(:,:),iw_own(:)
+logical        ,private,save            :: first_step,velocity
+integer, pointer    ,private,save       :: i_z(:),i_w(:)
+
+
+contains
+
+
+!INITIALIZE EVERYTHING FOR SIMPLE DOWNWARD CONTINUATION IN Z
+integer function path_z_init()
+
+nullify(dzstep,iz_iw_do,iz_iw_io,i_z,i_w,iw_own)
+call from_param("velocity",velocity,.false.)
+path_z_init=0
+
+end function
+
+
+
+
+logical function path_z_begin()
+type(sep3d)      :: wsep,rsep,dsep,sep,dz_sep
+character(len=128):: dtag,rtag
+character(len=128)::  tag
+integer          :: mode
+real, pointer    :: dz(:),omega(:)
+real, allocatable:: slow(:,:,:)
+logical          :: adj
+integer          :: i,i1,ido,i2,ndone,fdone,nslows
+
+path_z_begin=.true.
+call grab_current_wave_space_pad(wsep)
+call grab_current_image_space(rsep)
+call grab_current_image_tag(rtag)
+call grab_current_data_space(dsep)
+call grab_current_data_tag(dtag)
+adj= grab_current_adj()
+
+call grab_slowness_masters(ssep,nslows,s_tag)
+if(nslows==1) then
+   call store_slowness(ssep(1))
+else
+  call store_slowness(ssep(1),ssep(2))
+end if
+
+
+
+!FIRST CALL WITHIN MIGRATION
+  allocate(dzstep(wsep%n(5)))
+  dzstep=wsep%d(5)
+  if(-1/=auxin("dzstep")) then
+    call init_sep3d("dzstep",dz_sep,"INPUT")
+    if(dz_sep%n(1)/=wsep%n(5))&
+      call seperr("expecting dzstep to be the same as az__n")
+    if(4*size(dzstep)/=sreed("dzstep",dzstep,size(dzstep)*4)) &
+      call seperr("trouble reading dzstep")
+  else
+    call from_param("first_dz",dzstep(1),dzstep(1))
+  end if
+  if(associated(iz_iw_do)) then 
+    call del_mem(size(iz_iw_do))
+    deallocate(iz_iw_do)
+    nullify(iz_iw_do)
+  end if
+  if(associated(iz_iw_io))then
+    call del_mem(size(iz_iw_io))
+    deallocate(iz_iw_io)
+    nullify(iz_iw_io)
+  end if
+  if(associated(iw_own)) then
+    call del_mem(size(iw_own))
+    deallocate(iw_own)
+    nullify(iw_own)
+  end if
+  if(size(dsep%n)==5) then
+    allocate(iz_iw_do(size(dzstep),dsep%n(5)))
+    allocate(iz_iw_io(size(dzstep),dsep%n(5)))
+  else
+    allocate(iz_iw_do(size(dzstep),1))
+    allocate(iz_iw_io(size(dzstep),1))
+  end if
+  allocate(iw_own(wsep%n(6)))
+  call add_mem(size(iz_iw_do)+size(iz_iw_io)+size(iw_own))
+  iw_own=.true.
+  sep=rsep;if(.not. adj) sep=dsep
+  if(.not. get_work(adj,wsep,sep,iz_iw_do,iz_iw_io)) then
+    write(0,*) "trouble grabbing work",sep_thread_num()
+    return
+  end if 
+  fdone=0; ndone=0;
+  do i=1,wsep%n(6)
+    if(iw_own(i)) then
+      ndone=ndone+1
+      if(all(iz_iw_do(:,i))) fdone=fdone+1
+    end if
+  end do
+  if(.not. init_print_progress(fdone*size(iz_iw_do,1),ndone*size(iz_iw_do,1))) then
+    write(0,*) "trouble intitializing verbosing"
+    return
+  end if
+
+
+path_z_begin=.true.
+end function
+
+
+
+
+
+
+!
+! Go along the Z axis
+!
+logical function path_z_op(mode,data,image,dz,omega)
+type(sep3d)      :: wsep,rsep,dsep,sep
+character(len=128):: dtag,rtag
+character(len=128)::  tag
+integer          :: mode
+complex          :: data(:,:,:,:,:)
+complex             :: image(:,:,:,:,:)
+real, pointer    :: dz(:),omega(:)
+real, allocatable:: slow(:,:,:)
+logical          :: adj,new
+integer          :: i,i1,ido,i2,ndone,fdone
+
+path_z_op=.false.
+call grab_current_wave_space_pad(wsep)
+call grab_current_image_space(rsep)
+call grab_current_image_tag(rtag)
+call grab_current_data_space(dsep)
+call grab_current_data_tag(dtag)
+adj= grab_current_adj()
+
+!FIRST CALL WITHIN MIGRATIOn
+
+if(mode==mode_begin) then
+  if(associated(omega)) then
+     call del_mem(size(omega))
+     deallocate(omega)
+     nullify(omega)
+  end if
+  if(associated(dz)) then
+     call del_mem(size(dz))
+     deallocate(dz)
+     nullify(dz)
+  end if
+  !Figure out what we need to do
+  !what omega hasn't been finished
+  call find_iw(adj,dsep,rsep,wsep,iz_iw_do,i_w,new)
+  if(.not. associated(i_w)) then
+    path_z_op=.true.; return
+  end if
+  call find_iz(adj,wsep,iz_iw_do,i_w,i_z)!find what dz we need to
+  if(.not. read_slow_block(i_z)) then          !read in a slowness blcok
+    write(0,*) "trouble reading in slowness block"
+    return
+  end if
+  if(adj) then
+    if(i_z(1)==1) then 
+       if(.not. read_data_block(dtag,dsep,i_w,data)) then
+         write(0,*) "trouble2reading data block"
+         return
+       end if
+    end if
+    if(.not. reuse_mem()) image=0.; !zero the image block
+  else
+    if(new) data=cmplx(0.,0.)
+    if(.not. read_image_block(rtag,rsep,i_z,image)) then
+      write(0,*) "trouble reading image block"
+      return 
+    end if
+  end if
+  allocate(omega(size(i_w))); omega=wsep%o(6)+wsep%d(6)*(i_w-1)
+  allocate(dz(size(i_z))); 
+  call add_mem(size(dz)+size(omega))
+  do i=1,size(i_z)
+    dz(i)=dzstep(i_z(i))
+  end do
+else if(mode==mode_end) then
+  if(adj) then
+    if(.not. write_image_block(rtag,rsep,i_z,image,i_w(1))) then
+      write(0,*) "trouble writing image block"
+      return
+    end if
+  else
+    if(i_z(size(i_z))==1) then 
+      if(.not. write_data_block(dtag,dsep,i_w,data)) then
+        write(0,*) "trouble writing data block"
+        return
+      end if
+    end if
+  end if
+  do i2=1, size(i_w)
+    do i1=1,size(i_z)
+      iz_iw_do(i_z(i1),i_w(i2))=.true.
+      iz_iw_io(i_z(i1),i_w(i2))=.true.
+    end do
+  end do
+else 
+  write(0,*) "invalid mode",mode
+end if
+
+path_z_op=.true.
+end function
+
+!
+!  Figure out what frequencies and depths we need to do
+!
+logical function get_work(adj,wsep,sep,iz_iw_do,iz_iw_io)
+logical     :: adj
+type(sep3d) :: sep,wsep 
+character(len=55) ::  par
+integer, allocatable :: iw(:),iz(:)
+integer     :: ifreq,ii,i,i2,i1,i_w,i_z
+logical     :: iz_iw_do(:,:),iz_iw_io(:,:)
+integer     :: ifinished
+get_work=.false.
+iz_iw_do=.false.
+iz_iw_io=.false.
+!this
+if(my_restart()) then!{
+   call from_param("finished",ifinished,0)
+   write(0,*) "restarting at",ifinished
+   if(ifinished >0) then!{
+     i_w=ifinished/size(iz_iw_io,1)  !we finished these many iw blocks
+     if (i_w > 0) then!{
+       iz_iw_do(:,1:i_w)=.true.
+       iz_iw_io(:,1:i_w)=.true.
+     end if!}
+     if(adj) then!{
+        i_z=ifinished-size(iz_iw_io,1)*i_w  !we are iz through this iw block
+        if(i_z>0) iz_iw_io(1:i_z,i_w+1)=.true.
+     end if!}
+  end if!}
+end if!}
+!if(first_step) iz_iw_io(1,:)=.true. !Don't write out the water step
+get_work=.true.
+end function
+
+!
+!FIND THE FIRST IW TO WORK that hasn't been computer
+!
+subroutine find_iw(adj, dsep, rsep,wsep,iz_iw_do,iw,new)
+logical            :: adj
+type(sep3d)        :: wsep,dsep,rsep
+logical            :: iz_iw_do(:,:),new
+integer,pointer            :: iw(:)
+integer            :: n,i
+character(len=64)  :: par
+n=0;
+
+if(associated(iw))then
+  if(any(.not. iz_iw_do(:,iw(1)))) return
+  deallocate(iw)
+  nullify(iw)
+end if
+new=.true.
+do i=1,size(iz_iw_do,2)
+  if(any(.not. iz_iw_do(:,i))) n=n+1
+end do
+if(n/=0) then
+  n=min(n,wsep%n(8))
+  allocate(iw(n))
+  n=0
+  do i=1,size(iz_iw_do,2)
+    if(any(.not. iz_iw_do(:,i)) .and. n < size(iw) )  then
+      n=n+1
+      iw(n)=i
+    end if
+  end do
+end if
+end subroutine
+
+!FIND THE FIRST IZ TO WORK ON
+subroutine find_iz(adj,wsep,iz_iw_do,iw,i_z)
+logical            :: adj
+type(sep3d)        :: wsep
+logical,pointer            :: iz_iw_do(:,:)
+integer,pointer            :: iw(:),i_z(:)
+integer            :: n,i,ibeg,iend,istep,ifirst
+logical, pointer   :: pt_it(:,:)
+
+
+adj= grab_current_adj()
+if(.not. associated(iw)) return !we have no frequencies
+if( associated(i_z)) then
+   call del_mem(size(i_z))
+   deallocate(i_z)
+   nullify(i_z)
+end if
+
+allocate(pt_it(size(iz_iw_do,1),size(iw)))
+call add_mem(size(pt_it))
+do i=1,size(iw)
+  pt_it(:,i)=iz_iw_do(:,iw(i))
+end do
+
+
+ibeg=1; iend=size(iz_iw_do,1); istep=1
+if(.not. adj)  then
+  iend=1; ibeg=size(iz_iw_do,1); istep=-1
+end if
+i=ibeg;
+ifirst=-1;
+if(adj) then
+  do while(i <=iend .and. ifirst==-1) 
+    if(all (.not. pt_it(i,:))) ifirst=i
+    i=i+istep
+  end do
+  n=min(size(iz_iw_do,1)-ifirst+1,wsep%n(7))
+  allocate(i_z(n))
+  call add_mem(size(i_z))
+  do i=1,n
+    i_z(i)=ifirst-1+i
+  end do
+else
+  do while(i >=iend .and. ifirst==-1) 
+    if(all (.not. pt_it(i,:))) ifirst=i
+    i=i+istep
+  end do
+  n=min(ifirst,wsep%n(7))
+  allocate(i_z(n))
+  call add_mem(size(i_z))
+  do i=1,n
+    i_z(i)=ifirst+1-i
+  end do
+end if
+call del_mem(size(pt_it))
+deallocate(pt_it)
+nullify(pt_it)
+end subroutine
+
+
+!
+!Read in slowness block
+!
+logical function read_slow_block(i_z)
+integer :: i_z(:),nh
+real, pointer :: slow1(:,:,:),slow2(:,:,:)
+read_slow_block=.false.
+
+if(nslows==1) then
+   call grab_slowness_block(slow1)
+else
+   call grab_slowness_block(slow1,slow2)
+end if
+
+
+call sep3d_grab_headers(trim(s_tag(1)),ssep(1),nh,fwind=(/0,minval(i_z)-1/),&
+   nwind=(/ssep(1)%n(2),size(i_z)/))
+if(.not. sep3d_read_data(trim(s_tag(1)),ssep(1),slow1)) then
+  write(0,*) "trouble reading slowness"
+  return
+end if
+if(velocity) slow1=1./slow1
+if(nslows>1) then
+  call sep3d_grab_headers(trim(s_tag(2)),ssep(2),nh,fwind=(/0,minval(i_z)-1/),&
+     nwind=(/ssep(2)%n(2),size(i_z)/))
+  if(.not. sep3d_read_data(trim(s_tag(2)),ssep(1),slow2)) then
+    write(0,*) "trouble reading slowness"
+    return
+  end if
+  if(velocity) slow2=1./slow2
+end if
+
+call store_slow_iz(i_z-minval(i_z)+1)
+
+read_slow_block=.true.
+end  function
+
+!
+!Write out data block
+!
+logical function write_data_block(tag,sep,iax,array)
+character(len=*)       :: tag
+type(sep3d)            :: sep
+integer                :: iax(:)
+complex                :: array(:,:,:,:,:)
+integer                :: i
+character(len=64)      :: par
+write_data_block=.false.
+
+do i=1,size(iax)
+  if(.not.write_data_if(tag,sep,iax(i),i,array)) then
+    write(0,*) "trouble writing data if"
+    return
+  end if
+  call sep_prog_stat("Phase",size(iz_iw_io,1)*iax(i),size(iz_iw_io),1)
+end do
+
+write_data_block=.true.
+end function
+
+
+!
+!Write out image block
+!
+logical function write_image_block(tag,sep,iax,array,iw)
+character(len=*)       :: tag
+type(sep3d)            :: sep
+integer                :: iax(:),i,iw
+complex                :: array(:,:,:,:,:)
+integer                :: isend
+write_image_block=.false.
+
+isend=0
+do i=1,size(iax)
+  if(.not. iz_iw_io(iax(i),iw)) then
+    if(.not.write_image_iz(tag,sep,iax(i),i,array)) then
+      write(0,*) "trouble writing image block"
+      return
+    end if
+    if(i==size(iax)) isend=1
+    call sep_prog_stat("Phase",size(iz_iw_io,1)*(iw-1)+iax(i),size(iz_iw_io),&
+      isend)
+  end if
+end do
+
+write_image_block=.true.
+end function
+
+!
+!Read in data block
+!
+
+logical function read_data_block(tag,sep,iax,array)
+character(len=*)       :: tag
+type(sep3d)            :: sep
+integer                :: iax(:),i
+complex                :: array(:,:,:,:,:)
+read_data_block=.false.
+do i=1,size(iax)
+  if(.not.read_data_if(tag,sep,iax(i),i,array)) then
+    write(0,*) "trouble1reading data block",iax(i)
+    return
+  end if
+end do
+read_data_block=.true.
+
+end function
+
+
+!
+!Read in image block
+!
+logical function read_image_block(tag,sep,iax,array)
+character(len=*)       :: tag
+type(sep3d)            :: sep
+integer                :: iax(:),i
+complex                :: array(:,:,:,:,:)
+read_image_block=.false.
+do i=1,size(iax)
+  if(.not.read_image_iz(tag,sep,iax(i),i,array)) then
+    write(0,*) "trouble reading image block"
+    return
+  end if
+end do
+read_image_block=.true.
+end function
+
+subroutine grab_current_iz(iz)
+integer,pointer :: iz(:)
+iz=>i_z
+
+end subroutine
+
+end module

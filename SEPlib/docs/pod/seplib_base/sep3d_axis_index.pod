@@ -1,0 +1,69 @@
+=head1 NAME
+
+
+sep3d_axis_index - try to axis key in structure
+
+
+=head1 SYNOPSIS
+
+
+C<logical sep3d_axis_index(struct,axisname,axisindex)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure to find key in
+
+=item axisname - char*
+
+      name of the axis to find
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item axisindex- integer
+
+      index of the axis
+
+=back
+
+=head1 RETURN VALUES
+
+
+=over 4
+
+=item .true.  -
+
+      found axis
+
+=item .false. -
+
+      didn't find axis
+
+=back
+
+=head1 DESCRIPTION
+
+
+Attempte to find the given axis
+
+=head1 SEE ALSO
+
+
+L<sep3d_key_index>
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

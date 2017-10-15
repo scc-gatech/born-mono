@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lapfac - factor a 2-D Laplacian</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#return_value">RETURN VALUE</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>lapfac - factor a 2-D Laplacian</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>aa= lapfac2(eps,n1,na)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_eps__2d_real">eps - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      small value for approximation</pre>
+</dd>
+<dt><strong><a name="item_n1__2d_integer">n1  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      length of n1 axis</pre>
+</dd>
+<dt><strong><a name="item_na__2d_integer">na - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      1/2 number of filter coefs for representation</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_value">RETURN VALUE</a></h1>
+<dl>
+<dt><strong><a name="item_type">aa    - <code>type(filter)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Helix filter</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Create a one sided, minimum phase filter that approximates a laplaciaan</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/wilson.html">the wilson manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

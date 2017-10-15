@@ -1,0 +1,539 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$Gfgradz - Calculate green functions for v(z) medium
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Gfgradz   par=  >  times.H
+!!$
+!!$=head1 INPUT 	PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item	n1-int
+!!$
+!!$      source-receiver depth axis:  z >= 0
+!!$
+!!$=item	o1-real
+!!$
+!!$      source-receiver depth axis:  z >= 0
+!!$
+!!$=item	d1-real
+!!$
+!!$      source-receiver depth axis:  z >= 0
+!!$
+!!$=item	n2-int
+!!$
+!!$      source-receiver offset axis: x >= 0
+!!$
+!!$=item	d2-real
+!!$
+!!$      source-receiver offset axis: x >= 0
+!!$
+!!$=item	o2-real
+!!$
+!!$      source-receiver offset axis: x >= 0
+!!$
+!!$=item	n3-int
+!!$
+!!$      [1] 1 = traveltime map
+!!$      2 = traveltime and amplitude map
+!!$      6 = traveltime, amplitudes and propagation angles
+!!$
+!!$=item	v0-real
+!!$
+!!$      velocity at z=0  : v0 >= 0
+!!$
+!!$=item	vgrad-real
+!!$
+!!$      constant velocity gradient  : vgrad >= 0
+!!$
+!!$=item	intime-int
+!!$
+!!$      output domain : intime=1 for time axis, 0 for depth axis
+!!$
+!!$=back
+!!$
+!!$=head1  DESCRIPTION
+!!$
+!!$	Code to calculate Green's function traveltime and
+!!$	~amplitude for a 1-D constant gradient velocity model:
+!!$
+!!$			V(z) = Vo + vgrad*z 	;  z >= 0,  vgrad >= 0
+!!$
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Kirmod3d>, L<Marine_geom3d>, L<Scat3d>, L<FMeikonal>, L<Hwt3d>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/travel>
+!!$
+!!$=cut
+!!$
+!>
+!
+!	david 2/94
+!
+!	james 1/96 - modified to calculate angles at surface and subsurface
+!                    for use with Kirmod3D (sep90 Kirchhoff/Born modeling code)
+!
+!	keywords: 1-D velocity Green ray traveltime amplitude scatter angle
+!
+!
+program  Gfgradz 
+  use sep
+  implicit none
+  integer		n1, n2
+  call SEP_ADD_DOC()
+  call SEP_INIT('')
+  call sep_begin_prog()
+    if (0>= getch('n1','d',n1 )) then
+      call erexit('Trouble reading  n1 from param  ')
+    end if
+    if (0.ne.putch('Read  from param: #n1 ','d',n1)) then
+      call erexit('Trouble writing n1 to history')
+    end if
+    if (0>= getch('n2','d',n2 )) then
+      call erexit('Trouble reading  n2 from param  ')
+    end if
+    if (0.ne.putch('Read  from param: #n2 ','d',n2)) then
+      call erexit('Trouble writing n2 to history')
+    end if
+    if (0.ne. putch('n1','d',n1 )) then
+      call erexit('Trouble writing  n1 to history  ')
+    end if
+    if (0.ne. putch('n2','d',n2 )) then
+      call erexit('Trouble writing  n2 to history  ')
+    end if
+  call submain(n1,n2)
+  call sep_end_prog()
+end program 
+subroutine submain(n1,n2)
+  use sep_mod
+  implicit none
+  integer	n1,n2,n3
+  integer :: ierr
+  real	x(n2), z(n1)
+  real	tim(n1,n2), amp(n1,n2)
+  real	sin_theta_surf(n1,n2), cos_theta_surf(n1,n2)
+  real	sin_theta_diff(n1,n2), cos_theta_diff(n1,n2)
+  real	o1,d1, o2,d2, o3,d3
+  real	vgrad,v0, xmax,zmax
+  integer	ix,iz, i1,i2, esize, iconvert, intime
+  real	vint(n1), vrms(n1), srms2(n1)
+  real	x2(n2), z2(n1), tz(n1)
+  real    eps
+  real rho
+    if (0>= getch('n3','d',n3 )) then
+      n3 = 1
+    end if
+    if (0.ne.putch('Read  from param: #n3 ','d',n3)) then
+      call erexit('Trouble writing n3 to history')
+    end if
+    if (0>= getch('intime','d',intime )) then
+      intime = 0
+    end if
+    if (0.ne.putch('Read  from param: #intime ','d',intime)) then
+      call erexit('Trouble writing intime to history')
+    end if
+    if (0>= fetch('o1','f',o1 )) then
+      o1 = 0
+    end if
+    if (0>= fetch('d1','f',d1 )) then
+      call erexit('Trouble reading  d1 from either  ')
+    end if
+    if (0>= fetch('o2','f',o2 )) then
+      o2 = 0
+    end if
+    if (0>= fetch('d2','f',d2 )) then
+      call erexit('Trouble reading  d2 from either  ')
+    end if
+    if (0>= fetch('v0','f',v0 )) then
+      call erexit('Trouble reading  v0 from either  ')
+    end if
+    if (0>= fetch('vgrad','f',vgrad )) then
+      call erexit('Trouble reading  vgrad from either  ')
+    end if
+    if (0>= fetch('rho','f',rho )) then
+      rho = 2.4
+    end if
+    if (0.ne. putch('o1','f',o1 )) then
+      call erexit('Trouble writing  o1 to history  ')
+    end if
+    if (0.ne. putch('d1','f',d1 )) then
+      call erexit('Trouble writing  d1 to history  ')
+    end if
+    if (0.ne. putch('o2','f',o2 )) then
+      call erexit('Trouble writing  o2 to history  ')
+    end if
+    if (0.ne. putch('d2','f',d2 )) then
+      call erexit('Trouble writing  d2 to history  ')
+    end if
+    if (0.ne. putch('n3','d',n3 )) then
+      call erexit('Trouble writing  n3 to history  ')
+    end if
+  write(0,*) 'n3 = ',n3
+! an extra...
+    if (0.ne. putch('v0','f',v0 )) then
+      call erexit('Trouble writing  v0 to history  ')
+    end if
+    if (0.ne. putch('vgrad','f',vgrad )) then
+      call erexit('Trouble writing  vgrad to history  ')
+    end if
+    if (0.ne. putch('rho','f',rho )) then
+      call erexit('Trouble writing  rho to history  ')
+    end if
+  if ((n3.ne.1).and.(n3.ne.2).and.(n3.ne.6)) then
+    write(0,*) 'FATAL ERROR:  n3 must be =1 or =2 or =6'
+    stop
+  end if
+  eps = 1.0e-6
+  esize=4
+    if (0 .ne. putch ( 'esize', 'i', esize )) then
+      call erexit('trouble writing to file ')
+    end if
+  o3=0. 
+  d3=1.
+    if (0 .ne. putch ( 'n3', 'i', n3 )) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ( 'o3', 'f', o3 )) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ( 'd3', 'f', d3 )) then
+      call erexit('trouble writing to file ')
+    end if
+  if (intime .eq. 0) then
+      if (0 .ne. putch ( 'label1', 's', 'depth (km)' )) then
+        call erexit('trouble writing to file ')
+      end if
+  end if
+  if (intime .eq. 1) then
+      if (0 .ne. putch ( 'label1', 's', 'time (s)' )) then
+        call erexit('trouble writing to file ')
+      end if
+  end if
+    if (0 .ne. putch ( 'label2', 's', 'offset (km)' )) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ( 'title', 's', 'Gfgradz' )) then
+      call erexit('trouble writing to file ')
+    end if
+  call hclose() 
+  do i2=1,n2  
+    do i1=1,n1  
+      tim(i1,i2)= 0.  
+      amp(i1,i2)= 0.
+    end do
+  end do 
+! Check physical units for numerical stability...
+  iconvert= 0
+  zmax= max(o1, abs((n1-1)*d1+o1) )
+  if (zmax.gt.100.) then
+    if (intime .eq. 0) then
+      write(0,*) 'WARNING - internal conversion of Z from m/ft to km&
+        &/kft'
+    end if
+    if (intime .eq. 1) then
+      write(0,*) 'WARNING - internal conversion of T from ms to s'
+    end if
+    o1= o1/1000.
+    d1= d1/1000. 
+    iconvert= 1
+  end if
+  xmax= max(o2, abs((n2-1)*d2+o2) )
+  if (xmax.gt.100.) then
+    write(0,*) 'WARNING - internal conversion of X from m/ft to km&
+      &/kft'
+    o2= o2/1000.
+    d2= d2/1000. 
+    iconvert= 1
+  end if
+  if (vgrad.lt.0.) then
+    call seperr('vgrad < 0 !')
+  end if
+  if (iconvert.eq.1) then
+    write(0,*) 'WARNING - internal conversion of V from m/ft to km&
+      &/kft'
+    v0= v0/1000.
+  end if
+  do i1=1,n1  
+    z(i1)= (i1-1)*d1 + o1
+  end do 
+  do i2=1,n2  
+    x(i2)= (i2-1)*d2 + o2
+  end do 
+! convert vertical time to equivalent depth if needed
+  if (intime .eq. 1) then
+    if (abs(vgrad) .lt. eps) then
+      do i1=1,n1  
+        z(i1) = v0*z(i1)
+      end do
+    else
+      do i1=1,n1  
+        z(i1) = v0*(exp(vgrad*z(i1))-1.0)/vgrad
+      end do
+    end if
+  end if
+  call gfgradz3D(v0,vgrad, x,z, tim,amp, n1,n2, vint, vrms, srms2, x2,&
+    & z2, tz,                   sin_theta_surf,sin_theta_diff)
+  do i1=1,n1  
+    do i2=1,n2  
+      cos_theta_surf(i1,i2)=sqrt(1-sin_theta_surf(i1,i2)**2)
+      cos_theta_diff(i1,i2)=sqrt(1-sin_theta_diff(i1,i2)**2)
+    end do
+  end do 
+  ierr= srite( 'out', tim, n1*n2*4 )
+  if (n3 > 1) then
+    ierr= srite( 'out', amp, n1*n2*4 )
+  end if
+  if (n3 > 2) then
+    ierr= srite( 'out', sin_theta_diff, n1*n2*4 )
+  end if
+  if (n3 > 2) then
+    ierr= srite( 'out', cos_theta_diff, n1*n2*4 )
+  end if
+  if (n3 > 2) then
+    ierr= srite( 'out', sin_theta_surf, n1*n2*4 )
+  end if
+  if (n3 > 2) then
+    ierr= srite( 'out', cos_theta_surf, n1*n2*4 )
+  end if
+  return
+  end
+!
+! Subroutine to evaluate traveltime and ~amplitude
+! in a 1-D constant gradient velocity model of the form:
+!
+!		V(z) = Vo + vgrad*z	; z >= 0,  vgrad >= 0
+!
+!  Reference:	Sheriff and Geldart, 1982, p.87-88.
+!		but they don't do sqrts properly for turning waves!
+!
+! david 2/94
+  subroutine gfgradz3D(v0,vgrad, x,z, tim,amp, n1,n2, vint, vrms, srms2&
+    &, x2, z2,tz                     ,sin_theta_surf,sin_theta_diff)
+  use sep_mod
+  integer	n1,n2
+  real	x(n2), z(n1)
+  real	sin_theta_surf(n1,n2),sin_theta_diff(n1,n2)
+  real	tim(n1,n2), amp(n1,n2), v0,vgrad
+  integer	ix,iz, nx,nz, niter,iter,iavg, idiv, ifail,iwrite
+  real	xx,zz,xstar,pstar,p1,p2,pnew, eps, v,s, r,r2,q1,q2
+  real	dt, xx2,zz2, tt,aa, dx,dz,sgrad,xp,v2,v02, xtoler
+  real	dp,xerr,xprime, s2, th,th0,th2,th02,tanth,tanth0, t1,t0
+  real	root1,root0, v2sum,z0, pmax,pmin, vmin, tsum, psign, vmax
+  real	vint(n1), vrms(n1), srms2(n1)
+  real	x2(n2), z2(n1), tz(n1)
+  nz= n1
+  nx= n2
+  eps= 1.0e-06
+  dz= abs(z(2)-z(1))
+  dx= abs(x(2)-x(1))
+  dt= dz/(v0 + eps)
+  z0= z(1)
+  sgrad= 1./(vgrad+eps)
+  v02= v0*v0
+  xtoler= dx/100.
+  idiv= nz/10
+  pmin=0.0001/v0
+! >>>
+! Constant velocity case!
+! >>>
+  if (abs(vgrad).lt.eps) then
+    s= 1./(v0 + eps)
+    do ix=1,nx  
+      x2(ix)= x(ix)**2
+    end do 
+    do iz=1,nz  
+      z2(iz)= z(iz)**2
+    end do 
+    do ix=1,nx  
+      xx2= x2(ix)
+      do iz=1,nz  
+        zz2= z2(iz)
+        r= sqrt( xx2 + zz2 )
+        tt= r*s
+        if (tt <= eps) then
+          aa= s*s/(dt)
+        else
+          aa= s*s/(tt)
+        end if 
+        tim(iz,ix) = tt
+        amp(iz,ix)= aa
+        sin_theta_surf(iz,ix)=x(ix)/r
+        sin_theta_diff(iz,ix)=x(ix)/r
+      end do
+    end do 
+    goto 999
+  end if
+! >>>
+! Vertical gradient case!
+! >>>
+! Interval velocity...
+  do iz=1,nz  
+    vint(iz)= v0 + vgrad*z(iz)
+  end do 
+! Vertical traveltime...
+  tsum= z0/vint(1) 
+  tz(1)= tsum
+  do iz=2,nz  
+    tsum= dz/vint(iz-1) + tsum
+    tz(iz)= tsum
+  end do 
+! RMS velocity...
+  v2sum= v0*v0*(z0+dz)
+  vrms(1)= vint(1)
+  do iz=2,nz  
+    v2sum= dz*vint(iz)**2 + v2sum
+    vrms(iz)= sqrt( v2sum/(z(iz)+dz) )
+  end do 
+  do iz=1,nz  
+    srms2(iz)= 1./(vrms(iz)**2 + eps)
+  end do 
+! START MAIN LOOPS...
+! LOOP over z...
+  do iz=2,nz  
+    v= vint(iz)
+    v2= v*v
+    s= 1./(v+eps)
+! LOOP over x...
+    do ix=1,nx  
+      xx= x(ix)
+      iwrite= 0
+! if((iz.eq.34).and.(ix.eq.20))  iwrite= 1
+! Find pstar such that xp = xx...
+      if (abs(xx).lt.dx) then
+        tt= tz(iz)
+        goto 200
+      end if
+      call raypar(v0,v,sgrad,xx,xtoler, ifail,iwrite, psign,pstar)
+! if(ifail.eq.1) write(0,*) 'ifail:  iz,ix=', iz,ix
+! p=0 is unstable!
+      if (pstar.le.pmin) then
+        tt= tz(iz)**2 + xx*xx*srms2(iz)
+        tt= sqrt(tt)
+        goto 200
+      end if
+! Given pstar, calculate tt(pstar)...
+! Sheriff & Geldart's formula no good for turning waves!
+      p1= pstar
+      p2= p1*p1
+      root0= sqrt(1.-v02*p2)
+      root1= sqrt(1.-v2*p2)
+      t0= v0*p1/(1.+root0+eps)
+      t1= v*p1/(1.+psign*root1+eps) 
+      tt= sgrad*( log(t1+eps) - log(t0+eps) )
+      200 continue
+      tt= max(tt, eps)
+      tim(iz,ix)= tt
+      sin_theta_surf(iz,ix)=p1*v0
+      sin_theta_diff(iz,ix)=p1*v
+! Given tt, calc approx amplitude...
+      aa= srms2(iz)/(tt+eps)
+      amp(iz,ix)= aa
+    end do 
+! end of ix loop...
+  end do 
+! end of iz loop...
+! Fill in z=0 row last (p=1/v is unstable)...
+  tim(1,1)= 0.
+  do ix=1,nx  
+    tt= tim(2,ix) + dz/v0
+    tim(1,ix)= tt
+    amp(1,ix)= srms2(1)/(tt+eps)
+    sin_theta_surf(1,ix)=1
+    sin_theta_diff(1,ix)=1
+  end do 
+  999	continue
+end subroutine 
+subroutine raypar(v0,v,sgrad,xx,xtoler, ifail,iwrite, psign,pstar)
+  use sep_mod
+  implicit none
+  integer	ifail,iwrite
+  real	p1,pmin,pmax,v0,v,sgrad,xx,xtoler,  pstar
+  integer	iter,niter,iavg,ip
+  real	eps,pnew,dp,p2,v02,v2,root0,root1,xp,xerr,xprime,p0
+  real	xturn,psign, vmax
+  eps= 1.0e-06
+  ifail= 0
+  v02= v0*v0
+  v2= v*v
+  vmax= max(v0,v)
+  pmax= 0.9999/vmax
+  pmin=0.0001/v0
+! Be careful about turning waves...
+  xturn= 1000*xx
+  if (v.gt.v0) then
+    xturn= sgrad*( sqrt(v2-v02) )
+  end if
+  psign= 1.
+  if (xx.gt.xturn) then
+    psign= -1.
+  end if
+  if (abs(xx-xturn).le.xtoler) then
+    pstar=0.99999/v
+    goto 999
+  end if
+! start binary search
+  p0= 0.
+  p1= 0.
+  dp= pmax
+  if (iwrite.eq.1) then
+    write(0,*) 'p1=', p1
+  end if
+! start binary search
+  niter=100
+  do iter=1,niter  
+    p2= p1*p1
+    root0= sqrt(1.-v02*p2)
+    root1= sqrt(1.-v2*p2)
+! psign of roots depend on up/down wave direction...
+    if (p1.gt.0.001) then
+      xp= sgrad/(p1+eps)*( root0 - psign*root1 )
+    else
+      xp= p1*sgrad*( 1./(root1+eps) - 1./(root0+eps) ) 
+      if (psign.lt.0) then
+        xp=100*xx
+      end if
+    end if 
+    xerr= xx-xp
+    if (abs(xerr).lt.xtoler) then
+      pstar=p1
+      goto 999
+    end if
+! If not, try a binary update...
+! p update depends on up/down ray direction...
+    p0= p1
+    dp= dp/2.
+    if (xp.lt.xx) then
+      p1= p1 + psign*dp
+    else
+      p1= p1 - psign*dp
+    end if 
+    pnew= p1
+    if (iwrite.eq.1) then
+      write(0,*) 'pnew= ', pnew
+    end if
+    if (abs(pnew-p0).le.eps) then
+      goto 77
+    end if
+! end niter loop...
+  end do 
+  77 continue
+! Failed to find pstar...
+  ifail=1
+  if (iwrite.eq.1) then
+    write(0,*) 'Failed to find pstar'
+  end if
+  pstar= pnew
+  pstar= min( max(pstar, pmin), pmax )
+! Succeeded to find pstar...
+  999 continue
+  if (iwrite.eq.1) then
+    write(0,*) 'pstar= ', pstar
+  end if
+end subroutine  

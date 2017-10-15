@@ -1,0 +1,6 @@
+project(SEPLIB-lib-util)
+cmake_minimum_required(VERSION 2.8)
+add_subdirectory(makedepend)
+add_subdirectory(spp)
+add_subdirectory(fullpath)
+add_subdirectory(setenviron)

@@ -1,0 +1,130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Scat3d - Create a 3-D scatter model for Kirmod3d</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Scat3d - Create a 3-D scatter model for Kirmod3d</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+ Scat3d [parameters - drho,dlambda,dmu,depth]</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_mode__2d_int">mode - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]  Isotropic perturbations (default)
+      2   lambda, mu &amp; rho perturbations for Rayleigh scattering</pre>
+</dd>
+<dt><strong><a name="item_surface_locations_given_by__3a">surface locations given by :</a></strong><br />
+</dt>
+<dd>
+<pre>
+    n2,o2,d2-sep_standard model dimension axis 2
+    n3,o3,d3-sep_standard model dimension axis 3</pre>
+</dd>
+<dt><strong><a name="item_dip2__2dreal">dip2    -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Dip of plane in 2-direction (degrees)</pre>
+</dd>
+<dt><strong><a name="item_dip3__2dreal">dip3    -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       3-direction</pre>
+</dd>
+<dt><strong><a name="item_depth__2dreal">depth   -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.]  Depth at physical origin (x=y=0.)</pre>
+</dd>
+<dt><strong><a name="item_mag__2dreal">mag     -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1.]  mode=1 Magnitude</pre>
+</dd>
+<dt><strong><a name="item_drho__2dreal">drho    -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0.]</pre>
+</dd>
+<dt><strong><a name="item_dlambda__2dreal">dlambda -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.]  mode=2 Strength of perturbations</pre>
+</dd>
+<dt><strong><a name="item_dmu__2dreal">dmu     -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.]</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+ Asumes a 3-D model with consistant sampling in all 3 directions.</pre>
+<pre>
+ Output is a n1=4 or 6 seplib array with row 1=n1,
+                                         row 2=n2,
+                                         row 3=n3,
+                              row 4 = mag  or  drho
+                              row 5 =          dlambda
+                              row 6 =          dmu</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Generates a plane of scatters for use with Kirmod3D modelling program</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Marine_geom3d.html">the Marine_geom3d manpage</a>, <a href="./../seplib_prog/Scat3d.html">the Scat3d manpage</a>, <a href="./../seplib_prog/Gfgradz.html">the Gfgradz manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/model</strong></p>
+
+</body>
+
+</html>

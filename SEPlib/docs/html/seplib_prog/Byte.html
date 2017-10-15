@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Taplot,Byte - Convert floats to bytes</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Taplot,Byte - Convert floats to bytes</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Byte  par= &lt; in.H &gt; in.T</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Convert data to raster format .
+PLOT = clip{ [ (DATA - bias)*(it*d1+o1)**tpow ]**gpow }</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_tpow__2d_float">tpow - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.]  gain(it) = (it*d1+o1)**tpow, it in samples</pre>
+</dd>
+<dt><strong><a name="item_pclip__2d_int">pclip - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [99]  clip percentile</pre>
+</dd>
+<dt><strong><a name="item_clip__2d_float">clip - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      clip value (if not specified defaults to pclip)</pre>
+</dd>
+<dt><strong><a name="item_phalf__2d_int">phalf - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [85]  gpow percentile</pre>
+</dd>
+<dt><strong><a name="item_gpow__2d_float">gpow  - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]  if given gpow&lt;=0, sample gain power computed at phalf percentile</pre>
+</dd>
+<dt><strong><a name="item_bias__2d_float">bias  - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.0] plot = data - bias</pre>
+</dd>
+<dt><strong><a name="item_gainpanel__2d_char_2a">gainpanel - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]-plane(s) where gpow and clip are estimated
+      i- ith plane is used ( i is integer )
+      all-all the planes are used
+      every -calculate gain parameters for every panel</pre>
+</dd>
+<dt><strong><a name="item_gaincube">gaincube</a></strong><br />
+</dt>
+<dd>
+<pre>
+      i- ith plane is used ( i is integer ) NOT YET
+      every -calculate gain parameters for every cube
+      all-all the planes are used NOT YET</pre>
+</dd>
+<dt><strong><a name="item_gainstep__2d_float">gainstep - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      the subsampling rate used in estimating gpow and clip
+      default = max(1,nt/256) (&gt;=1)</pre>
+</dd>
+<dt><strong><a name="item_allpos__2d_char">allpos   - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [n]/y  if yes, map only positive values to 0-255</pre>
+</dd>
+<dt><strong><a name="item_transp__2d_char">transp   - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [no] if yes, saves Movie the trouble of transposing t and x.</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3__2d_int">n1,n2,n3 - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      cube dimensions</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_esize__2d_int">esize    - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]  raster data</pre>
+</dd>
+<dt><strong><a name="item_maxval_2c_minval__2dfloat">maxval, minval -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      maximum and minimum value of data to be displayed 
+      by Ta2vplot. For use by Ta2vplot's wantscalebar
+      option.</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Grey.html">the Grey manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,439 @@
+/*
+ *  HeaderBBox < infile.H > outfile.H bbxkey= bbykey= otherxkeys= otherykeys= action= boxpar= synch=n verbose=n
+ */
+
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <ctype.h>
+#include <math.h>
+#include <obb.h>
+
+#define MY_SEP_DOC \
+sep_add_doc_line("NAME");\
+sep_add_doc_line("    HeaderBBox - Rotate and align to bounding box of hdr coords");\
+sep_add_doc_line("");\
+sep_add_doc_line("SYNOPSIS");\
+sep_add_doc_line("    HeaderBBox < in.H > out.H bbxkey= bbykey= otherxkeys= otherykeys=");\
+sep_add_doc_line("                 boxpar=[bbox.par] action=[calculate|apply|remove]");\
+sep_add_doc_line("                 synch=n verbose=n");\
+sep_add_doc_line("");\
+sep_add_doc_line("INPUT PARAMETERS");\
+sep_add_doc_line("    bbxkey - string");\
+sep_add_doc_line("                  Name of header key containing x coordinate");\
+sep_add_doc_line("                  for bounding box calculation.");\
+sep_add_doc_line("");\
+sep_add_doc_line("    bbykey - string");\
+sep_add_doc_line("                  Name of header key containing y coordinate");\
+sep_add_doc_line("                  for bounding box calculation.");\
+sep_add_doc_line("");\
+sep_add_doc_line("    otherxkeys - string");\
+sep_add_doc_line("                  Comma-separated list of header key names");\
+sep_add_doc_line("                  containing x coordinates to be updated in");\
+sep_add_doc_line("                  addition to bbxkey.");\
+sep_add_doc_line("");\
+sep_add_doc_line("    otherykeys - string");\
+sep_add_doc_line("                  Comma-separated list of header key names");\
+sep_add_doc_line("                  containing y coordinates to be updated in");\
+sep_add_doc_line("                  addition to bbykey.");\
+sep_add_doc_line("");\
+sep_add_doc_line("    boxpar - string");\
+sep_add_doc_line("                  Name of file where to write/read bounding box.");\
+sep_add_doc_line("");\
+sep_add_doc_line("    action - string");\
+sep_add_doc_line("                  Use 'calculate' to scan input headers,compute");\
+sep_add_doc_line("                  bounding box and write info to boxpar.");\
+sep_add_doc_line("");\
+sep_add_doc_line("                  Use 'apply' to read boxpar and apply");\
+sep_add_doc_line("                  it to the input trace headers.");\
+sep_add_doc_line("");\
+sep_add_doc_line("                  Use 'remove' to read boxpar and restore");\
+sep_add_doc_line("                  the original input trace header coordinates.");\
+sep_add_doc_line("");\
+sep_add_doc_line("    synch - boolean");\
+sep_add_doc_line("                  Set to y or 1 to copy traces as well.");\
+sep_add_doc_line("");\
+sep_add_doc_line("    verbose - boolean");\
+sep_add_doc_line("                  Set to y or 1 for progress details.");\
+sep_add_doc_line("");\
+sep_add_doc_line("DESCRIPTION");\
+sep_add_doc_line("    Many surveys are not aligned N-S and E-W.  This program scans the");\
+sep_add_doc_line("    specified (x,y) coordinate pairs to find the smallest oriented");\
+sep_add_doc_line("    bounding box that contains their values.  These (x,y) coordinates");\
+sep_add_doc_line("    are changed by subtracting the coordinates of a corner of the box");\
+sep_add_doc_line("    and rotated to align to N-S and E-W coordinate axes. Any header");\
+sep_add_doc_line("    keys in the otherxkeys, otherykeys list are also adjusted.");\
+sep_add_doc_line("");\
+sep_add_doc_line("SEE ALSO");\
+sep_add_doc_line("    Sort3d");\
+sep_add_doc_line("");\
+sep_add_doc_line("CATEGORY");\
+sep_add_doc_line("    util/header");\
+sep_add_doc_line(""); 
+
+#include <sep.main> 
+
+#include <sep3d.h> 
+
+static volatile int wrapup;
+static void gotowrapup(int signum) {
+  wrapup = 1;
+} 
+
+int MAIN(void) {
+
+  int n1; 
+  float *intrace;
+  float *inhdr;
+  int verbose = 0;
+  int synch = 0;
+  char keybufferx[BUFSIZ];
+  char keybuffery[BUFSIZ];
+  char datadir[BUFSIZ];
+  char sortcmd[BUFSIZ];
+  char tempbuf[BUFSIZ]; 
+  char tempbboxpar[BUFSIZ];
+  char bbxkey[32];
+  char bbykey[32];
+  char hdrtype[32];
+  int nreed, nrite;
+  int nbytesHdr;
+  int kindex;
+  size_t ikey, nkeysx, nkeysy, nkeys; 
+  int nvals = 1;
+  int j,k;
+  char **keylistx, **keylisty;
+#define INTKEY 1
+#define FLOATKEY 2
+  int bbxkeytype, bbykeytype;
+  int bbxkeyindex, bbykeyindex;
+  int  *keytypex, *keytypey;
+  int  *keyindex_x, *keyindex_y;
+  char *cptr;
+  char **ccptr;
+  char ctmp;
+  size_t slen;
+  int irec, nrec;
+  int jrec;
+  int imgood;
+  int itemp;
+  int istat;
+  int ioff;
+  int nhdrbytes;
+  int nhdrblocks;
+  char *tag_header[1];
+  double xbb[4], ybb[4];
+  double *xcoords, *ycoords;
+  double rotang, cosang, sinang;
+  float frotang;
+  double oldx, oldy, newx, newy;
+  FILE *bboxpar;
+#define CALCBOX 1
+#define APPLYBOX 2
+#define REMOVEBOX 3
+  int action;
+
+  init_3d();
+
+  action = 0;
+  if(0 == getch("action","s",tempbuf)) seperr("Missing action= parameter.\n");
+  if(tempbuf[0] == 'c') action = CALCBOX;
+  if(tempbuf[0] == 'a') action = APPLYBOX;
+  if(tempbuf[0] == 'r') action = REMOVEBOX;
+  if(0 == getch("boxpar","s",tempbuf)) strcpy(tempbuf,"bbox.par");
+  if(action != CALCBOX) {
+      sprintf(tempbboxpar,"par=\"%s\"",tempbuf);
+      getch_add_string(tempbboxpar);
+  }
+  if(0 == getch("sync synch synchronize","1",&synch)) synch = 0;
+  if(0 == getch("verb verbose","1",&verbose)) verbose = 0;
+  if(0 == getch("bbxkey","s",bbxkey)) { seperr("Missing bbxkey!\n"); }
+  if(0 == getch("bbykey","s",bbykey)) { seperr("Missing bbykey!\n"); }
+  if(0 == fetch("n1","d",&n1)) { seperr("Missing n1!\n"); }
+  if(action == CALCBOX) {
+      bboxpar = fopen(tempbuf,"w+");
+      if(bboxpar == ((FILE *) NULL)) seperr("Unable to create boxpar file \"%s\"\n",tempbuf);
+  }
+  (void) datapath(datadir);
+  if(verbose) fprintf(stderr,"datadir=\"%s\"\n",datadir);
+  
+  if(0 == getch("otherxkeys","s",keybufferx)) keybufferx[0] = '\0';
+  if(0 == getch("otherykeys","s",keybuffery)) keybuffery[0] = '\0';
+  if(verbose) fprintf(stderr,"otherxkeys=\"%s\"\n",keybufferx);
+  if(verbose) fprintf(stderr,"otherykeys=\"%s\"\n",keybuffery);
+
+  getch("xorigin","g",&(xbb[0]));
+  getch("yorigin","g",&(ybb[0]));
+  getch("rotang","g",&rotang);
+       
+  /* count number of comma separated keys */
+  nkeysx = (keybufferx[0] == '\0') ? 0 : 1;
+  for(cptr = keybufferx; (*cptr) != '\0'; ++cptr) {
+    if( (*cptr) == ',') ++nkeysx;
+  }
+  nkeysy = (keybuffery[0] == '\0') ? 0 : 1;
+  for(cptr = keybuffery; (*cptr) != '\0'; ++cptr) {
+    if( (*cptr) == ',') ++nkeysy;
+  }
+
+  if(nkeysx != nkeysy) {seperr("#otherxkeys=%lu != #otherykeys=%lu.  Exiting\n",
+       (unsigned long) nkeysx, (unsigned long) nkeysy); }
+
+  nkeys = nkeysx;
+  if(verbose) fprintf(stderr,"number of other keys is %lu\n",(unsigned long) nkeys);
+  /* capture each key location in the list */
+  /* and turn the commas into null terminators */
+  keylistx = (char **) calloc(sizeof(char *),nkeys);
+  keytypex = (int *) calloc(sizeof(int),nkeys);
+  keyindex_x = (int *) calloc(sizeof(int),nkeys);
+  if(keylistx == ((char **)NULL) || keytypex == ((int *)NULL) || keyindex_x == ((int *)NULL) ) {
+     seperr("Unable to allocate memory!\n");
+  }
+  keylisty = (char **) calloc(sizeof(char *),nkeys);
+  keytypey = (int *) calloc(sizeof(int),nkeys);
+  keyindex_y = (int *) calloc(sizeof(int),nkeys);
+  if(keylisty == ((char **)NULL) || keytypey == ((int *)NULL) || keyindex_y == ((int *) NULL) ) {
+     seperr("Unable to allocate memory!\n");
+  }
+
+#define EXTRACT_OTHERS(NKEYS,BUFFER,LIST,TYPE,INDEX) \
+  cptr = BUFFER;\
+  ikey = 0;\
+  LIST[ikey] = cptr;\
+  while((*cptr) != '\0') {\
+     if((*cptr) == ',') {\
+       *cptr = '\0';\
+       ++cptr;\
+       ++ikey;\
+       LIST[ikey] = cptr;\
+     }\
+     ++cptr;\
+  }\
+\
+  /* strip any leading white space in key names */\
+  for(ikey = 0; ikey<NKEYS; ++ikey) {\
+     while(isspace(LIST[ikey][0])) ++(LIST[ikey]);\
+  }\
+\
+  /* strip any trailing white space in key names */\
+  for(ikey = 0; ikey<NKEYS; ++ikey) {\
+     slen = strlen(LIST[ikey]);\
+     while(slen > 0) {\
+        slen--;\
+        if(! isspace(LIST[ikey][slen]) ) break;\
+        LIST[ikey][slen]='\0';\
+     }\
+  }\
+\
+  /* ensure keys are legitimate */\
+  for(ikey = 0; ikey < NKEYS; ++ikey) {\
+     kindex = -1;\
+     (void) sep_get_key_index("in", LIST[ikey], &kindex);\
+     if(kindex < 0) {\
+        seperr("key \"%s\" not in header!\n",LIST[ikey]);\
+     }\
+     INDEX[ikey] = kindex;\
+     hdrtype[0] = '\0';\
+     (void) sep_get_key_type("in", &kindex, hdrtype);\
+     if(0 == strcmp(hdrtype,"scalar_float")) TYPE[ikey] = FLOATKEY;\
+     if(0 == TYPE[ikey]) {\
+        seperr("key \"%s\" not scalar float!\n",LIST[ikey]);\
+     }\
+  }
+
+  kindex = -1; (void) sep_get_key_index("in",bbxkey,&kindex);
+  if(kindex < 0) seperr("key \"%s\" not in header!\n",bbxkey);
+  bbxkeyindex = kindex;
+  kindex = -1; (void) sep_get_key_index("in",bbykey,&kindex);
+  if(kindex < 0) seperr("key \"%s\" not in header!\n",bbykey);
+  bbykeyindex = kindex;
+
+  EXTRACT_OTHERS(nkeys,keybufferx,keylistx,keytypex,keyindex_x)
+  EXTRACT_OTHERS(nkeys,keybuffery,keylisty,keytypey,keyindex_y)
+
+  if(verbose) {
+     for(ikey=0; ikey<nkeys; ++ikey) {
+       fprintf(stderr,"keys%lu are \"%s\",\"%s\"\n",(unsigned long)ikey+1,keylistx[ikey],keylisty[ikey]);
+     }
+  }
+
+  if(0 != sep_get_header_format_tag("in",tag_header)) {
+     seperr("Error finding header tag\n");
+  }
+     
+  if(0 != sep_get_header_bytes("in",&nhdrbytes)) {
+     seperr("Error finding header length\n");
+  }
+
+  nhdrblocks = ssize_block(*tag_header,nhdrbytes);
+  
+  if(verbose) fprintf(stderr,"number of header bytes is %d\n",nhdrbytes);
+  if(verbose) fprintf(stderr,"number of headers is %d\n",nhdrblocks);
+
+  free(*tag_header); 
+  
+
+  if(0 != sep_copy_hff("in","out")) {
+     seperr("Problem setting up output header keys\n");
+  }
+  /* copy over grid file if present */
+  if(0 != sep_copy_gff("in","out")) {
+     itemp = -1;
+     putch("gff","d",&itemp);
+  }
+
+  if(!synch) sep_copy_data_pointer("in","out"); 
+
+  if(verbose) fprintf(stderr,"Finished history processing.\n");
+
+  intrace = (float *)calloc(n1,sizeof(float));
+  if(intrace == ((float *) NULL)) {
+      seperr("Unable to allocate memory!\n");
+  }
+  inhdr = (float *)calloc(nkeys,sizeof(float));
+  if(inhdr == ((float *) NULL)) {
+      seperr("Unable to allocate memory!\n");
+  }
+  xcoords = (double *) calloc(2*nhdrblocks,sizeof(double));
+  ycoords = xcoords + nhdrblocks;
+  if(xcoords == ((double *) NULL)) {
+      seperr("Unable to allocate memory!\n");
+  }
+
+  wrapup = 0;
+  (void) signal(SIGINT,gotowrapup); 
+
+  if(action == CALCBOX) {
+  putch("hff","s","-1");
+  /* scan all headers and accumulate X and Y keys for bounding box calc. */
+  irec = 0;
+  imgood = 1; 
+  do {
+     ++irec;
+     if(wrapup) break;
+     if(irec > nhdrblocks) {
+           imgood = !imgood;
+           break;
+     }
+    
+     istat = sep_get_val_headers("in",&irec,&nvals,inhdr);
+     if(istat != 0) {
+        seperr("Problem reading input header. Exiting...");
+     }
+     xcoords[irec-1] = inhdr[bbxkeyindex-1];
+     ycoords[irec-1] = inhdr[bbykeyindex-1];
+  } while(imgood);
+  nrec = irec - 1;
+
+  if(verbose) fprintf(stderr,"nrec=%d\n",nrec);
+
+  if(wrapup) fprintf(stderr,"User interrupt - processing only first %d records.\n", (int) nrec);
+
+      oriented_bounding_box_d(nrec,xcoords,ycoords,xbb,ybb);
+
+      rotang = atan2(ybb[1]-ybb[0],xbb[1]-xbb[0]);
+
+      fprintf(bboxpar,"#HeaderBBox parameters\n");
+      fprintf(bboxpar,"bbxkey=%s\n",bbxkey);
+      fprintf(bboxpar,"bbykey=%s\n",bbykey);
+      if(nkeys > 0) {
+         fprintf(bboxpar,"otherxkeys=\"%s",keylistx[0]);
+         for(j=1; j<nkeys; j++) {
+           fprintf(bboxpar,",%s",keylistx[j]);
+         }
+         fprintf(bboxpar,"\"\n");
+         fprintf(bboxpar,"otherykeys=\"%s",keylisty[0]);
+         for(j=1; j<nkeys; j++) {
+           fprintf(bboxpar,",%s",keylisty[j]);
+         }
+         fprintf(bboxpar,"\"\n");
+      }
+      fprintf(bboxpar,"xorigin=%-20.12g\n",xbb[0]);
+      fprintf(bboxpar,"yorigin=%-20.12g\n",ybb[0]);
+      fprintf(bboxpar,"rotang=%-20.12g\n",rotang);
+      fprintf(bboxpar,"# bounding box corners (%g,%g),(%g,%g),(%g,%g),(%g,%g)\n",
+                      xbb[0],ybb[0],xbb[1],ybb[1],xbb[2],ybb[2],xbb[3],ybb[3]);
+      fclose(bboxpar);
+
+  } else { nrec = nhdrblocks; }
+  if(verbose) fprintf(stderr,"xorigin=%g yorigin=%g rotation_angle=%g rad (%g deg)\n",
+          xbb[0], ybb[0], rotang, rotang*180.0/M_PI);
+  cosang = cos(rotang);
+  sinang = sin(rotang);
+
+  for(irec=0; (irec<nrec) && (action != CALCBOX); ) {
+    
+
+    irec++;
+    istat = sep_get_val_headers("in",&irec,&nvals,inhdr);
+    if(istat != 0) {
+       seperr("Problem reading input header. Exiting...");
+    }
+    
+    oldx = inhdr[bbxkeyindex-1];
+    oldy = inhdr[bbykeyindex-1];
+    if(action == APPLYBOX) {
+       oldx -= xbb[0];
+       oldy -= ybb[0];
+       newx = (cosang*oldx+sinang*oldy);
+       newy = (cosang*oldy-sinang*oldx);
+    } else {
+       newx =  ((cosang*oldx-sinang*oldy) + xbb[0]);
+       newy =  ((cosang*oldy+sinang*oldx) + ybb[0]);
+    }
+    inhdr[bbxkeyindex-1] = (float) newx;
+    inhdr[bbykeyindex-1] = (float) newy;
+    /* loop over any other coordinate key pairs */
+    for(j=0; j<nkeys; ++j) {
+        oldx = inhdr[keyindex_x[j]-1];
+        oldy = inhdr[keyindex_y[j]-1];
+        if(action == APPLYBOX) {
+           oldx -= xbb[0];
+           oldy -= ybb[0];
+           newx =  (cosang*oldx+sinang*oldy);
+           newy =  (cosang*oldy-sinang*oldx);
+        } else {
+           newx =  ((cosang*oldx-sinang*oldy) + xbb[0]);
+           newy =  ((cosang*oldy+sinang*oldx) + ybb[0]);
+        }
+        inhdr[keyindex_x[j]-1] = (float) newx;
+        inhdr[keyindex_y[j]-1] = (float) newy;
+    }
+
+    istat = sep_put_val_headers("out",&irec,&nvals,inhdr);
+    if(istat != 0) {
+       seperr("Problem updating output header. Exiting...");
+    }
+
+    if(synch) {
+       nreed = sreed("in",intrace,n1*4);
+       if(nreed != n1*4) {
+           seperr("Trace read problem, nreed=%d.  Exiting...",nreed);
+       }
+       nrite = srite("out",intrace,n1*4);
+       if(nrite != n1*4) {
+           seperr("Trace write problem, nrite=%d.  Exiting...",nrite);
+       }
+    }
+  } /* end of main R/W loop */
+
+  (void) free(xcoords); /* ycoord part of xcoords alloc */
+  (void) free(inhdr);
+  (void) free(intrace);
+  (void) free(keyindex_y);
+  (void) free(keyindex_x);
+  (void) free(keytypey);
+  (void) free(keytypex);
+  (void) free(keylisty);
+  (void) free(keylistx);
+
+  if(verbose) fprintf(stderr,"freed buffers\n");
+
+  sep_3d_close();
+  if(verbose) fprintf(stderr,"closed sep3d\n");
+
+  if(nrec > 0) {
+    return (EXIT_SUCCESS);
+  }
+   return (EXIT_FAILURE);
+}

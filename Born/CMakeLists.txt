@@ -1,7 +1,9 @@
-project(QTCUBE)
+project(Born)
 cmake_minimum_required(VERSION 2.8)
-set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
+set(CMAKE_CUDA_COMPILER "nvcc")
+set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
+enable_language(CUDA)
 
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Ofast")

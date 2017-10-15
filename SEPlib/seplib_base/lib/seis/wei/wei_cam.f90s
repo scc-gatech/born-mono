@@ -1,0 +1,266 @@
+module wei_cam
+ use wei_fk_share_mod
+
+  !! Wave-Equation Migration
+  !! full 3-D prestack
+  implicit none
+
+  real,                           private,save :: dkxko, cdkxko
+  integer,                        private,save :: nkxko
+  real,                           private,save ::  kxko,rdkzko,idkzko
+
+  real   , dimension(:), pointer, private,save ::  exp_kzko,ikzko,ckzko,bin,bout
+  complex, dimension(:), pointer, save ::  wemkzko,sc
+  complex, dimension(:), pointer, private,save :: tkzko
+  real, dimension(:) , pointer,private :: khy(:,:)
+
+
+contains
+
+
+
+  !----------------------------------------------------------------
+!!$=head1 NAME
+!!$
+!!$weicam_init -initialize  wave equation migration 
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ierr= weicam_init()
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Wave equation migration operator
+!!$
+!!$Grabs kxko=2. and nkxko=2001 from par
+!!$
+!!$=head1 LIBRARY
+!!$
+!!$sepweif90
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$ L<weicam> L<weicam_init>
+!!$
+!!$=cut
+!!$
+  integer function weicam_init() result(st)
+    integer :: er
+    integer ::i,imax
+    real :: hxmax,hymax
+    type(sep3d) :: wsep
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weicam_init'
+    if(my_debug()) call in(unit)
+#endif
+
+    !! init DSR
+    call from_param("nkxko",nkxko,2001)
+    call from_param( "kxko", kxko,2.)
+    call dsr_init(kxko,nkxko,wemkzko,tkzko,exp_kzko,ikzko,dkxko,nkxko,idkzko,rdkzko)
+   
+    call  comaz_init(kxko,nkxko)
+    call grab_current_wave_space_pad(wsep)
+    allocate(bin(wsep%n(1)),bout(wsep%n(1)),sc(wsep%n(1)))
+
+
+
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+    st=OK
+  end function weicam_init
+
+ subroutine comaz_init(max,n)
+    integer, intent(in) :: n
+    real,    intent(in) :: max
+    integer             :: er
+    integer             :: i,m
+    real                :: kxko
+    type(sep3d)         :: wsep
+                                                                                
+    call grab_current_wave_space_pad(wsep)
+                                                                                
+    allocate(khy(wsep%n(1),wsep%n(3)))
+    call add_mem(size(khy))
+    allocate(ckzko(n),stat=er)
+    call add_mem(size(ckzko))
+    if(er/=0) call seperr('cant allocate ckzko')
+                                                                                
+                                                                                
+    cdkxko = max/(n-1)
+    m=n/max
+                                                                                
+    do i=1,m
+       kxko     = 1. * (i-1)/(m-1) !! kx/ko=0...1
+       ckzko(i) = sqrt(1-kxko**2)
+    end do
+    do i=m+1,n
+       ckzko(i) = 0
+    end do
+                                                                                
+    ckzko = .5 * ckzko
+  end subroutine comaz_init
+
+
+
+!!$=head1 NAME
+!!$
+!!$weicam - one depth step of  wave equation migration
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$ ierr=weicam(iws,izs,ifk,ith,wfld)
+!!$
+!!$=head1 PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item iws - integer
+!!$
+!!$  current frequency slice
+!!$
+!!$=item izs - integer
+!!$
+!!$  current depth slice
+!!$
+!!$=item ifk - integer
+!!$
+!!$  current fk operation
+!!$
+!!$=item ith - integer
+!!$
+!!$  current thread
+!!$
+!!$=item wfld - complex(:,:,:,:,:)
+!!$
+!!$  wavefield
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Wave Equation Migration operator
+!!$
+!!$
+!!$=head1 LIBRARY
+!!$
+!!$ sepweif90
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$ L<weicam_init> L<weicam>
+!!$
+!!$=cut
+  !----------------------------------------------------------------
+  integer function weicam(iws,izs,ifk,ith,wfld) result(st)
+    integer, intent(in) ::iws,izs,ifk,ith
+    complex, dimension(:,:,:,:,:), pointer :: wfld
+    real    :: w, kos,kor,ko
+    integer :: imx,imy,ihx,ihy 
+    integer :: is,ir,i,iz,sign
+    complex :: ikz
+    real,pointer :: kx(:,:),ky(:,:)
+    real    :: kss,krr,k,slow_0,fract,dstep
+    real    :: inv_norm_ko,inv_norm_ko2,k_y,kmy
+    type(sep3d) :: wsep
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weicam'
+    if(my_debug()) call in(unit)
+#endif
+
+!  if(.not. timer_start("FK")) call seperr("trouble starting timer")
+  call grab_current_omega(w)
+  call grab_current_wave_space_pad(wsep)
+  call grab_current_dstep(dstep)
+
+
+
+   call calc_comp_depend_vars(w,slow_0,ko,kx,ky,sign,izs,ifk)
+    call calc_sign_depend_vars(fract,tkzko,dstep,wemkzko,ko)
+      call calc_khy(ko,inv_norm_ko,izs,wsep)
+
+
+    do ihy=1,size(wfld,4)
+      do ihx=1,size(wfld,3)
+          do imy=1,wsep%n(2)
+             kmy=kmap%kmy(imy)
+             do imx=1,wsep%n(1)
+
+
+
+                k_y =kmy+ sign*khy(imx,ihx)*kmy
+
+!                k = sqrt(kx(imx,ihx)**2 + k_y**2)
+                bin(imx)=kx(imx,ihx)**2 + k_y**2
+!                i =max(1, min(int(1 + k/ko / dkxko) , nkxko))
+
+!                ikz= ko*tkzko(i) *dstep
+!                bin(imx)= real(ikz)
+!                re=1.!exp(real(ikz))
+!                sc(imx)=cmplx(cos(aimag(ikz)),sin(aimag(ikz)))
+                                                                                
+
+
+                !! kz(w) = SSR(kos,|ks|) 
+!                wfld(imx,imy,ihx,ihy,iws) = &
+!                  wfld(imx,imy,ihx,ihy,iws) * cexp( ikz * dstep)
+
+             end do
+#ifdef SEP_MKL
+            call vssqrt(size(wfld,1),bin,bout)
+            do imx=1,size(wfld,1)
+              i =max(1, min(int(1 + bout(imx)/ko / dkxko) , nkxko))
+              ikz= ko*tkzko(i) *dstep
+              bin(imx)= real(ikz)
+              sc(imx)=cmplx(cos(aimag(ikz)),sin(aimag(ikz)))
+            end do
+            call vsexp (size(wfld,1),bin,bout)
+#else
+            bout=sqrt(bin)
+            do imx=1,size(wfld,1)
+              i =max(1, min(int(1 + bout(imx)/ko / dkxko) , nkxko))
+              ikz= ko*tkzko(i) *dstep
+              bin(imx)= real(ikz)
+              sc(imx)=cmplx(cos(aimag(ikz)),sin(aimag(ikz)))
+            end do
+            bout=exp(bin)
+#endif
+                wfld(:,imy,ihx,ihy,iws) = &
+                  wfld(:,imy,ihx,ihy,iws) * bout*sc
+
+          end do
+       end do
+
+    end do
+
+!  if(.not. timer_stop("FK")) call seperr("trouble stopping timer")
+
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+    st=OK
+  end function weicam
+
+subroutine calc_khy(ko,inv_norm_ko,izs,wsep)
+integer :: is,ir,ihx,imx,izs
+real :: kzs,kzr,ko,inv_norm_ko
+type(sep3d) :: wsep
+ do ihx=1,wsep%n(3)
+   do imx=1,wsep%n(1)
+        is = min(int(1 + abs(kmap%ksx(imx,ihx)*inv_norm_ko)) , nkxko)
+        ir = min(int(1 + abs(kmap%krx(imx,ihx)*inv_norm_ko)) , nkxko)
+        kzs = ko*ckzko(is)
+        kzr = ko*ckzko(ir)
+        if((kzs > 0.) .and. (kzr >0.))then
+           khy(imx,ihx) =(kzr-kzs)/(kzs+kzr)
+        else
+           khy(imx,ihx) = 0.
+       end if
+   end do
+ end do
+end subroutine
+                                                                                
+
+
+end module wei_cam

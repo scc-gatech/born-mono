@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Sep2segy - Convert from SEPlib3d to  segy</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#notes">NOTES</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Sep2segy - Convert from SEPlib3d to  segy</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Sep2segy &lt; stdout tape=   [pars]</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_tape__2dfile">tape    -file</a></strong><br />
+</dt>
+<dd>
+<pre>
+       input tape device or seg-y filename (see notes)</pre>
+</dd>
+<dt><strong><a name="item_verbose__2d_int">verbose  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] silent, 1= echo every vblock traces</pre>
+</dd>
+<dt><strong><a name="item_vblock__2d_int">vblock  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [50]   echo every vblock traces whtn verbose option set</pre>
+</dd>
+<dt><strong><a name="item_buff__2d_int">buff  -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+   1            for buffered device (9-track reel tape drive)</pre>
+</dd>
+<dd>
+<pre>
+   0 possibly useful for 8mm EXABYTE drive</pre>
+</dd>
+<dt><strong><a name="item_conv__2d_int">conv  -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        1 convert       =0 don't convert to IBM format</pre>
+</dd>
+<dt><strong><a name="item_create_reel__2d_int">create_reel  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [0] whether (1) or not(0) to create header rather than read from disk</pre>
+</dd>
+<dt><strong><a name="item_hfile__2d_file">hfile - file</a></strong><br />
+</dt>
+<dd>
+<pre>
+        hfile=header    ebcdic card image header file</pre>
+</dd>
+<dt><strong><a name="item_bfile__2d_file">bfile  -  file</a></strong><br />
+</dt>
+<dd>
+<pre>
+        bfile=binary    binary header file</pre>
+</dd>
+<dt><strong><a name="item_trmin__2d_int">trmin  -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+  1 first trace to write</pre>
+</dd>
+<dt><strong><a name="item_trmax__2d_int">trmax  -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+  INT_MAX  last trace to write</pre>
+</dd>
+<dt><strong><a name="item_endian__2d_int">endian - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [1] 0 for little-endian machines (PC's, DEC,etc...)</pre>
+</dd>
+<dt><strong><a name="item_errmax__2d_int">errmax - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+   0    allowable number of consecutive tape IO errors</pre>
+</dd>
+<dt><strong><a name="item_format__2d_int">format - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+                override value of format in binary header file</pre>
+</dd>
+<dt><strong><a name="item_nsamp_max__2d_int">nsamp_max   - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       By default each trace is assumed to be SU_NFLTS (1,000,000+)
+       in size and a copy of that length is done for each trace.
+       Set this to something more reasonalbe (2000) for a massive speed up.</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Converts from SEP to segy formats</p>
+<p>
+</p>
+<hr />
+<h1><a name="notes">NOTES</a></h1>
+<pre>
+ Note: The header files may be created with  'segyhdrs'.</pre>
+<pre>
+ Note: For buff=1 (default) tape is accessed with 'write', for buff=0</pre>
+<pre>
+        tape is accessed with fwrite. Try the default setting of buff=1</pre>
+<pre>
+ for all tape types.</pre>
+<pre>
+ Caveat: may be slow on an 8mm streaming (EXABYTE) tapedrive</pre>
+<pre>
+ Warning: segyread or segywrite to 8mm tape is fragile. Allow time</pre>
+<pre>
+           between successive reads and writes.</pre>
+<pre>
+ Precaution: make sure tapedrive is set to read/write variable blocksize</pre>
+<pre>
+           tapefiles.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>converters</strong></p>
+
+</body>
+
+</html>

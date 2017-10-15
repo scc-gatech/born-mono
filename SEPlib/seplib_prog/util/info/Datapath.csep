@@ -1,0 +1,38 @@
+/*
+
+=head1 NAME
+
+Datapath - print out current SEP datapath
+
+=head1 SYNOPSIS
+
+Datapath
+
+=head1 DESCRIPTION 
+
+Provide current SEP datapath for use with 3rd party converters
+
+=head1 CATEGORY
+
+B<util/info>
+
+=cut
+>*/
+/*
+Author: Stewart A. Levin
+
+2/28/12 Resurrected old utility
+*/
+#define         HEAD    "/dev/null"
+#define         OUT    "/dev/null"
+#include <seplib.h>
+
+/*MAIN()*/
+int main (int argc, char **argv)
+{
+   char datapth[4096];
+   initpar( argc, argv ) ;
+   ADD_SEP_DOC
+   fprintf(stdout,"%s",datapath(datapth));
+   return(0);
+}

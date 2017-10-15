@@ -1,0 +1,55 @@
+=head1 NAME
+
+
+weiwem - one depth step of  wave equation migration
+
+=head1 SYNOPSIS
+
+
+ ierr=weiwem(iws,izs,ifk,ith,wfld)
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item iws - integer
+
+  current frequency slice
+
+=item izs - integer
+
+  current depth slice
+
+=item ifk - integer
+
+  current fk operation
+
+=item ith - integer
+
+  current thread
+
+=item wfld - complex(:,:,:,:,:)
+
+  wavefield
+
+=back
+
+=head1 DESCRIPTION
+
+
+Wave Equation Migration operator
+
+
+=head1 LIBRARY
+
+
+ sepweif90
+
+=head1 SEE ALSO
+
+
+ L<weiwem_init> L<weicam>
+
+=cut
+

@@ -1,0 +1,116 @@
+=head1 NAME
+
+
+Surface - make surfaces
+
+
+=head1 SYNOPSIS
+
+
+Surface [n1= n2= n3=1 nsurf=1 ] > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item n1,n2,n3   -   integer  
+
+      output cube dimensions.
+
+=item mag        -   real
+
+      real     [1.] determines the magnitude of the spike.
+      Crossing spikes add their magnitudes.
+
+=item nsurf        -   integer  
+
+      [1] number of surfaces
+
+=item a            -    float*
+
+      [n1/2]   - static shift
+
+=item b2           -    float*
+
+      [0] what to scale the 2nd axis by (b2*(o2+d2*i2))
+
+=item b3           -    float*
+
+      [0] what to scale the 3rd axis by (b3*(o3+d3*i3))
+
+=item c2           -    float*
+
+      [0] what to scale the 2nd axis by (c2*(o2+d2*i2)^2)
+
+=item c3           -    float*
+
+      [0] what to scale the 3rd axis by (c3*(o3+d3*i3)^3)
+
+=item min_ext2     -    float*
+
+       [o2]  minimum extent along extent
+
+=item min_ext3     -    float*
+
+       [o3]  minimum extent along extent
+
+=item max_ext2     -    float*
+
+       [o2+d2*(n2-1)]  minimum extent along extent
+
+=item max_ext3     -    float*
+
+       [o3+d3*(n3-1)]  minimum extent along extent
+
+=item title      -   char*    
+
+       ' '  get putched into output header file .
+
+=item o1,o2,o3   -   real     
+
+      [0.] standard seplib
+
+=item d1,d2,d3   -   real     
+
+      [.004],[.1],[.1] standard seplib parameters
+
+=item  add       - integer
+
+       [1]   Add crossing surfaces (1) or replace value (0)
+
+=item  layers    - integer
+
+       [0]   If 1, perform causal integration 
+
+=item label1..3  -   char*    
+
+       ['sec'],['km],['km']  standard seplib meaning
+
+=back
+
+=head1 DESCRIPTION
+
+
+Make linear and parolbic surfaces. Spikes
+are placed at nearest integer location corresponding to the
+formula:
+
+iz=floor(((a+b2*(o2+d2*i2)+b3*(o3+d3*i3)+
+     c2*(o2+d2*i2)^2 + c3*(o3+d3*i3)^2)-o1)/d1+.5)
+
+=head1 COMMENTS
+
+
+=head1 SEE ALSO
+
+
+L<Gauss>, L<Vel>, L<Surface>
+
+=head1 CATEGORY
+
+
+B<seis/model>
+
+=cut
+

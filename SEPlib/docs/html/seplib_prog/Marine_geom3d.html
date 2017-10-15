@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Marine_geom3d - Create marine geometries</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters_">INPUT PARAMETERS:</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Marine_geom3d - Create marine geometries</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+        Marine_geom3d &lt; in.H  par=   &gt; out.H</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters_">INPUT PARAMETERS:</a></h1>
+<dl>
+<dt><strong><a name="item_itype__2dint">itype -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       1 = shot gathers
+       2 = CMP gathers</pre>
+</dd>
+<dt><strong><a name="item_nx3_2cox3_2cdx3_2dsep_standard">nx3,ox3,dx3-sep_standard</a></strong><br />
+</dt>
+<dd>
+<pre>
+       length, origin, and sampling of
+       shots axis along x
+       (if itype =2 reversed with ny3)</pre>
+</dd>
+<dt><strong><a name="item_ny3_2coy3_2cdy3_2dsep_standard">ny3,oy3,dy3-sep_standard</a></strong><br />
+</dt>
+<dd>
+<pre>
+       length, origin, and
+       sampling of shots axis along y
+       (if itype =2 reversed with nx3)</pre>
+</dd>
+<dt><strong><a name="item_nx2_2cox2_2cdx2_2dsep_standard">nx2,ox2,dx2-sep_standard</a></strong><br />
+</dt>
+<dd>
+<pre>
+       length, origin, and sampling of
+       receiver axis along x</pre>
+</dd>
+<dt><strong><a name="item_ny2_2coy2_2cdy2_2dsep_standard">ny2,oy2,dy2-sep_standard</a></strong><br />
+</dt>
+<dd>
+<pre>
+       length, origin, and sampling of
+       receiver axis along y</pre>
+</dd>
+<dt><strong><a name="item_azi__2dreal">azi         -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       azimuth of the receiver axis with respect
+       to the source axis
+       azi=0 (same grid )
+       azi=90.  xgeo=yshot,ygeo=-xshot
+       az=-90.  xgeo=-yshot,ygeo=xshot</pre>
+</dd>
+<dt><strong><a name="item_stagger_2dint">stagger-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] stagger every other line by half in-line
+      shot spacing</pre>
+</dd>
+<dt><strong><a name="item_na2_2coa2_2cda2__2dsep_standard">na2,oa2,da2 -sep_standard</a></strong><br />
+</dt>
+<dd>
+<pre>
+      offset_azimuth in decimal degrees  (itype==2)</pre>
+</dd>
+<dt><strong><a name="item_nr2_2cor2_2cdr2__2dsep_standard">nr2,or2,dr2 -sep_standard</a></strong><br />
+</dt>
+<dd>
+<pre>
+      offset_radius in km (itype==2)
+      (positive values)
+      ( xshot = xcmp - r*cos(a)
+      ( yshot = ycmp - r*sin(a)
+      ( xgeo  = xcmp + r*cos(a)
+      ( ygeo  = ycmp + r*cos(a)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+        Make TRACE HEADERS for simple Marine Geometries
+        both in  CMP and SHOT GATHERs sorts</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Kirmod3d.html">the Kirmod3d manpage</a>, <a href="./../seplib_prog/Gfgradz.html">the Gfgradz manpage</a>, <a href="./../seplib_prog/Scat3d.html">the Scat3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/model</strong></p>
+
+</body>
+
+</html>

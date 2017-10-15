@@ -1,0 +1,51 @@
+#!/bin/sh
+. /opt/intel14/bin/ifortvars.sh intel64
+. /opt/intel14/bin/compilervars.sh intel64
+ulimit -s unlimited
+ulimit -d unlimited
+ulimit -m unlimited
+ulimit -v unlimited
+#ulimit -n unlimited
+#setenv OMP_FCLD -mp
+#intel settings
+FC="ifort"
+FCFLAGS="-openmp -fast -ipo-jobs1 -g -fPIC -Bdynamic"
+F77="ifort -openmp -ipo-jobs1"
+FFLAGS="-g -fPIC -Bdynamic"
+CC="icc"
+CFLAGS="-fast -ipo-jobs1 -g -fPIC -openmp -Bdynamic"
+CXX="icpc"
+CXXFLAGS="-fast -ipo-jobs1 -g -fPIC -openmp -Bdynamic"
+OMP_FCFLAGS="-openmp"
+MPI_FLAGS="-I/opt/MPI/include"
+FCLIBS="-openmp -ipo-jobs1 -Bdynamic -lifport -lifcore -limf -lirc -lsvml -lm -lipgo -lintlc -lc -ldl"
+F90LIBS="${FCLIBS}"
+LDFLAGS="-openmp -ipo-jobs1 -Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2 -L/lib64 -L/usr/lib64 -ldl"
+#
+export FC FCFLAGS F77 FFLAGS CC CFLAGS CXX CXXFLAGS MPI_FLAGS FCLIBS F90LIBS LDFLAGS
+#
+LIBS="-Bdynamic -L/usr/X11R6/lib64" export LIBS
+X_PRE_LIBS="-Bdynamic -L/lib64 -L/usr/lib64 -L/usr/X11R6/lib64 -lXpm -lXp -lXft -ljpeg -lfreetype -lfontconfig -lexpat -lxml2 -lXrender -lXaw -lXmu -lXdmcp -lSM -lICE -lXau -lXt -lXext -lX11 -lz" export X_PRE_LIBS
+CFCDEFINES="-DpgiFortran" export CFCDEFINES
+FCDEFINES="-D_GNU_SOURCE" export FCDEFINES
+MPI_LD="-L/opt/MPI/lib   -lmpich -lpthread" export MPI_LD
+MPI_FCLD="-L/opt/MPI/lib -lmpichf90  -lfmpich  -lmpich" export MPI_FCLD
+OMP_FCLD="-openmp -ipo-jobs1 -ldl" export OMP_FCLD
+FFTW_FCLD="-L/opt/FFTW/3.3_single_so/lib -lfftw3f" export FFTW_FCLD
+#./configure  --enable-maintainer-mode --prefix=/opt/SEP/SEP8.0 --with-su=/opt/SU --with-fftw    --with-qt-dir=/opt/QT
+gmake clean
+autoreconf --force .
+./configure  --prefix=/small/stew/SEP8.0 --enable-shared=yes --enable-static=no --with-su=${CWPROOT} --with-fftw  --with-mpi --with-qt-dir=/opt/QT --with-motif=yes
+cd vplot
+autoreconf --force .
+./configure  --prefix=/small/stew/SEP8.0 --enable-shared=yes --enable-static=no --with-motif=yes
+cd ..
+cd interact
+autoreconf --force .
+./configure  --prefix=/small/stew/SEP8.0 --enable-shared=yes --enable-static=no --with-motif=yes --with-qt-dir=/opt/QT QMAKE=/opt/QT/bin/qmake --with-fftw --with-su=/opt/SU
+cd ..
+gmake && gmake install
+# Copy system libraries to syslibs area
+rm -rf /small/stew/SEP8.0/lib/syslibs
+mkdir -p /small/stew/SEP8.0/lib/syslibs
+for i in `ldd /small/stew/SEP8.0/bin/* | grep lib | sort -k 1,1 -u | grep -v 'stew/SEP' |  awk '{ print $3 }'` ; do cp -f $i /small/stew/SEP8.0/lib/syslibs/. ; done

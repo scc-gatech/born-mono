@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sep3df - sep3d f90 structure</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sep3df - sep3d f90 structure (superset)</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>type(sep3d)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>type sep3d{</p>
+<pre>
+        character(len=128) :: tag              #tag to sep3df, MUST  BE SPECIFIED</pre>
+<pre>
+        integer, dimension(:),pointer  :: n #length of regular axes</pre>
+<pre>
+        real, dimension(:) ,pointer    :: o,d #initial and sampling  of regular axes</pre>
+<pre>
+        character(len=128),dimension(:),pointer::label,unit #label and unit for axes</pre>
+<pre>
+        integer :: nkeys,ndims          #number of keys and regular dimensions</pre>
+<pre>
+        integer :: drn #data record number (-1 if in same order)</pre>
+<pre>
+        integer :: ntraces # number of traces in the dataset</pre>
+<pre>
+  integer :: nsect   # number of sections</pre>
+<pre>
+  integer :: nmpi   # number of threads</pre>
+<pre>
+  integer :: impi   # thread number</pre>
+<pre>
+        character(len=128),pointer,dimension(:) :: keyname,keytype,keyfmt #keyname,type and format</pre>
+<pre>
+        character(len=128) :: usage #usage (INPUT,OUTPUT,SCRATCH) for dataset</pre>
+<pre>
+        character(len=128) :: data_format #data format (FLOAT,BYTE,COMPLEX,INTEGER)</pre>
+<pre>
+        character(len=128) :: file_format #file format (REGULAR,HEADER,GRID)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>supersetf90</strong></p>
+
+</body>
+
+</html>

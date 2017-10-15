@@ -1,0 +1,89 @@
+
+
+=head1 NAME
+
+sep - SEPlib Base Library
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+SEPlib Base Library
+
+=head1 FUNCTIONS
+
+
+
+L<puthead> -  put a formated string to seplib history file
+
+
+
+L<evaluate_expression> - evaluate a mathematical expression
+
+L<getch> - grab a parameter from command line
+
+L<getch_add_string> - add parameters to the command line
+
+L<sreed> - read in an array from a seplib file
+
+L<slice> - write to the screen an array (through Grey etc)
+
+L<auxpar> - get parameter from auxilary file
+
+L<sseek> - seek to a position in a SEPlib dataset
+
+L<sseek_block> - seek to a position in a SEPlib dataset by blocks
+
+L<srite> - write an array to seplib tag
+
+L<copy_history> - write an array to seplib tag
+
+L<initpar> - initiate seplib I/O parameter handling
+
+L<alloc> - allocate C array with error checking
+
+L<seperr> - print line and exit with a failure code
+
+L<hclose> - close the seplib output history file
+
+L<sreed_window> - read a window of a seplib dataset
+
+L<srite_window> - write a seplib window
+
+L<ssize> - obtain the size of a seplib file
+
+L<ssize_block> - obtain the number of blocks in a seplib file
+
+L<putch> - put argument in output history file
+
+L<datapath> - The datapath to put a seplib binaries
+
+L<auxputhead> - put a formated string to seplib history file
+
+L<auxclose> - Close a SEPlib history file
+
+L<separg> - return the ith command linea argument
+
+L<sepwarn> - print a string and return a specified value
+
+L<sepwarn> - print a string and return a specified value
+
+L<fullnm> - expand filename to a fully qualified name with all path prefixes
+
+L<hetch> - grab parameter from input history file
+
+L<h2c> - convert from helix to cartersian coordinates
+
+L<c2h> - convert from cartesian
+
+L<auxputch> - put parameter into auxilary file
+
+L<doc> - program self documentation
+
+L<fetch> - grab a parameter from the command line or history file
+
+L<make_unpipe> - unpipe a seplib file (therefore back seakable)
+
+=cut 

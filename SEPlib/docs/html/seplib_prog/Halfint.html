@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Halfint - half order integeral filter</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#example">EXAMPLE</a></li>
+	<li><a href="#reference">REFERENCE</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Halfint - half order integeral filter</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Halfint conj=0 inv=0 &lt; in.H &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_inv__2d_integer">inv - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: half-order integrator .
+          1: half-order differentiator .</pre>
+</dd>
+<dt><strong><a name="item_conj_2d_integer">conj- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: causal .
+          1: anticausal .</pre>
+</dd>
+<dt><strong><a name="item_rho__2d_real">rho - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [1-2/n1]: constant for leaky integration .</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3_2d_integer">n1,n2,n3- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        cube dimensions</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+  half-order integral filter on 1-axis with conjugate and inverse.
+  computation in the Fourier domain.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="example">EXAMPLE</a></h1>
+<pre>
+                Halfint &lt; in.H conj=0 inv=1 &gt; out.H
+                computes the causal half-order derivative of the input data</pre>
+<p>
+</p>
+<hr />
+<h1><a name="reference">REFERENCE</a></h1>
+<pre>
+                GEE page xxx and PVI page xxxx</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

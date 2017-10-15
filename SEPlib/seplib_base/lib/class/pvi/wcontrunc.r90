@@ -1,0 +1,18 @@
+# filter and weight.
+#
+subroutine wcontrunc( adj, add, ww,    lag, nx, xx, nf,ff,  nn,yy )
+use classutil
+integer i,            adj, add,        lag, nx,     nf,     nn
+real                            ww(nn),     xx(nx), ff(nf), yy(nn)
+temporary real                  ss(nn)
+call adjnull(         adj, add,                     ff,nf,  yy,nn)
+if( adj == 0) {  call contrunc( 0,0, lag,  nx,xx,   nf,ff,  nn,ss)      
+                 do i= 1, nn
+                        yy(i) =  yy(i) + ss(i) * ww(i)
+                 }
+else          {  do i= 1, nn
+                        ss(i) =          yy(i) * ww(i)
+                 call contrunc( 1,1, lag,  nx,xx,   nf,ff,  nn,ss)      
+                 }
+return;  end
+

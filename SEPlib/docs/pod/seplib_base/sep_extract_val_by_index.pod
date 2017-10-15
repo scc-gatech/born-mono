@@ -1,0 +1,72 @@
+=head1 NAME
+
+
+sep_extract_val_by_index - extract a header value by its index
+
+=head1 DESCRIPTION
+
+
+  Extract n-values of Header Values associated with
+	Key Index from vector of Header Values with mixed Header Types.
+
+=head1 SYNOPSIS
+
+
+C<sep_extract_val_by_index(tag_history,key_index,n_values,values,all_values)>
+
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item   char*- tag_history    
+
+        tag of History File
+
+=item   int* - key_index      
+
+        Key Index of Header Key
+
+=item   int* - n_values      
+
+        Number of Values to be written in contiguos records.  
+
+=item   void* - all_values    
+
+        Vector of Header Values with mixed Header Types
+
+=back
+
+
+=head1 OUTPUT PARAMETER
+
+
+=over 4
+
+=item   void* - values         
+
+        Header Values at for Key Index
+
+=back
+
+
+=head1 RETURN VALUE
+
+
+ -1= if fails for other reasons
+
+ 0 =if successful
+
+ +1 =if tag_history is a Sep77 History File
+
+ +2= if tag_history is a Sep3d History File but
+      no matching Key Index is in Header Format File
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

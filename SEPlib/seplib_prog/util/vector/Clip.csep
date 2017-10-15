@@ -1,0 +1,433 @@
+ /*$
+
+=head1 NAME
+
+Clip,Scale    - compute clip on a dataset and apply it if requested
+
+=head1 SYNOPSIS
+
+  Clip pclip=98 dclip=1 retry=y chop=no to=zero  < in.H > out.H
+
+  Scale  <  in.H > out.H axis=12
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item  pclip      -   int      
+
+       [98]: clip percentile  [75] for softclip, [98] for Clip, [100] for Scale
+
+=item  dclip    -   float    
+
+       [1.]: scale on clip (the maximum value of the data will be dclip)
+
+=item  dscale       -   float     
+
+       Set the scale value yourself
+
+=item  clip       -   float     
+
+       Set the clip value yourself
+
+=item  loclip, hiclip
+
+       Set low and high clip values separately.
+
+=item  softclip   - boolean
+
+       [n]: If set to 'y', then softclip with gd/sqrt(1+g^2d^2)
+            where g is the pclip'th percentile, defaulting to 75th
+
+=item  retry      -   boolean     
+
+       [y]: If the clip turns out zero, the program will try again with 
+	    a higher pclip if the input file is not all zeroes.
+            Defaults to no for Scale, yes for Clip.
+
+=item  chop       -   char*    
+
+       [no]:     values are not clipped.
+       less:     all values less than or equal to the clip value are changed
+       greater:  all values greater than the clip value are changed
+
+=item  to	- char*
+
+                 What the above values are changed to a value, or 'clip'.
+                 When chop=g or l, then setting to='clip' says magnitudes
+                 are clipped while retaining the original sign. Otherwise
+		 default value is 0.0.
+
+=item n1,n2,n3,n4,n5,n6   -   int    
+
+      standard SEP cube dimensions.
+
+=item axis - int
+
+      Sub cube to do individual clip/scale operations on. Defaults to
+      the entire dataset
+
+=item max_size - int 
+
+       [50] Maximum memory to use  in megabytes
+
+=item j  - int
+
+       [nsize/esize/max_size]  - Subsamples the dataset to calculate
+        clip values. For Scale option the entire dataset is used.
+
+=back
+
+=head1  DESCRIPTION
+
+  Clip - compute clip value based on all the data and put it on the header,
+               and do various sorts of clipping if requested.
+
+  Scale - compute maximum on a given sub-cube and standardize
+          the entire dataset to maximum of dclip
+
+=head1  NOTES
+
+   Only Scale option available on complex data
+
+
+=head1 CATEGORY
+
+B<util/vector>
+
+=cut
+>*/
+/*
+
+ KEYWORDS clip
+
+ SEE ALSO			Again
+
+*/
+/*
+ * Keyword: clip 
+ */
+
+/*
+ * Written by Shuki Ronen
+ *
+ * modified: Joe Dellinger 11-18-85 added retry, chop, and to.
+ *    Changed name to Clip from Getclip.
+ *
+ * Martin Karrenbach 11-3-92  changed alloc(sizeof()) and sreed/srite sizeof(xdr)
+ * Dave Nichols 17/8/94  changed  to use sseek
+ *
+ * Bob Clapp 2003/04/26  Big time rewrite/change Merged with Scale
+ *
+ * Stewart A. Levin 25 August 2015  Reworked clipping to saner inputs and
+ *     logic.  Clip is now either inside (chop=l) or outside (chop=g)
+ *     [loclip,hiclip] or [-clip,clip] modified as necessary by dscale.
+ *     Added softclip option as per Jon's paper.
+ */
+#include <sepConfig.h>
+#include <stdlib.h>
+#include <complex.h>
+#include <sep3dc.h>
+#include <sepmath.h>
+ADD_DEF_SEP_DOC
+#include <sep.main>
+void quant(int,float *, int);
+/*----------------------------------------------------------------------------*/
+int MAIN (void)
+{
+	int     n1, n2, n3, k, pos, esize ;
+	float   clip, dclip, pclip, *x;
+        int	retry, softclip;
+	char    chop[10], to[20];
+	float   to_value;
+	float	loclip, hiclip;
+  char progname[256];
+  char axis[9],j2;
+  int maxsize,have,i,jskip;
+  int verb,nouter,ndim,nblock,nproc,ndo,ibig,good,do_scale,do_clip;
+  int provide,iouter,providec,provides,jlast,clip_pos,nreadi;
+  sep3d input;
+  double ninner,ndone,nread,nbig;
+  float complex *cbuf;
+  float  *fbuf;
+  float  *buf;
+  float ftemp;
+  double dtemp;
+  float my_max,scale,mys;
+  float puse,clipit;
+
+  sep_begin_prog();
+  init_3d();
+
+  /*Initialize the dataset */
+  if(0!=init_sep3d_tag("in",&input,"INPUT"))
+    return(sepwarn(-1,"Trouble initializing tag from input \n"));
+
+  /*verbosity level*/
+  if(0==getch("verb","1",&verb)) verb=0;
+
+  /*subcube do calculations on*/
+  if(1==getch("axis","s",axis)) {
+    ndim=MIN(input.ndims,atoi(&axis[(int)strlen(axis)-1]));
+    if(ndim < 1 ) 
+     seperr("illegal axis ending %d in axis=%s \n",ndim,axis);
+  }
+  else ndim=input.ndims;
+  for(i=0,nbig=1; i < ndim; i++) nbig=nbig*input.n[i];
+  for(i=ndim,nouter=1; i < input.ndims; i++) nouter=nouter*input.n[i];
+
+
+  sep_prog(progname);
+
+  if( !getch ("dclip", "f", &dclip) )  dclip = 1.;
+  if( !fetch ("esize", "d", &esize) )  esize=4;
+  if( !getch("max_size","d",&maxsize)) maxsize=50;
+  maxsize=50*1000*1000/esize;
+
+
+  providec=provides=1;
+  if( 0==getch("loclip bclip","f",&loclip) ||
+            0==getch("hiclip eclip","f",&hiclip)) {
+	if( 0==getch ("clip", "f", &clip) ) providec=0;
+        else { hiclip = clip; loclip = -clip; }
+  }
+  scale=1;
+  if(0==getch("dscale","f",&scale)){
+    if(0==getch("rscale","f",&scale)) provides=0; 
+  }
+  if (1==provides)putch("dscale","f",&scale);
+  if (1==providec)putch("clip","f",&clip);
+   
+  softclip = 0;
+  getch("softclip","1",&softclip);
+
+   
+  if(0==strcmp(progname,"Scale")){
+		 if( !getch( "pclip qclip", "f", &pclip) )  pclip = 101.;
+     do_scale=1; do_clip=0; 
+  } 
+  else{
+		if( !getch( "pclip qclip", "f", &pclip) )  {
+                     if(softclip) pclip=75; else pclip = 98.;
+                }
+    if(esize!=4) seperr("only work with esize=4 data when clipping\n");
+     do_scale=0; do_clip=1; 
+  }
+  if(pclip<100){
+    jskip=MAX(1,(int)(nbig/(double)maxsize));
+  }
+  else jskip=1;
+  
+  if(verb) fprintf(stderr,"subcube dim=%d size=%g nouter=%d jskip=%d\n",
+      ndim,nbig,nouter,jskip);
+
+  maxsize=nbig/jskip;
+
+  strcpy( chop, "no"); 
+	retry=1; getch( "retry", "1", &retry);
+	getch( "chop", "s", chop);
+
+
+	if( chop[0]=='g') { strcpy( to, "clip"); }
+	else if( chop[0]=='l') { strcpy( to, "clip"); }
+	else {              strcpy( to, "0.0");  }
+	getch( "to clip_to scale_to", "s", to);
+
+	if( chop[0] != 'n') {
+		putch( "chop", "s", chop);
+		putch( "to",   "s", to);
+	};
+
+  if(provides==1  && providec==0 && pclip>=100. && chop[0]!='n')
+    seperr("Providing dscale or rscale and not providing a clip value, and clipping the  maximum isn't logical\n");
+
+/*  if(provides ==1  || pclip <100.) do_scale=1;*/
+  if(provides ==1  ) do_scale=1;
+  if(providec ==1)  do_clip=1;
+
+  if((providec ==0 && do_clip==1) ||(provides ==0 && do_scale==1)) provide=0; 
+  else provide=1;
+
+
+  fbuf=(float*) malloc(sizeof(float)*1000000);
+  if(esize==8) cbuf=(float complex*) malloc(sizeof(float complex)*1000000);
+  buf=(float*) malloc(sizeof(float)*maxsize);
+
+  make_unpipe("in");
+
+  for(iouter=0; iouter < nouter; iouter++){
+   if(providec==0){
+    ndone=0; ibig=0; jlast=0;
+    while(ndone < nbig ){
+      nproc=(int)MIN(nbig-ndone,maxsize);
+      if(esize==4) {
+        nreadi=0;
+        while(nreadi < nproc){
+          ndo=MIN(1000000,nproc-nreadi);
+          if(esize*ndo!=sreed("in",fbuf,esize*ndo))
+             seperr("trouble reading in dataset \n");
+          if(nreadi==0) my_max=fabs(fbuf[0]);
+          if(pclip>100.){
+            for(i=0; i < ndo;i++)  my_max=MAX(fabs(fbuf[i]),my_max);
+          }
+          else{
+            for(i=jlast; i < ndo;i+=jskip,ibig++) buf[ibig]=fbuf[i];
+            jlast=i-ndo;
+          }
+          nreadi=nreadi+ndo; 
+        }
+      }
+      else{
+        nreadi=0;
+        while(nreadi < nproc){
+          ndo=MIN(1000000,nproc-nreadi);
+          if(esize*ndo!=sreed("in",cbuf,esize*ndo))
+             seperr("trouble reading in dataset \n");
+          if(pclip>100.){
+            if(nreadi==0) my_max=cabsf(cbuf[0]);
+            for(i=0; i < ndo;i++) my_max=MAX(my_max,cabsf(cbuf[i]));
+          } 
+          else{
+            for(i=jlast; i < ndo;i+=jskip,ibig++) buf[ibig]=cabsf(cbuf[i]);;
+            jlast=i-ndo;
+          }
+          nreadi+=ndo; 
+        }
+      }
+      ndone+=nproc;
+    }
+   
+
+    /*figure out the clip value*/
+    if(pclip<100){
+      /*if we are Scale we are done.If clip we need to figure out our clip val*/
+      good=0; puse=pclip;
+      while(good==0){
+		    k = puse/100.*maxsize- 0.5;   /* integer index of clip value */
+	  	  quant( k, buf, maxsize);
+	  	  clipit = buf[k];
+        if(clipit!=0. || (!retry) || puse>=100.) good=1;
+      }
+    }
+    else clipit=my_max;
+    sseek_block("in",-esize*input.n[0],(int)(nbig/(double)(input.n[0])),1);
+   }
+   else  clipit=clip;
+  if(verb) fprintf(stderr,"For section=%d clip value=%f \n",iouter,clipit);
+
+   clipit*=dclip;
+   
+   /*figure out the scaling */
+   if(provides==1) mys=scale;
+   else if(do_scale==1 && pclip< 100.) mys=1./clipit;
+   else if(do_scale==1 && pclip>= 100.) mys=1./my_max;
+
+
+  if (providec==0 && to[0] == 'c') to_value = clipit;
+  else sscanf (to, "%f", &to_value);
+   if(clipit>=0.) clip_pos=1;
+   else clip_pos=0;
+  if(softclip) clipit = fabs(clipit);
+  if(providec==0) { hiclip = fabs(clipit); loclip = -hiclip; }
+  ndone=0;
+  ibig=0;
+  while(ndone < nbig ){
+    nproc=(int)MIN(nbig-ndone,maxsize);
+    if(esize==4) {
+      nread=0;
+      while(nread < nproc){
+        ndo=MIN(1000000,nproc-nread);
+        if(esize*ndo!=sreed("in",fbuf,esize*ndo))
+           seperr("trouble reading in dataset \n");
+        if(do_clip==1){
+          if(softclip) {
+             for(k=0; k < ndo;k++)  {
+                dtemp = clipit * fbuf[k];
+                fbuf[k] = (float) (dtemp / sqrt( 1.0 + dtemp*dtemp));
+             }
+          } else { /* not softclip */
+             if(chop[0] == 'l') for(k=0; k < ndo;k++) { /* inside clip */
+	          if ( (fbuf[k] <= hiclip) && (loclip <= fbuf[k]) )
+    	  	  	fbuf[k] = (fbuf[k] > 0.) ? to_value : -to_value;
+             }
+             if(chop[0] == 'g') for(k=0; k < ndo;k++) { /* outside clip */
+	          if ( fbuf[k] < loclip || hiclip < fbuf[k] )
+    	  	  	fbuf[k] = (fbuf[k] > 0.) ? to_value : -to_value;
+             }
+          }
+        }
+        if(do_scale==1){
+          for(k=0; k < ndo;k++)  fbuf[k] = fbuf[k]*mys;
+        }
+        if(esize*ndo!=srite("out",fbuf,esize*ndo))
+           seperr("trouble reading in dataset \n");
+        nread+=ndo; 
+      }
+    }
+    else{
+      nread=0;
+      while(nread < nproc){
+        ndo=MIN(1000000,nproc-nread);
+        if(esize*ndo!=sreed("in",cbuf,esize*ndo))
+           seperr("trouble reading in dataset \n");
+        /*only allow scaling when complex so this is easy*/
+        for(k=0; k < ndo;k++)  {
+          __real__ cbuf[k]=mys*__real__ cbuf[k];
+          __imag__ cbuf[k]=mys*__imag__ cbuf[k];
+        }
+        if(esize*ndo!=srite("out",cbuf,esize*ndo))
+           seperr("trouble reading in dataset \n");
+        nread+=ndo; 
+      }
+    }
+    ndone+=nproc;
+   }
+ }
+   
+ sep_end_prog();
+ return(EXIT_SUCCESS);
+}
+/******************************************************************************
+*                                function quant                               *
+*******************************************************************************
+* Input:                                                                      *
+*   k           quantile index by which to order the data                     *
+*   n           number of samples in input data                               *
+*   a[n]        1-D input data array                                          *
+*                                                                             *
+* Output:                                                                     *
+*   a[n]        ordered data according to quantile k                          *
+*                                                                             *
+* Note:                                                                       *
+*  this is a translation of program from SEP 10 p100.                         *
+*  quant reorders a[] such that a[j]<a[k] if j<k i.e. a[k-1]                  *
+*  is the k/n quantile.                                                       *
+******************************************************************************/
+void quant (int k, float *a, int n)
+{
+	int     low, hi, i, j;
+	double  ak, aa;
+
+	low = 0;
+	hi = n - 1;
+	while (low < hi) {
+		ak = a[k];
+		i = low;
+		j = hi;
+		do { 
+			while( a[i] < ak) { i++; }
+			while( a[j] > ak) { j--; }
+			if (i <= j) {
+				aa = a[i];
+				a[i] = a[j];
+				a[j] = aa;
+				i++;
+				j--;
+			}
+		} while (i <= j);
+
+		if (j < k) { low = i; }
+		if (k < i) { hi = j;  }
+	}
+}
+/*----------------------------------------------------------------------------*/

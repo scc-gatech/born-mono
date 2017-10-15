@@ -1,0 +1,324 @@
+!!$=head1 NAME
+!!$
+!!$ Envelope - calculate signal amplitude
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$       <in.H  Envelope  [tc1=1 tc2=1 freq=0]  >out.H
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item  tc1   - integer
+!!$
+!!$       half width of smoothing triangle on 1-axis.
+!!$
+!!$=item tc2   - integer
+!!$
+!!$      half width of smoothing triangle on 2-axis.
+!!$      units of tc are sample points.
+!!$
+!!$=item tc3   - integer
+!!$
+!!$      half width of smoothing triangle on 3-axis.
+!!$      units of tc are sample points.
+!!$=item tc4   - integer
+!!$
+!!$      half width of smoothing triangle on 4-axis.
+!!$      units of tc are sample points.
+!!$
+!!$=item freq  - integer
+!!$
+!!$      [1] produce instantaneous frequency instead of envelope
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Analytic signal amplitude.
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/filter>
+!!$
+!!$=cut
+!>
+! KEYWORDS      envelope instantaneous frequency
+!
+!
+program envelope 
+  use sep
+  implicit none
+  integer  :: n6
+  integer xn1, xn2, n1,n2,n3,n4,n5,pad2,nloop,tc3,tc4
+  real,allocatable::	 data(:,:),  top(:,:), bot(:,:)
+  real,allocatable::	 top4(:,:,:,:), bot4(:,:,:,:)
+  complex ,allocatable::cdata(:), ctop(:)
+
+  call SEP_ADD_DOC()
+  call sep_init('')
+
+  call from_history("n1",xn1)
+  call from_history("n2",xn2,1)
+  call from_history("n3",n3,1)
+  call from_param("tc3",tc3,0)
+  call from_param("tc4",tc4,0)
+  n1 = pad2( xn1)
+  n2 = pad2( xn2)
+  if(tc3==0 .and. tc4==0) then
+  call from_history("n4",n4,1) ; n3=n3*n4
+  call from_history("n5",n4,1) ; n3=n3*n4
+  call from_history("n6",n4,1) ; n3=n3*n4
+  allocate(data(n1,n3),  top(n1,n2), bot(n1,n2))
+  allocate(cdata(n1), ctop(n1))
+  call goodie(xn1,xn2, n1,n2,n3, data, cdata, top,ctop, bot)
+  else
+  call from_history("n4",n4,1) ; 
+  allocate(data(n1,n2),  top4(n1,n2,n3,n4), bot4(n1,n2,n3,n4))
+  allocate(cdata(n1), ctop(n1))
+  call goodie_big(xn1,xn2, n1,n2,n3,n4, data, cdata, top4,ctop, bot4)
+  end if
+end program 
+subroutine goodie_big( xn1,xn2, n1,n2,n3,n4, data, cdata, top,ctop, bot)
+  use sep
+  implicit none
+  integer xn1, xn2, i1,n1,i2,n2, i3,n3, tc1, tc2, freq,n4,tc3,tc4,i4
+  real     data(n1,n2), top(n1,n2,n3,n4), bot(n1,n2,n3,n4)
+  real ,allocatable :: in(:),out(:)
+  complex cdata(n1), ctop(n1)
+  integer :: ierr
+  logical :: verb
+  call sep_begin_prog()
+  call from_param("tc1",tc1,1)
+  call from_param("tc2",tc2,1)
+  call from_param("tc3",tc3,0)
+  call from_param("tc4",tc4,0)
+  call from_param("freq",freq,0)
+   call from_param("verb",verb,.false.)
+  call hclose()	
+   if(verb) write(0,*) "Finished allocating"
+  do i4=1,n4  
+  do i3=1,n3  
+    do i2= 1, xn2  
+      ierr= sreed( 'in', data(:,i2), 4*xn1 )
+      do i1= 1, n1
+        cdata(i1) = 0.
+      end do 
+      do i1= 1, xn1
+        cdata(i1) = data(i1,i2)
+      end do 
+      call ftu( 1., n1, cdata)
+      cdata(1)      = cdata(1)      / 2.
+      cdata(1+n1/2) = cdata(1+n1/2) / 2.
+      do i1 = n1/2+2, n1
+        cdata(i1) = 0.
+      end do 
+      do i1=1,n1
+        ctop(i1) = cmplx(0., 2.*3.14159*(i1-1.)/n1) * cdata(i1)
+      end do 
+      call ftu( -1., n1, cdata)
+      call ftu( -1., n1, ctop)
+      do i1=1,n1  
+        bot(i1,i2,i3,i4) = conjg( cdata(i1)) * cdata(i1)
+        top(i1,i2,i3,i4) = conjg( cdata(i1)) * ctop (i1) / (0.,1.)
+      end do
+    end do 
+   end do
+   end do
+   if(verb) write(0,*) "Finished ffts"
+
+   allocate(out(n1),in(n1))
+   do i4=1,n4
+     do i3=1,n3
+       do i2=1,n2
+         in=top(:,i2,i3,i4)
+         call triangle(tc1,1,n1,in,out)
+         top(:,i2,i3,i4)=out
+
+         in=bot(:,i2,i3,i4)
+         call triangle(tc1,1,n1,in,out)
+         bot(:,i2,i3,i4)=out
+       end do
+     end do
+   end do
+   deallocate(in,out)
+   if(verb) write(0,*) "Finished smooth 1"
+   
+   allocate(out(n2),in(n2))
+   do i4=1,n4
+     do i3=1,n3
+       do i1=1,n1
+         in=top(i1,:,i3,i4)
+         call triangle(tc2,1,n2,in,out)
+         top(i1,:,i3,i4)=out
+
+         in=bot(i1,:,i3,i4)
+         call triangle(tc2,1,n2,in,out)
+         bot(i1,:,i3,i4)=out
+       end do
+     end do
+   end do
+   deallocate(in,out)
+   if(verb) write(0,*) "Finished smooth 2"
+   
+   allocate(out(n3),in(n3))
+if(tc3/=0) then
+   do i4=1,n4
+     do i2=1,n2
+       do i1=1,n1
+         in=top(i1,i2,:,i4)
+         call triangle(tc3,1,n3,in,out)
+         top(i1,i2,:,i4)=out
+
+         in=bot(i1,i2,:,i4)
+         call triangle(tc3,1,n3,in,out)
+         bot(i1,i2,:,i4)=out
+       end do
+     end do
+   end do
+  end if
+   deallocate(in,out)
+   if(verb) write(0,*) "Finished smooth 3"
+   
+   allocate(out(n4),in(n4))
+  if(tc4/=0) then
+   do i3=1,n3
+     do i2=1,n2
+       do i1=1,n1
+         in=top(i1,i2,i3,:)
+         call triangle(tc4,1,n4,in,out)
+         top(i1,i2,i3,:)=out
+
+         in=bot(i1,i2,i3,:)
+         call triangle(tc4,1,n4,in,out)
+         bot(i1,i2,i3,:)=out
+       end do
+     end do
+   end do
+  end if
+   deallocate(in,out)
+   if(verb) write(0,*) "Finished smooth 4"
+   
+
+  do i4=1,n4
+   do i3=1,n3
+    do i2=1,n2
+      do i1=1,n1
+        if ( bot(i1,i2,i3,i4) .ne. 0.) then
+          top(i1,i2,i3,i4) = top(i1,i2,i3,i4) / bot(i1,i2,i3,i4)
+        else
+          top(i1,i2,i3,i4) = 0.
+        end if
+      end do
+    end do 
+    do i2=1,xn2  
+      if ( freq .eq. 0 ) then
+        do i1=1,n1
+          data(i1,i2) = sqrt( bot(i1,i2,i3,i4) )
+        end do
+      else
+        do i1=1,n1
+          data(i1,i2) =  top(i1,i2,i3,i4)
+        end do
+      end if 
+    end do
+    do i2=1,xn2  
+      ierr= srite( 'out', data(:,i2), 4*xn1)
+  end do 
+  end do 
+  end do 
+  call sep_end_prog()
+end subroutine 
+subroutine goodie( xn1,xn2, n1,n2,n3, data, cdata, top,ctop, bot)
+  use sep
+  implicit none
+  integer :: ierr
+  integer xn1, xn2, i1,n1,i2,n2, i3,n3, tc1, tc2, freq
+  real     data(n1), top(n1,n2), bot(n1,n2)
+  complex cdata(n1), ctop(n1)
+  call sep_begin_prog()
+  call from_param("tc1",tc1,1)
+  call from_param("tc2",tc2,1)
+  call from_param("freq",freq,0)
+  call hclose()	
+  do i3=1,n3  
+    do i2= 1, xn2  
+      ierr= sreed( 'in', data, 4*xn1 )
+      do i1= 1, n1
+        cdata(i1) = 0.
+      end do 
+      do i1= 1, xn1
+        cdata(i1) = data(i1)
+      end do 
+      call ftu( 1., n1, cdata)
+      cdata(1)      = cdata(1)      / 2.
+      cdata(1+n1/2) = cdata(1+n1/2) / 2.
+      do i1 = n1/2+2, n1
+        cdata(i1) = 0.
+      end do 
+      do i1=1,n1
+        ctop(i1) = cmplx(0., 2.*3.14159*(i1-1.)/n1) * cdata(i1)
+      end do 
+      call ftu( -1., n1, cdata)
+      call ftu( -1., n1, ctop)
+      do i1=1,n1  
+        bot(i1,i2) = conjg( cdata(i1)) * cdata(i1)
+        top(i1,i2) = conjg( cdata(i1)) * ctop (i1) / (0.,1.)
+      end do
+    end do 
+    call triangle2( tc1, tc2, n1, n2, bot, bot)
+    call triangle2( tc1, tc2, n1, n2, top, top)
+    do i2=1,n2
+      do i1=1,n1
+        if ( bot(i1,i2) .ne. 0.) then
+          top(i1,i2) = top(i1,i2) / bot(i1,i2)
+        else
+          top(i1,i2) = 0.
+        end if
+      end do
+    end do 
+    do i2=1,xn2  
+      if ( freq .eq. 0 ) then
+        do i1=1,n1
+          data(i1) = sqrt( bot(i1,i2) )
+        end do
+      else
+        do i1=1,n1
+          data(i1) =  top(i1,i2)
+        end do
+      end if 
+      ierr= srite( 'out', data, 4*xn1)
+    end do
+  end do 
+  call sep_end_prog()
+end subroutine 
+!subroutine ftu( signi, nx, cx ){
+!integer nx, i, j, k, m, istep, pad2,a
+!real  signi, scale, arg
+!complex cx(nx), cmplx, cw, cdel, ct
+!if( nx != pad2(nx) )  call erexit('ftu: nx not a power of 2')
+!scale = 1. / sqrt( 1.*nx)
+!do i= 1, nx
+!  cx(i) = cx(i) * scale
+!j = 1;  k = 1
+!do i= 1, nx {
+!  if (i<=j) { ct = cx(j); cx(j) = cx(i); cx(i) = ct }
+!  m = nx/2
+!  while (j>m && m>1) { j = j-m; m = m/2 }   # "&" means .AND.
+!  j = j+m
+!  }
+!a=0
+!while(a==0) {
+!  istep = 2*k;   cw = 1.;   arg = signi*3.14159265/k
+!  cdel = cmplx( cos(arg), sin(arg))
+!  do m= 1, k {
+!    do i= m, nx, istep
+!      { ct=cw*cx(i+k);  cx(i+k)=cx(i)-ct;  cx(i)=cx(i)+ct }
+!    cw = cw * cdel
+!    }
+!  k = istep
+!  if(k>=nx) break
+!  }
+!}
+  

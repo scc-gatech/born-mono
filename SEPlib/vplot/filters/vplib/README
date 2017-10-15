@@ -1,0 +1,10 @@
+This program, along with plas and pldb, serves as a "poor man's"
+vplot editor. By using with this program such generic options as
+erase=o, hshift, vshift, scale, frame=y, xwmin, etc, you can combine
+plots, move them around, add frames, change their size, clip them,
+etc, etc, and save the result into a new vplot file.
+
+Plas and pldb allow you to do minor surgery by hand. The 'o' command
+allows you to shift objects around intact.
+
+	Author - Joe Dellinger, January 1988

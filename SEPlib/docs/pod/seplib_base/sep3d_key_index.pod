@@ -1,0 +1,69 @@
+=head1 NAME
+
+
+sep3d_key_index - try to find key in structure
+
+
+=head1 SYNOPSIS
+
+
+C<logical sep3d_key_index(struct,keyname,keyindex)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure to find key in
+
+=item keyname - char*
+
+       name of the key to find
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item keyindex- integer
+
+      index of the key
+
+=back
+
+=head1 RETURN VALUES
+
+
+=over 4
+
+=item .true.  -
+
+      found key
+
+=item .false. -
+
+       didn't find key
+
+=back
+
+=head1 DESCRIPTION
+
+
+Attempte to find the given key
+
+=head1 SEE ALSO
+
+
+L<sep3d_axis_index>
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

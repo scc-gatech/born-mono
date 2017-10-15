@@ -1,0 +1,42 @@
+=head1 NAME
+
+
+sep3d_grid_copy - Copy the grid
+
+
+=head1 SYNOPSIS
+
+
+C<call sep3d_grid_copy(in,out)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item in  -  sep3d
+
+      structure
+
+=item out  -  sep3d
+
+      structure
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Copy the grid from in to out
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

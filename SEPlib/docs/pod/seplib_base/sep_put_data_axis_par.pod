@@ -1,0 +1,71 @@
+=head1 NAME
+
+
+sep_put_data_axis_par - put n,o,d, label to output tag
+
+=head1 SYNOPSIS
+
+
+C<int sep_put_data_axis_par(tag_history,i_axis,n,o,d,label)>
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item   char* -  tag_history   
+
+        tag of History File
+
+=item   int* -    i_axis       
+
+        Axis number of parameters to read
+
+=item   int* -    n            
+
+        value of nh-i (i = i_axis)
+
+=item   float* -  o            
+
+        value of oh-i (i = i_axis)
+
+=item   float* -  d            
+
+        value of dh-i (i = i_axis)
+
+=item   char*l -  abel         
+
+        value of labelh-i (i = i_axis)
+
+=back
+
+=head1 RETURN VALUE
+
+
+ -1= if fails for other reasons
+
+ 0= if successful
+
+ +1= if tag_history is an Sep77 History File
+
+=head1 DESCRIPTION
+
+
+   Put the values that describe the i axis of the Data
+   Coordinate System into the Header Format File pointed 
+   by the History File corresponding to tag history.
+
+
+=head1 SEE ALSO
+
+
+L<sep_put_header_axis_par>, L<sep_put_grid_axis_par>, L<sep_get_data_axis_par>
+
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

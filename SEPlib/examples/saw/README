@@ -1,0 +1,16 @@
+
+
+Linux g77 does not accept SEP's memory allocation
+tricks.  As a result we now preprocess saw77 code
+into fortran90.
+
+The conversion is not perfect. The most common
+difference is that implicit none is set not only
+in subroutines but also in the main program.
+
+If you are using another f77 compiler you can try
+compiling with f77 by setting RATF90=no in the Makefile
+
+Bob
+
+

@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Fdmod2 - Finite-Difference MODeling for acoustic wave equation</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#usage">USAGE</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#notes">NOTES</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Fdmod2 - Finite-Difference MODeling (2nd order) for acoustic wave equation</p>
+<p>
+</p>
+<hr />
+<h1><a name="usage">USAGE</a></h1>
+<p>Fdmod2 &lt;vfile &gt;wfile nx= nz= tmax= xs= zs= [optional parameters]</p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<p>stdin  - sepfile</p>
+<pre>
+                file containing velocity[nx][nz]</pre>
+<p>stdout - sepfile</p>
+<pre>
+                file containing waves[nx][nz] for time steps</pre>
+<p>tmax  - float</p>
+<pre>
+                        maximum time</pre>
+<p>src_file - sepfile</p>
+<pre>
+   file (2,nsrc) containg src locations (z,x)</pre>
+<p>xs  - float*</p>
+<pre>
+                        x coordinates of sources</pre>
+<p>zs	- float*</p>
+<pre>
+    z coordinates of source</pre>
+<p>nt  - int</p>
+<pre>
+ [1+tmax/dt]  number of time samples (dt determined for stability)</pre>
+<p>mt  - int</p>
+<pre>
+ [1]            number of time steps (dt) per output time step</pre>
+<p>fmax  -float</p>
+<p>[vmin/(10.0*h)]  maximum frequency in source wavelet</p>
+<p>fpeak  -float</p>
+<p>[0.5*fmax]	peak frequency in ricker wavelet</p>
+<p>dfile- sepfile</p>
+<pre>
+  input file containing density[nx][nz]</pre>
+<p>vsx - float</p>
+<pre>
+  [o2] x coordinate of vertical line of seismograms</pre>
+<p>hsz - float</p>
+<pre>
+   [o1] z coordinate of horizontal line of seismograms</pre>
+<p>vsfile -sepfile</p>
+<pre>
+  [none]        output file for vertical line of seismograms[nz][nt]</pre>
+<p>hsfile -sepfile</p>
+<pre>
+  [none]        output file for horizontal line of seismograms[nx][nt]</pre>
+<p>ssfile -sepfile</p>
+<pre>
+  [none] output file for source point seismograms[nt]</pre>
+<p>verb -int</p>
+<pre>
+  [0]           =1 for diagnostic messages, =2 for more</pre>
+<p>abs - int[4]</p>
+<pre>
+  [1,1,1,1]             Absorbing boundary conditions on top,left,bottom,right</pre>
+<pre>
+                        sides of the model. 0,1,1,1 for free surface condition on the top</pre>
+<p>pml_max - float</p>
+<pre>
+  [1000.0]       PML absorption parameter</pre>
+<p>pml_thick - int</p>
+<pre>
+ [0]           half-thickness of pml layer (0 = do not use PML)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="notes">NOTES</a></h1>
+<p>1. This is sufdmod2 for SEPlib</p>
+<p>2. The sources specification order is</p>
+<pre>
+  a. src_file - seplib file containing source locations</pre>
+<pre>
+  b. xs=3,4,5 zs=4,5,6  command list of sources</pre>
+<pre>
+  c. oxs= dxs= nxs= ozs= dzs nzs - which will increase the dimensionality
+    of the output by 1 ( ., , nxz, nzs)</pre>
+<p><table cellspacing="0" cellpadding="0"><tr><td>Notes:<td>
+<tr><td>This program uses the traditional explicit second order differencing<td>
+<tr><td>method.</table></p>
+<p>Two different absorbing boundary condition schemes are available. The 
+first is a traditional absorbing boundary condition scheme created by 
+Hale, 1990. The second is based on the perfectly matched layer (PML)	
+method of Berenger, 1995.</p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/model</strong></p>
+
+</body>
+
+</html>

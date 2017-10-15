@@ -1,0 +1,94 @@
+!!$=head1 NAME
+!!$
+!!$Helderiv - Helix derivative filter in 2-D
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Helderiv < in.H helix=1 na=16 > out.H
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Factors the laplacian operator.  Applies helix derivative.  Loops over n3
+!!$
+!!$=head1 PARAMETERS
+!!$
+!!$=over 3
+!!$
+!!$=item from history
+!!$
+!!$B<integer> I<n1>, I<n2>
+!!$
+!!$=item from par
+!!$
+!!$B<logical> I<helix>=1 - if 0, apply the gradient filter on the 1st axis
+!!$
+!!$B<integer> I<na>=16 - filter size (half the number of nonzero coefficients)
+!!$
+!!$B<real> I<eps>=0.001 - zero frequency shift on the laplacian
+!!$
+!!$=back
+!!$
+!!$=head1 EXAMPLES
+!!$
+!!$F<gee/hlx/helderiv/>, F<gee/hlx/helgal/>, F<gee/hlx/mam/>
+!!$
+!!$=head1 MODULES
+!!$
+!!$F<helicon.lop>, F<helderiv.r90>
+!!$
+!!$=head1 SEA ALSO
+!!$
+!!$L<Helicon>, L<Wilson>
+!!$
+!!$=cut
+!%
+
+program Held
+  use helderiv
+  use helicon
+  use sep
+
+  implicit none
+  integer                          :: na, stat, n1, n2, n12, i3, n3
+  logical                          :: hel
+  real                             :: eps
+  real, dimension (:), allocatable :: pp, qq
+  type( filter)                    :: aa
+
+  call SEP_ADD_DOC()
+  call sep_init ('')
+  call sep_begin_prog()
+  call from_history (n1, n2, n3)
+  call from_par ("helix",hel,.true.)
+  call from_par ("na", na, 16)
+  call from_par ("eps", eps, 0.001)
+  call hclose()
+
+  n12 = n1*n2
+  allocate (pp(n12), qq(n12))
+
+  if (hel) then
+     call helderiv_init (n1, na, eps) 
+     do i3=1,n3
+        call sep_read ( pp)
+	stat = helderiv_lop (.false.,.false., pp, qq)
+        call sep_write( qq)
+	enddo
+     call helderiv_close ()
+  else 
+     call allocatehelix( aa, 1)
+     aa%flt( 1) = -1.
+     aa%lag( 1) =  1
+     call helicon_init (aa) 
+     do i3=1,n3
+        call sep_read ( pp)
+        stat = helicon_lop (.false.,.false., pp, qq)
+        call sep_write( qq)
+	enddo
+     call deallocatehelix( aa)
+  end if
+
+  deallocate (pp, qq)
+  call sep_end_prog()
+
+end program Held

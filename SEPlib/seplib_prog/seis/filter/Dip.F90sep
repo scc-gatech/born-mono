@@ -1,0 +1,251 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$Dip - Calculate dip
+!!$
+!!$=head1  DESCRIPTION
+!!$
+!!$Calculates the dip of dataset using one of several methods
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Dip < in.H > out.H
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item verb      - logical
+!!$
+!!$      [n]: Whether or not to be verbose
+!!$
+!!$=item max_size      - integer
+!!$
+!!$      [100]: Maximum memory in megabytes to use
+!!$
+!!$=item v3d      - logical
+!!$
+!!$      [n]: Whether [y] or not [n] to run 3-D version (smooth between slices,
+!!$
+!!$           more memory intensive and slower)
+!!$
+!!$
+!!$=item method      -  char*
+!!$
+!!$      [sergey_f]: Sergey's fast method
+!!$
+!!$=over 4
+!!$
+!!$=item eps      -  real
+!!$
+!!$      [.0001]:   - Smoothness of axis1
+!!$
+!!$=item eps2      -  real
+!!$
+!!$      [.0001]:   - Smoothness  of axes2 and 3
+!!$
+!!$=item nl_iter      -  integer
+!!$
+!!$      [10]:   - Number of non-linear iterations
+!!$
+!!$
+!!$=back
+!!$
+!!$      [sergey_s]: Sergey's slow method
+!!$
+!!$=over 4
+!!$
+!!$=item eps      -  real
+!!$
+!!$      [.01]:   - Smoothness of
+!!$
+!!$=item nl_iter      -  integer
+!!$
+!!$      [10]:   - Number of non-linear iterations
+!!$
+!!$=item niter      -  integer
+!!$
+!!$      [30]:   - Number of linear iterations
+!!$
+!!$=back
+!!$
+!!$      [puck_f]: Puck fast method
+!!$
+!!$=over 4
+!!$
+!!$=item nwind      -  integer(3)
+!!$
+!!$      [min(n,5)]:   - Smoothing of dx and dt
+!!$
+!!$=back
+!!$
+!!$
+!!$      [puck_s]: Puck slow method
+!!$
+!!$
+!!$=over 4
+!!$
+!!$=item nwind      -  integer(3)
+!!$
+!!$      [min(n,5)]:   - Moving window to calculate dx and dt
+!!$
+!!$=back
+!!$
+!!$=back
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Ft3d>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/filter>
+!!$
+!!$=cut
+!>
+! Author - Robert Clapp
+program dip_prog 
+  use sep
+  use sep_3d_mod
+  use sep3d_struct_mod
+  use find_xz_dip_mod
+  implicit none
+  real, pointer :: dat3(:,:,:),dat(:),dip3(:,:,:),dip(:),coh(:,:,:)
+  integer :: n(3),ndim,n123
+  type(sep3d) :: data
+  character(len=20) :: method
+  integer :: nwind(3),niter,nl_iter,ierr,n3,i3
+  integer :: istat
+  real :: eps,eps2,icycle
+  integer :: maxsize
+  logical :: verb,verb2,v3d,coher
+  call SEP_ADD_DOC()
+  call sep_init('')
+  call sep_begin_prog()
+  call init_sep3d("in",data,"INPUT")
+  n=1
+  ndim=sep3d_ndims(data)
+  call from_param('max_size',maxsize,100)
+  call from_param("verb",verb,.false.)
+  call from_param("v3d",v3d,.false.)
+  call from_param("coher",method,"none")
+  coher=.false.
+  if(method(1:4)/="none") then
+     coher=.true.
+    call sep3d_write_description("coher",data)
+  end if
+  maxsize=maxsize*250000
+  if (ndim>3) then
+    call erexit("can only calculate the dip on <= 3D data")
+  end if
+  n(1:ndim)=data%n(1:ndim)
+  verb2=.false.
+  if (.not. v3d) then
+    n3=n(3)
+    n(3)=1
+    if (n3>1 .and. verb) then
+      verb=.false.
+      verb2=.true.
+    end if
+  else
+    n3=1
+  end if 
+  n123=product(n)
+  icycle=.0001
+  do i3=1,n3 
+    if (verb2 .and. real(i3)/real(n3) > icycle ) then
+      write(0,*) "working on ",nint(real(i3)/real(n3)*100.),"%"
+      icycle=icycle+.05
+    end if
+    call from_param("method",method,"sergey_f")
+    if (method(1:8) .eq. "sergey_f") then
+      call from_param("eps",eps,.0001)
+      call from_param("eps2",eps2,.0001)
+      call from_param("nl_iter",nl_iter,10)
+      if (n123>maxsize/4) then
+        write(0,*) "need max_size to be at least ",n123*16/1000000+1
+        call seperr("maxsize to small ")
+      end if
+      if (i3.eq.1) then
+        allocate(dat(n123),dip(n123),stat=ierr)
+      end if
+      if (ierr.ne.0) then
+        call seperr("trouble allocating data")
+      end if
+      istat= sreed("in",dat,size(dat)*4)
+      if (.not. find_sergey_fast(n,dat,nl_iter,eps,eps2,dip,verb))&
+        & then
+        call seperr("trouble finding Sergey dip using fast method")
+      end if
+      istat= srite("out",dip,size(dip)*4)
+    else if (method(1:8) .eq. "sergey_s") then
+      call from_param("eps",eps,.04)
+      call from_param("niter",niter,20)
+      call from_param("nl_iter",nl_iter,10)
+      if (n123>maxsize/7) then
+        write(0,*) "need max_size to be at least ",n123*28/1000000+1
+        call seperr("maxsize to small ")
+      end if
+      if (i3.eq.1) then
+        allocate(dat(n123),dip(n123),stat=ierr)
+      end if
+      if (ierr.ne.0) then
+        call seperr("trouble allocating data")
+      end if
+      istat= sreed("in",dat,size(dat)*4)
+      if (.not. find_sergey_slow(n,dat,niter,nl_iter,eps,dip,verb))&
+        & then
+        call seperr("trouble finding Sergey dip using slow method")
+      end if
+      istat= srite("out",dip,size(dip)*4)
+    else if (method(1:6) .eq. "puck_f") then
+      nwind(1)=min(n(1),5)
+      nwind(2)=min(n(2),5)
+      nwind(3)=min(n(3),5)
+      call from_param("nwind",nwind,nwind)
+      if (n123>maxsize/4) then
+        write(0,*) "need max_size to be at least ",n123*16/1000000+1
+        call seperr("maxsize to small ")
+      end if
+      if (i3.eq.1) then
+        allocate(dat3(n(1),n(2),n(3)),coh(n(1),n(2),n(3)),dip3(n(1),n(2&
+          &),n(3)),stat=ierr)
+      end if
+      if (ierr.ne.0) then
+        call seperr("trouble allocating data")
+      end if
+      istat= sreed("in",dat3,size(dat3)*4)
+      if (.not. find_puck_dip_fast(dat3,nwind,dip3,coh)) then
+        call seperr("trouble finding Puch dip using fast method")
+      end if
+      istat= srite("out",dip3,size(dip3)*4)
+      if(coher) istat= srite('coher',coh,size(coh)*4)
+    else if (method(1:6) .eq. "puck_s") then
+      nwind(1)=min(n(1),5)
+      nwind(2)=min(n(2),5)
+      nwind(3)=min(n(3),5)
+      call from_param("nwind",nwind,nwind)
+      if (n123>maxsize/4) then
+        write(0,*) "need max_size to be at least ",n123*16/1000000+1
+        call seperr("maxsize to small ")
+      end if
+      if (i3.eq.1) then
+        allocate(dat3(n(1),n(2),n(3)),coh(n(1),n(2),n(3)),dip3(n(1),n(2&
+          &),n(3)),stat=ierr)
+      end if
+      if (ierr.ne.0) then
+        call seperr("trouble allocating data")
+      end if
+      istat= sreed("in",dat3,size(dat3)*4)
+      if (.not. find_puck_dip_slow(dat3,nwind,dip3,coh,verb)) then
+        call seperr("trouble finding Puch dip using fast method")
+      end if
+      if(coher) istat= srite('coher',coh,size(coh)*4)
+      istat= srite("out",dip3,size(dip3)*4)
+    else
+      write(0,*) "method=",trim(method)
+      call seperr( "Unknown method")
+    end if
+  end do 
+  call sep_end_prog()
+end program  

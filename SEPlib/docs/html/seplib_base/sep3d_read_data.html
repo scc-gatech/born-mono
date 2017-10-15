@@ -1,0 +1,126 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sep3d_read_data - read in data</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#return_values">RETURN VALUES</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sep3d_read_data - read in data</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>logic=sep3d_read_data(tag,struct,data,fwind,jwind,nwind)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_tag__2d_char_2a">tag      -  char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      name of the tag to read from</pre>
+</dd>
+<dt><strong><a name="item_struct__2d_sep3d">struct   -  sep3d</a></strong><br />
+</dt>
+<dd>
+<pre>
+      structure to read from</pre>
+</dd>
+<dt><strong><a name="item_fwind__2d_int_2a">fwind    -  int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (optional) begining of window to read</pre>
+</dd>
+<dt><strong><a name="item_jwind__2d_int_2a">jwind    -  int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (optional) sampling to read</pre>
+</dd>
+<dt><strong><a name="item_nwind__2d_int_2a">nwind    -  int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (optional) number of elem to read</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_data__2d_float_2fint_2fcomplex">data     -  float/int/complex</a></strong><br />
+</dt>
+<dd>
+<pre>
+       data to read</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_values">RETURN VALUES</a></h1>
+<dl>
+<dt><strong><a name="item_true__2d">true    -</a></strong><br />
+</dt>
+<dd>
+<pre>
+      if success</pre>
+</dd>
+<dt><strong><a name="item_false__2d">false   -</a></strong><br />
+</dt>
+<dd>
+<pre>
+      if it fails</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Read data</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>Must read in the headers first</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/sep3d_write_data.html">the sep3d_write_data manpage</a>,<a href="./../seplib_base/sep3d_grab_headers.html">the sep3d_grab_headers manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>supersetf90</strong></p>
+
+</body>
+
+</html>

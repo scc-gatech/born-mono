@@ -1,0 +1,61 @@
+=head1 NAME
+
+
+box - filter to hypercube
+
+=head1 SYNOPSIS
+
+
+C<call boxn (nd,center,na,aa,cube)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item nd  - C<int(:)>
+
+      Input data dimension
+
+=item center - C<int(:)>
+
+      Location of the 1 coeficient in box
+
+=item na  -  C<int(:)>
+
+      Dimensions of the filter
+
+=item aa  -
+
+      C<type(filter)> The filter
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item cube  -  real(:)
+
+      Output filter values
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Convert helix filter to hypercube: cube(na(1),na(2),...)
+
+=head1 SEE ALSO
+
+
+B<helix>, B<cartesian>, B<helixcart>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

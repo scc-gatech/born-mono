@@ -1,0 +1,93 @@
+=head1 NAME
+
+
+nmo_mod - Perform nmo
+
+=head1 SYNOPSIS
+
+
+Initializer-C<call nmo_init(slowness,offset,o1,d1)>
+
+operator-C<call nmo_nearest(adj,tt,zz)>
+
+operator-C<call nmo_linear(adj,tt,zz)>
+
+=head1 INITIALIZER
+
+
+=head2 INPUT PARAMETERS
+
+=over 4
+
+=item slowness - C<real(:)>
+
+           Slowness(t)
+
+=item offset   - C<real(:)>
+
+           Offset
+
+=item o1       - real
+
+           First sample in time
+
+=item d1       - real
+
+           Sampling in time
+
+=item inverse  - logical
+
+           Wheter or not to do inverse
+
+=back
+
+=head1 OPERATORS
+
+
+=over 4
+
+=item adj   - logical
+
+        Whether or not do adjoint
+
+=item tt    - C<real(:,:)>
+
+        Input
+
+=item zz    - C<real(:,:)>
+
+        Output
+
+=back
+
+
+=head1 DESCRIPTION
+
+Nmo by nearest or linear interpolation neighbor for a gather
+
+=head1 COMMENTS
+
+
+NMO, its transpose, inverse, and inverse transpose by nearest neighbor.
+
+adj=.false. inv=.false.:	zz(iz) = [NMO]                   tt(it)
+
+adj=.true. inv=.false.:	tt(it) = [NMO adj]         zz(iz)
+
+adj=.false. inv=.true.:	tt(it) = [NMO inverse]           zz(iz)
+
+adj=.true. inv=.true.:	zz(iz) = [NMO inverse transpose] tt(it)
+
+
+=head1 SEE ALSO
+
+
+L<Nmo3d>
+
+=head1 LIBRARY
+
+
+B<sepvelanf90>
+
+=cut
+

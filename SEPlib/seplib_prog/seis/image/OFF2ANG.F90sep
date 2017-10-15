@@ -1,0 +1,569 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$ OFF2ANG - Conversion from offset to angle and back
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$OFF2ANG par=parfile.P < input.H > output.H 
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item inverse=.false. (logical)  
+!!$
+!!$      Whether to do forward (offset to  angle) 
+!!$                 or inverse ( angle to offset) transformation
+!!$
+!!$=item maxmem=100. (real) 
+!!$
+!!$      Maximum in-core memory (in Mbytes)
+!!$
+!!$=item eps=1.0 (real) 
+!!$
+!!$      Epsilon parameter used by the radial trace transform
+!!$
+!!$=item push=.false. (logical)
+!!$
+!!$      push=.false. means pull transformation
+!!$
+!!$=item verb=.false. (logical) 
+!!$
+!!$      Verbose execution
+!!$
+!!$=item amax=float  (maximum angle)
+!!$
+!!$      Maximum angle
+!!$
+!!$=item nzpad=n1 (int) 
+!!$
+!!$      Pading on the depth axis
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Conversion from angle to offset and back.
+!!$ Uses radial trace transforms in the Fourier domain.
+!!$ Theory in Sava & Fomel(2000) - SEP103
+!!$
+!!$ real input/output
+!!$
+!!$  forward transformation
+!!$  input  is z-hx-hy-mx-my(-ro)
+!!$  output is z-ax-ay-mx-my(-ro)
+!!$  
+!!$  inverse transformation
+!!$  input  is z-ax-ay-mx-my(-ro)
+!!$  output is z-hx-hy-mx-my(-ro)
+!!$
+!!$=head1 KEYWORDS
+!!$
+!!$  angle-domain, wave-equation
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/image>
+!!$
+!!$=cut
+!!$
+!!$ Paul Sava (paul@sep.stanford.edu)
+!!$ 01/10/01
+!!$
+!!$
+!>
+!%%
+program OFF2ANG
+
+  use sep
+  use utilities_mod, paxisU => paxis
+  use omppar_mod
+  use adcig_mod, paxisS => paxis
+  use odcig_mod
+
+  integer, parameter:: dbl=selected_int_kind(15)
+
+  type(paxisS) :: az,amx,amy,ar
+  type(paxisS) :: ahx,ahy
+  type(paxisS) :: aax,aay
+
+#ifdef SEP_OMP
+  integer, external :: omp_get_num_threads
+  integer, external :: omp_get_thread_num
+#endif
+
+  real        :: amax,hmax
+
+  real        :: eps,pi
+  logical     :: verb, push
+  integer     :: nzpad,nzold
+  integer     :: stat,i1,i2,i3,i4
+
+  !! z-hx-hy-ngathers
+  real,    dimension(:,:,:,:), pointer :: rdata
+  complex, dimension(:,:,:,:), pointer :: cdata
+
+  logical :: inverse
+  integer :: esize
+  real    :: maxmem    !! max memory available  (Mb)
+  real    :: gathermem !! memory for one gather (Mb)
+  integer :: nth,      ith
+  integer :: nblocks,  iblocks
+  integer :: ierr
+  integer(kind=dbl) :: ngathers, igathers, allgathers
+
+#ifdef SEP_OMP
+  !$OMP PARALLEL
+  nth = omp_get_num_threads()
+  !$OMP END PARALLEL
+#else
+  nth=1
+#endif
+
+  pi = acos(-1.)
+  call sep_init('')
+  call SEP_ADD_DOC()
+
+  !----------------------------------------------------------------
+  call from_history("esize",esize,4)
+  if(esize /=4) call seperr("need real input data (esize=4)")
+  !----------------------------------------------------------------
+
+  call pinaxis(az ,1)
+  call pinaxis(amx,4)
+  call pinaxis(amy,5)
+  call pinaxis(ar ,6)
+
+  call from_param("inverse",inverse,.false.)
+write(0,*) "CHECK INVERSE",inverse
+  call from_param("maxmem",maxmem,   100.)    !! Mb
+  call from_param(   "eps",   eps,    1.0)
+  call from_param(  "push",  push,.false.)
+  call from_param(  "verb",  verb,.false.)
+
+  call from_param( "nzpad", nzpad,   az%n)
+  nzold = az%n
+  az%n = nzpad
+
+  if(inverse) then
+     !----------------------------------------------------------------
+     call pinaxis(aax,2)
+     call pinaxis(aay,3)
+     if(aax%n==1 .and. aay%n==1) call seperr("need prestack data")
+     !----------------------------------------------------------------
+     call from_param(  "hmax",  hmax,    1.) ! change this
+     !----------------------------------------------------------------
+
+     ahx%n = aax%n   
+     ahx%d = 1.
+     if(ahx%n /=1) then
+        if(aax%o ==0.) then
+           ahx%o = 0.
+           ahx%d =   hmax/ahx%n
+        else
+           ahx%o =  -hmax
+           ahx%d = 2*hmax/ahx%n
+        end if
+        call pouaxis(ahx,2)
+        call to_history ("label2","hx")
+
+        if(verb) then
+           write(0,*) "requested max hx =",hmax
+        end if
+     end if
+
+     ahy%n = aay%n
+     ahy%d = 1.
+     if(ahy%n /=1) then
+        if(aay%o ==0.) then
+           ahy%o = 0.
+           ahy%d =   hmax/ahy%n
+        else
+           ahy%o =  -hmax
+           ahy%d = 2*hmax/ahy%n
+        end if
+        call pouaxis(ahy,3)
+        call to_history ("label3","hy")
+
+        if(verb) then
+           write(0,*) "requested max hy =",hmax
+        end if
+     end if
+     !----------------------------------------------------------------
+  else
+     !----------------------------------------------------------------
+     call pinaxis(ahx,2); if(ahx%d==0.) ahx%d=1.
+     call pinaxis(ahy,3); if(ahy%d==0.) ahy%d=1.
+     if(ahx%n==1 .and. ahy%n==1) call seperr("need prestack data")
+     !----------------------------------------------------------------
+     call from_param(  "amax",  amax,    60.)
+     !----------------------------------------------------------------
+
+     aax%n = ahx%n
+     if(ahx%n /=1) then
+        if(ahx%o ==0.) then
+           aax%o = 0.
+           aax%d =   amax/aax%n
+        else
+           aax%o =  -amax
+           aax%d = 2*amax/aax%n
+        end if
+        call pouaxis(aax,2)
+        call to_history ("label2","ax")
+
+        if(verb) then
+           write(0,*) "requested max ax =",amax
+           write(0,*) "believe  only ax <",180*atan(az%d/ahx%d)/pi
+        end if
+     end if
+
+     aay%n = ahy%n
+     if(ahy%n /=1) then
+        if(ahy%o ==0.) then
+           aay%o = 0.
+           aay%d =   amax/aay%n
+        else
+           aay%o =  -amax
+           aay%d = 2*amax/aay%n
+        end if
+        call pouaxis(aay,3)
+        call to_history ("label3","ay")
+
+        if(verb) then
+           write(0,*) "requested max ay =",amax
+           write(0,*) "believe  only ay <",180*atan(az%d/ahy%d)/pi
+        end if
+     end if
+     !----------------------------------------------------------------
+  end if
+
+  call sep_close()
+
+  !----------------------------------------------------------------
+  !! find out how many threads the environment variable actually allows
+#ifdef SEP_OMP
+  !$OMP PARALLEL
+  nth = omp_get_num_threads()
+  !$OMP END PARALLEL
+#else
+  nth=1
+#endif
+
+  !! total # of gathers
+  allgathers = ar%n * amy%n * amx%n
+
+  !! memory needed for one gather
+  if(inverse) then
+     gathermem = (1/1024./1024.) * az%n * aax%n * aay%n * 12 
+     !! z*ax*ay*(4+8) (Mb)
+  else
+     gathermem = (1/1024./1024.) * az%n * ahx%n * ahy%n * 12 
+     !! z*hx*hy*(4+8) (Mb)
+  end if
+
+  !! find the # of gathers that fit in the allocated memory
+  ngathers = maxmem/gathermem
+
+  !! find, if possible, the max value of ngathers 
+  !!       which divides allgathers
+  !!      and is divided by nth
+  call omppar(allgathers,ngathers,nth)
+
+#ifdef SEP_OMP
+  !! set and freeze the # of threads
+  call omp_set_dynamic(.false.)
+  call omp_set_num_threads(nth)
+#else
+nth=1
+#endif
+
+  !! # of data blocks
+  nblocks = allgathers/ngathers
+  !----------------------------------------------------------------
+
+  if(verb) then
+     write(0,*) "   inverse=",inverse
+     write(0,*) "      push=",push
+     write(0,*) "    maxmem=",maxmem,'Mb'
+     write(0,*) "    effmem=",ngathers*gathermem,'Mb'
+     write(0,*) "allgathers=",allgathers
+     write(0,*) "  ngathers=",ngathers
+     write(0,*) "       nth=",nth
+     write(0,*) "   nblocks=",nblocks
+  end if
+  !----------------------------------------------------------------  
+
+  if(inverse) then
+     allocate(rdata(nzold,aax%n,aay%n,ngathers), stat=stat)
+     if(stat /=0) call seperr("cant allocate rdata")
+     allocate(cdata(nzpad,aax%n,aay%n,ngathers), stat=stat)
+     if(stat /=0) call seperr("cant allocate cdata")
+  else
+     allocate(rdata(nzold,ahx%n,ahy%n,ngathers), stat=stat)
+     if(stat /=0) call seperr("cant allocate rdata")
+     allocate(cdata(nzpad,ahx%n,ahy%n,ngathers), stat=stat)
+     if(stat /=0) call seperr("cant allocate cdata")
+  end if
+  rdata =     0.
+  cdata = (0.,0.)
+
+  !----------------------------------------------------------------
+
+  !! reserve enough disk space for the entire output
+  if(verb) write(0,*) "reserving disk space"
+  do iblocks=1,nblocks
+     call sep_write(rdata)
+  end do
+  ierr= sseek('out',0,0)
+  if(verb) write(0,*) "OK"
+
+  call sep_begin_prog()
+
+
+  !----------------------------------------------------------------
+  if(inverse) then
+     if(verb) write(0,*) "compute offsets"
+     call odcig_fft_init(nth,(/az%n,ahx%n,ahy%n/))
+     call odcig_shift_init(az,ahx,ahy)
+
+     !----------------------------------------------------------------  
+     do iblocks=1,nblocks
+        if(verb) write(0,*) iblocks,'/',nblocks
+
+        call sep_read(rdata)
+        do i4=1,size(cdata,4)
+        do i3=1,size(cdata,3)
+        do i2=1,size(cdata,2)
+        do i1=1,nzold
+         cdata(i1,i2,i3,i4) = cmplx(rdata(i1,i2,i3,i4),0.)
+        end do;end do;end do;end do
+
+
+        !----------------------------------------------------------------
+#ifdef SEP_OMP
+        !$OMP  PARALLEL
+        !$OMP  DO &
+        !$OMP& SCHEDULE(DYNAMIC) &
+        !$OMP& PRIVATE(ith,igathers)
+        do igathers=1,ngathers
+
+           ith = omp_get_thread_num()+1
+#else
+        do igathers=1,ngathers
+           ith =1
+#endif
+
+           call odcig_F_fft(ith,igathers,cdata)
+           call odcig_F_shift(  igathers,cdata)
+        end do
+#ifdef SEP_OMP
+        !$OMP END DO
+        !$OMP END PARALLEL
+#endif
+        !----------------------------------------------------------------
+        if(aax%n >1) then
+           call odcig_off_init(nth,az,ahx,aax,eps,push)
+
+#ifdef SEP_OMP
+           !$OMP  PARALLEL
+           !$OMP  DO &
+           !$OMP& SCHEDULE(DYNAMIC) &
+           !$OMP& PRIVATE(ith,igathers)
+           do igathers=1,ngathers
+              ith = omp_get_thread_num()+1
+              call odcig_off_x(ith,igathers,cdata,az,ahx,aax,ahy)
+           end do
+           !$OMP END DO
+           !$OMP END PARALLEL
+#else
+           do igathers=1,ngathers
+              call odcig_off_x(1,igathers,cdata,az,ahx,aax,ahy)
+           end do
+#endif
+
+           call odcig_off_close()
+        end if
+        !----------------------------------------------------------------
+        if(aay%n >1) then
+           call odcig_off_init(nth,az,ahy,aay,eps,push)
+
+#ifdef SEP_OMP
+           !$OMP  PARALLEL
+           !$OMP  DO &
+           !$OMP& SCHEDULE(DYNAMIC) &
+           !$OMP& PRIVATE(ith,igathers)
+           do igathers=1,ngathers
+              ith = omp_get_thread_num()+1
+              call odcig_off_y(ith,igathers,cdata,az,ahy,aay,ahx)
+           end do
+           !$OMP END DO
+           !$OMP END PARALLEL
+#else
+           do igathers=1,ngathers
+              call odcig_off_y(1,igathers,cdata,az,ahy,aay,ahx)
+           end do
+#endif
+
+           call odcig_off_close()
+        end if
+#ifdef SEP_OMP
+        !----------------------------------------------------------------
+        !$OMP  PARALLEL
+        !$OMP  DO &
+        !$OMP& SCHEDULE(DYNAMIC) &
+        !$OMP& PRIVATE(ith,igathers)
+        do igathers=1,ngathers
+           ith = omp_get_thread_num()+1
+
+           call odcig_I_shift(  igathers,cdata)
+           call odcig_I_fft(ith,igathers,cdata)
+        end do
+        !$OMP END DO
+        !$OMP END PARALLEL
+#else
+        do igathers=1,ngathers
+           call odcig_I_shift(  igathers,cdata)
+           call odcig_I_fft(1,igathers,cdata)
+        end do
+#endif
+        !----------------------------------------------------------------
+
+write(0,*) "DATA",sum(cdata)
+        rdata(1:nzold,:,:,:) = real (cdata(1:nzold,:,:,:))
+        call sep_write(rdata)
+
+     end do !! iblocks
+     !----------------------------------------------------------------
+
+     call odcig_shift_close()
+     call odcig_fft_close()
+  else
+     if(verb) write(0,*) "compute angles"
+     call adcig_fft_init(nth,(/az%n,aax%n,aay%n/))
+     call adcig_shift_init(az,ahx,ahy)
+
+     !----------------------------------------------------------------  
+     do iblocks=1,nblocks
+        if(verb) write(0,*) iblocks,'/',nblocks
+
+        call sep_read(rdata)
+        do i4=1,size(cdata,4)
+        do i3=1,size(cdata,3)
+        do i2=1,size(cdata,2)
+        do i1=1,nzold
+         cdata(i1,i2,i3,i4) = cmplx(rdata(i1,i2,i3,i4),0.)
+        end do;end do;end do;end do
+
+        !----------------------------------------------------------------
+#ifdef SEP_OMP
+        !$OMP  PARALLEL
+        !$OMP  DO &
+        !$OMP& SCHEDULE(DYNAMIC) &
+        !$OMP& PRIVATE(ith,igathers)
+        do igathers=1,ngathers
+           ith = omp_get_thread_num()+1
+
+           call adcig_F_fft(ith,igathers,cdata)
+           call adcig_F_shift(  igathers,cdata)
+        end do
+        !$OMP END DO
+        !$OMP END PARALLEL
+#else
+        do igathers=1,ngathers
+           call adcig_F_fft(1,igathers,cdata)
+           call adcig_F_shift(  igathers,cdata)
+        end do
+#endif
+        !----------------------------------------------------------------
+        if(ahx%n >1) then
+           call adcig_ang_init(nth,az,ahx,aax,eps,push)
+
+#ifdef SEP_OMP
+           !$OMP  PARALLEL
+           !$OMP  DO &
+           !$OMP& SCHEDULE(DYNAMIC) &
+           !$OMP& PRIVATE(ith,igathers)
+           do igathers=1,ngathers
+              ith = omp_get_thread_num()+1
+              call adcig_ang_x(ith,igathers,cdata,az,ahx,aax,ahy)
+           end do
+           !$OMP END DO
+           !$OMP END PARALLEL
+#else
+           do igathers=1,ngathers
+              call adcig_ang_x(1,igathers,cdata,az,ahx,aax,ahy)
+           end do
+#endif
+
+           call adcig_ang_close()
+        end if
+        !----------------------------------------------------------------
+        if(ahy%n >1) then
+           call adcig_ang_init(nth,az,ahy,aay,eps,push)
+
+#ifdef SEP_OMP
+           !$OMP  PARALLEL
+           !$OMP  DO &
+           !$OMP& SCHEDULE(DYNAMIC) &
+           !$OMP& PRIVATE(ith,igathers)
+           do igathers=1,ngathers
+              ith = omp_get_thread_num()+1
+              call adcig_ang_y(ith,igathers,cdata,az,ahy,aay,ahx)
+           end do
+           !$OMP END DO
+           !$OMP END PARALLEL
+#else
+           do igathers=1,ngathers
+              call adcig_ang_y(1,igathers,cdata,az,ahy,aay,ahx)
+           end do
+#endif
+
+           call adcig_ang_close()
+        end if
+        !----------------------------------------------------------------
+#ifdef SEP_OMP
+        !$OMP  PARALLEL
+        !$OMP  DO &
+        !$OMP& SCHEDULE(DYNAMIC) &
+        !$OMP& PRIVATE(ith,igathers)
+        do igathers=1,ngathers
+           ith = omp_get_thread_num()+1
+
+           call adcig_I_shift(  igathers,cdata)
+           call adcig_I_fft(ith,igathers,cdata)
+        end do
+        !$OMP END DO
+        !$OMP END PARALLEL
+#else
+        do igathers=1,ngathers
+           call adcig_I_shift(  igathers,cdata)
+           call adcig_I_fft(1,igathers,cdata)
+        end do
+#endif
+        !----------------------------------------------------------------
+
+        do i4=1,size(rdata,4)
+        do i3=1,size(rdata,3)
+        do i2=1,size(rdata,2)
+        do i1=1,nzold
+        rdata(i1,i2,i3,i4) = real (cdata(i1,i2,i3,i4))
+       end do;end do;end do;end do
+        call sep_write(rdata)
+
+     end do !! iblocks
+     !----------------------------------------------------------------  
+
+     call adcig_shift_close()
+     call adcig_fft_close()
+  end if
+
+  deallocate(rdata, stat=stat)
+  if(stat /=0) call seperr("cant deallocate rdata")
+  deallocate(cdata, stat=stat)
+  if(stat /=0) call seperr("cant deallocate cdata")
+  call sep_end_prog()
+
+end program OFF2ANG
+
+

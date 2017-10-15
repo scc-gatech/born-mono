@@ -1,0 +1,12 @@
+sat	Sep Auto Temporary allocator
+
+	subdirectories
+		test:	tests for sat
+		sub_all subroutine for dynamically allocate array in Fortran
+
+Before doing anything in this directory you should test any modifications you
+have made. Go into the test subdirectory and type "make".
+
+Once you are convinced it is working OK you can type make in this directory
+to install the new version.
+

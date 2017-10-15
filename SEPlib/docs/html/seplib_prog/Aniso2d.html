@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Aniso2d - anisotropic modeling</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Aniso2d - anisotropic modeling</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Aniso2d  par=Par &lt; Hsourcefn  &gt; Hverticalgeophone</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_moduli__2d_file">moduli - file</a></strong><br />
+</dt>
+<dd>
+<pre>
+        velocity model file (c11,c13,c33,c14, and rho ) (next 4 pars
+        from this file</pre>
+</dd>
+<dt><strong><a name="item_n1__2d_integer">n1   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        # of z grid points (becomes nz in the program) max=400</pre>
+</dd>
+<dt><strong><a name="item_n2__2d_integer">n2   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        # of x grid points (becomes nz in the program) max=400</pre>
+</dd>
+<dt><strong><a name="item_d1__2d_real">d1   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        z grid point spacing (becomes dz in the program)</pre>
+</dd>
+<dt><strong><a name="item_d2__2d_real">d2   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        x grid point spacing (becomes dx in the program)
+        The constants are in order c11,c13,c33,c44,rho and
+        are stored nz(fast) by nx</pre>
+</dd>
+<dt><strong><a name="item_hsource__2d_file">Hsource - file</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Source function file (next two pars from this file)</pre>
+</dd>
+<dt><strong>n1 - integer</strong><br />
+</dt>
+<dd>
+<pre>
+       length of source</pre>
+</dd>
+<dt><strong><a name="item_d1_2d_real">d1- real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       time sample interval (this will be used for calculations)
+       so it should be within stability limits</pre>
+</dd>
+<dt><strong><a name="item_nt__2d_integer">nt - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       number of time steps to run, max=4000</pre>
+</dd>
+<dt><strong><a name="item_nsrc_2d_integer__23">nsrc- integer    #</a></strong><br />
+</dt>
+<dd>
+<pre>
+        of shots to make (default=1)</pre>
+</dd>
+<dt><strong><a name="item_src_1__2d_integer">src_1 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Position of first source (in grid points)</pre>
+</dd>
+<dt><strong><a name="item_src_type__2d_integer">src_type - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       vertical force =1; horizontal =2; shear source =3
+       explosive force=4</pre>
+</dd>
+<dt><strong><a name="item_src_inc__2d_integer">src_inc  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       shot increment (in x grid points) default=1</pre>
+</dd>
+<dt><strong><a name="item_group_1__2d_integer">group_1  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Position of first receiver for first shot default=1</pre>
+</dd>
+<dt><strong><a name="item_ngroup__2d_integer">ngroup   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Number of receivers default=nx</pre>
+</dd>
+<dt><strong><a name="item_src_depth_2d_integer">src_depth- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Shot depth (grid points)</pre>
+</dd>
+<dt><strong><a name="item_geo_depth_2d_integer">geo_depth- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       depth of geophones (in grid points)</pre>
+</dd>
+<dt><strong><a name="item_surf_type_2d_integer">surf_type- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       free surface (default) =1; absorbing =0</pre>
+</dd>
+<dt><strong><a name="item_snap_i__2d_integer">snap_i   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       number of time steps between snapshots</pre>
+</dd>
+<dt><strong><a name="item_rollalong_2d_integer">rollalong- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       receiver spread rollalong with the
+       shots? 1=yes=default; 0=no</pre>
+</dd>
+<dt><strong><a name="item_vpmax__2d_real">vpmax    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       maximum velocity in model (optional stability check)
+       for stability vpmax*dt/dx &lt;.5
+       since anisotropic sqrt(max(c11,c33)/rho)*dt/dx &lt;.5
+       for no dispersion (vmin/fmax)/dx &gt;2.8</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_hverticalgeophone__2d_file">Hverticalgeophone - file</a></strong><br />
+</dt>
+<dd>
+<pre>
+      is output file for the vertical component seismogram</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+   Program to do anisotropic heterogenous elastic modelling in 2d,
+   explicit finite-difference 2nd order in time 16th order in x and z</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Iso2d.html">the Iso2d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/model</strong></p>
+
+</body>
+
+</html>

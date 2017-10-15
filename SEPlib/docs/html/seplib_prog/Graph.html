@@ -1,0 +1,417 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Graph - line plot</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+	<li><a href="#compile_level">COMPILE LEVEL</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Graph - line plot</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Graph [par=] [&lt;in.H] | Tube</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Line plot of a seplib file</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n1__2d_int">n1 - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      REQUIRED</pre>
+</dd>
+<dt><strong><a name="item_n2_2cn3__2d_int">n2,n3 - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      defaults to the number of different values of n1</pre>
+</dd>
+<dt><strong><a name="item_d1_2cd2_2cd3__2d_float">d1,d2,d3 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.],[1.],[1.] float standard seplib</pre>
+</dd>
+<dt><strong><a name="item_o1_2co2_2co3__2d_float">o1,o2,o3 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.],[0.],[0.] float standard seplib</pre>
+</dd>
+<dt><strong><a name="item_esize__2d_int">esize    - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [4]  (4,8)</pre>
+</dd>
+<dt><strong><a name="item_pad__2dchar">pad       -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] (0,1 n,y)  (If user specifies mins or maxes then 
+      padding is turned off unless pad is specified. 
+      pad is useful if you want the length of the plot 
+      to be the same as the length of the graph.</pre>
+</dd>
+<dt><strong><a name="item_transp__2dchar">transp    -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] =1 flips the first and second axes</pre>
+</dd>
+<dt><strong><a name="item_xreverse__2dchar">xreverse  -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] =1 reverses the x axis</pre>
+</dd>
+<dt><strong><a name="item_yreverse__2dchar">yreverse  -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]   (0,1 n.y) =1 reverses the y axis</pre>
+</dd>
+<dt><strong><a name="item_screenht__2dfloat">screenht  -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10.24] sets screen height</pre>
+</dd>
+<dt><strong><a name="item_screenwd__2dfloat">screenwd  -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [13.75] sets screen width</pre>
+</dd>
+<dt><strong><a name="item_screenratio__2dfloat">screenratio -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.75] sets height vs. width ratio</pre>
+</dd>
+<dt><strong><a name="item_xinch_2cyinch__2dfloat">xinch,yinch -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10.24],[7.5]</pre>
+</dd>
+<dt><strong><a name="item_crowd_2ccrowd1_2ccrowd2__2dfloat">crowd,crowd1,crowd2 -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.75] [crowd1=crowd][crowd2=crowd] 
+      (.75&lt; crowd &lt; 1.) crowd labels off the 
+      screen by expanding data on 1 or 2 axis.</pre>
+</dd>
+<dt><strong><a name="item_xll_2cyll_2cxur_2cyur__2d_float">xll,yll,xur,yur - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      set Lower Left and Upper Right coordinates</pre>
+</dd>
+<dt><strong><a name="item_wantframe__2d_char">wantframe - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] makes a box around the graph</pre>
+</dd>
+<dt><strong><a name="item_wantframenum__2dchar">wantframenum -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] (0,1, n,y) gives number of the current frame in a movie</pre>
+</dd>
+<dt><strong><a name="item_wantaxis_2cwantaxis1_2cwantaxis2__2d_char">wantaxis,wantaxis1,wantaxis2 - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] turns on axes</pre>
+</dd>
+<dt><strong><a name="item_min1_2c_min2_2c_max1_2c_max2_2d_float">min1, min2, max1, max2- float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      sets minimum and maximum values for the graph</pre>
+</dd>
+<dt><strong><a name="item_axisor1_2c_axisor2__2d_float">axisor1, axisor2 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [min1],[min2] sets the minimum value on the axes</pre>
+</dd>
+<dt><strong><a name="item_o1num_2c_o2num_2c_d1num_2c_d2num_2d_float">o1num, o2num, d1num, d2num- float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      set tic spacing on axes</pre>
+</dd>
+<dt><strong><a name="item_n1tic_2cn2tic__2d_int">n1tic,n2tic - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] set number of tics</pre>
+</dd>
+<dt><strong><a name="item_wheretics__2d_char">wheretics - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [f] (f,a) where to put tics (frame, axes)</pre>
+</dd>
+<dt><strong><a name="item_wheretitle__2dchar">wheretitle -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [t] (t,b,l,r) where to put title (top,bottom,left,right)</pre>
+</dd>
+<dt><strong><a name="item_wherexlabel__2d_char">wherexlabel - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [b] (t,b) where to put x axis label (top,bottom)</pre>
+</dd>
+<dt><strong><a name="item_whereylabel__2d_char">whereylabel - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [l] (l,r) where to put y axis label (left, right)</pre>
+</dd>
+<dt><strong><a name="item_titlefat_2clabelfat__2d_int">titlefat,labelfat - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] makes the text fat</pre>
+</dd>
+<dt><strong><a name="item_label1_2clabel2__2d_char_2a">label1,label2 - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      label for axes</pre>
+</dd>
+<dt><strong><a name="item_title__2d_char_2a">title - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      title for plot</pre>
+</dd>
+<dt><strong><a name="item_titles__2d_char_2a">titles - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      title for different planes separated by colons 
+      first:second:third</pre>
+</dd>
+<dt><strong><a name="item_labelsz__2d_int">labelsz - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [8] font size for labels</pre>
+</dd>
+<dt><strong><a name="item_titlesz__2d_int">titlesz - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10] font size for titles</pre>
+</dd>
+<dt><strong><a name="item_labelrot__2d_char">labelrot - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [y] (0,1 n,y) rotate labels 90 degrees</pre>
+</dd>
+<dt><strong><a name="item_grid_2cgrid1_2cgrid2__2d_char">grid,grid1,grid2 - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]   (0,1 n,y) turns on grid</pre>
+</dd>
+<dt><strong><a name="item_g1num_2cg2num__2d_float">g1num,g2num - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [d1num],[d2num] grid spacing</pre>
+</dd>
+<dt><strong><a name="item_gridcol__2d_int">gridcol - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [axiscol] color of grid</pre>
+</dd>
+<dt><strong><a name="item_backcol__2d_float_2a">backcol  - float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0,0,0] background color (R,G,B) between 0 and 1</pre>
+</dd>
+<dt><strong><a name="item_fillcol__2d_float_2a">fillcol  - float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [backcol(0,0,0)] fill color (R,G,B) between 0 and 1</pre>
+</dd>
+<dt><strong><a name="item_plotcol__2d_int_2a">plotcol  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [6,5,4,3,2,1,...] color for each line plotted</pre>
+</dd>
+<dt><strong><a name="item_axiscol__2d_int_2a">axiscol  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [7,7,7,7,...] color for each axis</pre>
+</dd>
+<dt><strong><a name="item_plotfat__2d_int_2a">plotfat  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0,0,0,...] makes plotted line fat</pre>
+</dd>
+<dt><strong><a name="item_axisfat__2d_int_2a">axisfat  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0,0,0,...] makes axes fat</pre>
+</dd>
+<dt><strong><a name="item_legend__2d_char">legend   - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [n] whether or not you want a legend</pre>
+</dd>
+<dt><strong><a name="item_legendtitle_2dchar_2a">legendtitle-char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      ['Legend'] Title for legend</pre>
+</dd>
+<dt><strong><a name="item_legendloc__2dchar_2a">legendloc -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [br, bottom right] Location for legend</pre>
+</dd>
+<dt><strong><a name="item_legendpos__2dfloat_5b2_5d">legendpos -float[2]</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Legend location.  Specifiy screen coordinates (e.g 10.2,6.1)</pre>
+</dd>
+<dt><strong><a name="item_legendsz__2dint">legendsz  -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [7] Legend text size</pre>
+</dd>
+<dt><strong><a name="item_curvelabel_2dchar_2a">curvelabel-char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [curve number] : list of curve labels</pre>
+</dd>
+<dt><strong><a name="item_legendfat__2dint">legendfat -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] makes legend fat</pre>
+</dd>
+<dt><strong><a name="item_plot_amp__2d_sepfile">plot_amp -  sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+     [none]   file containg amplitudes to use instead of base color</pre>
+</dd>
+<dt><strong><a name="item_color__2d_char_2a">color -  char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+     [I]    colortable when using plotamp</pre>
+</dd>
+<dt><strong><a name="item_arrow__2d_char">arrow    -  char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] (0,1 n,y) for complex data, makes arrows rather than lines</pre>
+</dd>
+<dt><strong><a name="item_dash__2d_int_2a__5b0_5d">dash     -  int*  [0]</a></strong><br />
+</dt>
+<dd>
+<pre>
+      0 default is continuous.
+      1 fine dash
+      2 fine dot
+      3 dash
+      4 large dash
+      5 dot dash
+      6 large dash smalldash
+      7 double dot
+      8 double dash
+      9 loose dash  The  part  after  the decimal point
+        determines the pattern repetition interval</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<pre>
+   Graph n1=50,100,20 d1=2.5,1,0.33 in=datafile | Tube
+     plots three curves  in  one  plot  frame  on  the  screen  horiz
+     coordinates are t(i)  =  o1+i*d1  for  i=0  to  n1-1  (o1=0  by  default)
+     vert coordinates are read sequentially from datafile--50 vert-coordinates
+     for  the  1st plot, 100 for the 2nd, 20 for the 3rd.</pre>
+<pre>
+     Graph n1=100 esize=8 n2=4 n3=10 symbol='*x%$'&lt;datafile &gt;Hplotfile 
+     This reads n1=100 x,y pairs sequentially from datafile for each of  
+     n2=4 plots, All on the same Graph.  This is repeated for each of the 
+     10 Movie frames; The plot axes, etc, are determined for each frame. 
+     Hplotfile will be a SEPLIB header file pointing to a file containing 
+     vplot commands to plot the character '*' at each of the 1st 100 points, 
+      'x'  at each of the 2nd 100 points, etc, for each Movie frame.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Dots.html">the Dots manpage</a>,<a href="./../seplib_prog/Histogram.html">the Histogram manpage</a>,<em>xtpen</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+<p>
+</p>
+<hr />
+<h1><a name="compile_level">COMPILE LEVEL</a></h1>
+<p>DISTR</p>
+
+</body>
+
+</html>

@@ -1,0 +1,74 @@
+=head1 NAME
+
+
+sep_get_val_headers - get header values
+
+
+=head1 SYNOPSIS
+
+
+C<ierr=sep_get_val_headers (tag_history,record_number,n_headers,header_values)>
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item   char*-  tag_history       
+
+        tag of History File
+
+=item   int* -  record_number      
+
+        Header Record Number computed using sep_get_grid_window 
+
+=item   int* -  n_headers          
+
+        number of headers to be retrieved
+
+=back
+
+=head1 OUTPUT PARAMETER
+
+
+=over 4
+
+=item   void *header_values    
+
+        Header values for n_headers
+
+=back
+
+
+=head1 RETURN VALUE
+
+
+ -1 = if fails for other reasons
+
+ 0 = if successful
+
+ +1 = if tag_history is a Sep77 History File
+
+ +2 = if n_headers is too large
+
+=head1 DESCRIPTION
+
+
+   The values of the headers are read from the Header Values File and stored in header_values array.
+
+=head1 COMMENTS
+
+
+   return=sep_get_header_bytes(char *tag_history, int *n_bytes)
+   i_byte=(record_number-1)*n_bytes
+   sseek into the Header Format File at position i_byte
+   sreed n_headers from Header Format File into value
+
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

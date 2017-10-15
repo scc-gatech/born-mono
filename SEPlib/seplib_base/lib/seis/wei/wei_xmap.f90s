@@ -1,0 +1,92 @@
+module wei_xmap_mod
+  !! X-domain mapping
+  !---------------
+  use wei_basics_mod
+  implicit none
+   type wexmap
+     real,    dimension(:),         pointer :: mx,my,hx,hy
+     real,    dimension(:,:),       pointer :: sx,sy,rx,ry
+  end type wexmap
+
+
+  !! !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  type(wexmap), public :: xmap
+  !! !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+contains
+  !----------------------------------------------------------------
+  subroutine weixmap_init(wsep)
+    integer :: imx,imy,ihx,ihy
+    integer :: er
+    type(sep3d) ::  wsep
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weixmap_init'
+    if(my_debug()) call in(unit)
+#endif
+
+    !! mx
+    allocate(xmap%mx(wsep%n(1)),stat=er)
+    call add_mem(size(xmap%mx))
+    if(er/=0) call seperr('cant allocate mx')
+    do imx=1,wsep%n(1)
+       xmap%mx(imx) = wsep%o(1) + (imx-1)* wsep%d(1)
+    end do
+
+    !! my
+    allocate(xmap%my(wsep%n(2)),stat=er)
+    call add_mem(size(xmap%my))
+    if(er/=0) call seperr('cant allocate my')
+    do imy=1,wsep%n(2)
+       xmap%my(imy) = wsep%o(2) + (imy-1)* wsep%d(2)
+    end do
+
+    !! hx
+    allocate(xmap%hx(wsep%n(3)),stat=er)
+    call add_mem(size(xmap%hx))
+    if(er/=0) call seperr('cant allocate hx')
+    do ihx=1,wsep%n(3)
+       xmap%hx(ihx) = wsep%o(3) + (ihx-1)* wsep%d(3)
+    end do
+
+    !! hy
+    allocate(xmap%hy(wsep%n(4)),stat=er)
+    call add_mem(size(xmap%hy))
+    if(er/=0) call seperr('cant allocate hy')
+    do ihy=1,wsep%n(4)
+       xmap%hy(ihy) = wsep%o(4) + (ihy-1)* wsep%d(4)
+    end do
+
+    !! sx,rx
+    allocate(xmap%sx(wsep%n(1),wsep%n(3)),stat=er)
+    call add_mem(size(xmap%sx))
+    if(er/=0) call seperr('cant allocate sx')
+    allocate(xmap%rx(wsep%n(1),wsep%n(3)),stat=er)
+    call add_mem(size(xmap%rx))
+    if(er/=0) call seperr('cant allocate rx')
+    do ihx=1,wsep%n(3)
+       do imx=1,wsep%n(1)
+          xmap%sx(imx,ihx) = xmap%mx(imx) - xmap%hx(ihx)
+          xmap%rx(imx,ihx) = xmap%mx(imx) + xmap%hx(ihx)
+       end do
+    end do
+
+    !! sy,ry
+    allocate(xmap%sy(wsep%n(2),wsep%n(4)),stat=er)
+    call add_mem(size(xmap%sy))
+    if(er/=0) call seperr('cant allocate sy')
+    allocate(xmap%ry(wsep%n(2),wsep%n(4)),stat=er)
+    call add_mem(size(xmap%ry))
+    if(er/=0) call seperr('cant allocate ry')
+    do ihy=1,wsep%n(4)
+       do imy=1,wsep%n(2)
+          xmap%sy(imy,ihy) = xmap%my(imy) - xmap%hy(ihy)
+          xmap%ry(imy,ihy) = xmap%my(imy) + xmap%hy(ihy)
+       end do
+    end do
+
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+  end subroutine weixmap_init
+  !----------------------------------------------------------------
+end module wei_xmap_mod

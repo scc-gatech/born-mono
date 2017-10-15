@@ -1,0 +1,16 @@
+From Joe:
+
+
+        Need to replace "reed(infd, ...)" with "sreed("in", ...)".
+
+        Need to replace "rite(outfd, ...)" with "srite("out", ...)".
+
+        Need to replace "getpar" with "getch".
+
+
+   vp_filep(outstream);
+
+
+        to the start of any program that calls -lvplot.
+
+

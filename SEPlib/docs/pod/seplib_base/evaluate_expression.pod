@@ -1,0 +1,68 @@
+=head1 NAME
+
+
+evaluate_expression - evaluate a mathematical expression
+
+=head1 SYNOPSIS
+
+
+C<int evaluate_expression(exp,get_val,nvals,result)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item exp  - char*  
+
+      mathematical expression
+
+=item get_val - func 
+
+      (get_val(char*,double*)) given a name function should
+      return values
+
+=item nvals  - int   
+
+      number of values to calculate
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item result  - double* 
+
+      expression result
+
+=back
+
+=head1 DESCRIPTION
+
+
+User provides a routine (get_val) that is able to return double values
+when given a string, evaluate_expression will evaluate a complicated
+expression.
+
+Supported Functions (specified by @ at begining):
+
+COS	SIN	TAN
+ACOS	ASIN	ATAN
+COSH	SINH	INT
+EXP	LOG	SQRT
+ABS SGN
+
+=head1 SEE ALSO
+
+
+L<Math>, L<Headermath>
+
+=head1 LIBRARY
+
+
+B<sep>
+
+=cut
+

@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Vconvert - Convert from one type of velocity to another</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Vconvert - Convert from one type of velocity to another</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Convert one type of velocity function to another</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n1out__2d_int">n1out    -   int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Output fast axis; only can change if outpar != inpar.</pre>
+</dd>
+<dt><strong><a name="item_d1out__2d_float">d1out     -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Ignored if outpar = inpar.</pre>
+</dd>
+<dt><strong><a name="item_o1out__2d_float">o1out    -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       see above</pre>
+</dd>
+<dt><strong><a name="item_label1__2d_char_2a">label1  -   char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       see above</pre>
+</dd>
+<dt><strong><a name="item_oversamp_2d_int">oversamp-   int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1]oversampling rate (default is no oversampling)</pre>
+</dd>
+<dt><strong><a name="item_lsinc__2d_int">lsinc   -   int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [12]oversampling interpolator length
+       oversampling used with inpar != outpar only.</pre>
+</dd>
+<dt><strong><a name="item_alpha__2d_float">alpha   -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0.01]  fraction of peak value at ends of gaussian taper
+        on sinc interpolator for oversampling</pre>
+</dd>
+<dt><strong><a name="item_invelopt_2d_int">invelopt-   int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1] velocity</pre>
+</dd>
+<dt><strong><a name="item_outvelopt_2d_int">outvelopt-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [2] slowness
+       3- slowness squared
+       4- velocity squared</pre>
+</dd>
+<dt><strong><a name="item_intype__2dint">intype    -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1] interval</pre>
+</dd>
+<dt><strong><a name="item_outtype__2dint">outtype   -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [2] rms</pre>
+</dd>
+<dt><strong><a name="item_inpar__2dint">inpar      -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1] function of time</pre>
+</dd>
+<dt><strong><a name="item_outpar__2dint">outpar    -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [2] function of depth</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+  NOTE: Vrms(z) [type=2 and par=2] is not understood by this routine.</pre>
+<pre>
+  NOTE: oversampling may improve v(z)&lt;=&gt;v(t) conversion if velocity
+        field contains high wavenumber components.  It can introduce
+        spurious high wavenumber jitter if the velocity field is smooth.
+        Decreasing alpha may help.  Use with caution!</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/velan</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,108 @@
+=head1 NAME
+
+
+hwt_travel_cube - get travel times
+
+=head1 SYNOPSIS
+
+
+C<int hwt_travel_cube(int *n,float *o,float *d,float *shot,float aimi,float aima,
+ float oi,float si,int ni, float sa, int na,float st,int nt,float *vel,
+ int quick, float *travel)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item n -  int[3]    
+
+      Dimensions of elements in velocity cube (3)
+
+=item o -  float[3]  
+
+      First element of velocity cube (3)
+
+=item d -  float[3] 
+
+      Sampling of velocity cube velocity cube (3)
+
+=item shot -  float[3] 
+
+      Location of shot
+
+=item aimi -  float    
+
+      Inclination
+
+=item aima -  float    
+
+      Azimuth
+
+=item oi -  float    
+
+      First aperture angle
+
+=item si -  float    
+
+      Sampling  of aperture
+
+=item ni -  int      
+
+      Number of half aperture angles
+
+=item sa -  float    
+
+      Sampling of radial steps
+
+=item na -  int      
+
+      Number of radial steps
+
+=item st -  float    
+
+      Sampling in time
+
+=item nt -  int      
+
+      Number of time samples
+
+=item vel -  float*   
+
+      Velocity
+
+=item quick -  int      
+
+      Whether or not do quick interpolation
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item travel -  float*   
+
+      Travel time cube
+
+=back
+
+=head1 DESCRIPTION
+
+
+Do Huygens wavefront tracing and then interpolate
+
+
+=head1 SEE ALSO
+
+
+hwt_trace_rays, Hwt3d
+
+=head1 LIBRARY
+
+
+B<septravel>
+
+=cut
+

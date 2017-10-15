@@ -1,0 +1,264 @@
+/*$
+
+=head1 NAME
+
+Pad - Pad a dataset with traces of zeros or nearest value
+
+=head1 SYNOPSIS
+
+Pad  n1= n2= n3= extend=0 < in.H > out.H beg[] end[]
+
+=head1  INPUT PARAMETERS
+
+=over 4
+
+=item  n#out      - int
+
+       [n#]   Add n#out-n#-beg# to the end of cube dimension number # where
+              # is 0, 1, 2, etc. (This makes the total dimension along that
+              n#out.)
+              [0] will pad to the next power of 2
+
+=item  beg#      - int
+
+       [0]    Add beg# to the begining of axis #
+
+=item  end#      - int
+
+       [0]    Add end# to the end of axis # (overrides n#out)
+
+=item  maxsize   - int
+	
+       [20]   Maximum amount of memory to use
+
+=item  verb      - int
+  
+       [0]   Whether (1) or not (0) to be verbose
+
+=item  extend      - int
+  
+       [0]   Whether to extend with the nearest point (1) or zeros (0) 
+
+=back
+
+=head1 DESCRIPTION
+
+ Pad seplib data with zeroes or value of nearest point.
+
+
+=head1 SEE ALSO
+
+L<Spike> which uses: k1=-1 n1= n2= n3= to create all-zero files from scratch
+
+=head1 CATEGORY
+
+B<util/cube>
+
+=cut
+
+>*/ 
+/*
+-------------------------------------------------
+
+Author: Robert Clapp, ESMB 463, 7230253
+
+Date Created:Fri Sep 22 18:05:39 PDT 2000
+
+Purpose: 
+
+*/	 
+
+#include <sep3d.h>
+#include <sepaux.h>
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int  read_portion(char*,int*,int*,int);
+_XFUNCPROTOBEGIN
+#else
+int  read_portion();
+#endif
+
+
+static int ntraces,nhin,nb;
+static char read_from[2048];
+ADD_DEF_SEP_DOC
+#include <sep.main> 
+int MAIN(void)
+{ 
+
+	int ndim,tempi,nlast;
+	int *n,*beg,*end,*nout;
+	int i,j, rc;
+	float *o,*d;
+	int maxsize,esize;
+	int extend;
+	char label[1024],temp_ch[1024],temp2_ch[1024];
+	char *input,*output;
+	double dmax;
+	int done,ibeg,iend,block,nh,verb;
+	int last_hold,last_change,max_in,in_seekable;
+
+
+        sep_begin_prog();
+	if(0==getch("extend","d",&extend)) extend=0;
+	if(0==hetch("esize","d",&esize)) esize=4;
+	if(0==getch("verb","d",&verb)) verb=0;
+
+	/*read in  parameters and data size */
+	
+	if(0!=sep_get_number_data_axes("in",&ndim))
+		seperr("trouble grabbing number of data axes \n");
+
+	n=(int*)alloc(sizeof(int)*(ndim+10));
+	nout=(int*)alloc(sizeof(int)*(ndim+10));
+	beg=(int*)alloc(sizeof(int)*(ndim+10));
+	end=(int*)alloc(sizeof(int)*(ndim+10));
+	o=(float*)alloc(sizeof(float)*(ndim+10));
+	d=(float*)alloc(sizeof(float)*(ndim+10));
+
+	nh=1;nhin=1;
+	for(j=0; j< ndim+10;j++) { 
+
+		i=j+1;
+		if(0!=sep_get_data_axis_par("in",&i,&n[j],&o[j],&d[j],label))
+			seperr("trouble grabbing axis %d \n",i);
+
+		sprintf(temp_ch,"beg%d",i);
+		if(0==getch(temp_ch,"d",&beg[j])) beg[j]=0;
+		
+		if(beg[j]<0) seperr("invalid %s \n",temp_ch);
+
+		sprintf(temp_ch,"end%d",i);
+		if(0==getch(temp_ch,"d",&end[j])){
+			sprintf(temp_ch,"n%dout",i);
+			sprintf(temp2_ch,"n%d",i);
+			if(1==getch(temp2_ch,"d",&tempi) || 1==getch(temp_ch,"d",&tempi)){
+				if(tempi==0){
+					tempi=1; while(tempi < n[j]) tempi=tempi*2;
+				}
+				 end[j]=tempi-n[j]-beg[j];
+			}
+			else end[j]=0;
+		}
+		if(end[j]<0) seperr("Invalid %s \n",temp_ch);
+	
+		if(beg[j] >0 || end[j] >0 || n[j] >1)  nlast=i;
+		if(beg[j] >0 || end[j] >0)  last_change=i;
+
+		o[j]=o[j]-d[j]*beg[j];
+		nout[j]=beg[j]+n[j]+end[j];
+
+		if(i!=1){
+		 nh=nh*nout[j];
+		 nhin=nhin*n[j];
+		}
+		
+	}
+	ndim=nlast;
+	
+
+	/* check to see if request is reasonable */
+	if(0==getch("maxsize","d",&maxsize)) maxsize=20;
+	dmax=(double)maxsize*1000000.;
+	if(dmax<2.1*nout[0]*esize) 
+		seperr("can not even hold one trace in memory, increase maxsize\n");
+	
+	/*take care of output header */
+	for(j=0; j < ndim; j++){ i=j+1;
+		if(0!=sep_put_data_axis_par("out",&i,&nout[j],&o[j],&d[j],label))
+			seperr("trouble putting axis %d \n",i);
+		if(beg[j]!=0) putch("#beg","d",&beg[j]);
+		if(end[j]!=0) putch("#end","d",&end[j]);
+	}
+	hclose();
+
+	/*allocate memory  for input and output */
+	maxsize=dmax/((n[0]+nout[0])*esize+sizeof(int));
+	maxsize=MIN(maxsize,nh);
+	ntraces=MIN(maxsize,nhin);
+
+	input=(char*) alloc(esize*n[0]*ntraces);
+	output=(char*) alloc(esize*nout[0]*maxsize);
+	i=1;last_hold=-1;
+	dmax=ntraces;
+	while(i< ndim && last_hold==-1){
+		dmax=dmax/(double)n[i];
+		if(dmax < 1.) last_hold=i;
+		i +=1;
+	}
+
+	/*in seekable*/
+	in_seekable=sseekable("in");
+	if(last_hold< last_change && in_seekable==1) { 
+
+		/*we will have to do seeks to pad the dataset so we have to create a temp*/
+		if(verb) 
+			fprintf(stderr,"Creating a temporary file. Increasing maxsize or not piping in input will speed up processing \n");
+	
+		strcpy(temp_ch,"TEMP_XXXXXX"); rc = mkstemp(temp_ch);
+                if(rc == -1) {
+                   perror("Pad: mkstemp ");
+                   seperr("Unable to create temporary file \"%s\".\n",temp_ch);
+                }
+		auxtmp(temp_ch); close(rc);
+/*		if(NULL==auxtmp(temp_ch)) seperr("trouble creating temporary file \n");*/
+
+		/*unpipe input */
+		while (0 < (tempi=sreed_raw("in",output,esize*nout[0]*maxsize))) 
+			(void)srite_raw(temp_ch,output,tempi);
+
+		strcpy(read_from,temp_ch);
+                sseek(read_from,0,0);
+	} else strcpy(read_from,"in");
+
+	if(verb==1)
+		fprintf(stderr,"Storing %d input traces (%d hypercubes) and %d output traces\n",ntraces,last_hold,maxsize);
+
+	/*time to do the work */
+	done=0; nb=esize*n[0];
+	ibeg=-4; iend=-1;
+	while(done<nh) { /*while we haven't looped over the entire output */
+		block=MIN(maxsize,nh-done);
+	
+		if(0!=pad_portion(input,output,esize,extend,ndim,n,beg,end,done,block,
+			&ibeg,&iend,read_portion))
+		seperr("trouble padding portion of data\n");
+
+		if(verb>0) fprintf(stderr,"Finished padding %d to %d traces of %d \n",
+			done,done+block,nh);
+	
+		if(esize*block*nout[0]!=srite("out",output,esize*block*nout[0]))
+			seperr("trouble writing out portion of pad \n");
+
+		done+=block;
+	}
+        sep_end_prog();
+	return(0);
+} 
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int  read_portion(char *array,int *beg, int *end,int iwant)
+_XFUNCPROTOBEGIN
+#else
+int  read_portion(array,beg,end,iwant)
+char *array;
+int *beg, *end,iwant;
+#endif
+{
+	int block,two;
+	int ng[2],jw[2],nw[2],fw[2];
+
+	two=2;
+	*beg=iwant;
+	ng[0]=nb;ng[1]=nhin;
+	jw[0]=1;jw[1]=1;
+	fw[0]=0;fw[1]=*beg;
+	nw[0]=nb;nw[1]=MIN(nhin-*beg,ntraces); 
+	*end=*beg+nw[1]-1;
+
+	if(0!=sreed_window(read_from,&two,ng,nw,fw,jw,1,array)) return(1);
+
+	return(0);
+}

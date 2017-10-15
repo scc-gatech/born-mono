@@ -1,0 +1,3 @@
+setenv PPM_LD "-L/usr/lib -lppm -lpbm -lpgm"
+setenv F90 ifc
+setenv DEFAULT_DOC_PATH "/usr/src/redhat/BUILD/"

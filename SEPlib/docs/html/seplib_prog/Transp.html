@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Transp - transpose a SEPlib dataset in plane of choice</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Transp - transpose a SEPlib dataset in plane of choice</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Transp  &lt;in.H &gt;out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_plane__2d_int">plane - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [12]  Plane to transpose</pre>
+</dd>
+<dt><strong><a name="item_max_memory_2fmaxsize__2d_int">max_memory/maxsize  -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [10]  Maximum memory to use in  megabytes</pre>
+</dd>
+<dt><strong><a name="item_verb__2d_int">verb - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0]  Whether (1) or not (0) to be verbose</pre>
+</dd>
+<dt><strong><a name="item_reshape__2d_int_2a">reshape  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [none] Treat the cube dimensions differently</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Transp- transposes a SEPlib dataset in the plane specified.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+  The reshape option allows for transposes that can't be
+  strictly described by a plane. For example if you
+  want to change 1,2,3,4,5 to 5,3,4,1,2 this is really
+  a transpose of a cube where axes 1 and 2 are combined
+  and axes 3 and 4 are combined. To do this transpose
+  operation you would specify plane=13 and reshape=2,4,5</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/cube</strong></p>
+
+</body>
+
+</html>

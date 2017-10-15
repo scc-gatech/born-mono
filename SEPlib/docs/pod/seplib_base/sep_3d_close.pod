@@ -1,0 +1,31 @@
+=head1 NAME
+
+
+sep_3d_close - close sep3d format files
+
+
+=head1 SYNOPSIS
+
+
+sep_3d_close()
+
+
+=head1 DESCRIPTION
+
+
+Closes sep_3d program, allows piping.
+
+=head1 SEE ALSO
+
+
+L<init_3d>
+
+
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

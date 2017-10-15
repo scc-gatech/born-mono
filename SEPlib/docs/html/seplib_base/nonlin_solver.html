@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>nonlin_solver - generic non-linear solver program</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<ul>
+
+		<li><a href="#required_parameters">REQUIRED PARAMETERS</a></li>
+		<li><a href="#optional_parameters">OPTIONAL PARAMETERS</a></li>
+	</ul>
+
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<ul>
+
+		<li><a href="#required_parameters">REQUIRED PARAMETERS</a></li>
+		<li><a href="#optional_parameters">OPTIONAL PARAMETERS</a></li>
+	</ul>
+
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>nonlin_solver - generic non-linear solver program</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call  nonlin_solver(oper,solv,x, dat, niter,x0,err,res,xmov,rmov)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<p>
+</p>
+<h2><a name="required_parameters">REQUIRED PARAMETERS</a></h2>
+<dl>
+<dt><strong><a name="item_oper__2d_function">oper   - function</a></strong><br />
+</dt>
+<dd>
+<pre>
+      operator (standard interface)</pre>
+</dd>
+<dt><strong><a name="item_solv__2d_func">solv   - func</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Step calculation routine</pre>
+</dd>
+<dt><strong><a name="item_real">dat    - <code>real(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      data</pre>
+</dd>
+<dt><strong><a name="item_niter__2d_integer">niter  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of iterations</pre>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="optional_parameters">OPTIONAL PARAMETERS</a></h2>
+<dl>
+<dt><strong>x0    - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+       Initial model</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<p>
+</p>
+<h2><a name="required_parameters">REQUIRED PARAMETERS</a></h2>
+<dl>
+<dt><strong>x      - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      model</pre>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="optional_parameters">OPTIONAL PARAMETERS</a></h2>
+<dl>
+<dt><strong>err    - <code>real(niter)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Error sum((d-d~)**2)</pre>
+</dd>
+<dt><strong>res    - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Final residual (size of data)</pre>
+</dd>
+<dt><strong>xmov   - <code>real(:,niter)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Movie of model values as a function of iter</pre>
+</dd>
+<dt><strong>rmov   - <code>real(:,niter)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Movie of data residual</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Generic non-linear solver.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>All operators must follow convetion</p>
+<p>integer function (logical adj, logical add, <a href="#item_real"><code>real(:)</code></a> model, <a href="#item_real"><code>real(:)</code></a>data)</p>
+<p>All solv routines must follow the convention</p>
+<p><code>integer function(logical forget,real(:) x,real(:) g) </code></p>
+<p><a href="./../seplib_base/solver_reg.html">the solver_reg manpage</a>,<a href="./../seplib_base/solver_prec.html">the solver_prec manpage</a>,<a href="./../seplib_base/lsqr.html">the lsqr manpage</a>,<a href="./../seplib_base/solver.html">the solver manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

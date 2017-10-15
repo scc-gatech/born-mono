@@ -1,0 +1,442 @@
+module wei_image_mod
+use wei_wavespace_mod
+implicit none
+type(sep3d),private,save :: rsep,zsep,rdisk_sep
+character(len=128),private,save :: rtag
+logical, private, save :: ray_par,zero
+integer, private, save :: jmx,jmy
+
+
+contains
+
+!-------------------------------------------------!
+!                                                 !
+!         INITIALIZATION ROUTINES                 !
+!                                                 !
+!-------------------------------------------------!
+logical function init_image(erase,tag,myrsep,created)
+type(sep3d) :: myrsep,myzsep,mydisksep
+character(len=*) :: tag
+logical          :: created,erase
+character(len=128) :: temp
+
+init_image=.false.
+
+      
+call from_param("zero_image",temp,"NONE")
+call from_param("jmx_image",jmx,1)
+call from_param("jmy_image",jmy,1)
+zero=.false.
+if(temp(1:4)/="NONE") zero=.true.
+
+if(.not. erase .and. sep3d_file_exist(tag)) then;
+  if(.not. init_image_tag(tag,myrsep,myzsep,mydisksep)) then
+    write(0,*) "trouble initializing tag"
+    return
+  end if
+  created=.false.
+else
+  if(.not. init_image_struct(tag,myrsep,myzsep,mydisksep)) then
+    write(0,*) "trouble initializing image struct"
+    return
+  end if
+  created=.true.
+end if
+call store_current_image_space(myrsep)
+if(zero) call store_current_zero_space(myzsep)
+rdisk_sep=mydisksep
+init_image=.true.
+
+end function
+
+
+
+logical function init_image_struct(tag,myrsep,myzsep,mydisksep)
+character(len=*)  :: tag
+type(sep3d) :: myrsep,wsep,myzsep,mydisksep
+logical :: myre
+
+init_image_struct=.false.
+
+call  grab_current_wave_space(wsep)
+if(.not. image_tag(wsep,myrsep,myzsep,mydisksep,.false.)) then
+  write(0,*) "trouble initializing distribution"
+  return
+end if
+
+
+if(sep_thread_num()==0) call auxinout(tag)
+call sep3d_write_description(tag,mydisksep)
+if(zero) then
+   call sep3d_write_description("zero_image",myzsep)
+   call auxclose("zero_image")
+   call auxinout("zero_image")
+end if
+
+init_image_struct=.true.
+end function
+
+
+logical function image_tag(wsep,myrsep,myzsep,mydisksep,spread)
+type(sep3d) :: wsep,myrsep,myzsep,mydisksep
+logical :: myre,spread
+image_tag=.false.
+
+call from_param("image_real",myre,.false.)
+if(myre) then
+  call init_sep3d(myrsep,"SCRATCH","FLOAT","REGULAR",(/1,1,1,1,1,1/))
+else
+  call init_sep3d(myrsep,"SCRATCH","COMPLEX","REGULAR",(/1,1,1,1,1,1/))
+end if
+if(zero) call init_sep3d(myzsep,"SCRATCH","FLOAT","REGULAR",(/1,1,1,1,1,1/))
+myrsep%n(1:5)=wsep%n(1:5)
+myrsep%o(1:5)=wsep%o(1:5)
+myrsep%d(1:5)=wsep%d(1:5)
+myrsep%label(1)="CMP_X"
+myrsep%label(2)="CMP_Y"
+myrsep%label(5)="DEPTH"
+if(zero) then 
+  myzsep%n(1:5)=wsep%n(1:5)
+  myzsep%o(1:5)=wsep%o(1:5)
+  myzsep%d(1:5)=wsep%d(1:5)
+  myzsep%label(1)="CMP_X"
+  myzsep%label(2)="CMP_Y"
+  myzsep%label(5)="DEPTH"
+  myzsep%n(3:4)=1
+end if
+
+
+call from_param("ray_par",ray_par,.false.)
+if(ray_par) then
+  myrsep%label(3)="P_X"
+  myrsep%label(4)="P_Y"
+  if(myrsep%n(3)>1) then
+    call from_param("apx_o",myrsep%o(3),0.)
+    call from_param("apx_d",myrsep%d(3),.3)
+  end if
+  if(myrsep%n(4)>1) then
+    call from_param("apy_o",myrsep%o(4),0.)
+    call from_param("apy_d",myrsep%d(4),.3)
+  end if
+else
+  myrsep%label(3)="H_X"
+  myrsep%label(4)="H_Y"
+end if
+
+call sep3d_set_sep3d(myrsep)
+if(zero) call sep3d_set_sep3d(myzsep)
+call init_sep3d(myrsep,mydisksep,"SCRATCH")
+
+if(jmx /=1 .or. jmy /=1) then
+  mydisksep%d(1)=myrsep%d(1)*jmx
+  mydisksep%d(2)=myrsep%d(2)*jmy
+  mydisksep%n(1)=ceiling(real(myrsep%n(1))/real(jmx))
+  mydisksep%n(2)=ceiling(real(myrsep%n(2))/real(jmy))
+  call sep3d_set_sep3d(mydisksep)
+end if
+
+image_tag=.true.
+end function
+
+logical function init_image_tag(tag,myrsep,myzsep,mydisksep)
+character(len=*) :: tag
+type(sep3d) :: myrsep,myzsep,mydisksep,wsep
+init_image_tag=.false.
+
+call init_sep3d(tag,mydisksep,"SCRATCH")
+if(zero) call init_sep3d("zero_image",myzsep,"SCRATCH")
+call init_sep3d(mydisksep,myrsep,"SCRATCH")
+if(jmx /=1 .or. jmy /=1) then
+  call grab_current_wave_space(wsep)
+  myrsep%n(1:2)=wsep%n(1:2)
+  myrsep%o(1:2)=wsep%o(1:2)
+  myrsep%d(1:2)=wsep%d(1:2)
+  call sep3d_set_sep3d(myrsep)
+end if
+
+
+init_image_tag=.true.
+
+end function
+
+!-------------------------------------------------!
+!                                                 !
+!                   IO ROUTINES                   !
+!                                                 !
+!-------------------------------------------------!
+
+logical function write_image_iz(tag,myrsep,iz,ielem,wfld)
+type(sep3d) :: myrsep,wsep
+character(len=*) :: tag
+complex :: wfld(:,:,:,:,:)
+integer ::i3,i4,i5,ndim,nalloc,nloop,nh,iz,ielem
+integer :: nwave(5),fwave(5)
+integer :: nzero(5),fzero(5)
+integer :: ndisk(5),fdisk(5)
+logical :: ddd,big
+complex, allocatable :: junkc(:,:)
+real, allocatable :: junkr(:,:),junkz(:,:)
+integer :: npadx,npady,izx,izy,n1,n2
+write_image_iz=.false.
+ 
+
+
+big=.false.
+npadx= grab_current_npadx()
+npady= grab_current_npady()
+
+
+call grab_current_wave_space(wsep)
+nwave=wsep%n
+nzero=nwave   ; nzero(1:2)=nzero(1:2)-(/npadx,npady/)*2; nzero(3:4)=1
+ndisk=rsep%n
+
+
+fwave=0; fzero=0; fdisk=0
+ndisk(4:5)=1
+nzero(3:5)=1
+
+if(product(ndisk(1:3))< 1000000) then
+   big=.true.
+   nalloc=ndisk(3)*ndisk(2)
+   nloop=1
+else
+   nalloc=ndisk(2)
+   nloop=ndisk(3)
+   ndisk(3)=1 
+end if
+izx=nint(-rsep%o(3)/rsep%d(3))+1
+izy=nint(-rsep%o(4)/rsep%d(4))+1
+
+n1=(ndisk(1)-1)*jmx+1
+n2=(ndisk(2)-1)*jmy+1
+
+
+if(rdisk_sep%data_format(1:1)=="C") then
+  allocate(junkc(ndisk(1),nalloc),junkr(1,1))
+else
+  allocate(junkr(ndisk(1),nalloc),junkc(1,1))
+end if
+call add_mem(size(junkc)+size(junkr))
+
+fdisk(5)=iz-1
+do i4=1,ndisk(4)
+  fdisk(4)=i4-1
+  do i3=1,nloop
+    fdisk(3)=i3-1
+    call sep3d_grab_headers(tag,rdisk_sep,nh,nwind=ndisk(2:),fwind=fdisk(2:))
+    if(rdisk_sep%data_format(1:1)=="C") then
+      if(.not. sep3d_read_data(tag,rdisk_sep,junkc)) then
+        write(0,*) "trouble reading image",iz
+        return
+      end if
+      if(big) then
+        junkc=reshape(wfld(npadx+1:npadx+n1:jmx,npady+1:npady+n2:jmy,:,i4,ielem),(/ndisk(1),nalloc/))+junkc
+      else 
+        junkc=wfld(npadx+1:npadx+n1:jmx,npady+1:npady+n2:jmy,i3,i4,ielem)+junkc
+      end if
+      ddd=sep3d_write_data(tag,rdisk_sep,junkc,nwind=ndisk,fwind=fdisk)
+    else 
+      if(.not. sep3d_read_data(tag,rdisk_sep,junkr)) then
+        write(0,*) "trouble reading image" ,iz
+        return
+      end if
+      if(big) then
+        junkr=reshape(real(wfld(npadx+1:npadx+n1:jmx,npady+1:npady+n2:jmy,:,i4,ielem)),(/ndisk(1),nalloc/))+junkr
+        ddd=sep3d_write_data(tag,rdisk_sep,junkr,nwind=ndisk,fwind=fdisk)
+      else
+        junkr=real(wfld(npadx+1:npadx+n1:jmx,npady+1:npady+n2:jmy,i3,i4,ielem))+junkr
+        ddd=sep3d_write_data(tag,rdisk_sep,junkr,nwind=ndisk,fwind=fdisk)
+      end if
+    end if
+    if(.not. ddd) then
+      call del_mem(size(junkc)+size(junkr))
+      deallocate(junkr,junkc)
+      write(0,*) "trouble writing iz",i3,i4,iz,sep_thread_num()
+      return
+    end if
+  end do
+end do
+fzero(5)=iz-1
+call del_mem(size(junkc)+size(junkr))
+deallocate(junkr,junkc)
+if(zero) then
+  allocate(junkr(zsep%n(1),zsep%n(2)))
+  call sep3d_grab_headers("zero_image",zsep,nh,nwind=nzero(2:),fwind=fzero(2:))
+  if(.not. sep3d_read_data("zero_image",zsep,junkr)) then
+    write(0,*) "trouble reading image" ,iz
+    return
+  end if
+  junkr=junkr+real(wfld(npadx+1:npadx+nzero(1),npady+1:npady+nzero(2),izx,izy,ielem))
+  ddd=sep3d_write_data("zero_image",zsep,junkr,nwind=nzero,fwind=fzero)
+  deallocate(junkr)
+end if
+
+
+write_image_iz=.true.
+end function
+
+logical function read_image_iz(tag,myrsep,iz,ielem,wfld)
+type(sep3d) :: myrsep
+character(len=*) :: tag
+complex :: wfld(:,:,:,:,:)
+complex, allocatable :: junkc(:,:)
+real, allocatable :: junkr(:,:)
+integer ::i3,i4,i5,nw(5),fw(5),ndim,nalloc,nloop,nh,iz,ielem
+logical :: ddd,big
+integer :: npadx,npady
+read_image_iz=.false.
+ 
+npadx= grab_current_npadx()
+npady= grab_current_npady()
+
+big=.false.
+
+
+nw(1:5)=myrsep%n(1:5); nw(4)=1; nw(5)=1; nw(3)=1;  ;nw(5)=1
+fw=0
+fw(5)=iz-1
+
+if(myrsep%n(1)*myrsep%n(2)*myrsep%n(3)< 1000000) then
+   big=.true.
+   nalloc=myrsep%n(2)*myrsep%n(3)
+   nw(3)=myrsep%n(3)
+   nloop=1
+else
+   nalloc=myrsep%n(2)
+   nloop=myrsep%n(3)
+end if
+
+
+if(myrsep%data_format(1:1)=="C") then
+    allocate(junkc(myrsep%n(1),nalloc),junkr(1,1))
+else
+  allocate(junkr(myrsep%n(1),nalloc),junkc(1,1))
+end if
+call add_mem(size(junkr)+size(junkc))
+
+    do i4=1,myrsep%n(4)
+      fw(4)=i4-1
+      do i3=1,nloop
+        fw(3)=i3-1
+        call sep3d_grab_headers(tag,myrsep,nh,nwind=nw(2:),fwind=fw(2:))
+        if(myrsep%data_format(1:1)=="C") then
+          ddd=sep3d_read_data(tag,myrsep,junkc)
+          if(big) then
+            wfld(npadx+1:npadx+nw(1),npady+1:npady+nw(2),:,i4,ielem)=reshape(junkc,(/myrsep%n(1),myrsep%n(2),myrsep%n(3)/))
+          else 
+            wfld(npadx+1:npadx+nw(1),npady+1:npady+nw(2),i3,i4,ielem)=junkc
+          end if
+        else 
+          ddd=sep3d_read_data(tag,myrsep,junkr)
+          if(big) then
+            wfld(npadx+1:npadx+nw(1),npady+1:npady+nw(2),:,i4,ielem)=&
+                cmplx(reshape(junkr,(/myrsep%n(1),myrsep%n(2),myrsep%n(3)/)),0.)
+          else
+            wfld(npadx+1:npadx+nw(1),npady+1:npady+nw(2),i3,i4,ielem)=&
+               cmplx(reshape(junkr,(/myrsep%n(1),myrsep%n(2)/)),0.)
+          end if
+        end if
+        if(.not. ddd) then
+          call del_mem(size(junkr)+size(junkc))
+          deallocate(junkr,junkc)
+          return
+        end if
+      end do
+    end do
+call del_mem(size(junkr)+size(junkc))
+deallocate(junkr,junkc)
+read_image_iz=.true.
+end function
+
+
+logical function zero_image(tag,myrsep)
+type(sep3d) :: myrsep
+character(len=*) :: tag
+character(len=128) :: bb
+real, allocatable :: junkr(:,:)
+complex, allocatable :: junkc(:,:)
+integer ::i3,i4,i5,nw(5),fw(5),ndim,nz(5),fz(5)
+logical :: ddd
+zero_image=.false.
+if(rdisk_sep%data_format(1:1)=="C") then
+  allocate(junkc(rdisk_sep%n(1),rdisk_sep%n(2)),junkr(1,1))
+  junkc=0
+else
+  allocate(junkr(rdisk_sep%n(1),rdisk_sep%n(2)),junkc(1,1))
+  junkr=0
+end if
+call add_mem(size(junkc)+size(junkr))
+
+nw(1:5)=rdisk_sep%n(1:5); nw(4)=1; nw(5)=1; nw(3)=1
+if(zero) then
+  nz(1:5)=zsep%n(1:5); nz(4)=1; nz(5)=1; nz(3)=1
+end if
+fw=0;nw(5)=1
+fz=0
+
+do i5=1,rdisk_sep%n(5)
+  fw(5)=i5-1
+  fz(5)=i5-1
+    do i4=1,rdisk_sep%n(4)
+      fw(4)=i4-1
+      do i3=1,rdisk_sep%n(3)
+        fw(3)=i3-1
+        if(rdisk_sep%data_format(1:1)=="C") then
+          ddd=sep3d_write_data(tag,rdisk_sep,junkc,nwind=nw,fwind=fw)
+        else 
+          ddd=sep3d_write_data(tag,rdisk_sep,junkr,nwind=nw,fwind=fw)
+        end if
+        if(.not. ddd) then
+          deallocate(junkr,junkc)
+          return
+        end if
+      end do
+    end do
+    if(zero) then
+      ddd=sep3d_write_data("zero_image",zsep,junkr,nwind=nz,fwind=fz)
+    end if
+end do
+call del_mem(size(junkc)+size(junkr))
+deallocate(junkr,junkc)
+!call from_param("R",bb)
+!call seperr("")
+zero_image=.true.
+end function
+
+
+
+!-------------------------------------------------!
+!                                                 !
+!            GRAB/STORE ROUTINES                  !
+!                                                 !
+!-------------------------------------------------!
+
+subroutine store_current_image_tag(r)
+character(len=*)  :: r
+rtag=r
+end subroutine
+
+subroutine grab_current_image_tag(r)
+character(len=*) :: r
+r=rtag
+end subroutine
+
+
+
+subroutine store_current_zero_space(r)
+type(sep3d) :: r
+zsep=r
+end subroutine
+
+subroutine store_current_image_space(r)
+type(sep3d) :: r
+rsep=r
+end subroutine
+
+subroutine grab_current_image_space(r)
+type(sep3d) :: r
+r=rsep
+end subroutine
+
+end module

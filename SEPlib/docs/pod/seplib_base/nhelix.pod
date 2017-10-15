@@ -1,0 +1,69 @@
+=head1 NAME
+
+
+nhelix - module containing allocate and deallocate of a  nhelix filter
+
+=head1 SYNOPSIS
+
+
+C<call nallocate(aa,nh,pch)>
+
+C<call ndeallocate(aa)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item aa - type(helix)
+
+      Filter
+
+=item nh - C<int(:)>
+
+      Number of coefficients for each filter
+
+=item pch - C<int(:)>
+
+      For a given model space location the filter that should be applied
+
+=back
+
+=head1 DESCRIPTION
+
+
+Allocate and deallocation of a nhelix filter.
+
+=head1 COMMENTS
+
+
+type(nfilter) :
+
+=over 4
+
+=item hlx - C<type(filter)>
+
+      filters making up nhelix
+
+=item mis  - C<real(:)>
+
+      boundary conditions
+
+=item pch  - C<real(:)>
+
+      patches
+
+=back
+
+=head1 SEE ALSO
+
+
+L<helix>,L<mshelix>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

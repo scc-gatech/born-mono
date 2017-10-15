@@ -1,0 +1,46 @@
+=head1 NAME
+
+
+copy_data_pointer - copy data pointer from one file to another
+
+=head1 SYNOPSIS
+
+
+   int sep_copy_data_pointer(tag_in,tag_out)
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item   char* - tag_in     
+
+        tag of History File from which to copy data pointer
+
+=item   char* - tag_out    
+
+        tag of History File to which to copy data pointer
+
+=back
+
+=head1 RETURN VALUE
+
+
+ 0= if successful
+
+ -1= if either tag_in or tag_out are not a SEP History File
+
+=head1 DESCRIPTION
+
+   Copy the Data Pointer from tag_in to tag_out.
+   Useful to avoid duplications of Data File when the Header Files 
+   are modified, but the Data is not.
+
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

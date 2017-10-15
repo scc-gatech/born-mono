@@ -1,0 +1,1296 @@
+/*$ 
+
+=head1 NAME
+
+Wiggle - plots wiggle traces
+
+=head1 SYNOPSIS
+
+Wiggle < in.H > out.v
+
+=head1 DESCRIPTION
+
+Plotting program; displays data as wiggly traces
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item tpow - float 
+
+      [0.]  gain(it) = (it*d1+o1)**tpow, it in samples
+
+=item pclip- int   
+
+      [99]  clip percentile
+
+=item clip - float 
+
+      clip value (if not specified defaults to pclip)
+
+=item n1,n2,n3 - int      
+
+      cube dimensions
+
+=item xpos  - file         
+
+      header file containing n2 X values for the n2 traces
+
+=item overplot,preder,seeman - char 
+
+      [0]  (0,1 n,y)
+
+=item poly   -    char    
+
+      [0]   (0,1 n,y) Fills the wiggle trace where it is positive
+
+=item va     -    char    
+
+      alias for poly
+
+=item fatp, xmask, ymask  - char     
+
+      see libvplot vp_area.
+
+=item timeline - int
+
+  [1]  Display timeline [0] to not display timeline
+  
+=item pad    - char      
+
+      (0,1 n,y)  (If user specifies mins or maxes then
+      padding is turned off unless pad is specified.
+      pad is useful if you want the length of the plot
+      to be the same as the length of the graph.
+
+=item zplot  -float       
+
+      [.75]
+
+=item transp  - char     
+
+      [1] whether or not to transpose output (standard vplot)
+
+=item xreverse,yreverse -char 
+
+      standard vplot definitions for output file
+
+=item screenht-float     
+
+      [10.24] height of output medium
+
+=item screenwd-float     
+
+      [13.75] width of output medium
+
+=item screenratio-float   
+
+      [.75] ratio of screen height to width
+
+=item  xll,yll,xur,yur - float
+
+          set B<l>ower B<l>eft and B<u>pper B<r>ight coordinates
+
+
+
+=item xinch - float      
+
+      [10.24] standard vplot definition
+
+=item yinch - float      
+
+      [7.5] standard vplot definition
+
+=item crowd,crowd1,crowd2 - float 
+
+      [.75]  crowd1=crowd  crowd2=crowd 
+      (.75< crowd < 1.) crowd labels off the 
+      screen by expanding data on 1 or 2 axis.
+
+=item wantframe,wantframenum - char 
+
+      standard vplot definitions (0,1, n,y)
+
+=item wantaxis,wantaxis1,wantaxis2 - char
+
+      [1] standard vplot definition (0,1 n,y)
+
+=item min1,min2,max1,max - float 
+
+      standard vplot definitions
+
+=item axisor1,axisor2  - float [min1],[min2] 
+
+      standard vplot definition
+
+=item o1num,o2num,d1num,d2num - float
+
+      standard vplot definition
+
+=item n1tic,n2tic - int
+
+      [1] number of tics
+
+=item wheretics - char 
+
+      [f] (f,a) where to put tics (frame, axes)
+
+=item wanttitle -char 
+
+      [1] (0,1,n,y) whether to include title
+
+=item wheretitle -char 
+
+      [t] (t,b,l,r) where to put title
+
+=item wherexlabel - char 
+
+      [b] (t,b) where to put x label
+
+=item whereylabel - char 
+
+      [l] (l,r) where to put y label
+
+=item titlefat,labelfat - int 
+
+      [1] makes title and label fat
+
+=back
+
+=head1  SEE ALSO
+
+L<Graph>,L<Grey>,L<xtpen>,L<Thplot>,L<Cubeplot>
+
+=head1 CATEGORY
+
+B<sep_graphics>
+
+=head1 COMPILE LEVEL
+
+DISTR
+
+=cut
+>*/
+
+/*
+KEYWORDS   plot wiggle
+
+
+copyright (c) 1991 Stanford University
+**************************** END SELFDOC *********************************
+*/
+/*
+Dave Hale,      4/9/82
+Shuki Ronen,    3/28/83
+Stew Levin,     8/20/84  Modified to handle negative dx
+Zhiming Li,    8/31/84  Modified to numbering axes properly and
+        making plotting spiky data possible even if ntile=98
+Joe Dellinger, 9/23/84  Modified to make "pen movies" possible.
+        large blocks of code were reordered; the whole
+        thing was then run through "indent", which
+        introduced syntax errors and core dumps;
+        fixed these by only running MAIN through it.
+Joe Dellinger, 10/3/84  Added script and fastplot
+Zhiming Li,    2/9/85  Fix the bug of clipping peaks of traces
+        near the window 
+Claerbout,      3/23/85 Prediction error plotting
+Dellinger,      10/20/85 Changed window which causing axes not to be drawn.
+       Worked fine on mazama, but somehow not on Convex
+Stew Levin,     1/25/86  Modified slightly for new getpar
+Zhiming Li,     3/19/86  Add option "poly" for polygon filling of areas under
+       positive values of wiggles
+Stew Levin,     7/7/86   Fixed up xpos=yes code for estimating xmin, xmax, dx
+Claerbout,      7/31/86  introduced "seemean"
+Joe Dellinger,  9/19/86  Updated to new VPlot standards, made xnumsz=0 work
+Kamal Al-Yahya, 12/1/86  changed xinch,tinch to inch2, inch1
+Joe Dellinger  2/25/88   vp_style AFTER vp_erase
+Steve Cole,  4/15/88   Call to reset clipping window after plotting traces
+       had hardwired limits that sometimes caused problems.
+       Now the call simply turns off clipping.
+Clement Kostov 1/19/89       converted to vplot style STANDARD
+Claerbout  9/6/89   fastplot=3 bug fixed.
+Jenni Etgen     4/23/90  Converted to libglplot and structures
+Joe Dellinger  11/23/90 Leave color 0 alone! Don't change it to yellow!
+       Also, accept "plotcol" and "plotfat" since that's
+       what everything else uses and what the doc all says.
+Jon claerbout  1/8/92  delete nt,nx anachronisms.
+Dave Nichols  2/12/92  Initialise all default grid and plot colors.
+Ray Abma        9/23/92 Added portable random number generator for scale work.
+Martin Karrenbach 11/2/92 reed correct number of bytes, not sizeof floats.
+Martin Karrenbach 11/2/92 force alloc to use sizeof floats. data.esize
+Bob Clapp 7/4/96 Changed fsize to ssize
+*/
+/*
+ * Keyword: plot wiggle
+ */
+
+/*#ifdef RS6000*/
+/*#pragma options spill=32768*/
+/*#endif*/
+
+#include "glplot.h"
+ADD_DEF_SEP_DOC
+
+#include <stdlib.h>
+#include <sep.main>
+extern void set_output_data_format(const char *);
+
+struct datainfo_g data;
+struct coordinfo_g coordinate;
+struct plotposition_g position;
+struct axisinfo_g axis1;
+struct axisinfo_g axis2;
+struct titleinfo_g title;
+struct colorinfo_g color;
+struct plotinfo_g plot;
+struct gridinfo_g grid;
+struct gridinfo_g timeline;
+double          dth;
+float           *xpos;
+double          *position1, *position2, cposition1, cposition2;
+int             iii, n3c,disptime;
+int             framecounter;
+int             counter, wantframe,wantframenum;
+int             xposfd, ix, ixmax, ix0, amountread;
+int             fastplt, lp, ipoly, xmask, ymask, fatp, ipreder;
+int             minusone, one, npreder, seemean, counts;
+int             it, *ip, it0, itmax, itile;
+double          ntile, zdata, zplot;
+float	        *p, *pdata;
+double          *px, *py;
+float           *ptile, *q, *qe;
+double          scale, value;
+int             overplot;
+int             poly;
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void initial1 (void );
+void xpostion (void);
+void initial2 (void);
+void memoryallocation (void);
+void datainput (void);
+void update (void);
+void graphinitial (void);
+void getminmax (struct coordinfo_g *coordinate);
+void check (double *x, double *y, struct coordinfo_g coord);
+void check1 (double *x,double *y,struct coordinfo_g coord);
+void rotate (double x,double *x2,double  min,double  max,struct datainfo_g data);
+void plotwiggle (void);
+void exchge (int *pa,int  *pb);
+int myrandom (int m, int n);
+void ppart (float *x,int *p,int m,int  n, int *pk,int *pj);
+void pfind (float *x,int *p, int m, int n, int k);
+void findzdata (void);
+float franuni (void);
+void plotint (void);
+_XFUNCPROTOEND
+#else
+void initial1 ();
+void xpostion ();
+void initial2 ();
+void memoryallocation ();
+void datainput ();
+void update ();
+void graphinitial ();
+void getminmax ();
+void check ();
+void check1 ();
+void rotate ();
+void plotwiggle ();
+void exchge ();
+int myrandom ();
+void ppart ();
+void pfind ();
+void findzdata ();
+void plotint ();
+float franuni ();
+#endif
+
+int MAIN (void)
+{
+   vp_filep_g(outstream); /* tell plotting routines where to stick it */
+
+    initial1 ();
+    xpostion ();
+    initial2 ();
+    memoryallocation ();
+    update ();
+    counter = 0;
+    framecounter = 0;
+    graphinitial ();
+    for (; n3c > 0; n3c--)
+    {
+  datainput ();
+  findzdata ();
+  plotwiggle ();
+    }
+
+  return(EXIT_SUCCESS);
+}
+
+/* initial1 initializes and fetches n1, n2, n3 o1, d1
+*/
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void initial1 (void )
+_XFUNCPROTOEND
+#else
+void initial1 ()
+#endif
+{
+int             ii, n1num, d1num, o1num, dummy;
+
+/* initializing data space */
+    fastplt = 0;
+    data.esize= 4;
+    data.n1[0] = 0;
+    data.d1[0] = 1;
+    data.o1[0] = data.d1[1];
+
+
+
+    n1num = fetch ("n1", "d", data.n1);
+    switch (n1num)
+    {
+    case 0:
+  seperr ("n1 is needed!\n");
+  break;
+    case 1:
+  break;
+    default:
+  if (n1num > NPMAX)
+      seperr ("entered too many values for n1  exceeded NPMAX\n");
+  fprintf (stderr, "************** Warning *******************\n");
+  fprintf (stderr, "Too many values for n1 were entered,\n");
+  fprintf (stderr, "using only first one (%d) \n ", data.n1[0]);
+  fprintf (stderr, "******************************************\n");
+  for (ii = 1; ii < NPMAX; ii++)
+      data.n1[ii] = data.n1[0];
+  break;
+    }
+
+    if (fetch ("n3", "d", &data.n3) == 0)
+  data.n3 = 1;
+    if (data.n3 == 0)
+  seperr ("n3 = 0 assuming there is no data\n");
+    ii = ssize ("in") / (data.n1[0] * data.n3 * sizeof (float));
+/* setting n2 to the number of n1's */
+
+    if (fetch ("n2", "d", &data.n2) == 0)
+    {
+  data.n2 = ii;
+    }
+    n3c = data.n3;
+    d1num = fetch ("d1", "g", data.d1);
+    switch (d1num)
+    {
+    case 0:
+  break;
+    case 1:
+  break;
+    default:
+  if (d1num > NPMAX)
+      seperr ("entered too many values for d1  exceeded NPMAX\n");
+  fprintf (stderr, "************** Warning *******************\n");
+  fprintf (stderr, "Too many values for d1 were entered,\n");
+  fprintf (stderr, "using only first one (%f) \n ", data.d1[0]);
+  fprintf (stderr, "******************************************\n");
+  for (ii = 1; ii < NPMAX; ii++)
+      data.d1[ii] = data.d1[0];
+  break;
+    }
+    dth = data.d1[0] / 2.;
+    o1num = fetch ("o1", "g", data.o1);
+    switch (o1num)
+    {
+    case 0:
+  break;
+    case 1:
+  break;
+    default:
+  if (o1num > NPMAX)
+      seperr ("entered too many values for o1  exceeded NPMAX\n");
+  fprintf (stderr, "************** Warning *******************\n");
+  fprintf (stderr, "Too many values for o1 were entered,\n");
+  fprintf (stderr, "using only first one (%f) \n ", data.o1[0]);
+  fprintf (stderr, "******************************************\n");
+  for (ii = 1; ii < NPMAX; ii++)
+      data.o1[ii] = data.o1[0];
+  break;
+    }
+    dummy = fetch ("o3", "g", &data.o3);
+    dummy = fetch ("d3 ", "g", &data.d3);
+    dummy = fetch ("esize ", "d", &data.esize);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void xpostion (void)
+_XFUNCPROTOEND
+#else
+void xpostion ()
+#endif
+{
+int             dummy;
+
+    if (auxin ("xpos") != NULL)
+       xposfd = fileno(auxin ("xpos"));
+    else
+       xposfd = -1;
+    xpos = (float *) calloc (data.n2, sizeof (float));
+    if (xposfd != -1)
+    {
+  if (amountread = sreed ("xpos", xpos, data.n2 * data.esize) != data.n2 * data.esize)
+  {
+      fprintf (stderr, "******************** WARNING ***********************");
+      fprintf (stderr, "Amount of data read in xpos was not amount specified\n");
+      fprintf (stderr, "check n2 \n");
+      fprintf (stderr, "****************************************************");
+  }
+    }
+    if (xposfd == -1)
+    {
+  if (!fetch ("d2", "g", &data.d2))
+      data.d2 = 1;
+  if (!fetch ("o2", "g", &data.o2))
+      data.o2 = data.d2;
+  coordinate.min2 = data.o2;
+  coordinate.max2 = data.o2 + (data.n2 - 1) * data.d2;
+  ix0 = (coordinate.min2 - data.o2) / data.d2 - .5;
+  if (ix0 < 0)
+      ix0 = 0;
+  ixmax = (coordinate.max2 - data.o2) / data.d2 + .5;
+  if (ixmax < 0)
+      ixmax = data.n2 - 1;
+
+  for (ix = 0; ix < data.n2; ix++)
+  {
+      xpos[ix] = data.o2 + ix * data.d2;
+  }
+    }
+    else
+    {
+  coordinate.min2 = xpos[0];
+  coordinate.max2 = xpos[data.n2 - 1];
+  if (data.n2 == 1)
+      data.d2 = (coordinate.max2 - coordinate.min2);
+  else
+      data.d2 = (coordinate.max2 - coordinate.min2) / (data.n2 - 1);
+  dummy = fetch ("d2", "g", &data.d2);
+  for (ix = 0; ix < data.n2; ix++)
+  {
+      if (xpos[ix] >= coordinate.min2)
+    break;
+  }
+  ix0 = ix - 1;
+  if (ix0 < 0)
+      ix0 = 0;
+  for (ix = data.n2 - 1; ix >= 0; ix--)
+  {
+      if (xpos[ix] <= coordinate.max2)
+    break;
+  }
+  ixmax = ix + 1;
+  if (ixmax >= data.n2)
+      ixmax = data.n2 - 1;
+    }
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void initial2 (void)
+_XFUNCPROTOEND
+#else
+void initial2 ()
+#endif
+{
+    if (!getch ("overplot", "1", &overplot))
+    {
+  overplot = 0;
+    }
+    /* polygon stuff */
+    ipoly = 0;
+    if (!getch ("poly va", "1", &poly))
+  poly = 0;
+    if (poly)
+    {
+  ipoly = 1;
+  if (!getch ("fatp", "d", &fatp))
+      fatp = 1;
+  if (!getch ("xmask", "d", &xmask))
+      xmask = 1;
+  if (!getch ("ymask", "d", &ymask))
+      ymask = 1;
+    }
+    if (!getch ("ntile", "g", &ntile))
+  if (!getch ("pclip", "g", &ntile))
+      ntile = 98;
+    if (!getch ("zplot", "g", &zplot))
+  zplot = .75;
+    if (!getch ("clip", "g", &zdata))
+  zdata = 0;
+    zplot *= data.d2;
+    coordinate.min1 = data.o1[0];
+    coordinate.max1 = data.o1[0] + (data.n1[0] - 1) * data.d1[0];
+    it0 = (coordinate.min1 - data.o1[0]) / data.d1[0] - .5;
+    if (it0 < 0)
+  it0 = 0;
+    itmax = (coordinate.max1 - data.o1[0]) / data.d1[0] + .5;
+    if (itmax > data.n1[0])
+  itmax = data.n1[0] - 1;
+    coordinate.min2 = coordinate.min2 - zplot;
+    coordinate.max2 = coordinate.max2 + zplot;
+    if (!getch ("seemean", "1", &seemean))
+  seemean = 0;
+    if (!getch ("preder", "1", &npreder))
+  npreder = 0;
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void memoryallocation (void)
+_XFUNCPROTOEND
+#else
+void memoryallocation ()
+#endif
+{
+    ptile = (float *) calloc ((data.n1[0] + data.n2), sizeof(ptile[0]));
+    pdata = (float *) calloc ((npreder + 1) * data.n1[0] * data.n2, sizeof(pdata[0]));
+    position1 = (double *) calloc (data.n1[0], sizeof(position1[0]));
+    position2 = (double *) calloc (data.n1[0], sizeof(position2[0]));
+    p = (float *) calloc (data.n1[0], sizeof(p[0]));
+    ip = (int *) (ptile + data.n2);
+    px = (double *) calloc (2 + data.n1[0], sizeof (px[0]));
+    py = (double *) calloc (2 + data.n1[0], sizeof (py[0]));
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void datainput (void)
+_XFUNCPROTOEND
+#else
+void datainput ()
+#endif
+{
+int             temp;
+
+    temp = data.n1[0] * data.n2 * data.esize;
+    if (amountread = sreed ("in", pdata, temp) != temp)
+    {
+  fprintf (stderr,"\n******************** WARNING ***********************");
+  fprintf (stderr,"\nAmount of data read in is not amount specified\n");
+  fprintf (stderr,"\nAmount read=%d, Amount expected=%d.",
+     amountread,temp);
+  fprintf (stderr,"\nCheck n1, n2 values.");
+  fprintf (stderr,"\n****************************************************");
+    }
+
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void update (void)
+_XFUNCPROTOEND
+#else
+void update ()
+#endif
+{
+    minusone = -1;
+    one = 1;
+    putch ("n1", "d", &minusone);
+    putch ("n2", "d", &one);
+    putch ("n3", "d", &one);
+    set_output_data_format("vplot");
+    hclose ();
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void graphinitial (void)
+_XFUNCPROTOEND
+#else
+void graphinitial ()
+#endif
+{
+double           tempminmax;
+
+    if (!getch ("wantframe", "1", &wantframe))
+  wantframe = 1;
+    if (!getch ("wantframenum", "1", &wantframenum))
+  wantframenum = 1;
+    strcpy (axis1.wherelabel, "b");
+    strcpy (axis2.wherelabel, "l");
+    coordinate.transp = 0;
+    coordinate.xreverse = 0;
+    coordinate.yreverse = 0;
+    strcpy (title.wheretitle, "t");
+    gl_coordint_g (&position, &coordinate, &axis1, &axis2);
+    gl_minmax_g (&coordinate);
+    coordinate.pad = 0;
+    coordinate.npad = getch ("pad", "1", &coordinate.pad);
+    gl_padint_g (&coordinate);
+    gl_axisint_g (&axis1, &axis2, &coordinate, &position);
+
+    gl_gridint_g(&grid, &coordinate, &axis1, &axis2);
+    gl_titleint_g (&title);
+    gl_colorint_g (&color);
+    plotint ();
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void getminmax (struct coordinfo_g *coordinate)
+_XFUNCPROTOEND
+#else
+void getminmax (coordinate)
+    struct coordinfo_g *coordinate;
+#endif
+{
+int             dummy;
+
+/*
+* This routine will fetch the min,and max values  and pad. 
+*/
+    dummy = getch ("min1 tmin", "g", &coordinate->min1);
+    dummy = getch ("max1 tmax", "g", &coordinate->max1);
+    dummy = getch ("min2 xmin", "g", &coordinate->min2);
+    dummy = getch ("max2 xmax", "g", &coordinate->max2);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void plotint (void)
+_XFUNCPROTOEND
+#else
+void plotint ()
+#endif
+
+{
+int i;
+    if (!getch ("tlinecol", "d", timeline.col))
+  for( i=0;i<n3c; timeline.col[i++] = 2);
+    if (!getch ("tlinefat", "d", &timeline.fat))
+  timeline.fat = 0;
+    if (!getch ("plotcol tracecol", "d", plot.col))
+  for( i=0;i<n3c; plot.col[i++] = 6);
+    if (!getch ("plotfat tracefat", "d", plot.fat))
+  for( i=0;i<n3c; plot.fat[i++] = 0);
+    if (coordinate.transp)
+    {
+  timeline.grid1 = 0;
+  if (grid.grid2) 
+           timeline.grid2 = 0;
+        else
+           timeline.grid2 = 1;
+  timeline.g2num = axis2.dnum;
+  timeline.g1num = axis2.dnum;
+        
+    }
+    else
+    {
+  timeline.grid2 = 0;
+  if(grid.grid1)
+  timeline.grid1 = 0;
+  else
+  timeline.grid1 = 1;
+  timeline.g1num = axis1.dnum;
+    }
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void findzdata (void)
+_XFUNCPROTOEND
+#else
+void findzdata ()
+#endif
+{
+    itile = it0 + (itmax - it0) * ntile / 100.;
+    if (zdata <= 0.)
+    {
+  for (ix = ix0; ix <= ixmax; ix++)
+  {
+      q = pdata + data.n1[0] * ix;
+      qe = q + data.n1[0] * data.n2;
+      for (it = it0; it <= itmax; it++)
+      {
+    ip[it] = it;
+    p[it] = fabs (q[it]);
+      }
+      pfind (p, ip, it0, itmax, itile);
+      ptile[ix] = p[ip[itile]];
+  }
+  for (ix = ix0; ix <= ixmax; ix++)
+      ip[ix] = ix;
+  itile = ix0 + (ixmax - ix0) * ntile / 100;
+  pfind (ptile, ip, ix0, ixmax, itile);
+  zdata = ptile[ip[itile]];
+    }
+    if (zdata <= 0.)
+  /*ntile percent of data are zero.  Define: zdata = L1 (norm) = sum (
+          abs(non-zeros) ) / # of non-zeros */
+    {
+  scale = 0;
+  counts = 0;
+  for (ix = 0; ix < data.n2; ix++)
+  {
+      for (it = 0; it < data.n1[0]; it++)
+      {
+    if (pdata[ix * data.n1[0] + it] != 0.)
+    {
+        scale += fabs (pdata[ix * data.n1[0] + it]);
+        counts += 1;
+    }
+      }
+  }
+  if (scale > 0.)
+      scale = counts * zplot / scale;
+
+    }
+    else
+  scale = zplot / zdata;
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void pfind (float *x,int *p, int m, int n, int k)
+_XFUNCPROTOEND
+#else
+void pfind (x, p, m, n, k)
+    int            *p, m, n, k;
+    float          *x;
+#endif
+{
+int             i, j;
+
+    if (m < n)
+    {
+  ppart (x, p, m, n, &i, &j);
+  if (k <= j)
+      pfind (x, p, m, j, k);
+  else
+  if (i <= k)
+      pfind (x, p, i, n, k);
+    }
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void ppart (float *x,int *p,int m,int  n, int *pk,int *pj)
+_XFUNCPROTOEND
+#else
+void ppart (x, p, m, n, pk, pj)
+    int            *p, m, n, *pk, *pj;
+    float          *x;
+#endif
+{
+int             i, j, f;
+float           xx;
+
+    f = myrandom (m, n);
+    xx = x[p[f]];
+    i = m;
+    j = n;
+up:for (i = i; i <= n; i++)
+  if (xx < x[p[i]])
+      goto down;
+    i = n;
+down:for (j = j; j >= m; j--)
+  if (x[p[j]] < xx)
+      goto change;
+    j = m;
+change:if (i < j)
+    {
+  exchge (&p[i], &p[j]);
+  i++;
+  j--;
+  goto up;
+    }
+    else
+    if (i, f)
+    {
+  exchge (&p[i], &p[f]);
+  i++;
+    }
+    else
+    if (f < j)
+    {
+  exchge (&p[f], &p[j]);
+  j--;
+    }
+    *pk = i;
+    *pj = j;
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int myrandom (int m, int n)
+_XFUNCPROTOEND
+#else
+int myrandom (m, n)
+    int             m, n;
+#endif
+{
+float           r;
+
+    r = 0.0;
+    r=franuni();
+    r = m + (n - m) * r;
+    return ((int) r);
+}
+
+
+/* Copyright (c) Colorado School of Mines, 1999.*/
+/* All rights reserved.                       */
+
+/*********************** self documentation **********************/
+/*****************************************************************************
+FRANUNI - Functions to generate a pseudo-random float uniformly distributed
+  on [0,1); i.e., between 0.0 (inclusive) and 1.0 (exclusive)
+
+franuni   return a random float
+
+******************************************************************************
+Function Prototypes:
+float franuni (void);
+void sranuni (int seed);
+
+******************************************************************************
+franuni:
+Input:    (none)
+Returned: pseudo-random float
+
+sranuni:
+seed    different seeds yield different sequences of random numbers.
+
+******************************************************************************
+Notes:
+Adapted from subroutine uni in Kahaner, Moler, and Nash (1988).
+This book references a set of unpublished notes by
+Marsaglia.
+
+According to the reference, this random
+number generator "passes all known tests and has a period that is ...
+approximately 10^19".
+
+******************************************************************************
+******************************************************************************
+References:
+"Numerical Methods and Software", D. Kahaner, C. Moler, S. Nash,
+Prentice Hall, 1988.
+
+Marsaglia G., "Comments on the perfect uniform random number generator",
+Unpublished notes, Wash S. U.
+
+******************************************************************************
+Author:  Dave Hale, Colorado School of Mines, 12/30/89
+*****************************************************************************/
+
+
+/* constants used to generate random numbers (16777216=2^24) */
+#define CS 362436.0/16777216.0
+#define CD 7654321.0/16777216.0
+#define CM 16777213.0/16777216.0
+#define NBITS 24
+
+/* internal state variables */
+static int i=16,j=4;
+static float c=CS;
+static float u[]={
+  0.8668672834288,  0.3697986366357,  0.8008968294805,
+  0.4173889774680,  0.8254561579836,  0.9640965269077,
+  0.4508667414265,  0.6451309529668,  0.1645456024730,
+  0.2787901807898,  0.06761531340295, 0.9663226330820,
+  0.01963343943798, 0.02947398211399, 0.1636231515294,
+  0.3976343250467,  0.2631008574685
+};
+
+
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+float franuni (void)
+_XFUNCPROTOEND
+#else
+float franuni ()
+#endif
+
+{ float uni;
+
+  /* basic generator is Fibonacci */
+  uni = u[i]-u[j];
+  if (uni<0.0) uni += 1.0;
+  u[i] = uni;
+  i--;
+  if (i<0) i = 16;
+  j--;
+  if (j<0) j = 16;
+
+  /* second generator is congruential */
+  c -= CD;
+  if (c<0.0) c += CM;
+
+  /* combination generator */
+  uni -= c;
+  if (uni<0.0) uni += 1.0;
+  return uni;
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void exchge (int *pa,int  *pb)
+_XFUNCPROTOEND
+#else
+void exchge (pa, pb)
+    int            *pa, *pb;
+#endif
+{
+int             temp;
+
+    temp = *pa;
+    *pa = *pb;
+    *pb = temp;
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void plotwiggle (void)
+_XFUNCPROTOEND
+#else
+void plotwiggle ()
+#endif
+{
+  double t11x, t11y;
+
+    if (npreder && n3c > 1)
+    {
+  sreed ("in", pdata + data.n1[0] * data.n2, data.n1[0] * data.n2 * data.esize);
+  n3c--;
+  ipreder = 1;
+    }
+    else
+  ipreder = 0;
+    if (overplot == 0 || n3c == data.n3)
+    {
+  gl_erase_g ();
+
+    }
+
+    gl_vplotint_g (&position, &coordinate, &axis1, &axis2);
+    gl_plotpram_g (&color, &coordinate);
+    gl_color_g (plot.col[0]);
+    gl_fat_g (plot.fat[0]);
+    if (overplot)
+    {
+  plot.col[0]--;
+/* DAMN IT IF THEY ASK FOR COLOR ZERO THEN THEY WANT COLOR ZERO, not YELLOW
+ *  if (plot.col[0] == 0)
+ *      plot.col[0] = 6;
+ */
+    }
+    /* draw n2 traces */
+    for (ix = ix0; ix <= ixmax; ix++)
+    {
+  q = pdata + data.n1[0] * ix;
+  qe = q + data.n1[0] * data.n2;
+  if (coordinate.transp)
+  {
+      for (it = it0; it <= itmax; it++)
+      {
+    position2[it] = data.o1[0] + it * data.d1[0];
+    position1[it] = xpos[ix] + q[it] * scale;
+      }
+  }
+  else
+  {
+      for (it = it0; it <= itmax; it++)
+      {
+    position1[it] = data.o1[0] + it * data.d1[0];
+    position2[it] = xpos[ix] + q[it] * scale;
+      }
+  } 
+      for (it = it0; it <= itmax; it++)
+      {
+          check1 (&position1[it], &position2[it], coordinate);
+      }
+
+  for (it = it0; it <= itmax; it++)
+  {
+      if (it == it0)
+      {
+    gl_umove_g (position1[it], position2[it]);
+      }
+      else
+      {
+    gl_udraw_g (position1[it], position2[it]);
+      }
+  }
+  if (seemean)    /* plot mean lines of traces -jon */
+  {
+      it = it0;
+      cposition1 = data.o1[0] + it * data.d1[0];
+      cposition2 = xpos[ix];
+      check (&cposition1, &cposition2, coordinate);
+      gl_umove_g (cposition1, cposition2);
+      it = itmax;
+      cposition1 = data.o1[0] + it * data.d1[0];
+      cposition2 = xpos[ix];
+      check (&cposition1, &cposition2, coordinate);
+      gl_udraw_g (cposition1, cposition2);
+  }
+  /* draw nx traces with polygon fillings */
+  if (ipoly == 1)
+  {
+      iii = 0;
+      if (q[it0] > 0.)
+      {
+    cposition1 = data.o1[0] + it0 * data.d1[0];
+    cposition2 = xpos[ix];
+    check (&cposition1, &cposition2, coordinate);
+    px[iii] = cposition1;
+    py[iii] = cposition2;
+    iii += 1;
+    px[iii] = position1[it0];
+    py[iii] = position2[it0];
+    iii += 1;
+      }
+
+      for (it = it0 + 1; it <= itmax - 1; it++)
+      {
+
+    /*
+     * see if interpolation needed 
+     */
+    if (q[it] > 0 && q[it - 1] <= 0.)
+    {
+        cposition1 = data.o1[0] + it * data.d1[0];
+        t11x = cposition1 - data.d1[0] * q[it] / (q[it] - q[it - 1]);
+        t11y = xpos[ix];;
+        check (&t11x, &t11y, coordinate);
+        px[iii] = t11x;
+        py[iii] = t11y;
+        iii += 1;
+        px[iii] = position1[it];
+        py[iii] = position2[it];
+        iii += 1;
+    }
+    else
+    if (q[it] > 0. && iii != 0)
+    {
+        px[iii] = position1[it];
+        py[iii] = position2[it];
+        iii += 1;
+    }
+    /* polygon fillings of positive peak */
+    else
+    if (q[it] <= 0. && q[it - 1] > 0.)
+    {
+        cposition1 = data.o1[0] + it * data.d1[0];
+        t11x = cposition1 - data.d1[0] * q[it] / (q[it] - q[it - 1]);
+        t11y = xpos[ix];;
+        check (&t11x, &t11y, coordinate);
+        px[iii] = t11x;
+        py[iii] = t11y;
+        iii = iii + 1;
+        gl_uarea_g (px, py, iii, fatp, ymask, xmask, 1);
+        iii = 0;
+    }
+      }
+      /* check last sample of trace */
+      if (q[itmax] <= 0. && iii > 0.)
+      {
+    cposition1 = data.o1[0] + itmax * data.d1[0];
+    t11x = cposition1 - data.d1[0] * q[itmax] / (q[itmax] - q[itmax - 1]);
+    t11y = xpos[ix];
+    check (&t11x, &t11y, coordinate);
+    px[iii] = t11x;
+    py[iii] = t11y;
+    iii = iii + 1;
+    gl_uarea_g (px, py, iii, fatp, ymask, xmask, 2);
+    iii = 0;
+      }
+      else
+      if (q[itmax] > 0. && iii != 0)
+      {
+    px[iii] = position1[itmax];
+    py[iii] = position2[itmax];
+    iii = iii + 1;
+    cposition1 = data.o1[0] + itmax * data.d1[0];
+    t11x = cposition1;
+    t11y = xpos[ix];
+    check (&t11x, &t11y, coordinate);
+    px[iii] = t11x;
+    py[iii] = t11y;
+    iii = iii + 1;
+    gl_uarea_g (px, py, iii, fatp, ymask, xmask, 3);
+    iii = 0;
+      }
+      else
+      if (q[itmax] > 0. && iii == 0)
+      {
+    cposition1 = data.o1[0] + itmax * data.d1[0];
+    t11x = cposition1 - data.d1[0] * q[itmax] / (q[itmax] - q[itmax - 1]);
+    t11y = xpos[ix];
+    check (&t11x, &t11y, coordinate);
+    px[iii] = t11x;
+    py[iii] = t11y;
+    iii = iii + 1;
+    px[iii] = position1[itmax];
+    py[iii] = position2[itmax];
+    iii = iii + 1;
+    cposition1 = data.o1[0] + itmax * data.d1[0];
+    t11x = cposition1;
+    t11y = xpos[ix];
+    check (&t11x, &t11y, coordinate);
+    px[iii] = t11x;
+    py[iii] = t11y;
+    iii = iii + 1;
+    gl_uarea_g (px, py, iii, fatp, ymask, xmask, 4);
+    iii = 0;
+      }
+  }
+  if (ipreder)
+  {
+      for (it = it0; it <= itmax; it++)
+      {
+    value = q[it] * qe[it] - qe[it] * qe[it];
+    cposition1 = data.o1[0] + it * data.d1[0];
+    if (value > 0.0)
+    {
+        cposition2 = xpos[ix] + q[it] * scale;
+        gl_umove_g (cposition1, cposition2);
+        cposition2 = xpos[ix] + qe[it] * scale;
+        gl_udraw_g (cposition1, cposition2);
+    }
+    else
+    if (value < 0.0)
+    {
+        cposition1 = data.o1[0] + it * data.d1[0];
+        cposition2 = xpos[ix] + qe[it] * scale;
+        gl_umove_g (cposition1, cposition2);
+        cposition1 = dth + data.o1[0] + it * data.d1[0];
+        cposition2 = xpos[ix] + qe[it] * scale;
+        gl_udraw_g (cposition1, cposition2);
+
+    }
+      }
+  }
+    }
+    if (overplot == 0 || n3c == 1)
+    {
+  if (fastplt < 20)
+  {
+      /*plot timing lines */
+      if ( timeline.col[counter] != 0 && fastplt < 10)
+      {
+      disptime=0;
+      getch("timeline","d",&disptime);
+              
+    if (timeline.grid1 && disptime!=0){
+                   if( timeline.g1num != 0.0){
+       gl_plotgrid_g (&coordinate, &axis1, &timeline, counter);
+        }}
+    if (timeline.grid2 &&disptime!=0){
+                   if( timeline.g2num != 0.0){
+        gl_plotgrid_g (&coordinate, &axis2, &timeline, counter);
+        }}
+      }
+}
+  gl_stdplot_g (&data, &coordinate, &axis1, &axis2, &grid, &title, counter, fastplt, wantframe,wantframenum);
+  counter++;
+    }
+
+}
+
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void rotate (double x,double *x2,double  min,double  max,struct datainfo_g data)
+_XFUNCPROTOBEGIN
+#else
+void rotate (x, x2, min, max, data)
+    double         x, *x2, min, max;
+    struct datainfo_g data;
+#endif
+{
+int             i, j;
+double temp, temp1;
+       temp = x;
+       temp1 = (min + max) - x;
+       *x2 = temp1;
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void check1 (double *x,double *y,struct coordinfo_g coord)
+_XFUNCPROTOEND
+#else
+void check1 (x, y, coord)
+    double          *x, *y;
+    struct coordinfo_g coord;
+#endif
+{
+    if (coord.xreverse)
+    {
+  *x = coord.min1 + coord.max1 - *x;
+    }
+    if (coord.yreverse)
+    {
+  *y = coord.min2 + coord.max2 - *y;
+    }
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void check (double *x, double *y, struct coordinfo_g coord)
+_XFUNCPROTOEND
+#else
+void check (x, y, coord)
+    double          *x, *y;
+    struct coordinfo_g coord;
+#endif
+{
+double           xyexch;
+
+    if (coord.transp)
+    {
+  xyexch = *x;
+  *x = *y;
+  *y = xyexch;
+    }
+    if (coord.xreverse)
+    {
+  *x = coord.min1 + coord.max1 - *x;
+    }
+    if (coord.yreverse)
+    {
+  *y = coord.min2 + coord.max2 - *y;
+    }
+}

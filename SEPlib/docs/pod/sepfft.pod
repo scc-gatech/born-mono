@@ -1,0 +1,29 @@
+
+
+=head1 NAME
+
+sepfft - Functions that do FFTs
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Functions that do FFTs
+
+=head1 FUNCTIONS
+
+
+
+L<cvfft> -  Complex fft
+
+
+
+L<cefft> - complex FFT
+
+L<refft> - real fft
+
+L<rvfft> - real vector fft
+
+=cut 

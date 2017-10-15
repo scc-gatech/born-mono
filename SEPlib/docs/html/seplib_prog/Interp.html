@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Interp - Interpolate dataset using sinc, linearm or nearest neighbor</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#example">EXAMPLE</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Interp - Interpolate dataset using sinc, linearm or nearest neighbor</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Interp &lt; in.H o1 pars &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_lsinc__2d_integer">lsinc - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [10]: length of interpolation operator 
+      (recommend &lt; 20; MUST BE EVEN)</pre>
+</dd>
+<dt><strong><a name="item_type__2d_int">type  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+         [2]: Type of interpolation,0 nearest neighbor,1-linear,2-sinc</pre>
+</dd>
+<dt><strong><a name="item_o1out__2d_float">o1out - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [o1]: First sample on axis1</pre>
+</dd>
+<dt><strong><a name="item_o2out__2d_float">o2out - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [o2]: First sample on axis2</pre>
+</dd>
+<dt><strong><a name="item_o3out__2d_float">o3out - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [o3]: First sample on axis3</pre>
+</dd>
+<dt><strong><a name="item_d1out__2d_float">d1out - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [d1]: Sampling of the output axis 1</pre>
+</dd>
+<dt><strong><a name="item_d2out__2d_float">d2out - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [d2]: Sampling of the output axis 2</pre>
+</dd>
+<dt><strong><a name="item_d3out__2d_float">d3out - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [d3]: Sampling of the output axis 3</pre>
+</dd>
+<dt><strong><a name="item_n1out__2d_int">n1out - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [max in/dout]: Number of samples in axis 1</pre>
+</dd>
+<dt><strong><a name="item_n2out__2d_int">n2out - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [max in/dout]: Number of samples in axis 2</pre>
+</dd>
+<dt><strong><a name="item_n3out__2d_int">n3out - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [max in/dout]: Number of samples in axis 3</pre>
+</dd>
+<dt><strong><a name="item_maxsize_2dint">maxsize-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [20]:  Amount of memory to use in megabytes</pre>
+</dd>
+<dt><strong><a name="item_ntab__2d_int">ntab  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [101]: Interpolation table size (aka if outspace
+      corresponds to inspace .012 .01 table will be chosen)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Interpolate dataset using sinc, linear, or nearest neighbor,
+up to 3 dimensions(if it can be held in memory). If any of the
+n1out,n2out,n3out, o1out,o2out,o3out or d1out,d2out,d3out is
+omitted the corresponding value in the input data is used.</p>
+<p>
+</p>
+<hr />
+<h1><a name="example">EXAMPLE</a></h1>
+<pre>
+        Interp &lt; in.H lsinc=12 type=2 &gt; out.H
+        conputes a 12-point sinc-interpolator on the input data.
+        All of the standard n's, d's and o's are taken from the
+        input data</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

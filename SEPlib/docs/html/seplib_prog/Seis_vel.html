@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Seis_vel - Display Seismic and velocity simutaneously</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#usage">USAGE</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Seis_vel - Display Seismic and velocity simutaneously</p>
+<p>
+</p>
+<hr />
+<h1><a name="usage">USAGE</a></h1>
+<pre>
+ Seis_vel vel=vel.H data=data.H fn_color=color.file  &gt;out.H bg_min= bg_max</pre>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_vel__2d_sepfile">vel - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+ Velocity file</pre>
+</dd>
+<dt><strong><a name="item_data__2d_sepfile">data - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+ Data file</pre>
+</dd>
+<dt><strong><a name="item_data2__2d_sepfile">data2 - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+ Second data file (optional)</pre>
+</dd>
+<dt><strong><a name="item_stdout__2d_sepfile">stdout - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Datafile to use with Grey</pre>
+</dd>
+<dt><strong><a name="item_color__2d_sepcolor">color - sepcolor</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Color file to use with Grey</pre>
+</dd>
+<dt><strong><a name="item_fg_linear_or_log__2d_integer">fg_linear_or_log - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [1]   forground color display mode</pre>
+</dd>
+<dt><strong><a name="item_fg_clip_linear_2d_real">fg_clip_linear- real</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [.5] (0.-1., percentage of max value of each snapshot</pre>
+</dd>
+<dd>
+<pre>
+         above which data will be clipped dfor linear mode</pre>
+</dd>
+<dt><strong><a name="item_fg_modulate_log_2d_integer">fg_modulate_log- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [10000]  modulate data for log mode, a large integer &gt; 100</pre>
+</dd>
+<dt><strong><a name="item_bg_min_2cbg_max__2d_real">bg_min,bg_max - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+ clip bacground values</pre>
+</dd>
+<dt><strong><a name="item_fg_nhue__2d_integer">fg_nhue - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [18]  number of hues</pre>
+</dd>
+<dt><strong><a name="item_fg_nlightness__2d_integer">fg_nlightness - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [12]  number of lightness regions</pre>
+</dd>
+<dt><strong><a name="item_fg_min_lightness_2cfg_max_lightness__2d_real">fg_min_lightness,fg_max_lightness - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [.3,.8]  range of lightness</pre>
+</dd>
+<dt><strong><a name="item_fg_saturation__2d_real">fg_saturation - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [1.]  foreground saturation</pre>
+</dd>
+<dt><strong><a name="item_bg_nhue__2d_integer">bg_nhue - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [20]  number of background hues</pre>
+</dd>
+<dt><strong><a name="item_bg_lightness__2d_real">bg_lightness - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [.3]  bacground lightness</pre>
+</dd>
+<dt><strong><a name="item_bg_saturation__2d_real">bg_saturation - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [.3]  bacground saturation</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+     Composing two components (x and y, e.g., p wave and s wave) as</pre>
+<pre>
+      the foreground with a velocity model as the background</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+ COLOR SCHEME:
+      Forground   H: atan2(y,x) (i.e. 360 degree)
+                  L: sqrt(x^2+y^2)*clip (range e.g. 0.8-0.3)
+                  S: constant (e.g. 1.0)
+                  Number of fg colors = fg_nhue * fg_nlightness
+      Background  H: blue -&gt; magenta (i.e. slow to fast)
+                  L: constant (e.g. 0.3)
+                  S: constant (e.g. 0.3)
+                  Number of bg colors = bg_nhue
+      Total colors = fg_nhue * fg_nlightness + bg_nhue (default 18*12+20=236)</pre>
+<pre>
+ NOTE: The log mode displays more data using higher lightness colors.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<pre>
+          Lin, I-Ching 'Michael'     
+         Allied Geophysics Laboratories
+         Department of Computer Science
+         University of Houston</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,148 @@
+module wei_timers_mod
+#ifdef SEP_TIMER
+  use sep_timers_mod
+#endif
+implicit none
+  character(len=128),pointer :: timers_name(:)
+integer, private, save :: nsetup
+
+interface  timer_start
+module  procedure starti,startc
+end interface
+
+interface  timer_stop
+module  procedure stopi,stopc
+end interface
+
+
+
+contains
+
+
+logical function init_wei_timers(nmax   )
+integer, optional :: nmax
+integer :: ntimer
+logical :: junkl
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weimig_init'
+    call in(unit)
+#endif
+
+
+#ifdef SEP_TIMER
+    nsetup=0
+    nmax=25
+    if(present(nmax)) ntimer=nmax
+    allocate(timers_name(nmax))
+    junkl= init_sep_timers()
+#endif
+
+#ifdef DEBUG
+    call out(unit)
+#endif
+init_wei_timers=.true.  
+end function
+
+
+integer function find_timer_num(name)
+character(len=*) :: name
+integer :: i,n
+
+find_timer_num=1
+#ifdef SEP_TIMER
+find_timer_num=0
+do i=1,nsetup
+ n=min(len(trim(name)),len(trim(timers_name(i))))
+ if(name(1:n)==timers_name(i)(1:n)) find_timer_num=i
+end do
+#endif
+
+end function
+
+
+
+logical function stopi(inum)
+logical :: junkt
+integer :: inum
+
+stopi=.false.
+#ifdef SEP_TIMER
+if(inum < 1 .or. inum > nsetup) then
+  write(0,*) "invalid timer number ", inum
+  return
+end if
+   call stop_timer_num(inum)
+#endif
+stopi=.true.
+end function
+
+logical function stopc(name)
+logical :: junkt
+character(len=*) :: name
+integer :: inum
+
+stopc=.false.
+#ifdef SEP_TIMER
+inum=find_timer_num(name)
+if(inum==0) then
+  write(0,*) "timer ",trim(name), " hasn't been initialized"
+  return
+end if
+   call stop_timer_num(inum)
+#endif
+stopc=.true.
+end function
+
+logical function startc(name,num)
+logical :: junkt
+character(len=*) :: name
+integer, optional :: num
+integer :: inum
+
+startc=.false.
+#ifdef SEP_TIMER
+inum=find_timer_num(name)
+if(inum==0) then
+   nsetup=nsetup+1
+   junkt=setup_next_timer(name,inum)
+   timers_name(inum)=name
+end if
+   call start_timer_num(inum)
+#endif
+if(present(num))num=inum
+startc=.true.
+end function
+
+
+
+
+logical function starti(inum,name)
+integer :: inum
+logical :: junkt
+character(len=*),optional :: name
+character(len=256) :: use
+
+starti=.false.
+#ifdef SEP_TIMER
+if(inum<0 .or. inum > nsetup) then
+  write(0,*) "invalid timer number",inum
+  return
+else
+   if(inum==0) then
+     nsetup=nsetup+1
+     use="timer"
+     call parcat(use,nsetup)
+     if(present(name)) use=name
+     junkt=setup_next_timer(use,inum)
+     timers_name(inum)=use
+   end if
+   call start_timer_num(inum)
+end if
+#endif
+starti=.true.
+end function
+
+
+
+
+end module

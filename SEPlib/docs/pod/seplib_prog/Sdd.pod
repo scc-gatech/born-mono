@@ -1,0 +1,75 @@
+=head1 NAME
+
+
+Sdd - Convert between formats
+
+=head1 SYNOPSIS
+
+
+Sdd esize= ein= real=yes line=8 format=  allpos=n/y < in.H > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  esize      - int     
+
+      element size on output file.
+
+=item  ein       - int     
+
+      element size on input file.
+      ( if esize is not found in input heade file ).
+
+=item  real      - int     
+
+      [yes]  for conversions to or from esize=8. 
+      the imaginary part of the complex numbers is assumed zero
+      no- the real part is assumed zero.
+
+=item  line      - int     
+
+      [8] for conversion to ascii default is to 
+      print 8 numbers per line.
+
+=item  format    - char*   
+
+      format to use in printf for ascii output.
+      [-8.3g]  for float.
+      [-6d]   for bytes and shorts.
+
+=item  allpos    - char    
+
+      [n]  y  maps only positive numbers in 0-255
+
+=item  n1,n2,n3  - int     
+
+      cube dimensions. (from history)
+
+=item  esize     - int    
+
+      (from history) 0 -ascii float,integer or complex 
+      (complex format i=(0.,1.))
+      1 -movie format (only input)
+      2 -short integer
+      3 -floating point with least significant byte truncated.
+      4 -floating point
+      8 -complex
+
+=back
+
+
+=head1 DESCRIPTION
+
+
+ Convert from input esize=0,1,2,3,4,8 to output esize=0,1,2,3,4,8
+
+
+=head1 CATEGORY
+
+
+B<util/info>
+
+=cut
+

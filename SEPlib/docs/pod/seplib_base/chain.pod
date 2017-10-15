@@ -1,0 +1,56 @@
+=head1 NAME
+
+
+chain - create a chain of 2,3, or 4 operators
+
+=head1 SYNOPSIS
+
+
+C<call chain(oper1,oper2,adj,add,model,data,temp1)>
+
+C<call chain(oper1,oper2,oper3,adj,add,model,data,temp1,temp2)>
+
+C<call chain(oper1,oper2,oper3,oper4,adj,add,model,data,temp1,temp2,temp3)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item oper1,oper2,oper3,oper4 - func  
+
+      standard operators
+
+=item adj,add,model,data      -
+
+      standard operator interface
+
+=item temp1,temp2,temp3       - C<real(:)>  
+
+      temporary arrays
+
+=back
+
+=head1 DESCRIPTION
+
+
+Create a chain of multiple operators
+
+head1 COMMENTS
+
+temp1 should be the output of oper1(model)
+temp2 should be the output of oper2(oper1(model))
+temp3 should be the output of oper3(oper2(oper1(model)))
+
+=head1 SEE ALSO
+
+
+L<array>,L<solver>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

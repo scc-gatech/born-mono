@@ -1,0 +1,107 @@
+=head1 NAME
+
+
+sgainpar - gain seismic data
+
+=head1 SYNOPSIS
+
+
+
+C<int sgainpar (tag,adata,ant,ahbytes,anx,adit,atpow,ait0,apclip,aphalf,aclip,agpow,adbias,adt,anp,againip)>
+
+
+
+=head1 DESCRIPTION
+
+
+ Subroutine to compute gain factors for seismic data all arguments 
+ are addresses if any argument has the value zero, it reverts to its default.
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item tag    -char*    
+
+      tag of dataset, may be lseeked to appropiate place, default 0
+
+=item data   -float*   
+
+       save copy of data here, useful for pipes
+       if 0, then data not saved, default 0
+
+=item nt     -int*     
+
+      raslength of data vector, default 1024
+
+=item nx     -int*     
+
+      number of vectors to examine, default all data or 256, 
+      whichever is less
+
+=item np     -int*     
+
+      number of planes of data, (n3)  default 1
+
+=item dit    -int*     
+
+      integer separation between samples,
+      default nt*nx / 262144, because only 262144 values 
+      are sorted to find percentiles (for np=1)
+
+=item tpow   -float*   
+
+      multiply samples by ((it*dit+it0)*dt)**tpow, default 0
+
+=item it0    -float*   
+
+      time of first sample in units of samples, default 0
+
+=item dbias  -float*   
+
+      subtract dbias from the data
+
+=item pclip  -float*   
+
+       percentile for clipping seismic data, default 99
+
+=item phalf  -float*   
+
+      percentile for determining gpow, default 85
+
+=item gainip -int*     
+
+      plane where clip and gpow are estimated
+      default 1 (the first plane is used)
+      when -1, data of all planes are considered
+
+=item d  -float*   
+
+      sample interval of data
+
+=item clip -float*   
+
+      clip value
+
+=item gpow    -float*   
+
+      raise each data sample to this power,
+      gpow = log (.5) / log (half / clip),
+      if (half / clip < .001) gpow = 1. (detects synthetics)
+
+
+=back
+
+=head1 SEE ALSO
+
+
+L<Grey>
+
+=head1 LIBRARY
+
+
+B<sepaux>
+
+=cut
+

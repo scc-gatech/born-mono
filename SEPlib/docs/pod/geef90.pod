@@ -1,0 +1,163 @@
+
+
+=head1 NAME
+
+geef90 - Fortran 90 GEE Operator Library
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Fortran 90 GEE Operator Library
+
+=head1 FUNCTIONS
+
+
+
+L<autocorr> -  compute a filter auto-correlation
+
+
+
+L<bound> - find the boundaries of a filter on given map
+
+L<box> - filter to hypercube
+
+L<cartesian> - convert to and from cartesian
+
+L<cgmeth> - conjugate gradient method
+
+L<cgstep> - one step of conjugate gradient step
+
+L<compress> - compress a helix filter
+
+L<conjgrad> - one step of conjugate gradient
+
+L<conv> - convolve helix filters
+
+L<createhelix> - create a helix filter
+
+L<createmshelix> - create a multi-scale helix filter
+
+L<createnhelix> - create non stationary helix filter
+
+L<cross_wilson> - wilson factorization of cross-correlation
+
+L<dottest> - Perform a dot product test on an operator
+
+L<helix> - module containing allocate and deallocate of a  helix filter
+
+L<helixcartmod> - convert to and from cartesian/helix space
+
+L<invint2> - Inverse linear interpolation;
+
+L<irls> - weighting functions
+
+L<lapfac> - factor a 2-D Laplacian
+
+L<lopef> - estimate pef in patches
+
+L<misinput> - find a mask of missing filter inputs
+
+L<nbound> - find the boundaries of a multi scale filter on given map
+
+L<nhelix> - module containing allocate and deallocate of a  nhelix filter
+
+L<nmis2> - Fill in missing data using non-stationary filter
+
+L<npef> - find non stationary prediction error filter
+
+L<pef> - find prediction error filter
+
+L<pefest> - find prediction error filter, avoid bursty noise
+
+L<quantile> - find data quantile
+
+L<regrid> - convert a helix filter from one data space to another
+
+L<steepdip> - Find steep dip decon filter
+
+L<steering> - 2-D steering filters
+
+L<wilson> - wilson's factorization
+
+L<adj_mod> - Simple adjnull function
+
+L<ddot> - calculate double precission dot product
+
+L<solver_prec> - iteratively solve preconditioned system of equation
+
+L<solver_reg> - iteratively solve regularized system of equation
+
+L<solver> - solve system of equation
+
+L<lsqr> - solve system of using lsqr method
+
+L<nonlin_solver> - generic non-linear solver program
+
+L<chain> - create a chain of 2,3, or 4 operators
+
+L<array> - create an array operator
+
+L<binpull1> - nearest neighbor interpolation
+
+L<binpull2> - nearest neighbor interpolation, 2D
+
+L<helicon> - convolution using helix filters
+
+L<causint> - Causal integration
+
+L<cdoubint> - Double causal integration
+
+L<cdstep> - on step of conjugate direction
+
+L<matmult> - matrix multiplication
+
+L<patch> - extract and put back patches
+
+L<gauss> - solve system by gaussian elimination
+
+L<polydiv> - polynomial division
+
+L<fold> - fold the ends inside
+
+L<igrad2> - 2D gradient operator
+
+L<hconest> - convolution using helix filters, adjoint is filter
+
+L<helderiv> - helix derivative filter
+
+L<heliarr> - two helix convolutions
+
+L<igrad1> - 1D gradient operator
+
+L<lint1> - linear 1D interpolation
+
+L<lint2> - 2-D linear interpolation
+
+L<mshconest> - convolution using multi-scale helix filters, adjoint is filter
+
+L<mshelicon> - convolution using mutli scale helix filters
+
+L<nhconest> - non stationary  convolution using helix filters, adjoint is filter
+
+L<nhelicon> - non stationary convolution
+
+L<npolydiv> - non stationary polynomial division
+
+L<partan> - partan step
+
+L<refine2> - refine mesh
+
+L<signoi> - signal and noise separation
+
+L<triangle> - triangle smoothing
+
+L<triangle1> - triangle smoothing
+
+L<triangle2> - triangle smoothing
+
+L<weight> - simple weighting operator
+
+=cut 

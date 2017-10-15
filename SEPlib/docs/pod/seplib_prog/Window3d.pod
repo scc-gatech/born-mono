@@ -1,0 +1,93 @@
+=head1 NAME
+
+
+Window3d - Window a SEPlib dataset (3-D or 2-D) by cutting and/or decimating samples.
+
+=head1 SYNOPSIS
+
+
+Window3d <in.H [params] >out.H
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+
+=item	f_ - int     
+
+
+      first element to keep along axis specified by a number replacing the '_'.  
+
+
+=item  j_ - int     
+
+       sampling of the elements to keep along the specified axis.
+
+
+=item  n_ - int     
+
+       number of elements to keep along the specified axis.
+
+
+=item  min_ - float   
+
+       Minimum sample value to grab from specified axis.
+
+
+=item  max_ - float   
+
+       Maximum sample value to grab from specified axis.
+
+
+=item  synch - int     
+
+       [0]whether or not to sink 
+
+
+=item  squeeze - int     
+
+       [1] Wheter to squeeze axes 
+
+
+=item  max_memory - int     
+
+       [50] Maximum memory in megabytes to use
+
+
+=item  verb - int     
+
+       [0]  Wheter or not to be verbose
+
+
+=back
+
+=head1 DESCRIPTION
+
+
+Windows dataset by cutting and/or subsampling along specified axes.
+
+=head1 EXAMPLE
+
+
+Window3d <in.H min1=0.3 max1=0.5 j2=3 f2=2 >out.H
+
+   Creates out.H, which is in.H windowed from 0.3 to 0.5 along the 1 axis, and
+   includes only every 3rd sample along the 2 axis, starting with the 2nd.  
+   Assuming that the first axis is time (in seconds), and the second axis is offset,
+   out.H will contain times from 0.3 to 0.5 seconds, and every third trace begining 
+   with trace number 2. 
+
+=head1 SEE ALSO
+
+
+L<Window>
+
+=head1 CATEGORY
+
+
+B<util/cube>
+
+=cut
+

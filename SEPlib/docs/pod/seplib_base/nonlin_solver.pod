@@ -1,0 +1,107 @@
+=head1 NAME
+
+
+nonlin_solver - generic non-linear solver program
+
+=head1 SYNOPSIS
+
+
+C<call  nonlin_solver(oper,solv,x, dat, niter,x0,err,res,xmov,rmov)>
+
+=head1 INPUT PARAMETERS
+
+
+=head2 REQUIRED PARAMETERS
+
+=over 4
+
+=item oper   - function
+
+      operator (standard interface)
+
+=item solv   - func
+
+      Step calculation routine
+
+=item dat    - C<real(:)>
+
+      data
+
+=item niter  - integer
+
+      number of iterations
+
+=back
+
+=head2 OPTIONAL PARAMETERS
+
+=over 4
+
+=item  x0    - C<real(:)>
+
+       Initial model
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=head2 REQUIRED PARAMETERS
+
+=over 4
+
+=item x      - C<real(:)>
+
+      model
+
+=back
+
+=head2 OPTIONAL PARAMETERS
+
+=over 4
+
+=item err    - real(niter)
+
+      Error sum((d-d~)**2)
+
+=item res    - C<real(:)>
+
+      Final residual (size of data)
+
+=item xmov   - C<real(:,niter)>
+
+      Movie of model values as a function of iter
+
+=item rmov   - C<real(:,niter)>
+
+      Movie of data residual
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Generic non-linear solver.
+
+=head1 COMMENTS
+
+
+All operators must follow convetion
+
+integer function (logical adj, logical add, C<real(:)> model, C<real(:)>data)
+
+All solv routines must follow the convention
+
+C<integer function(logical forget,real(:) x,real(:) g) >
+
+
+L<solver_reg>,L<solver_prec>,L<lsqr>,L<solver>
+
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

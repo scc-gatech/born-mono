@@ -1,0 +1,63 @@
+=head1 NAME
+
+
+5dFFT - 5-D in core FFT
+
+=head1 INPUT
+
+
+=over 4
+
+=item axis1  
+
+Depth/kz
+
+=item axis2  
+
+hx/khx
+
+=item axis3  
+
+hy/khy
+
+=item axis4  
+
+mx/kmx
+
+=item axis5  
+
+my/kmy
+
+=item axis6  
+
+Loop over
+
+=back
+
+=head1 RUN TIME PARAMETERS
+
+
+=over 4
+
+=item verb - logical
+
+[.false.] verbosity level
+
+=item adj - logical
+
+[.false.] forward or reverse
+
+=back
+
+=head1 DESCRIPTION
+
+
+ 5 Dimensional in core FFT.  Used to transform to
+
+ and from fourier space for Stolt migration.
+
+ Forward - z,hx,hy,mx,my -> kz,khx,khy,kmx,kmy
+
+
+=cut
+

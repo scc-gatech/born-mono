@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>butter - Find butterworth filter</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>butter - Find butterworth filter</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+ call butter(hilo,cutoff,npoly,num,den)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_hilo__2d_real">hilo - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      &gt;0 low-pass, &lt;0 high-pass</pre>
+</dd>
+<dt><strong><a name="item_cutoff__2d_real">cutoff - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      cut-off frequency</pre>
+</dd>
+<dt><strong><a name="item_npoly__2d_integer">npoly  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of poly</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_real">num- <code>real(npoly)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+       numerator</pre>
+</dd>
+<dt><strong>den - <code>real(npoly)</code></strong><br />
+</dt>
+<dd>
+<pre>
+       denominator</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Find the numerator and denominator Z-transforms of the Butterworth filter.
+ hilo={1.,-1.} for {low,high}-pass filter
+ cutoff in Nyquist units, i.e. cutoff=1 for (1,-1,1,-1...)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>Bandpass</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepfilterf90</strong></p>
+
+</body>
+
+</html>

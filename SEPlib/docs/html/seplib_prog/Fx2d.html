@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Fx2d - 2D FX decon</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Fx2d - 2D FX decon</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+ Fx2d &lt; in.H &gt; out.H</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_w1_2cw2__2d_integer">w1,w2     - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      window sizes in samples to calculate the
+      noise filters in.  The noise and signal should
+      be stationary within these windows.</pre>
+</dd>
+<dt><strong><a name="item_k1_2ck2__2d_integer">k1,k2     - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of windows in each direction</pre>
+</dd>
+<dt><strong><a name="item_noper__2d_integer">noper     - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      PEF (prediction error filter) size.</pre>
+</dd>
+<dt><strong><a name="item_lambda__2d_real">lambda    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      stabilization factor</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+     default   w1=20, w2=10
+               noper=5  -  5 is generally good, less than 4 may produce
+                           poor answers, more than 7 wastes time, and the
+                           results are generally insensitive to values
+                           between 5 and 7.
+               k1 = 1.5 * n1/(w1+1.)
+               k2 = 1.5 * n2/(w2-noper+1.)
+               lambda = 0.0  -- real data generally has enough noise
+                                to keep the process stable.  Synthetic
+                                data may need a small lambda, say 0.001.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ 2-D FX decon</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

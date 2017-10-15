@@ -1,0 +1,449 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Grey - creates raster  vplot</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+	<li><a href="#compile_level">COMPILE LEVEL</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Grey - creates raster  vplot</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Grey par= &lt;in.H &gt;out.[V H]</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Convert data to [raster - vplot] from [float, triplets, or byte]
+PLOT =  clip{ [ (DATA - bias)*(it*d1+o1)**tpow ]**gpow }</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_esize_int">esize  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [4]   4-float,3-triplets,1-byte</pre>
+</dd>
+<dt><strong><a name="item_eout_2d_int">eout-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [-1]  Create vplot [-1] or byte [1] data</pre>
+</dd>
+<dt><strong><a name="item_tpow__2d_float">tpow - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0.]  gain(it) = (it*d1+o1)**tpow, it in samples</pre>
+</dd>
+<dt><strong><a name="item_pclip_2d_float">pclip- float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [99.]  clip percentile</pre>
+</dd>
+<dt><strong><a name="item_clip__2d_float">clip - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       clip value (if not specified defaults to pclip)</pre>
+</dd>
+<dt><strong><a name="item_phalf__2dint">phalf -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [85]  gpow percentile</pre>
+</dd>
+<dt><strong><a name="item_gpow__2dfloat">gpow  -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1]  if given gpow&lt;=0,
+       sample gain power computed at phalf percentile</pre>
+</dd>
+<dt><strong><a name="item_bias__2dfloat">bias  -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0.0] plot = data - bias</pre>
+</dd>
+<dt><strong><a name="item_gainpanel__2d_char_2a">gainpanel - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1]-plane(s) where gpow and clip are estimated
+       i - ith plane is used ( i is integer )
+       all - all the planes are used
+       every - calculate gain parameters for every panel</pre>
+</dd>
+<dt><strong><a name="item_gainstep__2d_float">gainstep - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       the subsampling rate used in estimating gpow and clip
+       default = max(1,nt/256) (&gt;=1)</pre>
+</dd>
+<dt><strong><a name="item_allpos__2d_char">allpos   - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [n]/y  if yes, map only positive values to 0-255</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3__2d_int">n1,n2,n3 - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       cube dimensions</pre>
+</dd>
+<dt><strong><a name="item_d1_2cd2_2cd3__2dfloat">d1,d2,d3  -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       standard seplib files</pre>
+</dd>
+<dt><strong><a name="item_o1_2co2_2co3__2dfloat">o1,o2,o3  -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       standard seplib files</pre>
+</dd>
+<dt><strong><a name="item_wantframe_2cwantframenum_char">wantframe,wantframenum char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       standard vplot definitions (0,1, n,y)</pre>
+</dd>
+<dt><strong><a name="item_wantaxis_2cwantaxis1_2cwantaxis2__2d_char">wantaxis,wantaxis1,wantaxis2 - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1] standard vplot definition(0,1 n,y)</pre>
+</dd>
+<dt><strong><a name="item_transp__2d_char">transp  - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [y] whether or not to transpose output (standard vplot)</pre>
+</dd>
+<dt><strong><a name="item_xreverse_2cyreverse__2dchar">xreverse,yreverse -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       standard vplot definitions for output file</pre>
+</dd>
+<dt><strong><a name="item_min1_2cmin2_2cmax1_2cmax__2d_float">min1,min2,max1,max - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       standard vplot definitions</pre>
+</dd>
+<dt><strong><a name="item_axisor1_2caxisor2__2d_float__5bmin1_5d_2c_5bmin2_5">axisor1,axisor2  - float [min1],[min2]</a></strong><br />
+</dt>
+<dd>
+<pre>
+       standard vplot definition</pre>
+</dd>
+<dt><strong><a name="item_o1num_2co2num_2cd1num_2cd2num__2d_float">o1num,o2num,d1num,d2num - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       set origin and spacing for tics</pre>
+</dd>
+<dt><strong><a name="item_n1tic_2cn2tic__2d_int">n1tic,n2tic - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1] set number of tics</pre>
+</dd>
+<dt><strong><a name="item_wheretics__2d_char">wheretics - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [f] (f,a) where to put tics (frame, axes)</pre>
+</dd>
+<dt><strong><a name="item_wheretitle__2dchar">wheretitle -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [t] (t,b,l,r) where to put title (top, bottom, left, right)</pre>
+</dd>
+<dt><strong><a name="item_wherexlabel__2d_char">wherexlabel - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [b] (t,b) where to put x label (top, bottom)</pre>
+</dd>
+<dt><strong><a name="item_whereylabel__2d_char">whereylabel - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [l] (l,r) where to put y label (left, right)</pre>
+</dd>
+<dt><strong><a name="item_titlefat_2clabelfat__2d_int">titlefat,labelfat - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1] makes title and labels fat</pre>
+</dd>
+<dt><strong><a name="item_label1_2clabel2__2d_char_2a">label1,label2 - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       label for axes</pre>
+</dd>
+<dt><strong><a name="item_title__2d_char_2a">title - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       title for plot</pre>
+</dd>
+<dt><strong><a name="item_titles__2d_char_2a">titles - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       title for different planes separated by colons
+       first:second:third</pre>
+</dd>
+<dt><strong><a name="item_labelsz__2d_int">labelsz - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [8] font size for labels</pre>
+</dd>
+<dt><strong><a name="item_titlesz__2d_int">titlesz - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [10] font size for titles</pre>
+</dd>
+<dt><strong><a name="item_labelrot__2d_char">labelrot - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [y] (0,1 n,y) rotates the labels 90 degrees</pre>
+</dd>
+<dt><strong><a name="item_grid_2cgrid1_2cgrid2__2d_char">grid,grid1,grid2 - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0]   (0,1 n,y) turns on a grid</pre>
+</dd>
+<dt><strong><a name="item_g1num_2cg2num__2d_float">g1num,g2num - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [d1num],[d2num] grid spacing</pre>
+</dd>
+<dt><strong><a name="item_crowd_2ccrowd1_2ccrowd2__2d_float">crowd,crowd1,crowd2 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [.75]  crowd1=crowd  crowd2=crowd 
+       (.75&lt; crowd &lt; 1.) crowd labels off the 
+       screen by expanding data on 1 or 2 axis.</pre>
+</dd>
+<dt><strong><a name="item_gridcol__2d_int">gridcol - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [axiscol] sets color of grid</pre>
+</dd>
+<dt><strong><a name="item_xll_2cyll_2cxur_2cyur__2d_float">xll,yll,xur,yur - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      set Lower Left and Upper Right coordinates</pre>
+</dd>
+<dt><strong><a name="item_backcol__2d_float_2a">backcol  - float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0,0,0] background color (R,G,B) between 0 and 1</pre>
+</dd>
+<dt><strong><a name="item_fillcol__2d_float_2a">fillcol  - float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [backcol(0,0,0)] sets fill color (R,G,B) between 0 and 1</pre>
+</dd>
+<dt><strong><a name="item_plotcol__2d_int_2a">plotcol  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [6,5,4,3,2,1,...] sets color for each line plotted</pre>
+</dd>
+<dt><strong><a name="item_axiscol__2d_int_2a">axiscol  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [7,7,7,7,...] sets color for axes</pre>
+</dd>
+<dt><strong><a name="item_axisfat__2d_int_2a">axisfat  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0,0,0,...] makes axes fat</pre>
+</dd>
+<dt><strong><a name="item_gridfat__2d_int">gridfat  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1] makes grid fat</pre>
+</dd>
+<dt><strong><a name="item_polarity__2d_int">polarity - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [-1] white is high by default</pre>
+</dd>
+<dt><strong><a name="item_nreserve__2d_int">nreserve - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [8] colors to reserve</pre>
+</dd>
+<dt><strong><a name="item_movish__2d_char">movish   - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [n] if y,halves the color table like movie does (0,1 n,y)</pre>
+</dd>
+<dt><strong><a name="item_wantscalebar__2d_char">wantscalebar - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] (0,1,n,y) turns on scale bar</pre>
+</dd>
+<dt><strong><a name="item_bartype__2d_char">bartype      - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [v]  (h)   horizontaly or verticaly aligned bar</pre>
+</dd>
+<dt><strong><a name="item_barwidth__2d_float">barwidth     - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [.4]     (inches)</pre>
+</dd>
+<dt><strong><a name="item_barreverse__2d_int">barreverse   - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0]   (0,1,n,y)  reverse the scale</pre>
+</dd>
+<dt><strong><a name="item_barlabel__2d_char">barlabel     - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       label for the scale bar</pre>
+</dd>
+<dt><strong><a name="item_minval__2d_float">minval       - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       minimum on scale bar</pre>
+</dd>
+<dt><strong><a name="item_maxval__2d_float">maxval       - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       maximum on scale bar</pre>
+</dd>
+<dt><strong><a name="item_bar_2exll_2cbar_2exur_2cbar_2eyll_2cbar_2eyur__2d_">bar.xll,bar.xur,bar.yll,bar.yur - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       coordinates for the bar (only used when xll,xur,yll, or yur specified)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_esize__2d_int">esize    - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1]  raster data (if eout =1)
+       [2]  short data (if eout =2)</pre>
+</dd>
+<dt><strong><a name="item_maxval_2c_minval__2dfloat">maxval, minval -float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       maximum and minimum value of data to be displayed
+       by Ta2vplot. For use by Ta2vplot's wantscalebar
+       option. (if eout=1)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+    This replaces the functionality of Taplot and Ta2vplot</pre>
+<pre>
+    color= one of {I,i,F,R,W,G} for the canned Movie-style color tables. You
+    may also append a 'C' to make clipped values show up Red (ie color=IC is
+    like color=I but with clipped values flagged). You will need to have
+    nreserve at least 3 for this option to work, since you have to leave the
+    normal vplot 'Red' (vplot default color 2) as a possibility.
+    Alternatively, you may also specify a color of the format RGB,
+    (i.e. color=332) where each of R,G, and B is the integer number of bits
+    to allot to that primary. This is meant for esize=3, but it also makes
+    funky color tables when esize=1.
+    Finally, if 'color' is a text string longer than 2 characters and
+    does not begin with a digit, it will be taken as the name of a color;
+    table. (Color tables have lines of the form 'color_number red green blue',
+    where 0 &lt;= color_number &lt;= 255 and 0. &lt;= red, green, and blue &lt;= 1.
+    Anything not set will be black. Odd-numbered color table entries between
+    1 and 253, inclusive, will be the first lost if the output device doesn't
+    have enough allocatable colors.)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>xtpen</em>, <a href="./../seplib_prog/Thplot.html">the Thplot manpage</a>, <a href="./../seplib_prog/Contour.html">the Contour manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+<p>
+</p>
+<hr />
+<h1><a name="compile_level">COMPILE LEVEL</a></h1>
+<p>DISTR</p>
+
+</body>
+
+</html>

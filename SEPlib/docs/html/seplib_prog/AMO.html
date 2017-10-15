@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>AMO - performs Azimuth moveout</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_data">INPUT DATA</a></li>
+	<li><a href="#output_data">OUTPUT DATA</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>AMO - performs Azimuth moveout</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>AMO par=parametersfile &lt;in.H &gt;out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_data">INPUT DATA</a></h1>
+<pre>
+  [in.H] regularly sampled, common azimuth and offset data cube.</pre>
+<pre>
+  Axes: (cmp_x, cmp_y, time). Offset vector specified by H1x, H1y</pre>
+<p>
+</p>
+<hr />
+<h1><a name="output_data">OUTPUT DATA</a></h1>
+<pre>
+  [out.H] regularly sampled, common azimuth and offset data cube.</pre>
+<pre>
+  Axes: (cmp_x, cmp_y, time). Offset vector specified by H2x, H2y</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_h1x_2d_float">H1x- float</a></strong><br />
+</dt>
+<dd>
+<pre>
+    [1.96961558] component of the HALF-offset vector for in.H</pre>
+</dd>
+<dt><strong><a name="item_h1y_2d_float">H1y- float</a></strong><br />
+</dt>
+<dd>
+<pre>
+    [0.347296387] the other component of HALF-offset for in.H</pre>
+</dd>
+<dt><strong><a name="item_h2x_2d_float_3b">H2x- float;</a></strong><br />
+</dt>
+<dd>
+!$    [1.55884564] component of the HALF-offset vector for out.H
+</dd>
+<p></p>
+<dt><strong><a name="item_h2y_2d_float">H2y- float</a></strong><br />
+</dt>
+<dd>
+<pre>
+    [0.899999976] the other component of HALF-offset for out.H</pre>
+</dd>
+<dt><strong><a name="item_t_min_log_2d_float">t_min_log- float</a></strong><br />
+</dt>
+<dd>
+<pre>
+   [0.04] minimum cutoff time for logstretch. Must be &gt;0 !</pre>
+</dd>
+<dt><strong><a name="item_fk_filter_2d_logical">fk_filter- logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+    [y] indicates whether fk filtering is desired</pre>
+</dd>
+<dt><strong><a name="item_v_min_2d_float">v_min- float</a></strong><br />
+</dt>
+<dd>
+<pre>
+    [2.] minimum apparent velocity of events (for the fk filter)</pre>
+</dd>
+<dd>
+<pre>
+    Units should correspond to the distance units in in.H</pre>
+</dd>
+<dt><strong><a name="item_f_max_2d_float">f_max- float</a></strong><br />
+</dt>
+<dd>
+<pre>
+    [100.] maximum frequency (Hz) present in the data (for logstretch
+     antialiasing)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Transform data from one offset and azimuth to another.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<dl>
+<dt><strong><a name="item_note_3a_this_amo_implementation_is_discussed_in_de">NOTE: This AMO implementation is discussed in detail in 'Effective</a></strong><br />
+</dt>
+<dd>
+<pre>
+              AMO implementation in the log-stretch, frequency-wavenumber</pre>
+</dd>
+<dd>
+<pre>
+             domain', by Ioan Vlad and Biondo Biondi, Report SEP-110,</pre>
+</dd>
+<dd>
+<pre>
+              Aug. 2001, pp. 63-71</pre>
+</dd>
+<dt><strong><a name="item_note_3a_the_code_uses_openmp_parallelization_2c_it">NOTE: The code uses OpenMP parallelization, it detects the number</a></strong><br />
+</dt>
+<dd>
+<pre>
+        of threads itself.</pre>
+</dd>
+<dt><strong><a name="item_note_3a_the_program_has_been_tried_with_0_3ct_min_">NOTE: The program has been tried with 0&lt;t_min_log&lt;o1, but it should</a></strong><br />
+</dt>
+<dd>
+<pre>
+              work for any t_min_log&gt;0, and any o1&gt;=0 for in.H</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/image</strong></p>
+
+</body>
+
+</html>

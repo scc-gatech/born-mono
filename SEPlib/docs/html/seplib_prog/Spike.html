@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Spike - make delta functions and impulsive plane waves.</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Spike - make delta functions and impulsive plane waves.</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Spike [n1= n2= n3= k1= k2= k3= mag=1 d1= d2= d3= nsp=1] &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n1_2cn2_2cn3_2cn4_2cn5__2d_integer">n1,n2,n3,n4,n5   -   integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      output cube dimensions.</pre>
+</dd>
+<dt><strong><a name="item_k1_2ck2_2ck3_2ck4_2ck5__2d_integer">k1,k2,k3,k4,k5   -   integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      specify Fortran index of location of delta function
+      If a kN is absent, the delta function
+      becomes a constant function in the N-th dimension.
+      If any kN is -1, no spike will be produced.</pre>
+</dd>
+<dt><strong><a name="item_mag__2d_real">mag        -   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      real     [1.] determines the magnitude of the spike.
+      Crossing spikes add their magnitudes.</pre>
+</dd>
+<dt><strong><a name="item_nsp__2d_integer">nsp        -   integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] number of spikes (maximum 15)</pre>
+</dd>
+<dt><strong><a name="item_title__2d_char_2a">title      -   char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       ' '  get putched into output header file .</pre>
+</dd>
+<dt><strong><a name="item_o1_2co2_2co3_2co4_2co5__2d_real">o1,o2,o3,o4,o5   -   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.] standard seplib</pre>
+</dd>
+<dt><strong><a name="item_d1_2cd2_2cd3_2cd4_2cd5__2d_real">d1,d2,d3,d4,d5   -   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.004],[.1],[.1] standard seplib parameters</pre>
+</dd>
+<dt><strong><a name="item_label1_2e_2e3__2d_char_2a">label1..3  -   char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       ['sec'],['km],['km']  standard seplib meaning</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Make delta functions and impulsive plane waves.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>Spike n1=8 n2=6 n3=4 nsp=3 k1=6,3,7 k2=5,0,3 k3=1 | Disfil
+will put a spike at (6,5,1), a plane with n1=3, and n2,n3
+variable and a line with n1=7, n2=3, n3 variable).</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Gauss.html">the Gauss manpage</a>, <a href="./../seplib_prog/Vel.html">the Vel manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/model</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>fastmarch - travel times using eikonal solver</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT  PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT  PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>fastmarch - travel times using eikonal solver</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>C-<code>fastmarch(order,s1,s2,s3,b1,b2,b3,nz,ny,nx,dz,dy,dx,slow0,slow,ttime)</code></p>
+<p>F-<code>fastmarch(order,s,b,n,d,slow0,slow,ttime)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT  PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_order__2d_integer">order - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      What order eikonal to run</pre>
+</dd>
+<dt><strong><a name="item_s1_2cs2_2cs3_2d_float">s1,s2,s3- float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      shot location relative to coordinate system</pre>
+</dd>
+<dt><strong><a name="item_s_2d_float_5b3_5d">s- float[3]</a></strong><br />
+</dt>
+<dd>
+<pre>
+      shot location</pre>
+</dd>
+<dt><strong><a name="item_b1_2cb2_2cb3_2d_int">b1,b2,b3- int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      constant-velocity box around the source</pre>
+</dd>
+<dt><strong><a name="item_b_2d_int_5b3_5d">b- int[3]</a></strong><br />
+</dt>
+<dd>
+<pre>
+      bounding box</pre>
+</dd>
+<dt><strong><a name="item_nz_2cny_2cnx__2d_integer">nz,ny,nx - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard seplib parameters</pre>
+</dd>
+<dt><strong><a name="item_n_2d_int_5b3_5d">n- int[3]</a></strong><br />
+</dt>
+<dd>
+<pre>
+      size of slowness cube</pre>
+</dd>
+<dt><strong><a name="item_slow_2d_float_2a">slow- float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      slowness cube</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT  PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_ttime__2d_float_2a">ttime - float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      travel time cube</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Fast marching eikonal solver</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/FMeikonal.html">the FMeikonal manpage</a>, <a href="./../seplib_base/hwt_travel_cube.html">the hwt_travel_cube manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>septravel</strong></p>
+
+</body>
+
+</html>

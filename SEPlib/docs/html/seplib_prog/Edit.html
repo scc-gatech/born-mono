@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Edit - patching driver</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#reference">REFERENCE</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Edit - patching driver</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+  &lt;in.H Edit.x [options] &gt; out.H</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_w1_2cw2_2cw3_2d_integer">w1,w2,w3- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      window sizes</pre>
+</dd>
+<dt><strong><a name="item_nfactor__2d_integer">nfactor - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      factor to mulitiply the median of the residuals
+      to produce a tolerance above which samples
+      will be removed, default is 5</pre>
+</dd>
+<dt><strong><a name="item_htrc__2d_integer">htrc    - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of traces on either side of a trace
+      to be used in predicting the trace, htrc=1
+      means one trace on either side, or a two trace
+      prediction</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3_2dinteger">n1,n2,n3-integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      wall sizes, defaults to the input</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Patching driver</pre>
+<p>
+</p>
+<hr />
+<h1><a name="reference">REFERENCE</a></h1>
+<pre>
+      see SEP88 (Ray Abma's thesis) for more information on data editing.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

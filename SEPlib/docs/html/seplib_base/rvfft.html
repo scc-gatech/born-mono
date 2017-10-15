@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>rvfft - real vector fft</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>rvfft - real vector fft</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+     void rvfft (x,lx,nx,isign,scale,mode)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_x__2dcomplex">x      -complex</a></strong><br />
+</dt>
+<dd>
+<pre>
+       input/output array</pre>
+</dd>
+<dt><strong><a name="item_lx__2dint">lx     -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       length of real vectors</pre>
+</dd>
+<dt><strong><a name="item_nx__2dint">nx     -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       number of vectors; must be a power of 2</pre>
+</dd>
+<dt><strong><a name="item_isign__2dint">isign  -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       sign of sqrt(-1)</pre>
+</dd>
+<dt><strong><a name="item_scale__2ddouble">scale  -double</a></strong><br />
+</dt>
+<dd>
+<pre>
+       scale factor; sqrt(2./lx) conserves energy</pre>
+</dd>
+<dt><strong><a name="item_mode__2dint">mode   -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       1 for nx real to nx/2 complex
+       2 for nx real to nx/2+1 complex
+       -1 for nx/2 complex to nx real
+       -2 for nx/2+1 complex to nx real</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+     Real fast Fourier transform between vectors of an array.  
+     Rvfft takes a 2D panel and does a real to complex or 
+     viceversa fast fourier transform across the second dimension, 
+     of all the time samples. The arguments are as follows:</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/refft.html">the refft manpage</a>,<a href="./../seplib_base/rvfft.html">the rvfft manpage</a>,<a href="./../seplib_base/cvfft.html">the cvfft manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepfft</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,64 @@
+=head1 NAME
+
+
+pad_it - Pad an array
+
+=head1 SYNOPSIS
+
+
+pad_it(input,output,ndim,n,beg,end.extend)
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item  input - void*
+
+       Input dataset
+
+=item  ndim - int
+
+       Number of dimensions
+
+=item  n - int[ndim]
+
+       Axes lengths
+
+=item  beg - int[ndim]
+
+       Amount to pad at the begining of each axis
+
+=item  end - int[ndim]
+
+       Amount to pad at the end of each axis
+
+=item  extend- int
+
+       Whether or not to fill with nearest point[1] or zeros [0]
+
+=back
+
+=head1 OUTPUT PARAMETER
+
+
+=over 4
+
+=item  output - void*
+
+      Output array
+
+=back
+
+=head1 DESCRIPTION
+
+
+Pads an array. Should work with any dimension.
+
+=head1 LIBRARY
+
+
+B<sepaux>
+
+=cut
+

@@ -1,0 +1,722 @@
+/*$
+=head1 NAME
+
+Window - Window a dataset by cutting or decimation
+
+=head1 SYNOPSIS
+
+Window par= < in.H > out.H
+
+=head1 INPUT  PARAMETERS
+
+=over 4
+
+=item  min1-  float  
+
+       [o1] minimum value of the 1-axis to be copied
+
+=item  max1-  float  
+
+       [o1+(n1-1)*d1]  maximum value of the 1-axis to be copied
+
+=item  min2-  float  
+
+       [o2] minimum value of the 2-axis to be copied
+
+=item  max2-  float  
+
+       [o2+(n2-1)*d2]  maximum value of the 1-axis to be copied
+
+=item  min3-  float  
+
+       [o3] minimum value of the 3-axis to be copied
+
+=item  max3-  float  
+
+       [o3+(n3-1)*d3]  maximum value of the 1-axis to be copied
+
+=item  min4-  float  
+
+       [o4] minimum value of the 4-axis to be copied
+
+=item  max4-  float  
+
+       [o4+(n4-1)*d4]  maximum value of the 1-axis to be copied
+
+=item  n1-  int    
+
+       [1+((len-1-f1)/j1)]   number of elements to copy from 
+       each vector
+
+=item  n2-  int    
+
+       [1+((vecs-1-f2)/j2)]  the number of vectors to be copied
+
+=item  n3-  int    
+
+       [1+((planes-1-f3)/j3)] the number of planes to be copied
+
+=item  n4-  int    
+
+       [1+((cubes-1-f4)/j4)]  the number of cubes to be copied
+
+=item  j1-  int    
+
+       [1]  increment (in samples) between input elements
+
+=item  j2-  int    
+
+       [1]    increment between input vectors
+
+=item  j3-  int    
+
+       [1]    increment between input planes
+
+=item  j4-  int    
+
+       [1]    increment between input cubes
+
+=item  d1-  float  
+
+       [input d1] increment (physical) between input elements
+
+=item  d2-  float  
+
+       [input d2] increment (physical) between input vectors
+
+=item  d3-  float  
+
+       [input d3] increment (physical) between input planes
+
+=item  d4-  float  
+
+       [input d4] increment (physical) between input cubes
+
+=item  f1-  int    
+
+       [0] the first element of each vector to be copied
+
+=item  f2-  int    
+
+       [0] the first vector of each plane to be copied
+
+=item  f3-  int    
+
+       [0] the first plane of each cube to be copied
+
+=item  f4-  int    
+
+       [0] the first cube to be copied
+
+=item squeeze- char   
+
+      [y]  By default Window moves dimensions with size 1
+      to the end. If this special-case behavior is
+      not desired, set squeeze=n.
+
+=back
+
+=head1 DESCRIPTION
+
+ Window portion of dataset data can be 1-D, 2-D, 3-D, or 4-D (for 
+ more than 4 dimensions, use Window3d). Can cut out a block of 
+ samples and/or decimate (subsample) along any axis.
+
+=head1 COMMENTS
+
+ KEYWORDS subsample  window  data-shuffle
+	Anachronisms no longer recognized it0,dt,dx,nc,dv,it0,ix0......
+
+=head1 SEE ALSO
+
+L<Window3d>
+
+=head1 CATEGORY
+
+B<util/cube>
+
+=cut
+
+>*/
+
+/*
+copyright (c)1991 Stanford University
+*/
+/*
+to compile: cc -g Window.c -o Window -lsep -lm
+to test:    Window  n1=256 < /q2/csp/Hlamont
+Revised:    S. Levin   9/9/83	Added flush of input pipe and check
+				for character special files.  Converted
+				to buffered I/O fseeks.
+	JFC	11/2/83		Fixed bug in reassignment of t0 and x0.
+	stew	11/9/83		Dropped stream I/O -- too slow!
+	bill    11/9/83		Addition of structures, new SEPLIB standards. 
+				Removed bugs in reassignments and dimension swaps.
+				Radical rewriting of parameter manipulations.
+	toldi 	1/26/84		Revised EOF test; niod > n1 caused error on final
+				read of input.
+	stew	4/5/84		Brought up to SEPLIB standards.
+	marta   2/6/86          Fixed bug where f1 was forced to equal j1 for 
+				j1.ne.1, causing miscalculation of n1; revised 
+				EOF test.
+	kamal	4/20/86		introduced windowing by cooridnate values:
+				min1, max1, min2, max2, min3, max3, d1, d2,
+				d3 are read from the command line to
+				window the three axes.
+	kamal 6/2/86		fixed the bug caused by negative intervals
+				NOTE: if an interval is negative, we will have
+				min > max. In this case min means first value
+				and max means last value, not minimum and
+				maximum (exchanging min and max makes things
+				much more confusing!!).
+	steve 10/20/89		added support for 4-d datasets.
+	Joe   11/28/89		Added compatible=y option.
+	steve 2/7/90		fixed bug in updating of o2,d2 and o3,d3 that
+				existed in previous versions but was made
+				more noticeable by my 4-d modifications.
+	steve 2/19/90		fixed bug found by Biondo. Calling puthead with
+				%f format can cause small numbers to be lost.
+				We changed it to %g, which causes it to use
+				exponential notation if necessary.
+	steve 9/17/90		fixed bug in squeezing out axes with size=1.
+	Joe   7/1/91		Changed "compatible" option to "ignoren4"
+				Don't putch ignoren4 unless there is reason to.
+	wsb  7-29-91		The seek constant is an invalid long int, gt 31
+				bits. Made it legal.
+	Joe   Feb 24 92		Added squeeze option. If you aren't expecting
+                                it the squeeze-out-axes feature is a bug.
+                                Now it gets explicit mention in the self-doc.
+	Dave  Aug 18 94		Changed to new seplib, uses sreed_raw
+				Doesn't need a special seek because seplib
+				now handles forward seeks on pipes.
+	Bob   Jan 15 96  Removed parameter anachronisms
+%*/
+/*
+ * Keyword: subsample  window  data-shuffle
+ */
+
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+ADD_DEF_SEP_DOC
+#include <sep.main>
+
+
+int MAIN (void)
+{
+int             ignoren4, junk;
+int             filesize;
+int             esize = 4, len, vecs, planes, cubes = 1;
+int             f1, f2, f3, f4, n1, n2, n3, n4, j1, j2, j3, j4;
+int             id;
+int             i, m, n, nio, niod;
+int             inpipe;
+int             i1d, i1, j;
+int        j11, nseek, nseek1, nseek2;
+char           *x;
+float           r;
+float           min1, min2, min3, min4, max1, max2, max3, max4, lim, d1, d2, d3, d4;
+int		squeeze;
+struct stat     statbuf;
+struct dimensions
+{
+    int             ni;	/* input dimensions */
+    float           oi;
+    float           di;
+    char            labeli[100];
+    int             nf;	/* output dimensions */
+    float           of;
+    float           df;
+    int             ji;	/* par stuff */
+    int             fi;
+}               dm[5], *p0, *p1, *p2, *p3, *p4, *temp;
+
+/*
+ * Warn if ignoren4=y is being read off the input header but
+ * there IS an n4.
+ */
+    if (
+	!getch ("ignoren4", "1", &junk)
+	&& fetch ("ignoren4", "1", &junk)
+	&& hetch ("n4", "d", &junk)
+     )
+	fprintf (stderr, "Window: Warning, n4 in input file being ignored (ignoren4=y).\n");
+
+/* Read it including the command line */
+    ignoren4 = 0;
+    fetch ("ignoren4", "1", &ignoren4);
+/* Read it using only the history file */
+    junk = 0;
+    hetch ("ignoren4", "1", &junk);
+/* If they disagree, write out the command line value to the history file */
+    if (junk != ignoren4)
+	putch ("ignoren4", "1", &ignoren4);
+
+    inpipe = isapipe (infd);
+    if (!inpipe)		/* check if char. special where seeks are
+				 * silently(!) ignored */
+    {
+	fstat (infd, &statbuf);
+	if ((statbuf.st_mode & S_IFMT) == S_IFCHR)
+	    inpipe = 1;
+    }
+
+    for (i = 0; i <= 4; i++)
+    {				/* initialization, 0th element saved as
+				 * default */
+	dm[i].ni = 1;
+	dm[i].nf = 1;
+	dm[i].oi = 0.;
+	dm[i].of = 0.;
+	dm[i].di = 1.;
+	dm[i].df = 1.;
+	dm[i].ji = 1;
+	dm[i].fi = 0;
+	dm[i].labeli[0] = '\0';
+    }
+
+/* removed checking for "ne". Nobody is old enough to remember and use
+   this parameter 		-Kamal 4/23/86 */
+
+    (void) fetch ("esize", "d", &esize);
+
+    if (!hetch ("n1", "d", &len))
+	    seperr ("n1= missing from input header\n");
+
+    if (!hetch ("n2", "d", &vecs)){
+			if(!inpipe) vecs=ssize_block ("in",len*esize);
+			else vecs=1;
+		}
+
+    if (!hetch ("n3", "d", &planes))
+	    planes = 1;
+
+    if (ignoren4)
+    {
+	cubes = 1;
+    }
+    else
+    {
+	if (!hetch ("n4", "d", &cubes))
+		cubes = 1;
+    }
+
+    dm[1].ni = len;
+    dm[2].ni = vecs;
+    dm[3].ni = planes;
+    dm[4].ni = cubes;
+
+    if (!inpipe)
+    {
+	filesize = ssize ("in");
+	if (!fetch ("esize", "d", &esize) && (vecs * planes * cubes * len * 1 == filesize))
+	    esize = 1;
+	else
+	if (vecs * planes * cubes * len * esize != filesize)
+	{
+	    fprintf (stderr, "***********************************\n");
+	    fprintf (stderr, "Warning: file size != vecs*planes*cubes*len*esize = %d\n",vecs*planes*cubes*len*esize );
+	    filesize = ssize ("in");
+	    fprintf (stderr, "file size is %d\n", filesize);
+	    fprintf (stderr, "***********************************\n");
+	}
+    }
+
+    if (!hetch ("d1", "f", &r))
+	    r = 1.;
+    dm[1].di = r;
+
+    if (!hetch ("d2", "f", &r))
+	    r = 1.;
+    dm[2].di = r;
+
+    if (!hetch ("d3", "f", &r))
+	    r = 1.;
+    dm[3].di = r;
+
+    if (!hetch ("d4", "f", &r))
+	    r = 1.;
+    dm[4].di = r;
+
+    if (!hetch ("o1", "f", &r))
+	    r = i * dm[1].di;
+    dm[1].oi = r;
+
+    if (!hetch ("o2", "f", &r))
+	    r = i * dm[2].di;
+    dm[2].oi = r;
+
+    if (!hetch ("o3", "f", &r))
+	r = 0.;
+    dm[3].oi = r;
+
+    if (!hetch ("o4", "f", &r))
+	r = 0.;
+    dm[4].oi = r;
+
+    if (!getch ("j1", "d", &i))
+    {
+	if (!getch ("d1", "f", &d1))
+	    i = 1;
+	else
+	    i = d1 / dm[1].di + .5;
+    }
+    dm[1].ji = i;
+
+    if (!getch ("j2", "d", &i))
+    {
+	if (!getch ("d2", "f", &d2))
+	    i = 1;
+	else
+	    i = d2 / dm[2].di + .5;
+    }
+    dm[2].ji = i;
+
+    if (!getch ("j3", "d", &i))
+    {
+	if (!getch ("d3", "f", &d3))
+	    i = 1;
+	else
+	    i = d3 / dm[3].di + .5;
+    }
+    dm[3].ji = i;
+
+    if (!getch ("j4", "d", &i))
+    {
+	if (!getch ("d4", "f", &d4))
+	    i = 1;
+	else
+	    i = d4 / dm[4].di + .5;
+    }
+    dm[4].ji = i;
+
+    min1 = dm[1].oi;
+    max1 = min1 + (len - 1) * dm[1].di;
+    min2 = dm[2].oi;
+    max2 = min2 + (vecs - 1) * dm[2].di;
+    min3 = dm[3].oi;
+    max3 = min3 + (planes - 1) * dm[3].di;
+    min4 = dm[4].oi;
+    max4 = min4 + (cubes - 1) * dm[4].di;
+
+    if (!getch ("f1", "d", &i))
+    {
+	if (!getch ("min1", "f", &min1))
+	    i = 0;
+	else
+	    i = (min1 - dm[1].oi) / dm[1].di + .5;
+    }
+    dm[1].fi = i;
+    min1 = dm[1].oi + dm[1].fi * dm[1].di;
+    if (min1 < dm[1].oi && dm[1].di > 0.) seperr ("f1 or min1 out of range\n");
+    if (min1 > dm[1].oi && dm[1].di < 0.) seperr ("f1 or min1 out of range\n");
+ 
+    if (!getch ("f2", "d", &i))
+    {
+	if (!getch ("min2", "f", &min2))
+	    i = 0;
+	else
+	    i = (min2 - dm[2].oi) / dm[2].di + .5;
+    }
+    dm[2].fi = i;
+    min2 = dm[2].oi + dm[2].fi * dm[2].di;
+    if (min2 < dm[2].oi && dm[2].di > 0.)
+	seperr ("f2 or min2 out of range\n");
+    if (min2 > dm[2].oi && dm[2].di < 0.)
+	seperr ("f2 or min2 out of range\n");
+ 
+    if (!getch ("f3", "d", &i))
+    {
+	if (!getch ("min3", "f", &min3))
+	    i = 0;
+	else
+	    i = (min3 - dm[3].oi) / dm[3].di + .5;
+    }
+    dm[3].fi = i;
+    min3 = dm[3].oi + dm[3].fi * dm[3].di;
+    if (min3 < dm[3].oi && dm[3].di > 0.)
+	seperr ("f3 or min3 out of range\n");
+    if (min3 > dm[3].oi && dm[3].di < 0.)
+	seperr ("f3 or min3 out of range\n");
+
+    if (!getch ("f4", "d", &i))
+    {
+	if (!getch ("min4", "f", &min4))
+	    i = 0;
+	else
+	    i = (min4 - dm[4].oi) / dm[4].di + .5;
+    }
+    dm[4].fi = i;
+    min4 = dm[4].oi + dm[4].fi * dm[4].di;
+    if (min4 < dm[4].oi && dm[4].di > 0.)
+	seperr ("f4 or min4 out of range\n");
+    if (min4 > dm[4].oi && dm[4].di < 0.)
+	seperr ("f4 or min4 out of range\n");
+
+    if (!getch ("n1", "d", &i))
+    {
+	if (!getch ("max1", "f", &max1))
+	    i = -1;
+	else
+	    i = (max1 - min1) / (dm[1].di * dm[1].ji) + 1.5;
+    }
+    dm[1].nf = i;
+
+    if (!getch ("n2", "d", &i))
+    {
+	if (!getch ("max2", "f", &max2))
+	    i = -1;
+	else
+	    i = (max2 - min2) / (dm[2].di * dm[2].ji) + 1.5;
+    }
+    dm[2].nf = i;
+
+    if (!getch ("n3", "d", &i))
+    {
+	if (!getch ("max3", "f", &max3))
+	    i = -1;
+	else
+	    i = (max3 - min3) / (dm[3].di * dm[3].ji) + 1.5;
+    }
+    dm[3].nf = i;
+
+    if (!getch ("n4", "d", &i))
+    {
+	if (!getch ("max4", "f", &max4))
+	    i = -1;
+	else
+	    i = (max4 - min4) / (dm[4].di * dm[4].ji) + 1.5;
+    }
+    dm[4].nf = i;
+
+    hetch ("label1", "s", dm[1].labeli);
+    hetch ("label2", "s", dm[2].labeli);
+    hetch ("label3", "s", dm[3].labeli);
+    hetch ("label4", "s", dm[4].labeli);
+
+    for (id = 1; id <= 4; id++)
+    {
+	dm[id].df = dm[id].di * dm[id].ji;
+	dm[id].of = dm[id].oi + dm[id].di * dm[id].fi;
+	if (dm[id].nf == -1)	/* see if not in parfile */
+	    dm[id].nf = 1 + (dm[id].ni - 1 - dm[id].fi) / dm[id].ji;
+    }
+/* check bounds		-Kamal  4/23/86	*/
+/* add fabs() since inacuracies in fetch() cause the test to give
+   unreliable results	-Kamal  9/8/1986 */
+/* changed n1 fabs() test to give
+   more reliable results	-stof  6/17/1988 */
+
+    max1 = min1 + (dm[1].nf - 1) * dm[1].df;
+    lim = dm[1].oi + (len - 1) * dm[1].di;
+    if (dm[1].di > 0. && max1 > lim && fabs (lim - max1) > fabs( dm[1].di/100.))
+	seperr ("n1 is too big\n");
+    if (dm[1].di < 0. && max1 < lim && fabs (lim - max1) >  fabs(dm[1].di/100.))
+	seperr ("n1 is too big\n");
+
+    max2 = min2 + (dm[2].nf - 1) * dm[2].df;
+    lim = dm[2].oi + (vecs - 1) * dm[2].di;
+    if (dm[2].di > 0. && max2 > lim && fabs (lim - max2) > fabs( dm[2].di/100.) )
+	seperr ("n2 is too big\n");
+    if (dm[2].di < 0. && max2 < lim && fabs (lim - max2) >  fabs(dm[2].di/100.)){
+	seperr ("n2 is too big\n");
+}
+
+    max3 = min3 + (dm[3].nf - 1) * dm[3].di * dm[3].ji;
+    lim = dm[3].oi + (planes - 1) * dm[3].di;
+    if (dm[3].di > 0. && max3 > lim && fabs (lim - max3) > .00001)
+	seperr ("n3 is too big1 %f %d %d \n",min3,dm[3].ji, dm[3].nf);
+    if (dm[3].di < 0. && max3 < lim && fabs (lim - max3) > .00001)
+	seperr ("n3 is too big2 %f %d %d \n",min3,dm[3].ji,dm[3].nf);
+
+    max4 = min4 + (dm[4].nf - 1) * dm[4].di * dm[4].ji;
+    lim = dm[4].oi + (cubes - 1) * dm[4].di;
+    if (dm[4].di > 0. && max4 > lim && fabs (lim - max4) >  dm[4].di/100.)
+	seperr ("n4 is too big\n");
+    if (dm[4].di < 0. && max4 < lim && fabs (lim - max4) >  dm[4].di/100.)
+	seperr ("n4 is too big\n");
+
+    fprintf (headstream, "\t\tIn:");
+    switch (esize)
+    {
+    case 1:
+	fprintf (headstream, "\tcharacter");
+	break;
+    case 2:
+	fprintf (headstream, "\tshort");
+	break;
+    case 4:
+	fprintf (headstream, "\tfloat");
+	break;
+    case 8:
+	fprintf (headstream, "\tcomplex");
+	break;
+    default:
+	fprintf (headstream, "\tobject*%d", esize);
+    }
+    fprintf (headstream, "\tFortran (%d,%d,%d,%d)", len, vecs, planes, cubes);
+    fprintf (headstream, "\tC [%d][%d][%d][%d]\n", cubes, planes, vecs, len);
+
+
+    /*
+     * axes with only one point are moved to the end of the dataset
+     * unless squeeze=n
+     */
+    squeeze = 1;
+    getch("squeeze", "1", &squeeze);
+
+    p0 = dm;
+    p1 = dm + 1;
+    p2 = dm + 2;
+    p3 = dm + 3;
+    p4 = dm + 4;
+    p0=p0; /*useless statement to stop warning message -Bob*/
+
+    if (squeeze)
+    {
+        if (p1->nf == 1 && p2->nf != 1)
+        {
+    	    temp = p1;
+    	    p1 = p2;
+	    p2 = temp;
+        }
+        if (p2->nf == 1 && p3->nf != 1)
+        {
+	    temp = p2;
+	    p2 = p3;
+	    p3 = temp;
+        }
+        if (p3->nf == 1 && p4->nf != 1)
+        {
+	    temp = p3;
+	    p3 = p4;
+	    p4 = temp;
+        }
+    }
+
+    fprintf (headstream, "\t\tOut:");
+    switch (esize)
+    {
+    case 1:
+	fprintf (headstream, "\tcharacter");
+	break;
+    case 2:
+	fprintf (headstream, "\tshort");
+	break;
+    case 4:
+	fprintf (headstream, "\tfloat");
+	break;
+    case 8:
+	fprintf (headstream, "\tcomplex");
+	break;
+    default:
+	fprintf (headstream, "\tobject*%d", esize);
+    }
+    fprintf (headstream, "\tFortran (%d,%d,%d,%d)", p1->nf, p2->nf, p3->nf, p4->nf);
+    fprintf (headstream, "\tC [%d][%d][%d][%d]\n", p4->nf, p3->nf, p2->nf, p1->nf);
+
+    puthead ("\t From History:\n");
+    if (ignoren4)
+    {
+	puthead ("\t\t n3=%d n2=%d n1=%d esize=%d\n", planes, vecs, len, esize);
+    }
+    else
+    {
+	puthead ("\t\t n4=%d n3=%d n2=%d n1=%d esize=%d\n", cubes, planes, vecs, len, esize);
+    }
+
+    n1 = dm[1].nf;
+    n2 = dm[2].nf;
+    n3 = dm[3].nf;
+    n4 = dm[4].nf;
+    if (n1 < 1)
+	seperr ("n1=%d: upper limit is not greater than lower limit\n", n1);
+    if (n2 < 1)
+	seperr ("n2=%d: upper limit is not greater than lower limit\n", n2);
+    if (n3 < 1)
+	seperr ("n3=%d: upper limit is not greater than lower limit\n", n3);
+    if (n4 < 1)
+	seperr ("n4=%d: upper limit is not greater than lower limit\n", n4);
+    j1 = dm[1].ji;
+    j2 = dm[2].ji;
+    j3 = dm[3].ji;
+    j4 = dm[4].ji;
+    f1 = dm[1].fi;
+    f2 = dm[2].fi;
+    f3 = dm[3].fi;
+    f4 = dm[4].fi;
+
+    puthead ("\t From Par:\n");
+    puthead ("\t\t n1=%d  #f1=%d  #j1=%d  #min1=%f  #max1=%g\n", n1, f1, j1, min1, max1);
+    puthead ("\t\t n2=%d  #f2=%d  #j2=%d  #min2=%f  #max2=%g\n", n2, f2, j2, min2, max2);
+    puthead ("\t\t n3=%d  #f3=%d  #j3=%d  #min3=%f  #max3=%g\n", n3, f3, j3, min3, max3);
+    if (!ignoren4)
+    {
+	puthead ("\t\t n4=%d  #f4=%d  #j4=%d  #min4=%g  #max4=%g\n", n4, f4, j4, min4, max4);
+    }
+
+    puthead ("\t Make header useful for further processing:\n");
+    if (ignoren4)
+    {
+	puthead ("\t\t n1=%d \t n2=%d \t n3=%d \t\n", p1->nf, p2->nf, p3->nf);
+	puthead ("\t\t o1=%.6f \t o2=%.6f \t o3=%.6f \t\n", p1->of, p2->of, p3->of);
+	puthead ("\t\t d1=%g \t d2=%g \t d3=%g \t\n", p1->df, p2->df, p3->df);
+	puthead ("\t\t label1=\"%s\" \t label2=\"%s\" \t label3=\"%s\"\t\n",
+		 p1->labeli, p2->labeli, p3->labeli);
+    }
+    else
+    {
+	puthead ("\t\t n1=%d \t n2=%d \t n3=%d \t n4=%d\n", p1->nf, p2->nf, p3->nf, p4->nf);
+	puthead ("\t\t o1=%.6f \t o2=%.6f \t o3=%.6f \t o4=%.6f\n", p1->of, p2->of, p3->of, p4->of);
+	puthead ("\t\t d1=%g \t d2=%g \t d3=%g \t d4=%g\n", p1->df, p2->df, p3->df, p4->df);
+	puthead ("\t\t label1=\"%s\" \t label2=\"%s\" \t label3=\"%s\" \t label4=\"%s\"\n",
+		 p1->labeli, p2->labeli, p3->labeli, p4->labeli);
+    }
+
+    hclose ();
+
+/* pre- 11/9/83 code begins here; 
+not certain whether transposed n's preferred; using un-transposed */
+    nio = esize * n1;
+    niod = nio * j1;
+    x = alloc (niod);
+    sseek ("in", (int) ((((f4 * planes + f3) * vecs + f2) * len + f1) * esize), 1 );
+    nseek = ((j2 - 1) * len + (len - n1 * j1)) * esize;
+    nseek1 = ((j3 - 1) * vecs + (vecs - n2 * j2)) * len * esize;
+    nseek2 = ((j4 - 1) * planes + (planes - n3 * j3)) * vecs * len * esize;
+    j11 = (j1 - 1) * esize;
+
+    while (n4-- > 0)
+    {
+	for (n = 0; n < n3; n++)
+	{
+	    for (m = 0; m < n2; m++)
+	    {
+		/*
+		 * if( (niod + ((nseek>=0)?0:nseek)) > reed(infd,x,niod))
+		 * toldi 1-26-84 
+		 */
+		if ((niod - j11) > sreed_raw ("in", x, niod))	/* marta */
+		    seperr ("unexpected end of data on input\n");
+		if (j11)
+		{
+		    /* i1d=j11 changed to i1d=0 marta */
+		    for (i1d = 0, i1 = 0; i1d < niod; i1d += j11)
+			for (j = 0; j < esize; ++j)
+			    x[i1++] = x[i1d++];
+		}
+		srite_raw ("out", x, nio);
+		if (nseek)
+		    sseek ("in", nseek, 1 );
+	    }
+	    if (nseek1)
+		sseek ("in", nseek1, 1 );
+	}
+	if (nseek2)
+	    sseek ("in", nseek2, 1 );
+    }
+
+    auxclose("in");
+  return(EXIT_SUCCESS);
+}
+/*  $Id: Window.csep,v 1.1.1.1 2004/03/25 06:37:29 cvs Exp $ */

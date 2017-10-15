@@ -1,0 +1,58 @@
+=head1 NAME
+
+
+cefft - complex FFT
+
+=head1 SYNOPSIS
+
+
+ void cefft (x,lx,isign,scale)
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  x     - complex*  
+
+       input/output array
+
+=item  lx    - int       
+
+       length of complex array; must be a power of 2
+
+=item  isign - int       
+
+       sign of sqrt(-1)
+
+=item  scale - double    
+
+       scale factor; sqrt(1./lx) conserves energy
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Complex fast Fourier transform along one trace.  
+
+
+=head1 COMMENTS
+
+
+     C language subroutine for a one-dimensional complex fast
+     Fourier transform. refft performs transforms between
+     elements of a vector The arguments are as follows:
+
+=head1 SEE ALSO
+
+
+L<refft>,L<rvfft>,L<cvfft>
+
+=head1 LIBRARY
+
+
+B<sepfft>
+
+=cut
+

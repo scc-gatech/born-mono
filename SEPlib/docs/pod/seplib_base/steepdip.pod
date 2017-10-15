@@ -1,0 +1,58 @@
+=head1 NAME
+
+
+steepdip - Find steep dip decon filter
+
+=head1 SYNOPSIS
+
+
+C<aa=steepn(n,a,d,vel,tgap)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item n -  C<integer(:)>
+
+      data size
+
+=item a -  C<integer(:)>
+
+=item d -  C<real(:)>
+
+      sampling
+
+=item vel - real
+
+      velocity
+
+=item tgap - real
+
+      time gap
+
+=back
+
+=head1 RETURN VALUE
+
+
+=over 4
+
+=item aa  - type(filter)
+
+      steep dip filter
+
+=back
+
+=head1 DESCRIPTION
+
+
+Create steep dip decon filter
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

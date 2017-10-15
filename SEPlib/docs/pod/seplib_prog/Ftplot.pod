@@ -1,0 +1,75 @@
+=head1 NAME
+
+
+Ftplot - plots the input time-series and output FT
+
+=head1 SYNOPSIS
+
+
+Ftplot par= < in.H | Xtpen
+
+=head1 DESCRIPTION
+
+
+Outputs vplot commands to plot an input time-series 
+and its Fourier amplitude or phase spectrum.
+
+=head1 INPUT  PARAMETERS
+
+
+=over 4
+
+=item f2 - int        
+
+      [0]  number of traces to skip before reading from in
+
+=item fmin -float     
+
+      [0.] minimum frequencies to plot
+
+=item fmax- int       
+
+      [1/2dt] maximum frequencies to plot
+
+=item plot- char*     
+
+      [amp ] -to plot AMPLITUDE (NORMALIZED) spectrum.
+      db     - to plot AMPLITUDE (DB) spectrum.
+      pha    - to plot PHASE (DEGREES) spectrum.
+      upha   - to plot unwrapped PHASE (DEGREES) spectrum.
+
+=item lfft-int        
+
+      length of fft used to compute spectrum
+      input padded with zeros if lfft > nt
+
+=item wate-char*     
+
+      [no] -weighting to apply to input before Fourier 
+      transforming for rectangular weighting
+      ham -for Hamming weighting
+
+=item n1,n2  -int     
+
+      standard seplib parameters
+
+=item o1,d2  -float   
+
+      cube dimensions
+
+=back
+
+
+
+=head1 COMPILE LEVEL
+
+
+DISTR
+
+=head1 CATEGORY
+
+
+B<sep_graphics>
+
+=cut
+

@@ -1,0 +1,42 @@
+=head1 NAME
+
+
+sep3d_collect_headers - Distribute the headers
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3d_collect_headers(struct_in,struct_out)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct_in  -  sep3d
+
+      structure
+
+=item struct_out  -  sep3d
+
+      structure
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Collect the headers from the various sections of struct_in to  struct_out
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

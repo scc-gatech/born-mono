@@ -1,0 +1,437 @@
+/*$
+
+=head1 NAME
+
+ Box - draws a balloon-style label
+
+=head1 SYNOPSIS
+
+ Box < in.H > out.V [pars]
+
+=head1 DESCRIPTION
+
+ Box outputs the vplot commands to draw a balloon-style label.
+
+=head1 COMMENTS
+
+ Options let you position the box and pointer, control the
+ size of the labeling, etc. (It is even possible to draw boxes
+ with perspective.) The boxes can be overlayed onto vplot
+ graphics files using the 'erase=once' option of pen filters.
+ For example, 'Tube < Wiggleout.H Boxout.H erase=once' The
+ interact option of pen filters can be used to determine the
+ coordinate of the spot the box's pointer is to point at.
+ (Alas, not all pen filters support the 'interact' capability.)
+ The special pen filter Vppen can be used to combine vplot
+ files.
+
+=head1 INPUT PARAMETERS 
+
+=over 4
+
+=item 	x0,y0-      float 
+
+        [0],[0]  Position of tip of pointer
+
+=item 	xt,yt-      float 
+
+        [2],[0]  Relative Position of Text
+
+=item 	size -      float 
+
+        [.25]    Height of text, in inches
+
+=item 	label-      char* 
+
+        ' '   Text string for label
+
+=item 	lab_color-  int    
+
+        [7]     Color of text
+
+=item   lab_fat-    int    
+
+        [0]     Whether or not the label should be fat
+
+=item 	pscale -    float  
+
+        [1.]    scale factor for width of pointer
+
+=item 	lat,long-   int   
+
+        [0],[90]Latitude and longitude of viewpoint (3-D case)
+
+=item 	angle-      int    
+
+        [0]     Longitude of floating label(3-D case)
+
+=item 	rotate-      int    
+
+        [0]     Text rotation (2-D case [angle,long, and lat not defined)
+
+=item 	reverse-    char   
+
+        [n]     this mirrors the label left-right
+
+=item 	scale0-     float  
+
+        [1.]    Scale factor for x0, y0.
+
+=item 	scalet-     float  
+
+        [1.]    Scale factor for xt, yt. 
+        (If 'length' option not set.)
+
+=item 	length-     float       
+
+        if specified, sets the normalization for xt, yt.
+
+=item 	boxit-     int       
+
+       [1] Whether (1) or not (0) to create a box arround text
+
+=item  pointer-     int 
+
+       [0] Wheter (1)  or not (0) to create arrow
+
+=item   x_oval-      float
+
+       [0.] X axis length oval to create arround pointer location
+
+=item   y_oval-      float
+
+       [0.] Y axis length oval to create arround pointer location
+
+ 
+
+
+=back
+
+ 
+
+=head1 COMPILE LEVEL
+
+ DISTR
+
+=head1 CATEGORY
+
+B<sep_graphics>
+
+=cut
+
+*/
+
+/*
+
+AUTHOR 
+  	Joe Dellinger, August 1989
+
+KEYWORDS vplot balloon label pointer 3d
+
+WHERE
+	./cube/plot/Box.c
+
+*/
+#define IN	"/dev/null"
+#define NOHEADER	Y
+ADD_DEF_SEP_DOC
+#include <sep.main>
+#include <vplot.h>
+#define OVAL_PTS 400
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int proj (double xin, double yin, double zin, double *xou, double *you, double *zou);
+int rot (double ang, double *x, double *y);
+_XFUNCPROTOEND
+#else
+int proj ();
+int rot ();
+#endif
+
+
+
+static float    view_lati, view_longi;
+static float    stereo;
+
+#include <stdlib.h>
+int MAIN (void)
+{
+float           xarray[3], yarray[3];
+char            string[500];
+float           x0, y0;
+float           xt, yt;
+float           tx_height;
+float           sign_longi;
+double          xin, yin, zin, xout, yout, zout;
+float           xpath, ypath, xup, yup;
+int             rev,ilong,ilat,iang;
+float           scale0, scalet;
+float           length, norm;
+int             color, fat;
+float           xdis, ydis;
+float           pscale;
+float           x_oval,y_oval;
+float           x,y;
+int             ii,boxit,pointer,rotate;
+
+		 vp_filep(outstream); /* tell plotting routines where to stick it */
+
+    color = WHITE;
+    fat = 0;
+    getch ("lab_color", "d", &color);
+    putch ("lab_color", "d", &color);
+    getch ("lab_fat", "d", &fat);
+    putch ("lab_fat", "d", &fat);
+
+    pscale = 1.;
+    getch ("pscale", "f", &pscale);
+    putch ("pscale", "f", &pscale);
+
+		pointer=1;
+    getch ("pointer", "1", &pointer);
+    putch ("pointer", "1", &pointer);
+
+    rev = 0;
+    getch ("reverse", "1", &rev);
+    putch ("reverse", "1", &rev);
+    if (rev == 0)
+	rev = 1;
+    else
+	rev = -1;
+
+    stereo = 0.;
+
+    view_lati = 0.;
+    view_longi = 90.;
+    sign_longi = 0.;
+    ilat=getch ("lat", "f", &view_lati);
+    putch ("lat", "f", &view_lati);
+    ilong=getch ("long", "f", &view_longi);
+    putch ("long", "f", &view_longi);
+    iang=getch ("angle", "f", &sign_longi);
+    putch ("angle", "f", &sign_longi);
+    sign_longi *= pi / 180.;
+
+    x0 = 0.;
+    y0 = 0.;
+    getch ("x0", "f", &x0);
+    putch ("x0", "f", &x0);
+    getch ("y0", "f", &y0);
+    putch ("y0", "f", &y0);
+
+    scale0 = 1.;
+    getch ("scale0", "f", &scale0);
+    putch ("scale0", "f", &scale0);
+    x0 *= scale0;
+    y0 *= scale0;
+
+    xt = 2.;
+    yt = 0.;
+    getch ("xt", "f", &xt);
+    putch ("xt", "f", &xt);
+    getch ("yt", "f", &yt);
+    putch ("yt", "f", &yt);
+
+
+		x_oval=0.;
+		y_oval=0.;
+    getch ("x_oval", "f", &x_oval);
+    putch ("x_oval", "f", &x_oval);
+    getch ("y_oval", "f", &y_oval);
+    putch ("y_oval", "f", &y_oval);
+
+		boxit=1;
+		getch("boxit","d",&boxit);
+		putch("boxit","d",&boxit);
+
+    if (xt != 0. || yt != 0.)
+    {
+	if (getch ("length", "f", &length))
+	{
+	    putch ("length", "f", &length);
+	    scalet = length / sqrt (xt * xt + yt * yt);
+	}
+	else
+	{
+	    scalet = 1.;
+	    getch ("scalet", "f", &scalet);
+	    putch ("scalet", "f", &scalet);
+	}
+	xt *= scalet;
+	yt *= scalet;
+    }
+
+    xt += x0;
+    yt += y0;
+
+    tx_height = .25;
+    getch ("size", "f", &tx_height);
+    putch ("size", "f", &tx_height);
+
+    strcpy (string, " ");
+    getch ("label", "s", string);
+    putch ("label", "s", string);
+
+    hclose ();
+
+    xdis = (yt - y0);
+    ydis = -(xt - x0);
+    norm = 3. * sqrt (xdis * xdis + ydis * ydis);
+    if (norm == 0.)
+    {
+	xdis = 0.;
+	ydis = 0.;
+    }
+    else
+    {
+	xdis *= pscale * tx_height / norm;
+	ydis *= pscale * tx_height / norm;
+    }
+
+    xarray[0] = xt + xdis;
+    yarray[0] = yt + ydis;
+    xarray[1] = x0;
+    yarray[1] = y0;
+    xarray[2] = xt - xdis;
+    yarray[2] = yt - ydis;
+
+    xin = tx_height * cos (sign_longi);
+    yin = tx_height * sin (sign_longi);
+    zin = 0.;
+    proj (xin, yin, zin, &xout, &yout, &zout);
+    if (xout >= 0.)
+    {
+	xpath = rev * xout;
+	ypath = rev * yout;
+    }
+    else
+    {
+	xpath = rev * -xout;
+	ypath = rev * -yout;
+    }
+
+    xin = 0.;
+    yin = 0.;
+    zin = tx_height;
+    proj (xin, yin, zin, &xout, &yout, &zout);
+    xup = xout;
+    yup = yout;
+
+    vp_tjust (TH_CENTER, TV_HALF);
+
+	if(x_oval >0. && y_oval >0.){
+    vp_color (color);
+    vp_penup ();
+		vp_move(x0-x_oval,y0);
+    vp_fat (fat);
+		x=-x_oval;
+		for(ii=0; ii < OVAL_PTS; ii++){	
+			y=(1.-x*x/x_oval/x_oval);
+			if(y<0) y=0;
+			y=y_oval*sqrt(y);
+			vp_pendn(x0+x,y+y0);
+			x+=2*x_oval/OVAL_PTS;
+		}
+		for(ii=0; ii < OVAL_PTS+1;ii++){
+			y=(1.-x*x/x_oval/x_oval);
+			if(y<0) y=0;
+			y=y_oval*sqrt(y);
+			vp_pendn(x0+x,y0-y);
+			x-=2*x_oval/OVAL_PTS;
+		}
+
+	}
+
+ if(pointer!=0){
+/* First the blank pointer */
+    vp_color (BLACK);
+    vp_fat (0);
+    vp_fill (xarray, yarray, 3);
+
+/* Now the dark edge to the pointer */
+    vp_color (color);
+    vp_fat (fat);
+
+    vp_penup ();
+    for (ii = 0; ii < 3; ii++)
+    {
+	vp_pendn (xarray[ii], yarray[ii]);
+    }
+
+	}
+
+/* Finally the shaded box with the text */
+    vp_color (color);
+    vp_fat (fat);
+
+	if(boxit==0) vp_tfont (NO_CHANGE, NO_CHANGE, OVLY_NORMAL);
+	else vp_tfont (NO_CHANGE, NO_CHANGE, OVLY_SHADE_BOX);
+if(ilong==0 && ilat==0 && iang==0){
+ if( 1==getch("rotate","d",&rotate)){
+  x=xpath; y=ypath;
+  xpath=x*cos((double)rotate * atan(1.)/45.)+y*sin((double)rotate * atan(1.)/45.);
+  ypath=y*cos((double)rotate * atan(1.)/45.)-x*sin((double)rotate * atan(1.)/45.);
+  x=xup; y=yup;
+  xup=x*cos((double)rotate * atan(1.)/45.)+y*sin((double)rotate * atan(1.)/45.);
+  yup=y*cos((double)rotate * atan(1.)/45.)-x*sin((double)rotate * atan(1.)/45.);
+}
+}
+/*    vp_gtext (xt, yt, xpath, ypath, xup, yup, string);*/
+    vp_gtext (xt, yt, xpath, ypath, xup, yup, string);
+
+/*
+ * Finish up
+ */
+
+    vp_tjust (TH_NORMAL, TV_NORMAL);
+    vp_tfont (NO_CHANGE, NO_CHANGE, OVLY_NORMAL);
+    vp_color (WHITE);
+    vp_fat (0);
+
+    vp_endplot ();
+	return(EXIT_SUCCESS);
+}
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int proj (double xin, double yin, double zin, double *xou, double *you, double *zou)
+#else
+int proj (xin, yin, zin, xou, you, zou)
+    double          xin, yin, zin;
+    double         *xou, *you, *zou;
+#endif
+{
+    rot (view_longi, &xin, &yin);
+    rot (view_lati, &xin, &zin);
+
+    *xou = yin;
+    *you = zin;
+    *zou = xin;
+
+    rot (stereo, xou, zou);
+		return (0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int rot (double ang, double *x, double *y)
+_XFUNCPROTOEND
+#else
+int rot (ang, x, y)
+    double          ang;
+    double         *x, *y;
+#endif
+{
+double          xx, yy;
+
+    ang *= -pi / 180.;
+
+    xx = *x * cos (ang) - *y * sin (ang);
+    yy = *x * sin (ang) + *y * cos (ang);
+
+    *x = xx;
+    *y = yy;
+	return(0);
+}

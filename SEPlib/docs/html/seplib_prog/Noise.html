@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Noise - Add or create noise</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#example">EXAMPLE</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Noise - Add or create noise</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Noise &lt; in.H &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_in_2eh__2d_sepfile">in.H - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Input dataset to add noise to</pre>
+</dd>
+<dt><strong><a name="item_type__2d_integer">type - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]: uniform, 1: normal, 2: gamma, 3: chisq, 4: exponential
+      5: weibul, 6: poisson, 7: binomial</pre>
+</dd>
+<dt><strong><a name="item_rep__2d_integer">rep  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]: replace traces with noise trace. 1 to output noise only</pre>
+</dd>
+<dt><strong><a name="item_seed__2d_integer">seed - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [date]: random number initializer</pre>
+</dd>
+<dt><strong><a name="item_maxsize_2d_integer">maxsize- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [500000]: maximum memory allocated in bytes</pre>
+</dd>
+<dt><strong><a name="item_mean__2d_real">mean - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.]: mean of noise</pre>
+</dd>
+<dt><strong><a name="item_var__2d_real">var  - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.]: variance of noise (normal distribution)</pre>
+</dd>
+<dt><strong><a name="item_shape__2d_real">shape  - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.]: shape for gamma distribution</pre>
+</dd>
+<dt><strong><a name="item_ndf__2d_integer">ndf    - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]: number of degrees of freedom, chisq</pre>
+</dd>
+<dt><strong><a name="item_weib__2d_real">weib   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.]: weibul distribution parameter</pre>
+</dd>
+<dt><strong><a name="item_trials__2d_integer">trials - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]:  number of trials [binomial]</pre>
+</dd>
+<dt><strong><a name="item_prob__2d_real">prob   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.5]: probability of success for binomial trial</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Add noise to traces</pre>
+<p>
+</p>
+<hr />
+<h1><a name="example">EXAMPLE</a></h1>
+<pre>
+                Noise &lt; in.H &gt; out.H
+                        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

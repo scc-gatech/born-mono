@@ -1,0 +1,795 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$Sort3d, Grid_fold - Sort, transpose, or test gridding parameters
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Sort3d,Grid_fold  <in.H >out.H pars
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$
+!!$=item  nkeys-  integer
+!!$
+!!$       number of sort keys
+!!$
+!!$=item  key_-  character
+!!$
+!!$       name of key to sort in ascending order
+!!$
+!!$=item  ng_-  integer
+!!$
+!!$       number of grid cells for key_
+!!$
+!!$=item  dg_-  real
+!!$
+!!$       sampling of grid cells for key_
+!!$
+!!$=item  og_-  real
+!!$
+!!$       first location of grid cell for key_
+!!$
+!!$=item  plane- char*
+!!$
+!!$       plane to transpose (eg) '34'
+!!$
+!!$=item  verb-  integer
+!!$
+!!$       [0] amount of progress info to print out
+!!$
+!!$=item  synch-  integer
+!!$
+!!$       [0] whether [1] or not [0] to synch traces
+!!$
+!!$=item  compress_tr-  integer
+!!$
+!!$       [1] whether (1) or not(0) to compress the
+!!$       trace in bin axis if it equal 1
+!!$
+!!$
+!!$=item  preserve_nd - integer
+!!$
+!!$        [0]  wheter (1) or not(0) to preserver the input n2,n3,n4,n... values
+!!$
+!!$
+!!$=item  max_memory,max_size-  integer
+!!$
+!!$       [200] maximum amount of memory in   megabytes
+!!$       to use. This is only somewhat accurate because
+!!$       it will always hold (n_sort_keys +1 * n2).
+!!$       Memory consumed will be approximately
+!!$       max(max_memory,100000+(n_sort_keys+1)*n2
+!!$
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Sort3d serves three purposes: Sorting, tranposing or testing binning params
+!!$
+!!$ To sort a SEP3d dataset use nkeys key1, og1, etc Sort3d < in.H >out.H [pars]
+!!$
+!!$ To transpose a dataset provide : Sort3d  plane=23 < in.H >out.H
+!!$
+!!$ To test a gridding pattern use sort pars  Grid_fold  < in.H >out.H [pars]
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Fold3d>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<util/cube>
+!!$
+!!$=cut
+!!$
+!!$
+!-------------------------------------------------
+!
+!Author: Robert Clapp, ESMB 463, 7230253
+!
+!Date Created:Tue Mar 11 22:32:35 1997
+!
+!Purpose:
+!
+!>
+program Sort_it2 
+  use SORT_SUBS_MOD
+  use sep_mod
+  use sep_aux_mod
+  use sep
+  use sep_3d_mod
+  use sep_convert_mod
+  implicit none
+  integer :: nkeys,max_memory,verb
+  character(len=256),dimension(:),allocatable :: keys
+  real,allocatable,dimension(:) :: dg,og
+  integer,allocatable,dimension(:) :: ng
+  integer,parameter :: big_int=selected_int_kind(11)
+  integer(kind=big_int)  :: nbig1,nbig2,nbig3
+  integer  :: nh,new_size      !input and output number of headers
+  integer,allocatable,dimension(:) :: n_grid_out  
+  !dimensions of the output grid
+  integer,allocatable,dimension(:,:) :: grid  !grid to write out
+  integer  :: pos(7),n_grid(7)      
+  !pointer inside and dimension of grid
+  integer  :: nkeys_out              !number output keys
+  integer,dimension(:,:),allocatable :: head_hold  
+  !holding array for
+!sorting headers
+  integer,dimension(2)               :: f_in,n_in,f_out,n_out 
+  !arrays to access
+!disk copys of data
+  integer :: max_hold  
+  !maximum number of headers,data to read in at one time
+  logical :: old_drn   !whether or not input had a data record number
+  integer :: maximum   !maximum number of points in any grid cell
+  integer :: max_dim   !maximum number of grid dimensions in memory
+  integer :: synch            !whether or not we are sincing headers
+  integer,dimension(:),allocatable :: keynumber,keytype 
+  !type and location of sort                                   #keys inside sep90 type
+  integer,dimension(:,:),allocatable :: temp_hold 
+  !hold headers we are syncing
+  real,dimension(:,:),pointer :: hdr_block 
+  !hold headers we are syncing
+  integer,dimension(:),allocatable :: f_g,j_g,n_g 
+  !grid window parameters
+  logical :: whole_grid       
+  !whether or not we have the whole grid in memory
+  logical :: headers_only     
+  !whether or not we are bothering with data
+  integer :: just_grid        !whether or not to just do the grid
+  integer :: same_record_number
+  integer  :: i0,i1,i2,i3,tempi,temp2i,count,old_pos,begin,new_count&
+    &,read_in,ierr,n1
+  integer  :: ia,ib,ic
+  integer  :: memory,debug,drn_num,grid_dim,esize
+  integer,dimension(:),allocatable :: moving_part,holding_part,old_key&
+    &,loc,move2
+  character(len=128) :: temp_ch
+  real :: o,d
+  logical :: logic_it
+  integer :: fwind(3),jwind(3),nwind(3),ngrid(3),preserve_nd,ifirst
+  integer :: outer,outer_last,division,middle,middle_last,compress_tr,n&
+    &,ndim
+  character(len=128) :: plane
+  integer :: grid_fold
+  integer :: ndimg,inmem
+  logical :: transp_mode
+  integer :: pl(2),block,block2
+  logical :: found
+  character :: hold(2)
+  character(len=128) :: progname
+!             GET PRELIMINARY PARAMETERS, SET SOME PROGRAM VARIABLES,
+!                   CHECK DATA, DO SOME PRELIMINARY ALLOCATION
+  call SEP_ADD_DOC()
+  call SEP_INIT('')
+  call init_3d()
+  call sep_prog(progname)
+
+
+
+  if (progname(1:9) .eq. "Grid_fold") then
+    grid_fold=1
+  else
+    grid_fold=0
+  end if
+    if (0>= getch('synch','d',synch )) then
+      synch = 0
+    end if
+    if (0.ne.putch('Read  from param: #synch ','d',synch)) then
+      call erexit('Trouble writing synch to history')
+    end if
+    if (0>= getch('compress_tr','d',compress_tr )) then
+      compress_tr = 1
+    end if
+    if (0.ne.putch('Read  from param: #compress_tr ','d',compress_tr))&
+      & then
+      call erexit('Trouble writing compress_tr to history')
+    end if
+  call from_param("max_size max_memory",max_memory,200)
+    if (0>= getch('nkeys','d',nkeys )) then
+      nkeys = 0
+    end if
+    if (0.ne.putch('Read  from param: #nkeys ','d',nkeys)) then
+      call erexit('Trouble writing nkeys to history')
+    end if
+    if (0>= getch('verb','d',verb )) then
+      verb = 0
+    end if
+    if (0.ne.putch('Read  from param: #verb ','d',verb)) then
+      call erexit('Trouble writing verb to history')
+    end if
+    if (0>= getch('debug','d',debug )) then
+      debug = 0
+    end if
+    if (0.ne.putch('Read  from param: #debug ','d',debug)) then
+      call erexit('Trouble writing debug to history')
+    end if
+    if (0>= getch('just_grid','d',just_grid )) then
+      just_grid = 0
+    end if
+    if (0.ne.putch('Read  from param: #just_grid ','d',just_grid))&
+      & then
+      call erexit('Trouble writing just_grid to history')
+    end if
+    if (0>= getch('preserve_nd','d',preserve_nd )) then
+      preserve_nd = 0
+    end if
+    if (0.ne.putch('Read  from param: #preserve_nd ','d',preserve_nd))&
+      & then
+      call erexit('Trouble writing preserve_nd to history')
+    end if
+    if (0>= hetch('n1','d',n1 )) then
+      call erexit('Trouble reading  n1 from history  ')
+    end if
+    if (0>= hetch('esize','d',esize )) then
+      esize = 4
+    end if
+    if (0>= hetch('same_record_number','d',same_record_number )) then
+      same_record_number = 1
+    end if
+    if (0>= getch('plane','s',plane )) then
+      plane = "none"
+    end if
+    if (0.ne.putch('Read  from param: #plane ','s',plane)) then
+      call erexit('Trouble writing plane to history')
+    end if
+  max_memory=max_memory*1000000
+  transp_mode=.false.
+  if (verb>0) then
+    write(0,*) "DEBUG STATUS ",debug
+  end if
+!if(debug>0) write(0,*) "After initial parameter read"
+  if (nkeys .eq.0) then
+    if (plane.eq."none") then
+      call erexit("No keys have been specified ")
+    else
+      transp_mode=.true.
+    end if 
+    pl=-1
+    do i1=1,2 
+      if (plane(i1:i1).eq."2") then
+        pl(i1)=2
+      end if
+      if (plane(i1:i1).eq."3") then
+        pl(i1)=3
+      end if
+      if (plane(i1:i1).eq."4") then
+        pl(i1)=4
+      end if
+      if (plane(i1:i1).eq."5") then
+        pl(i1)=5
+      end if
+      if (plane(i1:i1).eq."6") then
+        pl(i1)=6
+      end if
+      if (plane(i1:i1).eq."7") then
+        pl(i1)=7
+      end if
+      if (plane(i1:i1).eq."8") then
+        pl(i1)=8
+      end if
+      if (plane(i1:i1).eq."9") then
+        pl(i1)=9
+      end if
+    end do 
+    if (0.ne.sep_get_number_grid_axes("in",ndimg)) then
+      call erexit("If transposing must provide plane")
+    end if
+    if(0 /=sep_get_grid_axis_par("in",2,tempi,o,d,temp_ch))&
+      call seperr("trouble grabing grid axis par 2")
+    if (temp_ch.eq."trace_in_bin") then
+      ifirst=3
+    else
+      ifirst=2
+    end if 
+!
+    if (any(pl <ifirst  ) .or. any(pl > ndimg)) then
+      call erexit("Invalid plane for transposing")
+    end if
+    nkeys=ndimg-ifirst+1
+  end if
+  if (0.ne.sep_get_number_header_axes("in",ndim)) then
+    call erexit("trouble grabbing ndim")
+  end if
+  nh=1
+  do i1=2,ndim 
+    if (0.ne.sep_get_header_axis_par("in",i1,n,o,d,temp_ch)) then
+      call erexit("not valid sep3d dataset")
+    end if
+    nh=n*nh
+    n=1
+    if(0.ne. sep_put_header_axis_par("out",i1,1,o,d,temp_ch))&
+      call seperr("trouble putting first header axis")
+  end do 
+  max_memory=max(max_memory-4*nh*(nkeys+1),100000)
+  if (debug>0) then
+    write(0,*) "After get header axis par"
+  end if
+  if (debug>0) then
+    write(0,*) "After get init_vars"
+  end if
+!allocate key parameters and size of output grid
+  allocate(ng(nkeys),og(nkeys),dg(nkeys),keys(nkeys),n_grid_out(nkeys+1&
+    &))
+  allocate(head_hold(nkeys+1,nh),stat=ierr)
+  if (ierr.ne.0) then
+    call erexit("can't allocate memory fo headers array, cut size or run&
+      & on a bigger computer")
+  end if
+  if (debug>0) then
+    write(0,*) "After allocation"
+  end if
+!grab all of the info for the keys
+  keys=""
+  if (.not. transp_mode) then
+    do i1=1,nkeys 
+      call parcat("ng",i1,temp_ch)	
+      if (0.eq.getch(temp_ch,"d",ng(i1))) then
+         write(0,*) "check",trim(temp_ch),i1,nkeys
+        call erexit("number ng != nkeys")
+      end if
+      call parcat("dg",i1,temp_ch)	
+      if (0.eq.getch(temp_ch,"f",dg(i1))) then
+        call erexit("number dg != nkeys")
+      end if
+      call parcat("og",i1,temp_ch)	
+      if (0.eq.getch(temp_ch,"f",og(i1))) then
+        call erexit("number og != nkeys")
+      end if
+      call parcat("key",i1,temp_ch)	
+      if (0.eq.getch(temp_ch,"s",keys(i1))) then
+        call erexit("number keys != nkeys")
+      end if
+    end do
+  else
+    do i1=ifirst,ndimg 
+      if (i1.eq.pl(1)) then
+        tempi=pl(2)-ifirst+1
+      else if (i1.eq.pl(2)) then
+        tempi=pl(1)-ifirst+1
+      else
+        tempi=i1-ifirst+1
+      end if 
+      if(0/= sep_get_grid_axis_par("in",i1,ng(tempi),og(tempi),dg(tempi)&
+        &,keys(tempi))) call seperr("trouble getting grid axis")
+    end do
+  end if 
+  if (debug>0) then
+    write(0,*) "After read keys"
+  end if
+!read in the headers
+  if (0.ne.sep_get_number_keys("in",tempi)) then
+    call erexit("not a valid sep90 dataset")
+  end if
+  allocate(keynumber(nkeys),keytype(nkeys))
+  if (debug>0) then
+    write(0,*) "After allocate keys"
+  end if
+  max_hold=min(nh,floor(real(max_memory)/(4*tempi)))
+  if (max_hold.eq.0) then
+    call erexit("can not even load one key at a time, increaase max_memory"&
+      &)
+  end if
+  count=0
+  f_in=0
+  n_in=1
+allocate(hdr_block(tempi,max_hold))
+!READ IN HEADERS, STORE IN  head_hold array
+  do while (count < nh)
+    read_in=min(nh-count,max_hold)
+    f_in(2)=count
+    n_in(2)=read_in
+    if(0/= sep_get_val_headers("in",f_in(2)+1,read_in,hdr_block)) &
+     call seperr("trouble get headers")
+
+!first time get info about key type and location
+    keytype=1
+    if (count.eq.0) then
+      do i1=1,nkeys 
+        if (0.ne.sep_get_key_index("in",keys(i1),keynumber(i1))) then
+          write(0,*) "key",keys(i1)
+          call erexit("could not find the above key")
+        end if
+        if(0.ne. sep_get_key_type("in",keynumber(i1),temp_ch))&
+          call seperr("trouble getting key type")
+        if (temp_ch.eq."scalar_float") then
+          keytype(i1)=1
+        else if (temp_ch.eq."scalar_int") then
+          keytype(i1)=0
+        else
+          call erexit("bad key type")
+        end if
+      end do
+    end if
+    do i1=1,nkeys 
+      if (keytype(i1).eq.1) then
+        do i2=1,read_in 
+          head_hold(i1,i2+count)=floor((hdr_block(keynumber(i1),i2)-og&
+            &(i1))/dg(i1)+1.5)
+        end do
+      else
+        if (debug>0) then
+          write(0,*) "Before interger key ",i1
+        end if
+        do i2=1,read_in 
+          tempi=transfer(hdr_block(keynumber(i1),i2),tempi)
+          head_hold(i1,i2+count)=((tempi -og(i1))/dg(i1)+1.5)
+        end do
+      end if
+    end do 
+    do i2=1,read_in
+      head_hold(nkeys+1,i2+count)=count+i2
+    end do 
+    count=	count+read_in
+  end do 
+  if (verb >0) then
+    write(0,*) "according to your o and d parameters. The data falls in&
+      & this range"
+    write(0,*) "of bins  for the given key"
+    do i1=1,nkeys 
+      write(0,*) "MIN MAX FOR KEY:",keys(i1)(1:10),i1,minval(head_hold&
+        &(i1,:)),maxval(head_hold(i1,:))
+    end do
+  end if
+  deallocate(hdr_block)
+  if (debug>0) then
+    write(0,*)  "after calculation of integer cell locations"
+  end if
+!PARSE THE BAD HEADERS
+  count=0
+  do i2=1,nh 
+    logic_it=.false.
+    do i1=1,nkeys  
+      if (head_hold(i1,i2) <= 0 .or. head_hold(i1,i2) > ng(i1)) then
+        logic_it=.true.
+      end if
+    end do 
+    if (.not.  logic_it) then
+      count=			count+1
+      head_hold(:,count)=head_hold(:,i2)
+    end if
+  end do 
+!count=nh
+  if (debug>0) then
+    write(0,*) "Done calculating headers outside grid"
+  end if
+  new_size=count !set number og good headers
+  if (verb>0) then
+    write(0,*) "found ",nh-new_size,"bad traces"
+  end if
+!IF WE ARE DOING GRID FOLD LETS DO IT AND EXIT
+  if (grid_fold.eq.1) then
+    call sep_set_no_grid("out")
+    call sep_set_no_headers("out")
+    do i1=1,nkeys
+      if(0/= sep_put_data_axis_par("out",i1,ng(i1),og(i1),dg(i1),keys(i1&
+        &))) call seperr("trouble putting data axis par")
+    end do 
+    block=4
+    inmem=1
+    do while (block*ng(inmem)< max_memory .and. inmem <nkeys)
+      block=block*ng(inmem)
+      inmem=		inmem+1
+    end do 
+    if (inmem.eq.nkeys .and. ng(inmem)*block > max_memory) then
+      inmem= inmem-1
+    else
+      block=block*ng(inmem)
+    end if 
+    tempi=product(ng(1:inmem))
+    block=block/4
+    allocate(grid(tempi,1))
+    if (inmem.ne.nkeys) then
+      temp2i=product(ng(inmem+1:))
+    else
+      temp2i=1
+    end if 
+    do i3=1,temp2i 
+      grid=0
+      do i2=1,new_size 
+        block2=1
+        tempi=1
+        do i1=1,size(ng)
+          tempi=				tempi+(head_hold(i1,i2)-1)*block2
+          block2=block2*ng(i1)
+        end do 
+        if (tempi> (i3-1)*block .and. tempi <= i3*block) then
+!we are working on this blok
+          tempi=				tempi-(i3-1)*block
+          grid(tempi,1)=  			grid(tempi,1)+1.
+        end if
+      end do 
+      if(size(grid)*4/= srite("out",real(grid),size(grid)*4))&
+        call seperr("trouble writing out grid")
+    end do 
+    call exit(0)
+  end if
+!SORT THE HEADERS
+  if (debug>0) then
+    write(0,*) "Before sort size(head,1),size(head,2),nkeys,new_size"
+    write(0,*) size(head_hold,1),size(head_hold,2),nkeys,new_size
+  end if
+if (new_size == 0) then
+
+  call erexit("All traces fall outside bins -- check parameters")
+end if
+  call sort_it(head_hold,nkeys,new_size)
+  if (debug>0) then
+    write(0,*) "After sort"
+  end if
+!FIGURE OUT THE GRID
+!find the trace_in_bin_axis. Look for grid cell with the most traces
+  allocate(old_key(nkeys))
+  old_key=0
+  count=0
+  maximum=0
+  i2=1
+  do while (i2 <= new_size)
+    if (.not. any(head_hold(1:nkeys,i2) .ne. old_key)) then
+      count= count+1
+    else
+      if (count > maximum) then
+        maximum=count
+      end if
+      count=1
+      old_key=head_hold(1:nkeys,i2)
+    end if 
+    i2=	i2+1
+  end do 
+  if (count > maximum) then
+    maximum=count
+  end if
+  if (verb>0) then
+    write(0,*) "maximum bin size ",maximum
+  end if
+  grid_dim=nkeys
+  if (maximum > 1 .or. compress_tr .eq.0) then
+    if (verb>0) then
+      write(0,*) "adding a trace_in_bin axis of that length"
+    end if
+  end if
+!figure out maximum grid size we can hold in memory
+  i1=0
+  max_dim=1
+  memory=maximum
+  do while (i1 < min(nkeys,6) .and. memory <= max_memory)
+    nbig1=memory
+    nbig2=ng(i1+1)*4
+    if (nbig1*nbig2  < max_memory) then
+      memory=memory*ng(i1+1)
+      max_dim=		max_dim+1
+      i1=i1+1
+    else
+      memory=  memory+max_memory
+    end if
+  end do 
+  deallocate(old_key)
+  if (verb>0) then
+    write(0,*) "I figure I can hold ",max_dim," dimensions of the grid&
+      & in memory"
+  end if
+  ngrid(1)=maximum
+  if (i1>0) then
+    ngrid(2)=product(ng(1:i1))
+  else
+    ngrid(2)=1
+  end if 
+  if (i1<nkeys) then
+    ngrid(3)=product(ng(i1+1:nkeys))
+  else
+    ngrid(3)=1
+  end if 
+  division=i1
+!WRITE OUT GRID LABELS
+  if (maximum > 1 .or. compress_tr.eq.0) then
+    tempi=2
+    if(0.ne. sep_put_grid_axis_par("out",2,maximum,1.,1.,"trace_in_bin"))&
+      call seperr("trouble putting grid axis par 2")
+  else
+    tempi=1
+  end if 
+  do i1=1,nkeys 
+    if(0.ne. sep_put_grid_axis_par("out",i1+tempi,ng(i1),og(i1),dg(i1),keys&
+      &(i1))) call seperr("trouble putting grid axis")
+  end do 
+!######################################################
+!######################################################
+!######################################################
+!check to sett if data_record_number exists
+  old_drn=.true.
+  if (sep_get_key_index("in","data_record_number",drn_num).ne.0) then
+    old_drn=.false.
+  end if
+  ierr= sep_get_number_keys("in",temp2i)
+  if (old_drn) then
+    nkeys_out=temp2i
+  else
+
+    nkeys_out=temp2i+1 
+    drn_num=nkeys_out
+  end if 
+!need to write out key information
+  if(0.ne. sep_put_number_keys("out",nkeys_out)) call seperr("trouble putting nuymber of keys")
+  if(0.ne. sep_put_header_axis_par("out",2,new_size,1.,1.,"trace_number"))&
+    call seperr("trouble putting header axis 2")
+  if (synch.eq.1) then
+    if(0.ne. sep_put_data_axis_par("out",2,new_size,1.,1.,"trace_number"))&
+      call seperr("trouble putting data axis 2")
+  end if
+  if(0/= sep_copy_header_keys("in","out"))&
+    call seperr("trouble copying header keys")
+  if (.not. old_drn) then
+    if(0.ne. sep_put_number_keys("out",nkeys_out))&
+       call seperr("trouble putting number of keys")
+    if(0/= sep_put_key("out","data_record_number"  ,"scalar_int","xdr_int"&
+      &,nkeys_out) )call seperr("trouble putting key")
+  end if
+  if (synch.eq.0) then
+    if(0.ne. sep_copy_data_pointer("in","out")) call seperr("trouble copying data pointer")
+      if (0.ne. putch('same_record_number','d',0 )) then
+        call erexit('Trouble writing  same_record_number to history  '&
+          &)
+      end if
+  else
+      if (0.ne. putch('same_record_number','d',1 )) then
+        call erexit('Trouble writing  same_record_number to history  '&
+          &)
+      end if
+  end if 
+  if (0.eq.preserve_nd) then
+    call putlin("n3=1 n4=1 n5=1 n6=1 n7=1 n8=1")
+  end if
+  call sep_3d_close()
+!###############
+!WRITE OUT GRID#
+!###############
+  allocate(grid(ngrid(1),ngrid(2)),stat=ierr)
+  if (ierr.ne.0) then
+    call erexit("trouble allocating grid")
+  end if
+  outer_last=1
+  count=0
+  middle=0
+  fwind=0
+  nwind=(/ngrid(1),ngrid(2),1/)
+  middle_last=-1
+  jwind=1
+  grid=-1
+  do i2=1,new_size 
+    if (division.eq.0) then
+      middle=1
+    else
+      call cart2helix(division,ng(1:division),head_hold(1:division,i2)&
+        &,middle)
+    end if 
+    if (division.eq.nkeys) then
+      outer=1
+    else
+      call cart2helix(nkeys-division,ng(division+1:nkeys),head_hold&
+        &(division+1:nkeys,i2),outer)
+    end if 
+    if (outer.ne.outer_last) then
+!WE ARE IN A NEW GRID PLANE
+!      		write(0,*) "writing out",outer-1
+      do i1=outer_last,outer-1 
+        ib=0
+        if(0/= sep_put_grid_window("out",4,ngrid,nwind,(/0,0,i1-1/),jwind&
+          &,grid)) call seperr("trouble putting grid window")
+        grid=-1
+      end do 
+      middle_last=0
+    end if
+    if (middle.ne.middle_last) then
+      count=0 !WE ARE IN A NEW GRID SLOT
+    end if
+    count=	count+1
+    grid(count,middle)=i2
+    middle_last=middle
+    outer_last=outer
+  end do 
+  do i1=outer,ngrid(3)
+    if(0/= sep_put_grid_window("out",4,ngrid,nwind,(/0,0,i1-1/),jwind,grid&
+      &)) call seperr("trouble putting grid window")
+    grid=-1
+  end do 
+  deallocate(grid)
+  if (verb>0) then
+    write(0,*) "Done writing out grid"
+  end if
+!time to synch the headers
+  i2=1
+  count=0
+  old_pos=0
+  begin=0
+  max_hold=min(floor(real(max_memory)/nkeys_out),new_size)
+  if (max_hold < 1) then
+    call erexit("can not even hold one trace in memory increase max_memory"&
+      &)
+  end if
+  if (debug>0) then
+    write(0,*) "Before allocation  nkeys_out, max_hold",nkeys_out&
+      &,max_hold
+  end if
+!	max_hold=2
+  allocate(loc(max_hold),stat=ierr)
+  if (ierr.ne.0) then
+    call erexit("trouble allocating  memory, run on a bigger computer(1)")
+  end if
+  if (verb>0) then
+    write(0,*) "About to take care of headers new_size",new_size
+  end if
+  allocate(temp_hold(nkeys_out,max_hold),stat=ierr)
+  if (ierr.ne.0) then
+    call erexit("trouble allocating  memory, run on a bigger computer(2)")
+  end if
+  if (verb>0) then
+    write(0,*) "About to take care of headers new_size",new_size
+  end if
+  count=0
+  do while (count < new_size)
+    read_in=min(new_size-count,max_hold)
+!READ IN THE HEADERS
+write(0,*) "WHAT THE ",read_in,size(head_hold)
+    do i2=1,read_in
+      if(0/= sep_get_val_headers("in",head_hold(nkeys+1,i2+count),1,temp_hold&
+        &(:,i2))) call seperr("trouble getting headers")
+    end do 
+write(0,*) "UO DAO "
+    if (.not. old_drn) then
+      if (synch.eq.0) then
+        do i2=1,read_in 
+          temp_hold(nkeys_out,i2)=head_hold(nkeys+1,i2+count)
+          loc(i2)=head_hold(nkeys+1,i2+count)
+        end do
+      else
+        do i2=1,read_in 
+          temp_hold(drn_num,i2)=i2+count
+          loc(i2)=head_hold(nkeys+1,i2+count)
+        end do
+      end if
+    else if (synch.eq.1) then
+      if (same_record_number.eq.1) then
+        do i2=1,read_in 
+          loc(i2)=head_hold(nkeys+1,i2+count)
+          temp_hold(drn_num,i2)=loc(i2)
+        end do
+      else
+        do i2=1,read_in 
+          loc(i2)=temp_hold(drn_num,i2)
+          temp_hold(drn_num,i2)=count+i2
+        end do
+      end if
+    end if
+write(0,*) "ABOUT TO PIUT",count+1,read_in,size(temp_hold)
+    if(0.ne. sep_put_val_headers("out",count+1,read_in,temp_hold))&
+        call seperr("trouble putting headers")
+write(0,*) "BEFOR REORDER"
+    if (synch.eq.1) then
+write(0,*) "DD"
+      if(0.ne. sep_reorder_data("in","out",read_in,n1*esize,loc))&
+        call seperr("trouble reordering data")
+    end if
+write(0,*) "mm"
+    count=    count+read_in
+  end do 
+  if (verb>0) then
+    write(0,*) "Done with headers"
+  end if
+end program 
+subroutine cart2helix(sz, nn, ii, i)
+  implicit none
+  integer :: sz
+  integer, dimension( sz), intent( in) :: nn, ii
+  integer                             :: i, axis, n123
+  n123 = 1
+  i = 1
+  do axis = 1, size(  nn)
+    i = i + ( ii( axis)-1)*n123
+    n123 = n123 * nn( axis)
+  end do 
+end subroutine  

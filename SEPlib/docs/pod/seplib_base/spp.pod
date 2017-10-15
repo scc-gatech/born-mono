@@ -1,0 +1,44 @@
+=head1 NAME
+
+
+spp - sep preprocessor
+
+=head1 SYNOPSIS
+
+
+spp <infile >outfile -Csymbol -Dname=value -Dname -Uname -Idir -Ydir -strict C<-H>
+
+=head1 DESCRIPTION
+
+
+        "Sep Pre Processor" 
+            for conditional compilation and macro expansion;
+            unlike its ancestor "cpp" it can be used 
+            for any programming language
+
+            definition of comment symbol 
+            -Csymbol
+
+            definition of names:
+            -Dname=value
+            -Dname
+
+            undefinition of names:
+            -Uname
+
+            -strict   be strict on directive lines
+
+            -H        prints included file names
+
+            -f77      strict f77 output (folds lines longer than 72 col
+                                         and uses "C" as comment symbol)
+
+
+
+=head1 CATEGORY
+
+
+B<tools>
+
+=cut
+

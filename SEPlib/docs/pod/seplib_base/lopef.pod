@@ -1,0 +1,52 @@
+=head1 NAME
+
+
+lopef - estimate pef in patches
+
+=head1 SYNOPSIS
+
+
+C<call find_lopef(wall,aa,npatch,nwall,nwind,mask)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item  wall - C<real(:)>
+
+=item  aa   - type(filter)
+
+       helix filter
+
+=item  npatch -C<integer(:)>
+
+       size of patch
+
+=item  nwall  -C<integer(:)>
+
+=item nwind  -C<integer(:)>
+
+=item mask   -C<real(:) >
+
+      Mask of known and unknown data
+
+=back
+
+=head1 DESCRIPTION
+
+
+Estiamte a PEF in patches
+
+=head1 SEE ALSO
+
+
+L<pef>,L<misinput>,L<patch>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

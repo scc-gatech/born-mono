@@ -1,0 +1,435 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$Transf - Transposes and FFTs a dataset
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Transf  <in.H >out.H
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item f_min - float
+!!$
+!!$	[0]: Minimum frequency (only needed for forward op)
+!!$
+!!$=item f_min1 - float
+!!$
+!!$	[f_min]: Minimum frequency with 100% pass (only needed for forward op)
+!!$
+!!$=item f_max - float
+!!$
+!!$	[.5/d1]: Maximum frequency  (only needed for forward op)
+!!$
+!!$=item f_max1 - float
+!!$
+!!$	[f_max]: Maximum frequency with 100% pass (only needed for forward op)
+!!$
+!!$=item shift2 - integer
+!!$
+!!$	[0]: How many n=1 axes to introduce or remove after the frequency axis
+!!$
+!!$=item maxsize - integer
+!!$
+!!$	[50]: Maximum megabytes to use
+!!$
+!!$=item verb  - logical
+!!$
+!!$	[n]: Whether or not to be verbose
+!!$
+!!$=item  wei  - logical
+!!$
+!!$	[false]: Do WEI style transforms
+!!$
+!!$=item  shotmig  - logical
+!!$
+!!$	[false]: To prep for ShotMig: input (t,gx,gy,sx,sy), output (gx,gy,f,sx,sy)
+!!$
+!!$=item  is2d  - logical
+!!$
+!!$	[false]:  If 2-D 
+!!$
+!!$                 shotmig(false) input (t,cmpx,hx), output (gx,1,hx,1,f)
+!!$
+!!$                 shotmig(true) input (t,gx,sx), output (gx,1,f,sx,1)
+!!$
+!!$=item  wei  - logical
+!!$
+!!$	[false]: Do WEI style transforms
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Transforms a dataset (and its inverse) from (nt,nx,...) to (nx ...,nt)
+!!$
+!!$=head1 NOTES
+!!$
+!!$ Forward/Inverse determined from esize (4-forward, 8-inverse)
+!!$
+!!$ WARNING WARNING WARNING: Unpipable
+!!$
+!!$=cut
+!>
+!-#------------------------------------------------
+!
+!Author: Robert Clapp, ESMB 463, 7230253
+!
+!Date Created:Fri Sep 22 12:42:13 PDT 2000
+!
+! Added shot profile support
+!
+!Purpose:
+!
+program Transf 
+  use sep
+  use sep_3d_mod
+  use cos_taper_mod
+#ifdef USE_FFTW
+  implicit none
+ include "fftw3.f03"
+#else
+  use fftw_sep_fake_mod
+  implicit none
+#endif
+  integer :: i,ib
+  integer :: nb !block size
+  integer :: shift2 !whether or not shift the second axis
+  integer :: maxsize !maximummemory
+  integer :: ir,ii   !imag and real pointers
+  integer :: i_f_min,i_f_max,iouter
+  integer :: nh,nouter !helix coordinate system,ntransp,nouter
+  integer :: done,nbs,ip1,ip2
+  logical :: verb,inv,shotmig,i22d,kill_nan
+  real    :: f_min,f_max,pct
+  real    :: o,d,w,f_min1,f_max1
+  integer :: n,ndim,esize,np,ierr,p1,p2,i2
+  integer :: ng(3),fw(3),jw(3),nw(3),j
+  integer :: nin(5),nout(5),n_t_f(2)
+  integer :: nbad
+  real    :: din(5),dout(5),oin(5),oout(5),o_t_f(2),d_t_f(2)
+  real    :: sm1,sm2,max_amp,mx
+  character(len=128) :: labelin(5),labelout(5)
+  real, allocatable :: block(:,:),temp(:)
+  complex,allocatable :: block_out(:),block_c(:,:),block_t(:),scalet(:&
+    &),tt(:)
+  integer :: sign
+  logical :: wei,is2d
+  real :: pi
+  real arg
+  complex, allocatable :: shift(:)
+!READ IN PARAMS
+  call SEP_ADD_DOC()
+  call SEP_INIT('')
+  call from_param("maxsize",maxsize,50)
+  call from_param("is2d",is2d,.false.)
+  call from_param("shotmig",shotmig,.false.)
+  shift2=0
+  if(is2d) shift2=1
+  call from_param("shift2",shift2,shift2)
+  call from_param("verb",verb,.false.)
+  call from_history("esize",esize,4)
+  call sep_begin_prog()
+  call from_param("kill_nan",kill_nan,.false.)
+  call from_param("max_amp",max_amp,10000000.)
+  call from_param("wei",wei,.true.)
+
+  call get_data_info(nin,oin,din,labelin,inv)
+  call calculate_time_freq(nin,oin,din,inv,shotmig,n_t_f,o_t_f,d_t_f,i_f_min,i_f_max,verb)
+  call calc_write_output_space(nin,oin,din,labelin,inv,shift2,shotmig,n_t_f,&
+    o_t_f,d_t_f,nh,nouter,verb)
+  
+!COMPUTE PARAMS
+  if (.not. inv) then
+    nb=min(nh,maxsize*1000000/n_t_f(1)/4)
+  else
+    nb=min(nh,maxsize*1000000/n_t_f(1)/4)
+  end if 
+  jw=1
+  nw=1
+  fw=0
+  if (.not. inv) then
+    ng=(/nh,n_t_f(2),nouter/)
+  else
+    ng=(/nh,n_t_f(2),nouter/)
+  end if 
+
+
+  allocate(scalet(n_t_f(1)))
+  if (.not. inv) then
+    w=8.*atan(1.) *o_t_f(1)
+    do i=1,n_t_f(1)
+      scalet(i)=cexp(cmplx(0.,w*((i-1)*d_t_f(2)+o_t_f(2))))
+    end do
+  else
+    w=8.*atan(1.) *o_t_f(2)
+    do i=1,n_t_f(1)  
+      scalet(i)=cexp(cmplx(0.,w*((i-1)*d_t_f(1)+o_t_f(1))))
+    end do
+  end if 
+!ALLOCATE MEMORY
+  if (.not. inv) then
+    allocate(block(n_t_f(1),nb),temp(n_t_f(1)*2+16),block_out(nb))
+    allocate(tt(n_t_f(2)))
+  else
+    allocate(block_c(1,1),block_t(n_t_f(1)))	 !scalet(nt)
+  end if 
+!INITIALZIE
+  if (.not. inv) then
+    call RFFTI(n_t_f(1),temp)
+  end if
+!MAIN LOOP
+  pct=1./real(nouter*nh)
+  nbad=0
+  do iouter=1,nouter
+    done=0
+    fw(3)=iouter-1
+    do while (done < nh)
+      nbs=min(nh-done,nb)
+      if (.not. inv) then
+        ierr= sreed("in",block,4*n_t_f(1)*nbs)
+        if(kill_nan) then
+          do i2=1,nbs
+            sm1=sum(abs(block(:,i2)))
+            sm2=-sum(abs(block(:,i2))) 
+            mx=maxval(abs(block(:,i2)))
+            if(.not.(sm1 >0.) .or. mx > max_amp)  then
+               block(:,i2)=0.
+               nbad=nbad+1
+            end if
+          end do
+        end if
+      else
+        deallocate(block_c)
+        allocate(block_c(nbs,n_t_f(2)))	 !scalet(nt)
+        fw(1)=done
+        nw(1)=nbs
+        nw(2)=n_t_f(2)
+        if (0.ne. sreed_window("in",3,ng,nw,fw,jw,8,block_c)) then
+          write(0,*) "ng",ng 
+          write(0,*) "nw",nw 
+          write(0,*) "fw",fw 
+          write(0,*) "jw",jw 
+          call seperr("trouble reading window (1)")
+        end if
+      end if 
+      ip1=pct*(done+nh*(iouter-1))*100.
+      ip2=pct*(done+nh*(iouter-1)+nbs)*100.
+      if (verb) then
+        if(kill_nan) then
+          write(0,*) "Finished reading pct:",ip1," to ",ip2, "killed",nbad
+        else
+          write(0,*) "Finished reading pct:",ip1," to ",ip2
+        end if
+      
+      end if
+      if (.not. inv) then
+        do i=1,nbs
+          call RFFTF(n_t_f(1),block(1,i),temp)
+        end do 
+        if (verb) then
+          write(0,*) "Finished transform pct",ip1," to ",ip2
+        end if
+        fw(1)=done
+        nw(1)=nbs
+        do i=1,n_t_f(2) 
+          j=i+i_f_min-1
+          fw(2)=i-1
+          if (j.eq.1) then
+            ir=1
+            ii=n_t_f(1)
+          else
+            ir=(j-1)*2
+            ii=ir+1
+          end if 
+          if (wei) then
+            do ib=1,nbs 
+              block_out(ib)=scalet(j)*cmplx(block(ir,ib),-block(ii,ib))&
+                &*cos_taper_filter(i)
+            end do
+          else
+            do ib=1,nbs 
+              block_out(ib)=scalet(j)*cmplx(block(ir,ib),block(ii,ib))&
+                &*cos_taper_filter(i)
+            end do
+          end if 
+          if (0.ne. srite_window("out",3,ng,nw,fw,jw,8,block_out)) then
+            write(0,*) "trouble writing out ng",ng
+            write(0,*) "trouble writing out nw",nw
+            write(0,*) "trouble writing out fw",fw
+            write(0,*) "trouble writing out jw",jw
+            call erexit("")
+          end if
+        end do
+      else
+        do i=1,nbs 
+          if (wei) then
+            block_t(1:n_t_f(2))=cmplx(real(block_c(i,:)),-aimag(block_c(i,:)))
+          else
+            block_t(1:n_t_f(2))=block_c(i,:)
+          end if 
+          block_t(n_t_f(2)+1:n_t_f(1))=cmplx(0.,0.)	
+          call ftu(1.,n_t_f(1),block_t)
+          ierr= srite("out",real(block_t),n_t_f(1)*4)
+        end do
+      end if 
+      if (verb) then
+        write(0,*) "Finished write pct:",ip1," to ",ip2
+      end if
+      done=		done+nbs
+    end do 
+  end do 
+  call sep_end_prog()
+end program  
+
+
+subroutine calculate_time_freq(nin,oin,din,inv,shotmig,n_t_f,o_t_f,d_t_f,i_f_min,i_f_max,verb)
+  use cos_taper_mod
+  use sep
+  implicit none
+  integer :: nin(5),n_t_f(2)
+  real    :: oin(5),din(5),o_t_f(2),d_t_f(2)
+  integer :: i_f,i_t,nt,nf
+  logical :: shotmig,inv,verb
+  real :: f_min,f_max,f_min1,f_max1 
+  integer :: i_f_min,i_f_max
+
+
+ if(.not. shotmig) then
+    i_f=5; i_t=1 
+  else
+    i_f=3; i_t=1 
+  end if
+
+  if(.not. inv) then
+    n_t_f(1)=nin(1);o_t_f(1)=oin(1);d_t_f(1)=din(1)
+    call from_param("f_min",f_min,0.)
+    call from_param("f_max",f_max,0.5/d_t_f(1))
+    nf=.5/d_t_f(1)
+    d_t_f(2)=1./(d_t_f(1)*n_t_f(1))
+    call from_param("f_min1",f_min1,f_min+d_t_f(2)*2)
+    call from_param("f_max1",f_max1,f_max-d_t_f(2)*3)
+    o_t_f(2)=0.
+    i_f_min=max(1,nint(f_min/d_t_f(2)))
+    i_f_max=min(int(n_t_f(1)/2),nint(f_max/d_t_f(2)))
+    n_t_f(2)=i_f_max-i_f_min+1
+    f_min = (i_f_min-1)*d_t_f(2)
+    f_max = (i_f_max-1)*d_t_f(2)
+    call init_cos_taper(n_t_f(2),f_min,d_t_f(2),f_min,f_min1,f_max,f_max1)
+    if(verb) write(0,*) "Initializing cosine taper min 0..1 ",f_min,f_min1
+    if(verb) write(0,*) "Initializing cosine taper max 1..0 ",f_max1,f_max
+    n_t_f(2)=i_f_max-i_f_min+1
+    o_t_f(2)=f_min
+ else
+    n_t_f(2)=nin(i_f);o_t_f(2)=oin(i_f);d_t_f(2)=din(i_f)
+    n_t_f(1)=1
+    do while (n_t_f(2)>n_t_f(1))
+      n_t_f(1)=n_t_f(1)*2
+    end do 
+    o_t_f(1)=0.
+    n_t_f(1)=n_t_f(1)*2  
+    d_t_f(1)=1./(n_t_f(1)*d_t_f(2))
+ end if 
+end subroutine
+ 
+subroutine get_data_info(nin,oin,din,labelin,inv)
+  use sep
+  use sep_3d_mod
+  implicit none 
+  logical :: inv
+  integer :: nin(5)
+  real    :: oin(5),din(5)
+  integer :: esize,i
+  character(len=128) :: labelin(5)
+
+  call from_history("esize",esize,4)
+  inv=.false.
+  if(esize==8) inv=.true.
+  do i=1,5
+    if(0.ne. sep_get_data_axis_par("in",i,nin(i),oin(i),din(i),labelin(i)))&
+      call seperr("trouble getting data axis")
+  end do
+end subroutine
+
+subroutine calc_write_output_space(nin,oin,din,labelin,inv,shift2,shotmig,n_t_f,o_t_f,d_t_f,nh,nouter,verb)
+  use sep
+  use sep_3d_mod
+  implicit none
+  integer :: nin(5),nout(5),n_t_f(2)
+  real    :: oin(5),oout(5),o_t_f(2)
+  real    :: din(5),dout(5),d_t_f(2)
+  logical :: inv,shotmig,verb
+  character(len=128) :: labelin(5),labelout(5)
+  integer :: shift2,i,nh,nouter
+
+  if(.not. inv) then
+    if(verb) write(0,*) "Doing forward transform"
+    call to_history("esize",8)
+    nout(1)=nin(2);oout(1)=oin(2);dout(1)=din(2);labelout(1)=labelin(2); 
+    if(shift2==0) then
+      if(Verb)write(0,*) "  3-D dataset"
+      nout(2)=nin(3);oout(2)=oin(3);dout(2)=din(3);labelout(2)=labelin(3); 
+    else
+      if(Verb)write(0,*) "  2-D dataset"
+      nout(2)=1.;oout(2)=0.;dout(2)=1.;labelout(2)=" "
+    end if
+    if(.not. shotmig) then
+       if(Verb)write(0,*) "    Common midpoint data"
+       nout(5)=n_t_f(2); oout(5)=o_t_f(2);
+       dout(5)=d_t_f(2); labelout(5)="Frequency";
+       nout(3)=nin(4-shift2);oout(3)=oin(4-shift2);dout(3)=din(4-shift2);labelout(3)=labelin(4-shift2); 
+       nout(4)=nin(5-shift2);oout(4)=oin(5-shift2);dout(4)=din(5-shift2);labelout(4)=labelin(5-shift2); 
+       nh=product(nout(1:4)) 
+       nouter=1
+    else
+       if(Verb)write(0,*) "    S-G data"
+       labelout(3)="Frequency"
+       nout(3)=n_t_f(2); oout(3)=o_t_f(2);
+       dout(3)=d_t_f(2); labelout(3)="Frequency";
+       nout(5)=nin(5);
+       oout(5)=oin(5); dout(5)=din(5); nh=product(nout(1:2)) 
+       labelout(5)=labelin(5)
+       if(shift2/=0) then
+          labelout(4)=labelin(3)
+          nout(4)=nin(3);
+          oout(4)=oin(3); dout(4)=din(3);
+       else
+          labelout(4)=labelin(4)
+          nout(4)=nin(4);
+          oout(4)=oin(4); dout(4)=din(4);
+       end if
+       nouter=product(nout(4:5))
+       if(verb) write(0,*) "Frequency axis (n,o,d)",nout(5),oout(5),dout(5)
+    end if
+  else
+    if(verb) write(0,*) "Doing inverse transform"
+    call to_history("esize",4)
+    nout(2)=nin(1);oout(2)=oin(1);dout(2)=din(1);labelout(2)=labelin(1); 
+    nout(3)=nin(2);oout(3)=oin(2);dout(3)=din(2);labelout(3)=labelin(2); 
+    labelout(1)="Time"
+    nout(1)=n_t_f(1); oout(1)=o_t_f(1);
+    dout(1)=d_t_f(1); labelout(1)="Frequency";
+    if(.not. shotmig) then
+       if(Verb)write(0,*) "    Common midpoint data"
+       nout(4)=nin(3);oout(4)=oin(3);dout(4)=din(3);labelout(4)=labelin(3); 
+       nout(5)=nin(4);oout(5)=oin(4);dout(5)=din(4);labelout(5)=labelin(4); 
+       nh=product(nin(1:4)) 
+       nouter=1
+    else
+       if(Verb)write(0,*) "    S-G data"
+       nout(3)=nin(2);oout(3)=oin(2);dout(3)=din(2);labelout(3)=labelin(2); 
+       nh=product(nin(1:2)) 
+       nouter=product(nin(4:5))
+    end if
+     if(verb) write(0,*) "Time axis (n,o,d)",nout(1),oout(1),dout(1)
+  end if
+  do i=1,5
+    if(0.ne. sep_put_data_axis_par("out",i,nout(i),oout(i),dout(i),labelout(i))) &
+     call seperr("trouble putting data axis")
+  end do 
+  call hclose()
+end subroutine
+
+

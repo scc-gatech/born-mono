@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Gfgradz - Calculate green functions for v medium</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT 	PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Gfgradz - Calculate green functions for <code>v(z)</code> medium</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Gfgradz   par=  &gt;  times.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT 	PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n1_2dint">n1-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      source-receiver depth axis:  z &gt;= 0</pre>
+</dd>
+<dt><strong><a name="item_o1_2dreal">o1-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      source-receiver depth axis:  z &gt;= 0</pre>
+</dd>
+<dt><strong><a name="item_d1_2dreal">d1-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      source-receiver depth axis:  z &gt;= 0</pre>
+</dd>
+<dt><strong><a name="item_n2_2dint">n2-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      source-receiver offset axis: x &gt;= 0</pre>
+</dd>
+<dt><strong><a name="item_d2_2dreal">d2-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      source-receiver offset axis: x &gt;= 0</pre>
+</dd>
+<dt><strong><a name="item_o2_2dreal">o2-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      source-receiver offset axis: x &gt;= 0</pre>
+</dd>
+<dt><strong><a name="item_n3_2dint">n3-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] 1 = traveltime map
+      2 = traveltime and amplitude map
+      6 = traveltime, amplitudes and propagation angles</pre>
+</dd>
+<dt><strong><a name="item_v0_2dreal">v0-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      velocity at z=0  : v0 &gt;= 0</pre>
+</dd>
+<dt><strong><a name="item_vgrad_2dreal">vgrad-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      constant velocity gradient  : vgrad &gt;= 0</pre>
+</dd>
+<dt><strong><a name="item_intime_2dint">intime-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      output domain : intime=1 for time axis, 0 for depth axis</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+        Code to calculate Green's function traveltime and
+        ~amplitude for a 1-D constant gradient velocity model:</pre>
+<pre>
+                        V(z) = Vo + vgrad*z     ;  z &gt;= 0,  vgrad &gt;= 0</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Kirmod3d.html">the Kirmod3d manpage</a>, <a href="./../seplib_prog/Marine_geom3d.html">the Marine_geom3d manpage</a>, <a href="./../seplib_prog/Scat3d.html">the Scat3d manpage</a>, <a href="./../seplib_prog/FMeikonal.html">the FMeikonal manpage</a>, <a href="./../seplib_prog/Hwt3d.html">the Hwt3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/travel</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,41 @@
+
+
+=head1 NAME
+
+util/cube - Programs that take advantage of the SEP hypercube
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Programs that take advantage of the SEP hypercube
+
+=head1 PROGRAMS
+
+
+L<Scat> - Programs that take advantage of the SEP hypercube
+
+
+
+L<Merge> - Concatenate seplib datasets, 5 names for the same exact code.
+
+L<Interleave> - Interleave 2 seplib datasets
+
+L<Patch> - Create patches (or combine patches)
+
+L<Pad> - Pad a dataset with traces of zeros or nearest value
+
+L<Window> - Window a dataset by cutting or decimation
+
+L<Reverse> - reverse (switch direction of) axes
+
+L<Window3dM> - Window a SEPlib dataset (3-D or 2-D) by cutting and/or decimating samples.
+
+L<Reshape> - Reshape a SEPlib dataset
+
+L<Transp> - transpose a SEPlib dataset in plane of choice
+
+
+=cut 

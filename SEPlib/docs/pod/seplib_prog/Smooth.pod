@@ -1,0 +1,91 @@
+=head1 NAME
+
+
+Smooth - 2-D smoothing
+
+=head1 SYNOPSIS
+
+
+        Smooth < in.h [options] > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+   Halfwidth is the width in sample points of a rectangle which 
+             when convolved with itself gives a triangle:
+
+
+=item   rect1,rect2,rect3     - integer 
+
+	[1]: halfwidth on 1- 2- and 3-axis respectively (=1 means no smoothing)
+
+        NOTE: 3-axis smoothing is done by direct
+         convolution, not by integration - so
+         may be slower for large rect3. If in 
+          doubt, Transp and Smooth with rect2.
+
+=item tridiag  - integer 
+
+	[1]: =1 to smooth with tridiagonal solver. (NOT 3-axis)
+
+=item repeat- integer 
+
+	[1]: number of times to repeat filtering, good for 
+       Gaussian smoothing. (NOT 3-axis)
+
+=item  sum3  - integer 
+
+	[0]: =0  to repeat over n3 axis.
+		 =1  to sum over n3 axis
+
+=item   agc - integer 
+
+	[0]: =1 to use smoothed data as divisor gain for data.
+
+=item   absval    - integer 
+
+	[0]: =1 means smooth absolute values of input.
+
+=item   scaleup   - integer 
+
+	[0]: =1 means scale up to compensate for bandwidth reduction.
+         =0 to preserve scale of zero frequency component.
+
+=item  Difference stencils applied after smoothing:
+
+=item   diff1  - integer  
+
+	[0]:  =1  apply 2-pt difference stencil on 1-axis:
+        data(i1+1,i2)=data(i1+1,i2)-data(i1,i2)
+
+=item   diff2- integer  
+
+	[0]:  =1  apply 2-pt difference stencil on 2-axis:
+        data(i1,i2+1)=data(i1,i2+1)-data(i1,i2)
+
+=item   maxmem - integer  
+
+  [100000000]: Maximum memory to allocate.  
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Smooth 2-D with triangle or 1/(Dxx - const), and/or SUM_n3, or AGC 
+
+=head1 COMMENTS
+
+
+       Dip enhancement: use options='rect1=100 tridiag=1 diff1=1 diff2=1'
+       To reduce memory usage: Try smaller data/filter, repeat>1, tridiag=1.
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

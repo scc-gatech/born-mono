@@ -1,0 +1,55 @@
+=head1 NAME
+
+
+dottest - Perform a dot product test on an operator
+
+=head1 SYNOPSIS
+
+
+C<call dot_test(oper,n_mod,n_dat,dot1,dot2)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item oper - func
+
+       standard operator
+
+=item n_mod - integer
+
+      number of model points
+
+=item n_dat - integer
+
+      number of data points
+
+=item dot1  - real(2)
+
+      result of dot product test
+
+=item dot2  - real(2)
+
+      result of dot product test using add variable
+
+=back
+
+=head1 DESCRIPTION
+
+
+Test whether or an operator passes the dot product test (necessary for
+convergence with solver)
+
+=head1 SEE ALSO
+
+
+L<solver>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

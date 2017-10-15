@@ -1,0 +1,148 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Dip - Calculate dip</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Dip - Calculate dip</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Calculates the dip of dataset using one of several methods</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Dip &lt; in.H &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_verb__2d_logical">verb      - logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [n]: Whether or not to be verbose</pre>
+</dd>
+<dt><strong><a name="item_max_size__2d_integer">max_size      - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [100]: Maximum memory in megabytes to use</pre>
+</dd>
+<dt><strong><a name="item_v3d__2d_logical">v3d      - logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [n]: Whether [y] or not [n] to run 3-D version (smooth between slices,</pre>
+</dd>
+<dd>
+<pre>
+           more memory intensive and slower)</pre>
+</dd>
+<dt><strong><a name="item_method__2d_char_2a">method      -  char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [sergey_f]: Sergey's fast method</pre>
+</dd>
+<dl>
+<dt><strong><a name="item_eps__2d_real">eps      -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.0001]:   - Smoothness of axis1</pre>
+</dd>
+<dt><strong><a name="item_eps2__2d_real">eps2      -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.0001]:   - Smoothness  of axes2 and 3</pre>
+</dd>
+<dt><strong><a name="item_nl_iter__2d_integer">nl_iter      -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10]:   - Number of non-linear iterations</pre>
+</dd>
+</dl>
+<pre>
+      [sergey_s]: Sergey's slow method</pre>
+<dl>
+<dt><strong>eps      -  real</strong><br />
+</dt>
+<dd>
+<pre>
+      [.01]:   - Smoothness of</pre>
+</dd>
+<dt><strong>nl_iter      -  integer</strong><br />
+</dt>
+<dd>
+<pre>
+      [10]:   - Number of non-linear iterations</pre>
+</dd>
+<dt><strong><a name="item_niter__2d_integer">niter      -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [30]:   - Number of linear iterations</pre>
+</dd>
+</dl>
+<pre>
+      [puck_f]: Puck fast method</pre>
+<dl>
+<dt><strong><a name="item_integer">nwind      -  <code>integer(3)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      [min(n,5)]:   - Smoothing of dx and dt</pre>
+</dd>
+</dl>
+<pre>
+      [puck_s]: Puck slow method</pre>
+<dl>
+<dt><strong>nwind      -  <code>integer(3)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      [min(n,5)]:   - Moving window to calculate dx and dt</pre>
+</dd>
+</dl>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Ft3d.html">the Ft3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

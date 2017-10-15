@@ -1,0 +1,144 @@
+=head1 NAME
+
+
+Velan - Velocity analysis
+
+=head1 SYNOPSIS
+
+
+Velan velopt=vel nv= dv= v0= nw= dw= w0= ng=all g0=0 dg=1 ntout=nt/10 dtout=(nt/ntout)*dt t0out=t0 tsmoo=2*dtout smute=2 < in.H > out.H  
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  velopt  - char*   
+
+      vel - scan over velocity (nv,dv,v0 required)
+      slow - scan over slowness (nw,dw,w0 required)
+
+=item  nv      - int     
+
+      number of velocities
+
+=item  dv,v0   - float   
+
+      sampling and first velocity
+
+=item  nw      - int     
+
+      number pf slownesses
+
+=item  dw,w0   - float   
+
+      sampling and first slownesses
+
+=item  ng      - int     
+
+      [all] number of gathers analyzed
+
+=item  g0      - int     
+
+      [0]   number of gathers to skip before beginning analysis
+
+=item  dg      - int     
+
+      [1]   increment between gathers analyzed
+
+=item  ntout   - int     
+
+      [nt/10]  time-axis of out
+
+=item  dtout   - float   
+
+      [(nt/ntout)*dt] dtout must be an integer multiple of dt
+
+=item  t0out   - float   
+
+      [t0]first time to analyze
+
+=item  tsmoo   - float   
+
+      [2*dtout]  length of temporal smoothing window
+
+=item  smute   - float   
+
+      [2] samples for which nmo stretch exceeds smute 
+      are zeroed
+
+=item  n1,n2,n3-int      
+
+      standard seplib params
+
+=item  o1,o2,o3-float     
+
+      standard seplib params
+
+=item  d1,d2,d3-float     
+
+      standard seplib params
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+
+=item  n1 - integer    
+
+      ntout  
+
+=item  d1 - float      
+
+      dtout  
+
+=item  o1 - float      
+
+      t0out   
+
+=item  n2 - int        
+
+      nv 
+
+=item  d2 - float      
+
+      dv 
+
+=item  o2 - float      
+
+      v0  
+
+=item  n3 - int        
+
+      ng midpoint axis
+
+=item  d3 - float      
+
+      (input d3)*dg     
+
+=item  o3 - float      
+
+      (input o3) + g0*(input d3)  
+
+=back
+
+=head1 DESCRIPTION
+
+
+Velocity analysis of common-midpoint gathers  
+
+=head1 SEE ALSO
+
+
+L<Velan3d>
+
+=head1 CATEGORY
+
+
+B<seis/velan>
+
+=cut
+

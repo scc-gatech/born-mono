@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Cfft - complex fft</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Cfft - complex fft</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Complex fast fourier transform</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Cfft &lt; in.h &gt; out.h</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_sign__2d_integer">sign      - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]: forward transform
+      -1 : reverse transform (FDGP sign convention)</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3__2d_integer">n1,n2,n3  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       input cube dimensions (complex data).
+       (n1 = 2*(ntime1/2+1) if in frequency domain)</pre>
+</dd>
+<dt><strong><a name="item_esize__2d_integer__5b8_5d">esize     - integer   [8]</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<pre>
+                Cfft &lt; in.h sign=1 esize=8 &gt; fft.h
+                Compute complex forward fft of input dataset in.H</pre>
+<pre>
+                Cfft &lt; fft.h sign=-1 esize=8 &gt; out.h
+                Compute complex inverse fft of input dataset fft.H</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Ft3d.html">the Ft3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

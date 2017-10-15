@@ -1,0 +1,50 @@
+=head1 NAME
+
+
+tputtr - put given trace next in output stream
+
+=head1 SYNOPSIS
+
+
+C<ierr= tputtr("in", trace)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item sep3dname    -  char*  
+
+      tag of sep_3d structure
+
+=item trace        -  segy*  
+
+      trace to read in
+
+=back
+
+=head1 RETURN VALUES
+
+
+ 0  = if it fails
+
+ 1  =  if it succeeds
+
+=head1 DESCRIPTION
+
+
+Read in the next trace
+
+=head1 SEE ALSO
+
+
+L<tgettr>
+
+=head1 LIBRARY
+
+
+B<sepsu>
+
+
+=cut
+

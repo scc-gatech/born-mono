@@ -1,0 +1,943 @@
+
+/*$
+
+=head1 NAME
+
+Ta2vplot - Convert from bytes to vplot
+
+=head1 SYNOPSIS
+
+Ta2vplot < in.T > out.v
+
+=head1 DESCRIPTION
+
+Reads in a Taplot/Movie format file and outputs a vplot raster file.
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item n1 - int       
+
+      REQUIRED
+
+=item esize - int    
+
+      REQUIRED 1=Taplot format  3=RGB triplets
+
+=item n2,n3  - int   
+
+      standard seplib files
+
+=item d1,d2,d3  -float 
+
+      standard seplib files
+
+=item o1,o2,o3  -float 
+
+      standard seplib files
+
+=item wantframe,wantframenum - char 
+
+      standard vplot definitions (0,1, n,y)
+
+=item wantaxis,wantaxis1,wantaxis2 -char 
+
+      [1] standard vplot definition (0,1 n,y)
+
+=item transp  - char     
+
+      [1] whether or not to transpose output (standard vplot)
+
+=item xreverse,yreverse -char 
+
+      standard vplot definitions for output file
+
+=item screenht-float     
+
+      [10.24] height of output medium
+
+=item screenwd-float     
+
+      [13.75] width of output medium
+
+=item screeratio-float   
+
+      [.75] ratio of screen height to width
+
+=item min1,min2,max1,max - float 
+
+      standard vplot definitions
+
+=item axisor1,axisor2  - float 
+
+      [min1],[min2] standard vplot definition
+
+=item o1num,o2num,d1num,d2num - float
+
+      spacing for tics
+
+=item n1tic,n2tic - int 
+
+      [1] number of tics
+
+=item wheretics - char 
+
+      [f] (f,a) where to put tics (frame, axes)
+
+=item wheretitle -char 
+
+      [t] (t,b,l,r) where to put title
+
+=item wherexlabel - char 
+
+      [b] (t,b) where to put x label
+
+=item whereylabel - char 
+
+      [l] (l,r) where to put y label
+
+=item titlefat,labelfat - int 
+
+      [1] makes title and labels fat
+
+=item label1,label2 - char* 
+
+      label for axes
+
+=item title - char* 
+
+      title for plot
+
+=item labelsz - int 
+
+      [8] size of labels
+
+=item titlesz - int 
+
+      [10] size of title
+
+=item labelrot - char 
+
+      [y] (0,1 n,y) rotates labels 90 degrees
+
+=item grid,grid1,grid2 - char 
+
+      [0] (0,1 n,y) turns on grid
+
+=item g1num,g2num - float 
+
+      [d1num],[d2num] grid spacing
+
+=item crowd,crowd1,crowd2 - float 
+
+      [.75]  crowd1=crowd  crowd2=crowd 
+      (.75< crowd < 1.) crowd labels off the 
+      screen by expanding data on 1 or 2 axis.
+
+=item gridcol - int 
+
+      [axiscol] color of grid
+
+=item backcol  - float* 
+
+      [0,0,0] background color (R,G,B) between 0 and 1
+
+=item fillcol  - float* 
+
+      [backcol(0,0,0)] fill color (R,G,B) between 0 and 1
+
+=item plotcol  - int*  
+
+      [6,5,4,3,2,1,...] color for each plotted line
+
+=item axiscol  - int*  
+
+      [7,7,7,7,...] color for each axis
+
+=item plotfat  - int*  
+
+      [0,0,0,...] makes the lines fat
+
+=item axisfat  - int*  
+
+      [0,0,0,...] makes the axes fat
+
+=item gridfat  - int 
+
+      [1] grid is fat
+
+=item polarity - int 
+
+      [-1] white is high by default
+
+=item nreserve - int 
+
+      [8] number of colors to preserve
+
+=item movish   - char
+
+      [n] if y, halves the color table like movie does (0,1 n,y)
+
+=item hurry    - char 
+
+      [0]   (0,1,n,y)
+
+=item wantscalebar - char 
+
+      [0] (0,1,n,y) makes scale bar
+
+=item bartype      - char 
+
+      [h]  (v)   horizontaly or verticaly aligned bar
+
+=item barwidth     - float 
+      
+      [.4] width of scale bar (inches)
+
+=item barreverse   - int  
+
+      [0]   (0,1,n,y)  reverse the scale
+
+=item barlabel     - char
+
+      labels scale bar 
+
+=item minval       - float
+
+      minimum scale bar value
+
+=item maxval       - float
+
+      maximum scale bar value
+
+=back
+
+ 
+
+=head1 COMMENTS
+
+    color= one of {I,i,F,R,W,G} for the canned Movie-style color tables. You
+    may also append a 'C' to make clipped values show up Red (ie color=IC is
+    like color=I but with clipped values flagged). You will need to have
+    nreserve at least 3 for this option to work, since you have to leave the
+    normal vplot 'Red' (vplot default color 2) as a possibility.
+    Alternatively, you may also specify a color of the format RGB,
+    (i.e. color=332) where each of R,G, and B is the integer number of bits
+    to allot to that primary. This is meant for esize=3, but it also makes
+    funky color tables when esize=1.
+    Finally, if 'color' is a text string longer than 2 characters and
+    does not begin with a digit, it will be taken as the name of a color
+    table. (Color tables have lines of the form 'color_number red green blue',
+    where 0 <= color_number <= 255 and 0. <= red, green, and blue <= 1.
+    Anything not set will be black. Odd-numbered color table entries between
+    1 and 253, inclusive, will be the first lost if the output device doesn't
+    have enough allocatable colors.)
+
+=head1 SEE ALSO
+
+L<Grey>
+
+=head1 CATEGORY
+
+B<sep_graphics>
+
+=head1 COMPILE LEVEL
+
+DISTR
+
+=cut
+>*/
+
+/*
+KEYWORDS    vplot plot movie raster hardcopy rgb color
+
+WHERE
+  ./cube/plot/Ta2vplot.c
+
+copyright (c) 1991 Stanford University
+ */
+/*
+ * EDIT HISTORY:
+ * Author Steve Cole, March 1987
+ * Joe Dellinger, Dec 1987 fixed "color value too large" bug.
+ * Steve Cole, Dec 1987, changed putch call for movish to avoid problem
+ *     on suns.
+ * Joe Dellinger, Jan 1988, fixed some bugs involving color mapping,
+ *  and added capability for RGB triples.
+ * Joe Dellinger Feb 25 1988, vp_style after vp_erase
+ * Steve Cole Apr. 12 1988, fixed labeling bug. 
+ * Joe Dellinger July 8 1988, added "clipped values Red" option.
+ * Chuck Sword 1 Aug 1988, added color=T colfile= option.
+ * Steve Cole, 31 Aug 1989, fixed bug; tic marks outside data were displayed
+ * Marta Woodward, 9 Sep 1989, rotate numbers with label for labelrot.ne.0
+ * Biondo Biondi Fixed labeling bug (o1num and o2num problem)
+ * Jenni Etgen 5-24-90  Added structures and glplot routines for axes
+ * Joe Dellinger, Feb 24 1992, corrected color table documentation
+ *                             (you do color=colfile and vp_rascoltab does
+ *                             the work.)
+ *                             fixed theory bug in the way the raster was
+ *                             aligned with the axes.
+ * Hector Urdaneta, Jan 1995, added a scale bar option.
+ * Hector Urdaneta, May 1995, changed fetch to getch when getting plotting 
+ *                             parameters min1, max1, min2, max2 
+ *-----------------------------------------------------------------------------
+ * sample makefile for installing Ta2vplot:
+ * MACH=-DCONVEX
+ * CFLAGS=-DCONVEX -O
+ * B = /usr/local/
+ * SEPLIB = /usr/lib/libsep.a
+ * HERE =
+ * H = $(HERE)/usr/src/our/cube/plot/
+ * 
+ * $BTa2vplot Ta2vplot:  Ta2vplot.o $(SEPLIB) 
+ *   cc $(CFLAGS) Ta2vplot.o -lvplot -lsep -lm
+ *   install -s -m 555 -g sep a.out $BTa2vplot
+ * 
+ * .SUFFIXES:
+ * .SUFFIXES: .o .c
+ * .c.o:
+ *   cc $(CFLAGS) -c $(H)$*.c -DSOURCE=\"$(H)$*.c\" $(MACH) 
+ *-----------------------------------------------------------------------------
+ */
+#include <string.h>
+ADD_DEF_SEP_DOC
+
+#include <sep.main>
+#include <stdio.h>
+#include "glplot.h"
+
+extern void set_output_data_format(const char *);
+
+#define SQUARE(A) ((A)*(A))
+
+struct datainfo datap;
+struct coordinfo coordinate;
+struct coordinfo coordinatec;
+struct titleinfo title;
+struct gridinfo grid;
+struct plotposition position;
+struct plotposition new;
+struct axisinfo axis1;
+struct axisinfo axis2;
+struct colorinfo colorin;
+int             wantframe, wantframenum, fastplt, counter;
+
+float           tempminmax;
+int             i3, ii, jj, kk, esize, numorient, numinvert;
+float           o1num, o2num;
+int             offset, xpix, ypix, bit, blast, orient, invert;
+float           ppi;
+int             nreserve;
+int             polarity, coltab;
+unsigned char  *data;
+char            color[10];
+
+/*extern float    rd_color (), gr_color (), bl_color ();*/
+int             movish;
+int             map[256];
+float           red[256], green[256], blue[256];
+float           red_lev, green_lev, blue_lev, error, error_win;
+int             ired_lev, igreen_lev, iblue_lev;
+int             win, redbit, greenbit, bluebit;
+int             redbit2, greenbit2, bluebit2;
+int             redoff, greenoff, blueoff;
+
+/* Scale bar definitions */
+struct axisinfo     baraxis;
+struct plotposition barposit;
+
+unsigned char      *bdata;
+int                 wantscalebar;
+float               minval[NPMAX + 1], maxval[NPMAX + 1];
+unsigned char       barmx, barmn;
+char                bartype[2];
+int                 numbcol, barorient, barreverse;
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void setorient (int *orient, int *invert, struct coordinfo coordinate);
+void setcoordinate (int orient, int invert, struct coordinfo *coordinate);
+void initial (void);
+void initialcolor (void);
+void graphinitial (void);
+_XFUNCPROTOEND
+#else
+void setorient ();
+void setcoordinate ();
+void initial ();
+void initialcolor ();
+void graphinitial ();
+#endif
+int MAIN (void)
+{
+
+   vp_filep(outstream); /* tell plotting routines where to stick it */
+
+    initial ();
+    initialcolor ();
+    graphinitial ();
+
+    if(wantscalebar) {
+  gl_barint (&position, &axis1, &barposit, &baraxis, minval, maxval, bartype, &barreverse, datap.n3,0);
+    }
+
+    numorient = fetch ("orient", "d", &orient);
+    numinvert = fetch ("invert", "1", &invert);
+    if (numorient || numinvert)
+  setcoordinate (orient, invert, &coordinate);
+    else
+  setorient (&orient, &invert, coordinate);
+    blast = 1;
+    fetch ("hurry", "1", &blast);
+    set_output_data_format("vplot");
+    hclose ();
+
+    data = (unsigned char *) alloc (datap.n1[0] * datap.n2 * esize);
+
+    vp_erase ();
+    vp_color (axis1.col[0]);
+
+    if (coltab)
+    {
+
+  if (color[0] >= '0' && color[0] <= '9')
+  {
+      redbit = color[0] - '0';
+      greenbit = color[1] - '0';
+      bluebit = color[2] - '0';
+      if (redbit + greenbit + bluebit != 8)
+    seperr ("You must use exactly 8 bits!\n");
+
+      redoff = 0;
+      greenoff = redbit;
+      blueoff = redbit + greenbit;
+
+      for (i3 = 0; i3 < 256; i3++)
+      {
+    ii = ~(~0 << redbit);
+    if (ii > 0)
+        red[i3] = (float) ((i3 >> redoff) & ii) / (float) (ii);
+    else
+        red[i3] = 0.;
+
+    ii = ~(~0 << greenbit);
+    if (ii > 0)
+        green[i3] = (float) ((i3 >> greenoff) & ii) / (float) (ii);
+    else
+        green[i3] = 0.;
+
+    ii = ~(~0 << bluebit);
+    if (ii > 0)
+        blue[i3] = (float) ((i3 >> blueoff) & ii) / (float) (ii);
+    else
+        blue[i3] = 0.;
+      }
+
+
+      for (jj = 0; jj < 256; jj++)
+      {
+    ii = 0;
+    greenbit2 = greenbit;
+    bluebit2 = bluebit;
+    redbit2 = redbit;
+    kk = 0;
+    while (kk < 8)
+    {
+        greenbit2--;
+        if (greenbit2 >= 0)
+        {
+      if (jj & (1 << (greenbit2 + greenoff)))
+          ii |= 1 << kk;
+      kk++;
+        }
+
+        redbit2--;
+        if (redbit2 >= 0)
+        {
+      if (jj & (1 << (redbit2 + redoff)))
+          ii |= 1 << kk;
+      kk++;
+        }
+
+        bluebit2--;
+        if (bluebit2 >= 0)
+        {
+      if (jj & (1 << (bluebit2 + blueoff)))
+          ii |= 1 << kk;
+      kk++;
+        }
+    }
+    map[ii] = jj;
+      }
+
+      for (i3 = nreserve; i3 < 256; i3++)
+      {
+    jj = i3 - nreserve;
+
+    vp_coltab (i3, red[map[jj]],
+         green[map[jj]],
+         blue[map[jj]]);
+      }
+  }
+  else
+  {
+      vp_rascoltab (nreserve, color);
+  }
+    }
+
+    /* Set the coordinate transformation */
+    gl_vplotint (&position, &coordinate, &axis1, &axis2);
+    gl_plotpram (&colorin, &coordinate);
+    fastplt = 0;
+
+    /*
+     * Do the plots 
+     */
+
+    for (i3 = 0; i3 < datap.n3; i3++)
+    {
+  if (i3 != 0)
+  {
+            vp_purge();
+      vp_erase ();
+      vp_color (axis1.col[i3]);
+  }
+  sreed ("in", data, datap.n1[0] * datap.n2 * esize);
+/*  for (ii = 0; ii < datap.n1[0] * datap.n2 * esize; ii++){*/
+/*    if(data[ii] > 127) data[ii]=(unsigned char)(255-data[ii]);*/
+/*    else data[ii]=(unsigned char)(127-data[ii]);*/
+/*  }*/
+
+  if (polarity < 0)
+      for (ii = 0; ii < datap.n1[0] * datap.n2 * esize; ii++)
+      {
+    data[ii] = (unsigned char) 255 - data[ii];
+      }
+/*
+ * If esize=3, then map the RGB triples onto the closest available
+ * color.
+ */
+  if (esize == 3)
+  {
+      if (color[0] >= '0' && color[0] <= '9')
+      {
+    for (ii = 0; ii < datap.n1[0] * datap.n2; ii++)
+    {
+        ired_lev = data[esize * ii];
+        igreen_lev = data[esize * ii + 1];
+        iblue_lev = data[esize * ii + 2];
+
+        win = 0;
+        win |= ((ired_lev >> (8 - redbit)) & ~(~0 << redbit)) << redoff;
+        win |= ((igreen_lev >> (8 - greenbit)) & ~(~0 << greenbit)) << greenoff;
+        win |= ((iblue_lev >> (8 - bluebit)) & ~(~0 << bluebit)) << blueoff;
+        data[ii] = win;
+    }
+      }
+      else
+      {
+    for (ii = 0; ii < datap.n1[0] * datap.n2; ii++)
+    {
+        red_lev = data[esize * ii] / 255.;
+        green_lev = data[esize * ii + 1] / 255.;
+        blue_lev = data[esize * ii + 2] / 255.;
+        error_win = 8.;
+        for (jj = 0; jj < 256; jj++)
+        {
+      error = 2. * SQUARE (red_lev - red[jj]) + 4. * SQUARE (green_lev - green[jj]) + SQUARE (blue_lev - blue[jj]);
+      if (error < error_win)
+      {
+          error_win = error;
+          win = jj;
+          if (error == 0.)
+        break;
+      }
+        }
+        data[ii] = win;
+    }
+      }
+  }
+
+  /*
+   * Only offset the colors if we have defined a color table.
+   * Otherwise, leave them alone. 
+   */
+  if (coltab)
+      offset = 256;
+  else
+      offset = 0;
+
+  /*
+   * Set up coordinate transform for raster plot
+   */
+  xpix = datap.n1[0];
+  ypix = datap.n2;
+  bit = 0;
+  ppi = 0;
+  if (coordinate.yreverse)
+  {
+      new.yll = position.yll + (coordinate.max2 - coordinatec.max2) * (position.yur - position.yll) / (coordinate.max2 - coordinate.min2);
+      new.yur = position.yur + (coordinate.min2 - coordinatec.min2) * (position.yur - position.yll) / (coordinate.max2 - coordinate.min2);
+  }
+  else
+  {
+      new.yll = position.yll - (coordinate.min2 - coordinatec.min2) * (position.yur - position.yll) / (coordinate.max2 - coordinate.min2);
+      new.yur = position.yur - (coordinate.max2 - coordinatec.max2) * (position.yur - position.yll) / (coordinate.max2 - coordinate.min2);
+  }
+  if (coordinate.xreverse)
+  {
+      new.xll = position.xll + (coordinate.max1 - coordinatec.max1) * (position.xur - position.xll) / (coordinate.max1 - coordinate.min1);
+      new.xur = position.xur + (coordinate.min1 - coordinatec.min1) * (position.xur - position.xll) / (coordinate.max1 - coordinate.min1);
+  }
+  else
+  {
+      new.xll = position.xll - (coordinate.min1 - coordinatec.min1) * (position.xur - position.xll) / (coordinate.max1 - coordinate.min1);
+      new.xur = position.xur - (coordinate.max1 - coordinatec.max1) * (position.xur - position.xll) / (coordinate.max1 - coordinate.min1);
+  }
+/*
+ * OK, now we know where to tell vp_raster to put it so it lines up
+ * correctly with where the axes are to go. So tell vplot to clip it
+ * for us, and then plot the entire raster!
+ */
+
+        gl_vplotint (&position, &coordinate, &axis1, &axis2);
+  vp_raster (data, blast, bit, offset, xpix, ypix, new.xll, new.yll, ppi, &new.xur, &new.yur, orient, invert);
+
+/*
+ * Now do the axes (first tells vplot to turn the clipping off).
+ */
+
+  counter = i3;
+  gl_stdplot (&datap, &coordinate, &axis1, &axis2, &grid, &title, counter, fastplt, wantframe,wantframenum);
+
+/*
+ * Draw a scale bar with axis
+ */
+
+  if(wantscalebar) {
+      bdata = (unsigned char *) alloc (esize * 256);
+
+      barmn = data[0];
+      barmx = data[0];
+      for (ii = 0; ii < datap.n1[0] * datap.n2 * esize; ii++) {
+    if(barmx < data[ii]) barmx = data[ii];
+    if(barmn > data[ii]) barmn = data[ii];
+      }
+      numbcol = barmx - barmn;
+      
+      for (ii = 0; ii < numbcol; ii++) {
+    bdata[ii] = barmn + ii;
+      }
+
+      /* Figure out orientation of scale */
+      if (bartype[0] == 'h') {
+      if (barreverse == 0) {
+    barorient = 0;
+    if (polarity < 0) barorient = 2; 
+      } else {
+    barorient = 2;
+    if (polarity < 0) barorient = 0;
+      } } else {
+      if (barreverse == 0) {
+    barorient = 3;
+    if (polarity < 0) barorient = 1; 
+      } else {
+    barorient = 1;
+    if (polarity < 0) barorient = 3;
+      } }
+      
+
+      /* Make scale bar */
+      vp_raster(bdata,blast,bit,offset,numbcol,1,barposit.xll,barposit.yll,ppi,&barposit.xur,&barposit.yur,barorient,1); 
+      
+      /* Plot axis for scale bar */
+      gl_barplot(&barposit, &baraxis, minval, maxval, bartype, barreverse, counter);
+  }
+
+/*
+ * End of loop over n3 plot frames
+ */
+    }
+    vp_purge();
+return(EXIT_SUCCESS);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void setorient (int *orient, int *invert, struct coordinfo coordinate)
+_XFUNCPROTOEND
+#else
+void setorient (orient, invert, coordinate)
+    int            *orient;
+    int            *invert;
+    struct coordinfo coordinate;
+#endif
+{
+    if (coordinate.transp == 0 && coordinate.yreverse == 0 & coordinate.xreverse == 0)
+    {
+  *orient = 0;
+  *invert = 1;
+    }
+    if (coordinate.transp && coordinate.yreverse && coordinate.xreverse == 0)
+    {
+  *orient = 1;
+  *invert = 1;
+    }
+    if (coordinate.transp == 0 && coordinate.yreverse && coordinate.xreverse)
+    {
+  *orient = 2;
+  *invert = 1;
+    }
+    if (coordinate.transp && coordinate.yreverse == 0 && coordinate.xreverse)
+    {
+  *orient = 3;
+  *invert = 1;
+    }
+    if (coordinate.transp == 0 && coordinate.xreverse == 0 && coordinate.yreverse)
+    {
+  *orient = 0;
+  *invert = 0;
+    }
+    if (coordinate.transp && coordinate.yreverse && coordinate.xreverse)
+    {
+  *orient = 1;
+  *invert = 0;
+    }
+    if (coordinate.transp == 0 && coordinate.xreverse && coordinate.yreverse == 0)
+    {
+  *orient = 2;
+  *invert = 0;
+    }
+    if (coordinate.transp && coordinate.yreverse == 0 && coordinate.xreverse == 0)
+    {
+  *orient = 3;
+  *invert = 0;
+    }
+
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void setcoordinate (int orient, int invert, struct coordinfo *coordinate)
+_XFUNCPROTOEND
+#else
+void setcoordinate (orient, invert, coordinate)
+    int             orient;
+    int             invert;
+    struct coordinfo *coordinate;
+#endif
+{
+    if (orient == 0 && invert == 1)
+    {
+  coordinate->transp = 0;
+  coordinate->yreverse = 0;
+  coordinate->xreverse = 0;
+    }
+    if (orient == 1 && invert == 1)
+    {
+  coordinate->transp = 1;
+  coordinate->yreverse = 1;
+  coordinate->xreverse = 0;
+    }
+    if (orient == 2 && invert == 1)
+    {
+  coordinate->transp = 0;
+  coordinate->yreverse = 1;
+  coordinate->xreverse = 1;
+    }
+    if (orient == 3 && invert == 1)
+    {
+  coordinate->transp = 1;
+  coordinate->yreverse = 0;
+  coordinate->xreverse = 1;
+    }
+    if (orient == 0 && invert == 0)
+    {
+  coordinate->transp = 0;
+  coordinate->yreverse = 1;
+  coordinate->xreverse = 0;
+    }
+    if (orient == 1 && invert == 0)
+    {
+  coordinate->transp = 1;
+  coordinate->yreverse = 1;
+  coordinate->xreverse = 1;
+    }
+    if (orient == 2 && invert == 0)
+    {
+  coordinate->transp = 0;
+  coordinate->yreverse = 0;
+  coordinate->xreverse = 1;
+    }
+    if (orient == 3 && invert == 0)
+    {
+  coordinate->transp = 1;
+  coordinate->yreverse = 0;
+  coordinate->xreverse = 0;
+    }
+
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void initial (void)
+_XFUNCPROTOEND
+#else
+void initial ()
+#endif
+{
+    if (!fetch ("n1", "d", datap.n1))
+  seperr ("n1 not given\n");
+    if (!fetch ("n2", "d", &datap.n2))
+  seperr ("n2 not given\n");
+    if (!fetch ("n3", "d", &datap.n3))
+  datap.n3 = 1;
+    if (!fetch ("esize", "d", &esize))
+  seperr ("esize not given\n");
+
+    if (esize != 1 && esize != 3)
+  seperr ("esize must be 1 or 3\n");
+
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void initialcolor (void)
+_XFUNCPROTOEND
+#else
+void initialcolor ()
+#endif
+{
+    coltab = 1;
+    fetch ("coltab", "1", &coltab);
+    if (!coltab && esize == 3)
+  seperr ("esize must be 1 if coltab=no\n");
+
+    if (esize == 1)
+  strcpy (color, "I");
+    else
+  strcpy (color, "332");
+    fetch ("color", "s", color);
+
+
+    if (!getch ("nreserve", "d", &nreserve))
+  nreserve = 8;
+    if (!getch ("movish", "1", &movish))
+  movish = 0;
+
+    putch ("movish", "d", &movish);
+
+    puthead ("\tn1=-1\n");
+
+    /* Polarity stuff */
+    polarity = 1;
+    fetch ("polarity", "d", &polarity);
+    putch ("polarity", "d", &polarity);
+}
+
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void graphinitial (void)
+_XFUNCPROTOEND
+#else
+void graphinitial ()
+#endif
+{
+    /* Axis and labelling parameters */
+    datap.o1[0] = 0.;
+    datap.o2 = 0.;
+    datap.o3 = 0.;
+    datap.d1[0] = 1.;
+    datap.d2 = 1.;
+    datap.d3 = 1.;
+    fetch ("o1", "f", datap.o1);
+    fetch ("o2", "f", &datap.o2);
+    fetch ("o3", "f", &datap.o3);
+    fetch ("d1", "f", datap.d1);
+    fetch ("d2", "f", &datap.d2);
+    fetch ("d3", "f", &datap.d3);
+    o1num = datap.o1[0];
+    o2num = datap.o2;
+    strcpy (axis1.wherelabel, "t");
+    strcpy (axis2.wherelabel, "l");
+    strcpy (title.wheretitle, "b");
+    wantframe = 1;
+    getch("wantframe", "1", &wantframe);
+    wantframenum = 1;
+    getch ("wantframenum", "1", &wantframenum);
+    coordinate.transp = 1;
+    coordinate.yreverse = 1;
+    coordinate.xreverse = 0;
+    invert = 1;
+    orient = 1;
+
+    /* Scale Bar */
+    wantscalebar = 0;
+    fetch("wantscalebar", "1", &wantscalebar);
+
+/*
+ * Here we get into the problem of how to put axes on a raster plot.
+ * If you have n1=3, with o1=0 and d1=1, then you expect the three
+ * points to have values 0, 1, and 2, and you put 0 at one end of the
+ * plot and 2 at the other end. But if the three points are rasters,
+ * what is the value of the leftmost edge of the leftmost raster?
+ * If you say 0, then you force the rightmost edge of the rightmost raster
+ * to have value 3, completely pushing the last raster off the plot. It seems
+ * the most consistent definition is that the raster pixels are CENTERED on
+ * their corresponding data point; by this definition the leftmost edge of the
+ * leftmost raster would have value -.5 and the rightmost edge of the
+ * rightmost raster would have value 2.5. This way raster, contour,
+ * and wiggle plots with the same axes will overlay consistently.
+ * - Joe D. Feb 24 1992
+ */
+    coordinatec.min1 = datap.o1[0] - datap.d1[0]/2.;
+    coordinatec.min2 = datap.o2 - datap.d2/2.;
+    coordinatec.max1 = datap.o1[0] + datap.d1[0] * (datap.n1[0] - 1)
+      + datap.d1[0]/2.;
+    coordinatec.max2 = datap.o2 + datap.d2 * (datap.n2 - 1)
+      + datap.d2/2.;
+
+    if (!getch ("min1", "f", &coordinate.min1))
+  coordinate.min1 = coordinatec.min1;
+    if (!getch ("min2", "f", &coordinate.min2))
+  coordinate.min2 = coordinatec.min2;
+    if (!getch ("max1", "f", &coordinate.max1))
+  coordinate.max1 = coordinatec.max1;
+    if (!getch ("max2", "f", &coordinate.max2))
+  coordinate.max2 = coordinatec.max2;
+    gl_coordint (&position, &coordinate, &axis1, &axis2);
+    if (coordinate.transp)
+    {
+  tempminmax = coordinatec.min1;
+  coordinatec.min1 = coordinatec.min2;
+  coordinatec.min2 = tempminmax;
+  tempminmax = coordinatec.max1;
+  coordinatec.max1 = coordinatec.max2;
+  coordinatec.max2 = tempminmax;
+
+  tempminmax = coordinate.min1;
+  coordinate.min1 = coordinate.min2;
+  coordinate.min2 = tempminmax;
+  tempminmax = coordinate.max1;
+  coordinate.max1 = coordinate.max2;
+  coordinate.max2 = tempminmax;
+    }
+
+    gl_axisint (&axis1, &axis2, &coordinate, &position);
+    gl_gridint (&grid, &coordinate, &axis1, &axis2);
+    gl_titleint (&title);
+    gl_colorint (&colorin);
+
+}

@@ -1,0 +1,30 @@
+=head1 NAME
+
+
+weipcig_init - initialize offset ray parameter imaging
+
+=head1 SYNOPSIS
+
+
+ierr= weihcig_init()
+
+=head1 DESCRIPTION
+
+
+ Initializes migration operator whose image (R) domain is p_h
+
+ Grabs pcig_eps (default=1.0)
+
+
+=head1 LIBRARY
+
+
+sepweif90
+
+=head1 SEE ALSO
+
+
+ L<weihcig_init> L<weipcig>
+
+=cut
+

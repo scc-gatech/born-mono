@@ -1,0 +1,434 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Contour - makes a contour plot</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#compile_level">COMPILE LEVEL</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Contour - makes a contour plot</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Contour [par=] [&lt; In.H] | Tube</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Make a contour plot of a seplib file</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+  Input a real-valued (esize=4) dataset and output vplot commands
+  for a two-dimensional contour plot of the data. (The vplot 
+  output can be viewed on a screen using the program Tube, or
+  plotted on a postscript printer using Pspen.) Contour has
+  many, many options to specify at what values to draw contours,
+  where to position the plot on the page, how big to make the
+  plot, which way to draw the axes, where to place tick marks
+  and labels, etc. All of these parameters attempt to default
+  reasonably. Contour also allows auxiliary input files which
+  can be used to annotate the contour plot with symbols,
+  curves or arrows. You may find the utility programs Window
+  and Reverse useful pre-processing data to be plotted with
+  Contour. See also Vppen and Box for a crude way of adding
+  annotation, and pls and pldb for a crude way of editing.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n1__2d_int">n1 - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard seplib n1 parameter</pre>
+</dd>
+<dt><strong><a name="item_c__2d_float">c  - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      value to contour; if not specified calculated from nc c0 and dc</pre>
+</dd>
+<dt><strong><a name="item_nc__2d_int">nc  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [5] number of countours</pre>
+</dd>
+<dt><strong><a name="item_c0__2d_float">c0  - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [calculated] first value to contour</pre>
+</dd>
+<dt><strong><a name="item_dc__2d_float">dc  - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [calculated from c0 and nc]  contour interval</pre>
+</dd>
+<dt><strong><a name="item_n2__2d_int">n2  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      determined from file size and n1 and n3</pre>
+</dd>
+<dt><strong><a name="item_n3__2d_int">n3  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]</pre>
+</dd>
+<dt><strong><a name="item_d1_2cd2_2cd3__2d_float">d1,d2,d3 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.]standard sampling sampleing parameter</pre>
+</dd>
+<dt><strong><a name="item_o1_2co2_2co3__2d_float">o1,o2,o3 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.]standard seplib axis origin parameter</pre>
+</dd>
+<dt><strong><a name="item_pad__2d_char">pad    - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (0,1 n,y)  (If user specifies mins or maxes then 
+      padding is turned off unless pad is specified. 
+      pad is useful if you want the length of the plot 
+      to be the same as the length of the graph.</pre>
+</dd>
+<dt><strong><a name="item_transp__2dchar">transp  -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] whether or not to transpose output (standard vplot)</pre>
+</dd>
+<dt><strong><a name="item_xreverse_2cyreverse__2dchar">xreverse,yreverse -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard vplot definitions four output file</pre>
+</dd>
+<dt><strong><a name="item_screenht_2dfloat">screenht-float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10.24] height of output medium</pre>
+</dd>
+<dt><strong><a name="item_screenwd_2dfloat">screenwd-float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [13.75] width of output medium</pre>
+</dd>
+<dt><strong><a name="item_screeratio_2dfloat">screeratio-float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.75] ratio of screen height to width</pre>
+</dd>
+<dt><strong><a name="item_xll_2cyll_2cxur_2cyur__2d_float">xll,yll,xur,yur - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+          set Lower Left and Upper Right coordinates</pre>
+</dd>
+<dt><strong><a name="item_xinch__2d_float">xinch - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10.24] standard vplot definition</pre>
+</dd>
+<dt><strong><a name="item_yinch__2d_float">yinch - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [7.5] standard vplot definition</pre>
+</dd>
+<dt><strong><a name="item_crowd_2ccrowd1_2ccrowd2__2d_float">crowd,crowd1,crowd2 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.75]  crowd1=crowd  crowd2=crowd 
+      (.75&lt; crowd &lt; 1.) crowds labels off the 
+      screen by expanding data on 1 or 2 axis.</pre>
+</dd>
+<dt><strong><a name="item_wantframe_2cwantframenum__2dchar">wantframe,wantframenum -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard vplot definitions (0,1, n,y)</pre>
+</dd>
+<dt><strong><a name="item_wantaxis_2cwantaxis1_2cwantaxis2__2d_char">wantaxis,wantaxis1,wantaxis2 - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] standard vplot definition(0,1 n,y)</pre>
+</dd>
+<dt><strong><a name="item_min1_2cmin2_2cmax1_2cmax__2d_float">min1,min2,max1,max - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard vplot definitions</pre>
+</dd>
+<dt><strong><a name="item_axisor1_2caxisor2__2d_float">axisor1,axisor2  - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [min1],[min2] standard vplot definition</pre>
+</dd>
+<dt><strong><a name="item_o1num_2co2num_2cd1num_2cd2num__2d_float">o1num,o2num,d1num,d2num - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      tic placement</pre>
+</dd>
+<dt><strong><a name="item_n1tic_2cn2tic__2d_int">n1tic,n2tic - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] number of tics</pre>
+</dd>
+<dt><strong><a name="item_wheretics__2d_char">wheretics - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [f] (f,a) where to put tics (frame, axes)</pre>
+</dd>
+<dt><strong><a name="item_wheretitle__2dchar">wheretitle -char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [t] (t,b,l,r) where to put title</pre>
+</dd>
+<dt><strong><a name="item_wherexlabel__2d_char">wherexlabel - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [b] (t,b) where to put x label</pre>
+</dd>
+<dt><strong><a name="item_whereylabel__2d_char">whereylabel - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [l] (l,r) where to put y label</pre>
+</dd>
+<dt><strong><a name="item_titlefat_2clabelfat__2d_int">titlefat,labelfat - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] title and label fat</pre>
+</dd>
+<dt><strong><a name="item_label1_2clabel2__2d_char_2a">label1,label2 - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      label for axes</pre>
+</dd>
+<dt><strong><a name="item_title__2d_char_2a">title - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      title for plot</pre>
+</dd>
+<dt><strong><a name="item_labelsz__2d_int">labelsz - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [8] label size</pre>
+</dd>
+<dt><strong><a name="item_titlesz__2d_int">titlesz - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10] label size</pre>
+</dd>
+<dt><strong><a name="item_labelrot__2d_char">labelrot - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [y] (0,1 n,y) rotates labels 90 degrees</pre>
+</dd>
+<dt><strong><a name="item_grid_2cgrid1_2cgrid2__2d_char">grid,grid1,grid2 - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]   (0,1 n,y) turns on grid</pre>
+</dd>
+<dt><strong><a name="item_g1num_2cg2num__2d_float">g1num,g2num - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [d1num],[d2num] grid spacing</pre>
+</dd>
+<dt><strong><a name="item_gridcol__2d_int">gridcol - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [axiscol] grid color</pre>
+</dd>
+<dt><strong><a name="item_backcol__2d_float_2a">backcol  - float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0,0,0] background color (R,G,B) between 0 and 1</pre>
+</dd>
+<dt><strong><a name="item_fillcol__2d_float_2a">fillcol  - float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [backcol(0,0,0)] fill color (R,G,B) between 0 and 1</pre>
+</dd>
+<dt><strong><a name="item_plotcol__2d_int_2a">plotcol  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [6,5,4,3,2,1,...] color for each line plotted</pre>
+</dd>
+<dt><strong><a name="item_axiscol__2d_int_2a">axiscol  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [7,7,7,7,...] color of each axis</pre>
+</dd>
+<dt><strong><a name="item_plotfat__2d_int_2a">plotfat  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0,0,0,...] each line fat</pre>
+</dd>
+<dt><strong><a name="item_axisfat__2d_int_2a">axisfat  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0,0,0,...] each axis fat</pre>
+</dd>
+<dt><strong><a name="item_arrow__2d_char">arrow    -  char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] (0,1 n,y) for complex data, plots arrows rather than lines</pre>
+</dd>
+<dt><strong><a name="item_dash__2d_int_2a">dash     -  int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]
+      0 default is continuous.
+      1 fine dash
+      2 fine dot
+      3 dash
+      4 large dash
+      5 dot dash
+      6 large dash smalldash
+      7 double dot
+      8 double dash
+      9 loose dash  The part after the decimal point determines 
+                    the pattern repetition interval</pre>
+</dd>
+<dt><strong><a name="item_curve__2dfile">curve   -file</a></strong><br />
+</dt>
+<dd>
+<pre>
+      header file for curves to be overlayed over 
+      the contours. n1=Npoints n2=Ncurves n3=Nframes
+      esize=2*sizeof(float). The format of the data 
+      file should be: x1,y1,x2,y2,...</pre>
+</dd>
+<dt><strong><a name="item_curvecol_2d_int_2a">curvecol- int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [6,5,4,3,2,1,...] color for each contour</pre>
+</dd>
+<dt><strong><a name="item_curvefat_2d_int">curvefat- int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [2] makes each contour fat</pre>
+</dd>
+<dt><strong><a name="item_pick__2d_file">pick    - file</a></strong><br />
+</dt>
+<dd>
+<pre>
+      header file for picks to be overlayed over 
+      the contours. n1=Npoints n2=Npicks n3=Nframes 
+      esize=2*sizeof(float) The format of the data 
+      file should be: x1,y1,x2,y2,...</pre>
+</dd>
+<dt><strong><a name="item_pickcol__2d_int_2a">pickcol - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [6,5,4,3,2,1]  color for each pick</pre>
+</dd>
+<dt><strong><a name="item_picksize_2d_int">picksize- int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [15] size of each pick</pre>
+</dd>
+<dt><strong><a name="item_picksymbl_2dint">picksymbl-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [5] symbol for each pick (2,3,4,5,20,21,22,23)  (see vp_umark)</pre>
+</dd>
+<dt><strong><a name="item_pickw__2dfile">pickw    -file</a></strong><br />
+</dt>
+<dd>
+<pre>
+     [pickweights] header file for the weight of the picks;
+     the size of the symbol will be proportional to 
+     the weights. n1=Npoints n2=Npicks n3=Nframes 
+     esize=sizeof(float)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Grey.html">the Grey manpage</a>,<a href="./../seplib_prog/Thplot.html">the Thplot manpage</a>,<em>xtpen</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="compile_level">COMPILE LEVEL</a></h1>
+<pre>
+ DISTR</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+
+</body>
+
+</html>

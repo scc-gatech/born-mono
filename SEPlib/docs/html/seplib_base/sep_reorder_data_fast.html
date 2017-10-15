@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sep_reorder_data_fast - reoder SEPlib dataset</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sep_reorder_data_fast - reoder SEPlib dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>int sep_reorder_data_fast(char *tagin , char *tagout, int n2h, int tsize, int *order,int megabytes)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>reorder traces (allocates something n2h*tsize  so be careful)</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_tagin__2d_char_2a">tagin - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      tag of input</pre>
+</dd>
+<dt><strong><a name="item_tagout_2d_char_2a">tagout- char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      tag of output</pre>
+</dd>
+<dt><strong><a name="item_n2h__2d_int">n2h   - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of traces</pre>
+</dd>
+<dt><strong><a name="item_tsize__2d_int">tsize  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      length of traces</pre>
+</dd>
+<dt><strong><a name="item_order__2d_int_2a">order - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      order of traces</pre>
+</dd>
+<dt><strong><a name="item_megabyte__2d_int">megabyte - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      maximum number of megabytes to use</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep3d</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,94 @@
+=head1 NAME
+
+
+Vconvert - Convert from one type of velocity to another
+
+=head1 DESCRIPTION
+
+
+Convert one type of velocity function to another
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  n1out    -   int
+
+       Output fast axis; only can change if outpar != inpar.
+
+=item  d1out     -   float
+
+       Ignored if outpar = inpar.
+
+=item  o1out    -   float
+
+       see above
+
+=item   label1  -   char*
+
+       see above
+
+=item  oversamp-   int
+
+       [1]oversampling rate (default is no oversampling)
+
+=item  lsinc   -   int
+
+       [12]oversampling interpolator length
+       oversampling used with inpar != outpar only.
+
+=item  alpha   -   float
+
+       [0.01]  fraction of peak value at ends of gaussian taper
+        on sinc interpolator for oversampling
+
+=item  invelopt-   int
+
+       [1] velocity
+
+=item  outvelopt-  int
+
+       [2] slowness
+       3- slowness squared
+       4- velocity squared
+
+
+=item  intype    -int
+
+       [1] interval
+
+=item  outtype   -int
+
+       [2] rms
+
+=item  inpar      -int
+
+       [1] function of time
+
+=item  outpar    -int
+
+       [2] function of depth
+
+=back
+
+=head1 COMMENTS
+
+
+  NOTE: Vrms(z) [type=2 and par=2] is not understood by this routine.
+
+  NOTE: oversampling may improve v(z)<=>v(t) conversion if velocity
+        field contains high wavenumber components.  It can introduce
+        spurious high wavenumber jitter if the velocity field is smooth.
+        Decreasing alpha may help.  Use with caution!
+
+
+
+=head1 CATEGORY
+
+
+B<seis/velan>
+
+=cut
+

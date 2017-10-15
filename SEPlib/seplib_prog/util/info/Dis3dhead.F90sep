@@ -1,0 +1,322 @@
+!!$=head1 NAME
+!!$
+!!$Dis3dhead - Display headers
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Dis3dhead  <in.H pars
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item nkeys -  integer
+!!$
+!!$      [nkeys]number of  keys to calculate
+!!$      parameters on.
+!!$
+!!$=item key_  -  char*
+!!$
+!!$      name of key to calc parameters on (only
+!!$      necessary if nkeys < less than nkeys in dataset
+!!$
+!!$=item key_list -  character
+!!$
+!!$      string containing keys to print (can use
+!!$      instead  of nkeys, keys_). The list should be
+!!$      separated by :.
+!!$
+!!$=item max_size -  integer
+!!$
+!!$      [1000000] maximum amount of memory for Attr to use.
+!!$
+!!$=item int_format-  char*
+!!$
+!!$      'i7' Format print statement style for int
+!!$
+!!$=item float_format - char*
+!!$
+!!$      'f10.4' Format print statement style for float
+!!$
+!!$=item guide -  integer
+!!$
+!!$      [50] every 50 given values name of keys are
+!!$      printed. 0 will result in only a single printing
+!!$      of header names
+!!$
+!!$=item  number-int      
+!!$
+!!$      n  -do not number elements.
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Displays header values
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Disfil>, L<Attr3dhead>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<util/info>
+!!$
+!!$=cut
+!>
+!-------------------------------------------------
+!
+!Author: Robert Clapp, ESMB 463, 7230253
+!
+!Date Created:Saturday Mar 15 12:32:35 1997
+! Modified 5/99 Converted to new sepf90
+!
+!Purpose:
+!
+program Headdis 
+  use sep
+  use sep_aux_mod
+  use aux_string_mod
+  use sep3d_struct_mod
+  use sep_3d_mod
+  implicit none
+  integer :: nkeys,max_size,ax,maxax
+  integer,parameter :: big=selected_real_kind(10,50)
+  integer :: ignore_grid,guide,ik,nsz
+  character(len=16) :: int_format,float_format
+  type(sep3d) :: in     !holder for sepdata (see sepf90 docs)
+  real,dimension(:,:),pointer :: real_hold  !holding array for
+  integer,dimension(:,:),pointer :: int_hold  !holding array for
+  integer,dimension(:),pointer :: type,read_in,location,position&
+    &,tempiv(:)
+  integer :: ncount
+  integer :: number
+!sorting headers
+  integer,dimension(:),pointer :: fwind,nwind,jwind
+  integer,dimension(:),pointer :: f,n,j
+  real,dimension(:),pointer :: o,d,temprv(:)
+  character(len=128),dimension(:),pointer :: label,key
+  integer  :: i1,i2,ierr,l1,l2,ndim,drn,nint,nflt
+  integer  :: memory,nin
+  character(len=128) :: temp_ch
+  character(len=4096) :: key_list
+  logical :: usegrid,read_more,list_keys,found
+  call SEP_ADD_DOC()
+  call SEP_INIT('')
+  call init_3d()
+!             GET PRELIMINARY PARAMETERS, SET SOME PROGRAM VARIABLES,
+!                   CHECK DATA, DO SOME PRELIMINARY ALLOCATION
+  call getch_add_string("head=/dev/null")
+    if (0>= getch('max_size','d',max_size )) then
+      max_size = 1000000
+    end if
+    if (0.ne.putch('Read  from param: #max_size ','d',max_size)) then
+      call erexit('Trouble writing max_size to history')
+    end if
+    if (0>= getch('ignore_grid','d',ignore_grid )) then
+      ignore_grid = 0
+    end if
+    if (0.ne.putch('Read  from param: #ignore_grid ','d',ignore_grid))&
+      & then
+      call erexit('Trouble writing ignore_grid to history')
+    end if
+    if (0>= getch('guide','d',guide )) then
+      guide = 50
+    end if
+    if (0>= getch('number','1',number )) then
+      number = 1
+    end if
+    if (0.ne.putch('Read  from param: #guide ','d',guide)) then
+      call erexit('Trouble writing guide to history')
+    end if
+  if(guide .eq. 0) guide = 2000000000
+  call getch_add_string("noheader=y")
+  call getch_add_string('gff_in="-1"')
+  if (0.ne.sep_get_number_keys("in",nin)) then
+    call erexit("unable to obtain number of keys")
+  end if
+  do i1=1,4096
+    key_list(i1:i1)=" "
+  end do 
+!#AAAAAA
+  if (0.ne.sep_get_key_index("in","data_record_number",drn)) then
+    drn=0
+  else
+    drn=1
+    nin=  nin-1
+  end if 
+  list_keys=.false.
+  if (0.eq.getch("nkeys","d",nkeys)) then
+    if (0.eq.getch("key_list","s",key_list)) then
+      nkeys=nin
+    else
+      call decode_list(key_list,key,nkeys)
+      list_keys=.true.
+    end if
+  end if
+  call init_sepf90()
+  call init_sep3d("in",in,"INPUT")
+  ndim=in%ndims
+!getting windowing information
+!get key information
+  if (nin.ne.nkeys) then
+    if (.not. list_keys) then
+      allocate(key(nkeys))
+    end if
+    allocate(type(nkeys))
+    allocate(position(nkeys))
+    nint=0
+    nflt=0
+    drn=0
+    do i1=1,nkeys 
+      if (.not. list_keys) then
+        call parcat("key",i1,temp_ch)
+        if (0.eq.getch(temp_ch,"s",key(i1))) then
+          call erexit("trouble obtaining key from command line")
+        end if
+      end if
+      ik=1
+      found=.false.
+      if (key(i1)(1:18).eq."data_record_number") then
+        drn=i1
+        nint=			nint+1
+        position(i1)=nint
+      else
+        do while (ik <= in%nkeys .and. .not. found)
+          if (in%keyname(ik)(1:len_trim(key(i1))).eq.key(i1)(1:len_trim&
+            &(key(i1)))  .and. in%keyname(ik)(1:len_trim(in%keyname&
+            &(ik))).eq.  key(i1)(1:len_trim(in%keyname(ik)))) then
+            found=.true.
+          else
+            ik=  ik+1
+          end if
+        end do 
+        if (.not. found) then
+          write(0,*) "key",i1,key(i1)(1:len_trim(key(i1)))
+          call erexit("could not find specified key in header file")
+        end if
+        if (in%keytype(ik).eq."scalar_float") then
+          type(i1)=1
+          nflt=				nflt+1
+          position(i1)=nflt
+        else if (in%keytype(ik).eq."scalar_int") then
+          type(i1)=0
+          nint=				nint+1
+          position(i1)=nint
+        else
+          call erexit("unaceptable key type")
+        end if
+      end if
+    end do
+  else
+    allocate(type(nkeys+drn))
+    allocate(key(nkeys+drn))
+    allocate(position(nkeys+drn))
+    nint=0
+    nflt=0
+    do i1=1,in%nkeys 
+      key(i1)=in%keyname(i1)
+      if (in%keytype(i1).eq."scalar_float") then
+        type(i1)=1
+        nflt=			nflt+1
+        position(i1)=nflt
+      else if (in%keytype(i1).eq."scalar_int") then
+        type(i1)=0
+        nint=			nint+1		
+        position(i1)=nint
+      else
+        call erexit("unacceptable key type")
+      end if
+    end do 
+    if (drn.ne.0) then
+      type(nkeys+1)=0
+      key(nkeys+1)="data_record_number"
+      nint=		nint+1
+      position(i1)=nint
+      nkeys=		nkeys+1
+    end if
+  end if 
+!now set up format for output
+  int_format="i9"
+  float_format="f12.4"
+  ierr=getch("int_format","s",int_format)
+  ierr=getch("float_format","s",float_format)
+  l1=len_trim(float_format)
+  l2=len_trim(int_format)
+  int_format="(2x,"//int_format(1:l2)//")"
+  float_format="(2x,"//float_format(1:l1)//")"
+  ncount=0
+  max_size=max_size/in%nkeys/2
+  allocate(fwind(ndim),jwind(ndim),nwind(ndim))
+  i2=product(in%n(2:))	
+  fwind=0
+  nwind=1
+  in%n(2)=i2
+  in%n(3:)=1
+  call sep3d_set_sep3d(in)
+  fwind(2)=0
+  do while (fwind(2)<in%n(2))
+    nwind(2)=min(in%n(2)-fwind(2),max_size)
+    call sep3d_grab_headers("in",in,nsz,fwind=fwind(2:), nwind=nwind(2:&
+      &))
+    if (nsz>0) then
+      if (nint>0) then
+        allocate(int_hold(nint,nsz))
+      end if
+      if (nflt>0) then
+        allocate(real_hold(nflt,nsz))
+      end if
+      allocate(tempiv(nsz),temprv(nsz))
+      do i1=1,nkeys 
+        if (key(i1)(1:18).eq."data_record_number" ) then
+          if (0.ne. sep3d_grab_drn(in%tag,int_hold(position(i1),:)))&
+            & then
+            call seperr("trouble grabbing drn")
+          end if
+        else if (type(i1).eq.0) then
+          call sep3d_grab_key_vals(in,key(i1),tempiv)
+          int_hold(position(i1),:)=tempiv
+        else
+          call sep3d_grab_key_vals(in,key(i1),temprv)
+          real_hold(position(i1),:)=temprv
+        end if
+      end do 
+     if(associated(temprv)) deallocate(temprv)
+     if(associated(tempiv)) deallocate(tempiv)
+      do i2=1,nsz 
+        if(guide .gt. 0) then
+        if (mod(ncount,guide).eq.0) then
+          write(0,"(a6)",advance="no") "number"
+          do i1=1,nkeys 
+            if (type(i1) .eq.1) then
+              write(0,"(2x,a10)",advance="no") key(i1)
+            else
+              write(0,"(2x,a7)",advance="no") key(i1)
+            end if
+          end do 
+          write(0,*) ""
+        end if
+        end if
+        ncount=	ncount+1
+        if(number .eq. 1) write(0,"(i6)",advance="no") ncount
+        do i1=1,nkeys 
+          if (type(i1).eq.1) then
+            write(0,float_format,advance="no")  real_hold(position(i1)&
+              &,i2)
+          else
+            write(0,int_format,advance="no")  int_hold(position(i1),i2&
+              &)
+          end if
+        end do 
+        write(0,*) " "
+      end do 
+      if (nint>0) then
+        deallocate(int_hold)
+      end if
+      if (nflt>0) then
+        deallocate(real_hold)
+      end if
+    end if
+    fwind(2)=fwind(2)+nwind(2)
+  end do 
+end program  

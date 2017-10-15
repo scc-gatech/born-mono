@@ -1,0 +1,47 @@
+=head1 NAME
+
+
+init_sep3d_tag - Initialize a structure from another structure
+
+
+=head1 SYNOPSIS
+
+
+C<logic= init_sep3d_struct(sep3d sep3din,sep3d *sep3dc,char *usage)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item sep3din  -  sep3d
+
+     structure to initialize from
+
+=item sep3dc  -  sep3d
+
+      structure
+
+=item usage  -  char*
+
+      usage for tag ('INPUT','OUTPUT','SCRATCH')
+
+
+=back
+
+=head1 DESCRIPTION
+
+
+Create a sep3d structure from another structure
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

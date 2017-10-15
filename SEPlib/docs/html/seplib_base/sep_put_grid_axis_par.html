@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sep_put_grid_axis_par - put n,o,d, label to output tag</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameter">INPUT PARAMETER</a></li>
+	<li><a href="#return_value">RETURN VALUE</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sep_put_grid_axis_par - put n,o,d, label to output tag</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>int sep_put_grid_axis_par(tag_history,i_axis,n,o,d,label)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameter">INPUT PARAMETER</a></h1>
+<dl>
+<dt><strong><a name="item_char_2a__2d_tag_history">char* -  tag_history</a></strong><br />
+</dt>
+<dd>
+<pre>
+        tag of History File</pre>
+</dd>
+<dt><strong><a name="item_int_2a__2d_i_axis">int* -    i_axis</a></strong><br />
+</dt>
+<dd>
+<pre>
+        Axis number of parameters to read</pre>
+</dd>
+<dt><strong><a name="item_int_2a__2d_n">int* -    n</a></strong><br />
+</dt>
+<dd>
+<pre>
+        value of nh-i (i = i_axis)</pre>
+</dd>
+<dt><strong><a name="item_float_2a__2d_o">float* -  o</a></strong><br />
+</dt>
+<dd>
+<pre>
+        value of oh-i (i = i_axis)</pre>
+</dd>
+<dt><strong><a name="item_float_2a__2d_d">float* -  d</a></strong><br />
+</dt>
+<dd>
+<pre>
+        value of dh-i (i = i_axis)</pre>
+</dd>
+<dt><strong><a name="item_char_2al__2d_abel">char*l -  abel</a></strong><br />
+</dt>
+<dd>
+<pre>
+        value of labelh-i (i = i_axis)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_value">RETURN VALUE</a></h1>
+<pre>
+ -1= if fails for other reasons</pre>
+<pre>
+ 0= if successful</pre>
+<pre>
+ +1= if tag_history is an Sep77 History File</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+   Put the values that describe the i axis of the Grid
+   Coordinate System into the Header Format File pointed 
+   by the History File corresponding to tag history.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/sep_put_data_axis_par.html">the sep_put_data_axis_par manpage</a>, <a href="./../seplib_base/sep_put_header_axis_par.html">the sep_put_header_axis_par manpage</a>, <a href="./../seplib_base/sep_get_grid_axis_par.html">the sep_get_grid_axis_par manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep3d</strong></p>
+
+</body>
+
+</html>

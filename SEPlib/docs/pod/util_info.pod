@@ -1,0 +1,33 @@
+
+
+=head1 NAME
+
+util/info - Programs that provide info about SEP datasets
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Programs that provide info about SEP datasets
+
+=head1 PROGRAMS
+
+
+L<Attr> - Programs that provide info about SEP datasets
+
+
+
+L<Datapath> - print out current SEP datapath
+
+L<Get> - Simple operations on parameters
+
+L<Disfil> - Display data values
+
+L<Sdd> - Convert between formats
+
+L<In3d> - info in seplib datasets
+
+
+=cut 

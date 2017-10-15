@@ -1,0 +1,589 @@
+/*$
+
+=head1 NAME
+
+Reshape - Reshape a SEPlib dataset
+
+=head1 SYNOPSIS
+
+Reshape [pars] < in.H >out.H
+
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item  reshape - int*
+  
+  Reshape a dataset (e.g. 1,2,4 will combine 3rd and 4th axis of a dataset,see examples)
+
+=item  esize   - int
+
+  [esize from history]  Four posibilities:
+
+  key1 (make esize=4 from header key1)
+
+  grid (make esize=4 from the grid values)
+
+  key1,key2 (make esize=8 from header key1 and key2)
+
+  x1,x2 (make esize=8 from two array  elements in the first axis of the dataset)
+
+
+=item axis_  - int*
+  
+  Window a given axis in the dataset (e.g. axis1=1,3,4)  will change n1=3, and take
+
+   the first, third, and fourth values of axis 1
+
+=item n_,o_,d_,label_,unit_
+
+   Change description parameters of the output
+
+=item maxsize - int
+
+  [20]  Maximum amount of memory to use in megabytes
+
+=item  in.ignore_hff - int
+
+  [0]   Wether (1) or not (0) to ignore header axes
+
+=item  in.ignore_gff - int
+
+  [0]   Wether (1) or not (0) to ignore grid axes
+
+
+=back
+
+=head1 DESCRIPTION
+
+Reshape a SEPlib dataset.  Usually this will involve shifting axes
+for use with other SEPlib programs. 
+
+=head1 COMMENTS
+
+ Parameters are considered in the following order
+
+ 1) reshape commands
+
+ 2) esize changes
+
+ 3) axis changes
+
+ 4) User specified n,o,d
+
+ As a result if you specify more than 1 change in a single command
+ 
+ the changes are based on the new data description (e.g
+ 
+ reshape=1,1,2,3 axis3=1,5 will be based on axis 2 of the input not axis3.
+
+=head1 EXAMPLES
+
+  Given a regular dataset  n1=10, n2=10 n3=10
+  Reshape < in.H >out.H  reshape=1,1,3,4
+  Out: n1=10 n2=1 n3=10 n4=10
+
+
+  Given: n1=10 n2=10 n3=10
+  Reshape < in.H >out.H axis3=1,4,7
+  Out: n1=10 n2=10 n3=3 (where the first, third, and seventh slice are copied)
+
+
+ Given: n1=10 n2=10 n3=10 esize=4
+  Reshape < in.H >out.H esize=1,3  
+  Out: esize=8 n1=10 n2=10  (complex from 1,3 samples of axis 1)
+
+  Given:  sep3d n1=10 n2=10 n3=10 keys(s_x,s_y,g_x,g_y)
+  Reshape < in.H >out.H esize=s_x,s_y 
+  Out: esize=8 n1=10 n2=10  (header kay values s_x,s_y)
+
+  Given:  sep3d dataset with a grid n2=20 n3=20
+  Reshape < in.H >out.H esize=grid
+  Out: esize=4  Grid values changed from integ to real, n1=20 n2=20 n3=1
+
+
+
+=head1 CATEGORY
+
+B<util/cube>
+
+=cut
+
+
+>*/
+/*
+-------------------------------------------------
+
+Author: Robert Clapp, ESMB 463, 7230253
+
+Date Created:Fri Apr 25 21:07:06 PDT 2003
+
+Purpose:
+
+*/
+
+
+ADD_DEF_SEP_DOC
+
+#include <stdlib.h>
+#include <superset.h>
+#include <sep3dc.h>
+#include<sep3d.h>
+#include <sep.main>
+int grab_data_params(sep3d *, sep3d *);
+int grab_parms(sep3d*,sep3d*);
+int axis_part(sep3d*,int *);
+int esize_change(sep3d*,int*);
+int put_axis(sep3d *sep3dc,int iaxis,int n, float o, float d, char *label, char *unit);
+int grab_axis(sep3d *sep3dc,int iaxis,int *n, float *o, float *d, char *label, char *unit);
+int grab_io_params(sep3d *input,sep3d *output,int *nblock,char *intag, char *outtag);
+void convert_it(int *ini,float *outf, int n);
+int split_parts(char *esize_str, char **parts);
+void int_float(float *buf1, int f, int j,  int n, float *e1,float *e2);
+int is_int(char  *str, int *val);
+int write_files(sep3d *out);
+
+
+int **n_part;
+int nlen[9],ngr[9];
+int esize_it[2];
+int changed[9];
+
+#define DATA_OP 1
+#define HEADER_OP 2
+#define GRID_OP 3
+int op_type,in_mult,out_mult;
+int nkeys,i1,i2,i3,i4,i5,i6,i7,i8,i9,i,j,k;
+int key_index[2];
+int int_key[2];
+int MAIN(void){
+sep3d input,output;
+int fwind[10],jwind[10],nwind[10],ngrid[10],nkeys_in;
+float *buf1,*buf2,*buf3;
+int max_size,ten=10;
+char tag_in[256],tag_out[256];
+
+  init_3d();
+
+if(0!=grab_data_params(&input,&output))
+	seperr("trouble grabbing parameters \n");
+
+
+if(0!=write_files(&output))
+   seperr("trouble writing out description \n");
+
+if(0!=grab_io_params(&input,&output,&max_size,tag_in,tag_out))
+  seperr("trouble grabbing io parameters \n");
+
+/*buffers*/
+buf1=(float*)malloc(sizeof(float)*in_mult*max_size/4);
+buf2=(float*)malloc(sizeof(float)*out_mult*max_size/4);
+buf3=(float*)malloc(sizeof(float)*max_size*4);
+
+for(i=0;i<10;i++) jwind[i]=1;
+for(i=0;i<9;i++) nwind[i+1]=1;
+for(i=0;i<9;i++) ngrid[i+1]=ngr[i];
+ngrid[0]=max_size;
+nwind[0]=max_size;
+fwind[0]=0;
+if(op_type==HEADER_OP) {
+  ngrid[0]=max_size*in_mult/4;
+  nwind[0]=max_size*in_mult/4;
+  nkeys_in=in_mult/4;
+}
+
+
+
+for(i9=0; i9 < nlen[8]; i9++){ fwind[9]=n_part[8][i9];
+for(i8=0; i8 < nlen[7]; i8++){ fwind[8]=n_part[7][i8];
+for(i7=0; i7 < nlen[6]; i7++){ fwind[7]=n_part[6][i7];
+for(i6=0; i6 < nlen[5]; i6++){ fwind[6]=n_part[5][i6];
+for(i5=0; i5 < nlen[4]; i5++){ fwind[5]=n_part[4][i5];
+for(i4=0; i4 < nlen[3]; i4++){ fwind[4]=n_part[3][i4];
+for(i3=0; i3 < nlen[2]; i3++){ fwind[3]=n_part[2][i3];
+for(i2=0; i2 < nlen[1]; i2++){ fwind[2]=n_part[1][i2];
+for(i1=0; i1 < nlen[0]; i1++){ fwind[1]=n_part[0][i1];
+  if(op_type==DATA_OP){
+    if(0!= sreed_window(tag_in,&ten,ngrid,nwind,fwind,jwind,in_mult,buf1))
+      seperr("trouble reading in data block \n");
+    if(in_mult*max_size!=srite(tag_out,buf1,in_mult*max_size))
+      seperr("trouble writing out data block \n");
+  }
+  else if(op_type==HEADER_OP){
+    if(0!= sreed_window(tag_in,&ten,ngrid,nwind,fwind,jwind,4,buf1))
+      seperr("trouble reading in header block \n");
+    for(j=0,i=0; j< max_size; j++){ /*loop over block*/
+      for(k=0; k < nkeys; k++,i++) buf2[i]=buf1[key_index[k]+j*nkeys_in-1];
+    }
+    if(int_key[0]==1) int_float(buf2,0,nkeys,max_size,buf1,buf3);
+    if(int_key[1]==1) int_float(buf2,1,nkeys,max_size,buf1,buf3);
+    if(out_mult*max_size!=srite(tag_out,buf2,out_mult*max_size))
+      seperr("trouble writing out data block \n");
+  }
+  else{
+    if(0!= sreed_window(tag_in,&ten,ngrid,nwind,fwind,jwind,4,buf1))
+      seperr("trouble reading in data block \n");
+    int_float(buf1,0,1,max_size,buf2,buf3);
+    if(in_mult*max_size!=srite(tag_out,buf1,out_mult*max_size))
+      seperr("trouble writing out data block \n");
+  }
+ }}}}}}}}}
+
+ return(EXIT_SUCCESS);
+}
+void int_float(float *buf1, int f, int j,  int n, float *e1,float *e2){
+int i,k;
+float *junk;
+
+if(j!=1){
+  for(i=f,k=0;k < n; i+=j,k++) e1[k]=buf1[i];
+  junk=e1;
+}
+else junk=buf1;
+
+convert_it((int*)junk,e2,n);
+for(i=f,k=0;k < n; i+=j,k++) buf1[i]=e2[k];
+
+
+}
+void convert_it(int *ini,float *outf, int n){
+int i,nread;
+char tag1[256],tag2[256];
+
+for(i=0;  i < n; i++) outf[i]=(float)ini[i];
+
+}
+
+int write_files(sep3d *out){
+int ierr,nread;
+char *buf1,tag1[256],tag2[256];
+
+if(op_type!=DATA_OP){
+  strcpy(out->file_format,"REGULAR");
+  sep3d_set_sep3d(out);
+}
+ierr=sep3dc_write_description("out",out);
+if(ierr!=0)
+ return(sepwarn(NOT_MET,"trouble writing description \n"));
+
+if(op_type==DATA_OP && 0!=strcmp(out->file_format,"REGULAR")){
+
+  /*copy grid and headers untouched*/
+  buf1=(char*)malloc(sizeof(char)*1000000);
+  fget_header_format_tag("in",tag1);
+  fget_header_format_tag("out",tag2);
+   while (0 < (nread = sreed_raw(tag1,buf1,1000000) ))
+   (void)srite_raw(tag2,buf1,nread);
+
+  if(0==strcmp(out->file_format,"GRID")){
+    fget_grid_format_tag("in",tag1);
+    fget_grid_format_tag("out",tag2);
+    while (0 < (nread = sreed_raw(tag1,buf1,1000000) ))
+     (void)srite_raw(tag2,buf1,nread);
+  }
+  free(buf1);
+}
+return(0);
+
+}
+int grab_io_params(sep3d *input,sep3d *output,int *nblock,char *intag, char *outtag){
+int max_size,found,drn;
+double comp,comp2;
+int n,i,nread;
+
+if(0==strcmp(output->data_format,"COMPLEX") && esize_it[0]==-1) out_mult=8;
+else out_mult=4;
+
+if(op_type==DATA_OP) {
+  if(0==strcmp(input->data_format,"COMPLEX"))in_mult=8;
+  else in_mult=4;
+  strcpy(intag,"in"); strcpy(outtag,"out");
+}
+else if(op_type==HEADER_OP){
+  in_mult=input->nkeys*4;
+  if(0==sep_get_key_index("in","data_record_number",&drn)){
+    in_mult+=4;
+    for(i=0; i<nkeys;i++){
+     if(key_index[i]>=drn) key_index[i]++;
+    }
+  }  
+  fget_header_format_tag("in",intag);
+  strcpy(outtag,"out");
+}
+else {
+  in_mult=4;
+  fget_grid_format_tag("in",intag);
+  strcpy(outtag,"out");
+}
+ 
+
+
+
+max_size=80;getch("maxsize","d",&max_size);
+max_size=max_size*1000*1000/(in_mult+out_mult+4);
+
+comp=comp2=1;found=0;
+i=0; nread=1;
+while(i < output->ndims && found==0){
+  if(changed[i]==0){
+    comp=comp2*output->n[i];
+    if(comp <(double) max_size){
+       comp2=comp;
+       nread=nread*output->n[i];
+       n_part[i][0]=0;
+       nlen[i]=1; ngr[i]=1;
+    }
+    else  found=1;
+  }
+  else found=1;
+i++;
+}
+*nblock=nread;
+
+
+return(0);
+}
+
+
+int grab_data_params(sep3d *input, sep3d *output){
+int ndim,r[99],ierr,i,n;
+float o,d;
+char temp_ch[12],label[128],unit[128];
+double nin,nout;
+
+
+if(0!=init_sep3d_tag("in",input,"INPUT"))
+  return(sepwarn(-1,"Trouble initializing tag from input \n"));
+
+if(0!=init_sep3d_struct(*input,output,"OUTPUT"))
+  return(sepwarn(-1,"Trouble initializing output from input \n"));
+
+
+/*reshape the dataset */
+for(i=0;i < 99; i++) r[i]=0;
+for(i=0;i < output->ndims; i++) r[i]=i+1;
+ierr=getch("reshape","d",r);
+i=0; while(i < 99 && r[i]!=0) i++; 
+
+if(0!=sep3dc_reshape(output,i,r))
+  return(sepwarn(-1,"Trouble reshaping output1\n"));
+
+
+if(0!=sep3dc_reshape(input,i,r))
+  return(sepwarn(-1,"Trouble reshaping input \n"));
+
+/*check for redoing esize*/
+if(0!=esize_change(output,esize_it))
+	return(sepwarn(NOT_MET,"trouble changing esize \n"));
+
+
+
+
+/*check for taking parts of  axes*/
+if(0!=axis_part(output,esize_it))
+	return(sepwarn(NOT_MET,"trouble grabbing axis part \n"));
+
+/*we are making a complex dataset*/
+if(esize_it[0]!=-1){
+  strcpy(output->data_format,"COMPLEX");
+  for(i=0 ;i< output->ndims-1;i++)  r[i]=i+2;
+  output->n[0]=1;
+  grab_axis(output,2,&n,&o,&d,label,unit);
+  if(0!=sep3dc_reshape(output,output->ndims-1,r))
+  return(sepwarn(-1,"Trouble reshaping output \n"));
+  put_axis(output,1,n,o,d,label,unit);
+}
+sep3d_set_sep3d(output);
+
+
+nin=nout=1;
+/*check for changes in describing axes*/
+for(i=0; i < output->ndims; i++){
+  grab_axis(output,i,&n,&o,&d,label,unit);
+  nin=nin*n; 
+  sprintf(temp_ch,"n%d",i+1); getch(temp_ch,"d",&n);
+  sprintf(temp_ch,"o%d",i+1); getch(temp_ch,"f",&o);
+  sprintf(temp_ch,"o%d",i+1); getch(temp_ch,"f",&d);
+  sprintf(temp_ch,"label%d",i+1); getch(temp_ch,"s",label);
+  sprintf(temp_ch,"unit%d",i+1); getch(temp_ch,"s",unit);
+  nout=nout*n; 
+  put_axis(output,i,n,o,d,label,unit);
+}
+if(nin!=nout)
+  return(sepwarn(NOT_MET,"amount of data in and out not the same \n"));
+sep3d_set_sep3d(output);
+
+
+return(0);
+}
+int esize_change(sep3d *output,int *esize_it){
+int esize_in,esize_out,tempi;
+int n;
+float o,d;
+char label[128],unit[128];
+char esize_str[55];
+int ns[9],nparts,ipart;
+char **parts;
+
+parts=(char**)malloc(2*sizeof(char*));
+parts[0]=(char*) malloc(sizeof(char)*128);
+parts[1]=(char*) malloc(sizeof(char)*128);
+
+
+
+esize_it[0]=-1; esize_it[1]=-1;
+op_type=DATA_OP;
+if(1==getch("esize","s",esize_str)){
+   /*we are going to be transfering the grid */
+   if(0==strcmp("grid",esize_str)){
+      output->n[0]=1;
+      grab_axis(output,2,&n,&o,&d,label,unit);
+      for(i=0;i<output->ndims-1;i++) ns[i]=i+2;
+      if(0!=sep3dc_reshape(output,output->ndims-1,ns))
+       return(sepwarn(-1,"Trouble reshaping output \n"));
+      put_axis(output,1,n,o,d,label,unit);
+      op_type=GRID_OP;
+   }
+   else{
+    nkeys=split_parts(esize_str,parts);
+    if(nkeys==2  && 0==is_int(parts[0],&int_key[0]) && is_int(parts[1],&int_key[1])==0){
+      op_type=DATA_OP;
+      if(0!=strcmp(output->data_format,"FLOAT"))
+        return(sepwarn(-1,"Illegal esize description when data is FLOAT %s \n",parts[0]));
+      if(int_key[0] <1 || int_key[0] > output->n[0])
+        return(sepwarn(-1,"Illegal esize description %s \n",parts[0]));
+      if(int_key[1] <1 || int_key[1] > output->n[0])
+        return(sepwarn(-1,"Illegal esize description %s \n",parts[1]));
+      esize_it[0]=int_key[0]-1;
+      esize_it[1]=int_key[1]-1;
+    }
+    else{
+      op_type=HEADER_OP;
+      if(nkeys<0) return(sepwarn(-1,"ILLEGAL ESIZE DESCRIPTION \n"));
+      if(nkeys==1) strcpy(output->data_format,"FLOAT");
+      else  strcpy(output->data_format,"COMPLEX");;
+      int_key[0]=0; int_key[1]=0;
+      for(ipart=0; ipart < nkeys; ipart++){
+        key_index[ipart]=sep3dc_key_index(output,parts[ipart]);
+        if(key_index[ipart] < 0)  return(sepwarn(-1,
+          "Unrecognized key name %s \n",parts[ipart]));
+        if(0==strcmp(output->keyfmt[key_index[ipart-1]],"scalar_int")) int_key[ipart]=1;
+      } 
+      output->n[0]=1;
+      grab_axis(output,1,&n,&o,&d,label,unit);
+      for(i=0;i<output->ndims-1;i++) ns[i]=i+2;
+      if(0!=sep3dc_reshape(output,output->ndims-1,ns))
+       return(sepwarn(-1,"Trouble reshaping output \n"));
+      put_axis(output,0,n,o,d,label,unit);
+    }
+  }
+  sep3d_set_sep3d(output);
+
+
+}
+free(parts[0]); free(parts[1]); free(parts);
+return(0);
+}
+int is_int(char  *str, int *val){
+int j,i,yes;
+
+yes=0;
+for(i=0; i < strlen(str); i++){
+  if(!(str[i]=='0' || str[i]=='1' || str[i]=='2' || str[i]=='3' || str[i]=='4' || 
+  str[i]=='5' || str[i]=='6' || str[i]=='7' || str[i]=='8' || str[i]=='9' ))
+  yes=1;
+}
+
+if(yes==0) *val=atoi(str);
+return(yes);
+}
+int split_parts(char *esize_str, char **parts){
+int i,ipart;
+i=0; ipart=0; j=0;
+while(i < 128 && esize_str[i] !='\0'){
+  if(esize_str[i]==','){
+    if(ipart>0) return(sepwarn(-1,"illegal esize %s \n",esize_str));
+    parts[ipart][j]='\0';
+    ipart++; j=0;  
+  }
+  else{
+    parts[ipart][j]=esize_str[i];  j++;
+  }
+  i++;
+}
+ parts[ipart][j]='\0';
+return(ipart+1);
+
+}
+
+int grab_axis(sep3d *sep3dc,int iaxis,int *n, float *o, float *d, char *label, char *unit){
+  *n=sep3dc->n[iaxis];
+  *o=sep3dc->o[iaxis];
+  *d=sep3dc->d[iaxis];
+  if(sep3dc->label[iaxis]==NULL){
+     strcpy(label,"NONE");
+  }
+  else{
+    strcpy(label,sep3dc->label[iaxis]);
+  }
+  if(sep3dc->unit[iaxis]==NULL)  strcpy(unit,"NONE");
+  else strcpy(unit,sep3dc->unit[iaxis]);
+  return(0);
+}
+
+
+int put_axis(sep3d *sep3dc,int iaxis,int n, float o, float d, char *label, char *unit){
+  sep3dc->n[iaxis]=n;
+  sep3dc->o[iaxis]=o;
+  sep3dc->d[iaxis]=d;
+  strcpy(sep3dc->label[iaxis],label);
+  strcpy(sep3dc->unit[iaxis],unit);
+  return(0);
+}
+
+
+int axis_part(sep3d *sep3dc,int *esize_it){
+int i,j,ierr,iadd=1,istart=0;
+char temp_ch[128];
+ 
+n_part=(int**)malloc(sizeof(int*)*9);
+if(esize_it[0]!=-1){
+   nlen[0]=2;
+   n_part[0]=(int*)malloc(sizeof(int)*nlen[0]);
+   iadd=0;istart=1;
+   n_part[0][0]=esize_it[0];
+   n_part[0][1]=esize_it[1];
+   ngr[0]=sep3dc->n[0];
+   changed[0]=1;
+}
+
+for(i=istart; i < 9; i++){
+   changed[i]=0;
+   if(i < sep3dc->ndims) nlen[i]=sep3dc->n[i];
+   else  nlen[i]=1;
+   ngr[i]=nlen[i];
+   n_part[i]=(int*)malloc(sizeof(int)*nlen[i]);
+   for(j=0; j < nlen[i]; j++) n_part[i][j]=j+1;
+   sprintf(temp_ch,"axis%d",i+iadd);
+   ierr=getch(temp_ch,"d",n_part[i]);
+   if(ierr >0){
+     for(j=0; j < ierr; j++){
+       if(n_part[i][j] < 1 || n_part[i][j] > nlen[i]){
+         return(sepwarn(-1,"Illegal axis description %s[%d]=%d \n",
+          temp_ch,j+1,n_part[i][j]));
+       }
+     }
+     nlen[i]=ierr;
+   }
+   for(j=0; j < nlen[i]; j++) n_part[i][j]=n_part[i][j]-1;
+   if(i< sep3dc->ndims){
+     if(nlen[i] != sep3dc->n[i]){
+       sep3dc->n[i]=nlen[i]; sep3dc->o[i]=sep3dc->o[i]+sep3dc->d[i]*n_part[i][j];
+       sep3dc->d[i]=1;
+       changed[i]=1;
+     }
+   }
+ }
+return(0);
+}

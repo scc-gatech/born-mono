@@ -1,0 +1,50 @@
+This directory contains example on how to write and link SEPlib code.
+
+In each directory is a code that simply scales a dataset. 
+
+Each example shows how to:
+
+  -grab parameters from the history file
+  -grab parameters from the parameter file
+  -read a seplib dataset
+  -write a seplib dataset
+
+
+c              - A straight C code
+fortran77      - A straight fortran 77 code
+fortran90      - A straight fortran 90 code
+ratfor90       - A code processed by SEP's ratfor90 preprocessor
+sep2df90       - A code using a fortran90 parameter handling read/write lib
+saw            - A code using old-style seplib memory and par shortcuts
+f_calls_c      - An example of a fortran code that calls C
+c_calls_f      - An example of a C code calling fortran
+
+
+Makefile       - Contains a list of some common definitions
+
+----------------------------------------------------------------------
+Generally, to link several object files to form a single executable
+
+${BINDIR}/exec.x:	$(addprefix ${OBJDIR}/, obj1.o obj2.o)
+
+
+Execeptions/rules:
+
+1. You must have a exec.o, which defines the linker that will be used
+    (if exec is a C program, the C linker will be used, etc)
+
+2. If you want to do a cross linking and then main program linker
+   won't work (often C calling fortran) use
+
+ 	${F90_LN}, ${F77_LN}, ${C_LN}  as your linking rule (see c_calls_f for
+  an example)
+
+----------------------------------------------------------------------
+
+
+
+Needed additions: 
+
+1. How to use sep3d
+2. How to use geef90
+3. How to use superset

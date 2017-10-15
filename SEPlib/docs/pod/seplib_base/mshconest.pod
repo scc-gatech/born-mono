@@ -1,0 +1,48 @@
+=head1 NAME
+
+
+mshconest - convolution using multi-scale helix filters, adjoint is filter
+
+=head1 SYNOPSIS
+
+
+Initializer - C<call mshconest_init(x,aa)>
+
+Operator    - C<ierr=mshconest_lop(adj,add,xx,yy)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item x  - C<real(:)>
+
+      data
+
+=item aa - type(msfilter)
+
+      helix filter to perform convolution with
+
+=item adj,add,xx,yy -
+
+      standard operators parameters
+
+=back
+
+=head1 DESCRIPTION
+
+
+  Masked multi-scale helix convolution, adjoint is the filter
+
+=head1 SEE ALSO
+
+
+L<mshelix>,L<hconest>,L<mshelicon>,L<nhconest>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

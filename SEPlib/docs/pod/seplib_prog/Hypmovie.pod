@@ -1,0 +1,53 @@
+=head1 NAME
+
+
+Hypmovie - velocity space transform movie
+
+=head1 SYNOPSIS
+
+
+Hypmovie integral=0 vmin=1.4 vmax=3.0 n3= < in.H > out.H
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item	integral - integer
+
+      [0] 0 calls hypsumtab
+      1 calls hypinttab
+
+=item	vmin     - real
+
+      [1.4] minimum velocity
+
+=item	vmax     - real
+
+      [3.0] maximum velocity
+
+=item	n3       - integer
+
+      [1] number of times into velocity space
+
+=back
+
+=head1 DESCRIPTION
+
+
+	 Velocity space transformation movie.
+	 Go in and out of velocity space n3 times.
+
+=head1 SEE ALSO
+
+
+L<Hypint>
+
+=head1 CATEGORY
+
+
+B<seis/velan>
+
+=cut
+

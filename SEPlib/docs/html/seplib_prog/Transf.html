@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Transf - Transposes and FFTs a dataset</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#notes">NOTES</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Transf - Transposes and FFTs a dataset</p>
+<p>!#$=head1 SYNOPSIS</p>
+<p>Transf  &lt;in.H &gt;out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<p>!#$=item f_min - float</p>
+<pre>
+        [0]: Minimum frequency (only needed for forward op)</pre>
+<dl>
+<dt><strong><a name="item_f_min1__2d_float">f_min1 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [f_min]: Minimum frequency with 100% pass (only needed for forward op)</pre>
+</dd>
+<dt><strong><a name="item_f_max__2d_float">f_max - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [.5/d1]: Maximum frequency  (only needed for forward op)</pre>
+</dd>
+<dt><strong><a name="item_f_max1__2d_float">f_max1 - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [f_max]: Maximum frequency with 100% pass (only needed for forward op)</pre>
+</dd>
+<dt><strong><a name="item_shift2__2d_integer">shift2 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: How many n=1 axes to introduce or remove after the frequency axis</pre>
+</dd>
+<dt><strong><a name="item_maxsize__2d_integer">maxsize - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [50]: Maximum megabytes to use</pre>
+</dd>
+<dt><strong><a name="item_verb__2d_logical">verb  - logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [n]: Whether or not to be verbose</pre>
+</dd>
+<dt><strong><a name="item_wei__2d_logical">wei  - logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [false]: Do WEI style transforms</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Transforms a dataset (and its inverse) from (nt,nx,...) to (nx ...,nt)</p>
+<p>
+</p>
+<hr />
+<h1><a name="notes">NOTES</a></h1>
+<pre>
+ Forward/Inverse determined from esize (4-forward, 8-inverse)</pre>
+<pre>
+ WARNING WARNING WARNING: Unpipable</pre>
+
+</body>
+
+</html>

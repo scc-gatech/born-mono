@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Mute3d - Muting in sep3d datasets</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Mute3d - Muting in sep3d datasets</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Mute3d  &lt;in.H &gt;out.H pars</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_verb__2d_integer">verb   -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] Whether (1) or not(0) to be verbose</pre>
+</dd>
+<dt><strong><a name="item_maxsize_2d_integer">maxsize-  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [10]Number of megabytes of traces to hold</pre>
+</dd>
+<dt><strong><a name="item_vmute__2d_float">vmute    -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1.45] -  Outer mute velocity
+        0.0   -  Flat mute in offset</pre>
+</dd>
+<dt><strong><a name="item_tmute__2d_float">tmute    -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0.0]  start time of (hyperbolic) outer mute</pre>
+</dd>
+<dt><strong><a name="item_tramp__2d_float">tramp    -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0.25]  linear mute time ramp in seconds</pre>
+</dd>
+<dt><strong><a name="item_integer">off_keys- <code>integer(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+       Offset float key(s) describing</pre>
+</dd>
+<dt><strong>off_axes- <code>integer(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+       Offset axes</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+  Performs Muting on regular or irregular dataset</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>NMO</em>, <a href="./../seplib_prog/Velan3d.html">the Velan3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+ off_keys and off_axes, are somewhat optional
+ If none of these are suplied checks keys and then axes for
+ aoffset, offset_x, and offset_y.</pre>
+<pre>
+ If you supply a key number &gt; key number of data_record_number subtract 1
+ to the parameter (data_record_number is not stored with the headers)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/velan</strong></p>
+
+</body>
+
+</html>

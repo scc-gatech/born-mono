@@ -1,0 +1,49 @@
+=head1 NAME
+
+
+conv - convolve helix filters
+
+=head1 SYNOPSIS
+
+
+C<ss=conv(aa,bb)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item aa,bb - type(filter)
+
+      Helix filters
+
+=back
+
+=head1 RETURN VALUE
+
+
+=over 4
+
+=item  ss - type(filter)
+
+       Result of helix filter convolution
+
+=back
+
+=head1 DESCRIPTION
+
+
+Convolves two helix filters and returns result
+
+=head1 SEE ALSO
+
+
+L<helix>,L<compress>,L<helicon>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

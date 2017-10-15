@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Headermath - Do mathematical operations on header keys</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Headermath - Do mathematical operations on header keys</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Headermath &lt;input.H pars  &gt;output.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_keyi_2d_char_2a">keyi- char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      keyname</pre>
+</dd>
+<dt><strong><a name="item_eqni_2d_char_2a">eqni- char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      function recognizes header names and a number of
+      functions, written in mathematical equation form</pre>
+</dd>
+<dt><strong><a name="item_typei_2d_char_2a">typei- char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [scalar_float] type of output</pre>
+</dd>
+<dt><strong><a name="item_maxsize__2d_int">maxsize - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      maximum size of temporary (in MB) defaults to 10 MB</pre>
+</dd>
+<dt><strong><a name="item_verb__2d_int">verb   -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] whether or not to be verbose[1]</pre>
+</dd>
+<dt><strong><a name="item_delete_keys_2dint_2a">delete_keys-int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [NULL] key indexes to delete</pre>
+</dd>
+<dt><strong><a name="item_rotate_2dfloat">rotate-float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [optional] rotate using (s_x,s_y,g_x,g_y,cmp_x,cmp_y) the 
+      coordinates of the dataset  (degrees)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Create new keys for a SEP3d dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>Example: To calculate cmp_x,cmp_y,azimuth
+key1=cmp_x
+eqn1=(sx+gx)/2
+type1=scalar_float
+key2=cmp_y
+eqn2=(sy+gy)/2
+type2=scalar_float
+key3=azimuth
+eqn3=@ATAN((gy-sy)/(gx-sx))
+type3=scalar_float</p>
+<p>Supported Functions (specified by @ at begining):</p>
+<p><table cellspacing="0" cellpadding="0"><tr><td>COS<td>SIN<td>TAN
+<tr><td>ACOS<td>ASIN<td>ATAN
+<tr><td>COSH<td>SINH<td>INT
+<tr><td>EXP<td>LOG<td>SQRT
+<tr><td>ABS</table></p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Math.html">the Math manpage</a>,<a href="./../seplib_base/evaluate_expression.html">the evaluate_expression manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/headers</strong></p>
+
+</body>
+
+</html>

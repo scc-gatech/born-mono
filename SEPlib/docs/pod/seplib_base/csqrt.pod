@@ -1,0 +1,48 @@
+=head1 NAME
+
+
+csqrt - Complex square root
+
+
+=head1 SYNOPSIS
+
+
+C<val= csqrt(a)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  a - complex 
+
+       input number
+
+=back
+
+=head1 RETURN VALUES
+
+
+=over 4
+
+=item val - complex 
+
+      result of sqrt
+
+=back
+
+=head1 DESCRIPTION
+
+
+    Complex square root
+     Csqrt returns sqrt(a) for an arbitrary complex a.  An
+     equivalent formula is cspow(a,0.5).
+
+
+=head1 LIBRARY
+
+
+B<sepmath>
+
+=cut
+

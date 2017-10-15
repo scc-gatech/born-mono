@@ -1,0 +1,45 @@
+=head1 NAME
+
+
+nhelicon - non stationary convolution
+
+=head1 SYNOPSIS
+
+
+Initializer - C<call nhelicon_init(aa)>
+
+Operator    - C<ierr=nhelicon_lop(adj,add,xx,yy)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item aa - type(nfilter)
+
+      nhelix filter to perform convolution with
+
+=item adj,add,xx,yy -
+
+      standard operators parameters
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Nonstationary convolution, inverse to deconvolution.
+ Requires the filter be causal with an implicit "1." at the onset.
+
+=head1 SEE ALSO
+
+
+L<nhelix>,L<nhconest>,L<npolydiv>,L<helicon>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

@@ -1,0 +1,150 @@
+=head1 NAME
+
+
+solver_reg - iteratively solve regularized system of equation
+
+=head1 SYNOPSIS
+
+
+C<call solver_reg(oper, solv, reg, nreg, x, dat, niter, eps,
+ x0,nmem,nfreq,err,res,nloper,xmov,rmov,wght,verb,known,wt)>
+
+=head1 INPUT PARAMETERS
+
+
+=head2 REQUIRED PARAMETERS
+
+=over 4
+
+=item oper   - function
+
+      operator (standard interface)
+
+=item solv   - step
+
+      step mecanism
+
+=item reg    - function
+
+      regularization operator operator(standard interface)
+
+=item nreg  - integer
+
+      number of output pts when reg is applied to the model
+
+
+=item dat    - C<real(:)>
+
+      data
+
+=item niter  - integer
+
+      number of iterations
+
+=back
+
+=head2 OPTIONAL PARAMETERS
+
+=over 4
+
+=item  x0    - C<real(:)>
+
+       Initial model
+
+=item nmem   - integer
+
+      Change behavior after nmem itterations
+      use in conjunction with nfreq and/or wght
+
+=item nfreq  - integer
+
+      Restart step function every nfreq itterations
+      after nmem steps
+
+=item nloper - func
+
+      Non-linear operator to use for forward operator
+
+=item wght   - func(res,m)
+
+      Weighting funtion operator
+
+=item verb   - logical
+
+      Wheter or not to be verbose
+
+=item known  - logical(:)
+
+      Specify (.true.) model values that are knonw
+
+=item wt     - real(:)
+
+      Weighting operator to apply to residuals
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=head2 REQUIRED PARAMETERS
+
+=over 4
+
+=item x      - C<real(:)>
+
+      model
+
+=back
+
+=head2 OPTIONAL PARAMETERS
+
+=over 4
+
+=item err    - real(niter)
+
+      Error sum((d-d~)**2)
+
+=item res    - C<real(:)>
+
+      Final residual (size of data)
+
+=item xmov   - C<real(:,niter)>
+
+      Movie of model values as a function of iter
+
+=item rmov   - C<real(:,niter)>
+
+      Movie of data residual
+
+=back
+
+=head1 DESCRIPTION
+
+
+Generic regularized solver.
+
+=head1 COMMENTS
+
+
+All operators must follow convetion
+
+C<integer function (logical adj, logical add, real(:) model, real(:)data)>
+
+All solv routines must follow the convention
+
+C<integer function(logical forget,real(:) x,real(:) g, real(:) rr,real(:) gg)>
+
+
+=head1 SEE ALSO
+
+
+L<solver_prec>,L<solver>,L<nonlin_solver>,L<lsqr>
+
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

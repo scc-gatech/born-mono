@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Helicon - Helix convolution and deconvolution</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#modules">MODULES</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Helicon - Helix convolution and deconvolution (N-dimensional!)</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Helicon &lt; in.H filt= adj=0 div=0 &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Applies helix convolution (polynomial multiplication) or deconvolution
+(polynomial division). One is the exact inverse of the other. Watch
+for helical boundary conditions.</p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_from_history">from history</a></strong><br />
+</dt>
+<dd>
+<strong>integer array</strong> <em>n</em> - reads <em>n1</em>, <em>n2</em>, <em>n3</em>, ...
+</dd>
+<p></p>
+<dt><strong><a name="item_from_par">from par</a></strong><br />
+</dt>
+<dd>
+<strong>filename</strong> <em>filt</em> - helix filter file
+</dd>
+<dd>
+<p><strong>integer</strong> <em>adj</em>=0 - apply adjoint (backward) filtering</p>
+</dd>
+<dd>
+<p><strong>integer</strong> <em>div</em>=0 - apply inverse recursive filtering (polynomial division)</p>
+</dd>
+<dd>
+<p><strong>logical</strong> <em>regrid</em>=1 - regrid the filter</p>
+</dd>
+<dd>
+<p><strong>logical</strong> <em>regrid</em>=0 - bound the filter</p>
+</dd>
+<p></p>
+<dt><strong><a name="item_aux">from aux (filt)</a></strong><br />
+</dt>
+<dd>
+<strong>integer array</strong> <em>h</em> - helix grid (can be <em>h1</em>, <em>h2</em>, ...)
+;
+<strong>integer array</strong> <em>lag</em>=1,...,n1 - comma separated list of filter lags
+</dd>
+<dd>
+<p><strong>real</strong> <em>a0</em>=1 - zero-lag filter coefficient</p>
+</dd>
+<p></p></dl>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<p><em>gee/hlx/helderiv/</em>, <em>gee/hlx/helicon90/</em>, <em>gee/hlx/helocut90/</em>,
+<em>gee/mda/morgan/</em>, <em>gee/prc/sep95/</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="modules">MODULES</a></h1>
+<p><em>helicon.lop</em>, <em>polydiv.lop</em>, <em>regrid.r90</em>, <em>helix.r90</em></p>
+
+</body>
+
+</html>

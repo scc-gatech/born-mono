@@ -1,0 +1,50 @@
+=head1 NAME
+
+
+rms2int - convert to and from rms/interval velocity
+
+=head1 SYNOPSIS
+
+
+C<call rms2int(inverse,dt,vrms,nt,vint)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item inverse - int
+
+      0-int->rms 1-rms->int
+
+=item dt      - real
+
+      sampling in time
+
+=item vrms    - real(nt)
+
+      RMS velocity
+
+=item nt      - int
+
+      Number of time samples
+
+=item vint    - real(nt)
+
+      Interval velocity
+
+=back
+
+=head1 DESCRIPTION
+
+
+A fortran77 program to convert velocity to and from rms velocity
+
+
+=head1 LIBRARY
+
+
+B<sepvelanf>
+
+=cut
+

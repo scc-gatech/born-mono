@@ -1,0 +1,379 @@
+/*$
+
+=head1 NAME
+
+Disfil - Display data values
+ 
+=head1 SYNOPSIS
+
+Disfil [ type=f,c,d,i,s,b,n col= format=(printf format) number=y ] < in.H
+    
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item  type - char     
+
+      f or r-  4-byte FLOAT    (default if esize=4)
+      n -4-byte NATIVE FLOAT   (doesn't use sreed)
+      c -8-byte COMPLEX  (default if esize=8)
+      d -8-byte FLOAT
+      i-  4-byte INT
+      s- 2-byte INT    (default if esize=2)
+      b- 1-byte INT    (default if esize=1)
+
+=item  col - int       
+
+      number of columns in output.
+      defaults 3,5, or 10 depending on type.
+
+=item format-char*     
+  
+      printf-style format for output.
+      defaults '%13.4g ' for float and double.
+      '%4d ' for int, short and byte.
+      '%10.4g,%10.4gi  ' for complex.
+
+=item  number-int      
+
+      n  -do not number elements.
+
+=item  skip  -int      
+
+      [0]  skip this many BYTES before starting processing.
+
+=item  count -int       
+
+      Only print out this many ELEMENTS.
+
+=back
+
+=head1 DESCRIPTION
+
+Formatted display of a binary data file
+
+
+=head1 SEE ALSO
+
+L<Dd>, L<Dis3dhead>
+
+=head1 CATEGORY
+
+B<util/info>
+
+=cut
+
+>*/
+
+/*
+
+ KEYWORDS data display  binary  ascii
+
+ SEE ALSO
+  dd Dd
+
+ WHERE
+  ./our/cube/util/Disfil.c
+
+copyright (c) 1991 Stanford University
+*/
+/*
+ * 
+ * number-option added by Jos -  5/2/89
+ * count, skip, type=c, n1=-1, a few bug fixes, stricter error-checking
+ * by Joe Dellinger, SOEST, February 1992
+ *
+ * Modified Dave Nichols SEP 8/27/94
+ *    Use new seplib routines sreed_raw 
+ *  
+ * Modiefied Bob SEP 6/96
+ *    Fixed for SGI
+ * 
+ * Modified Bob SEP 6/99
+ *    Fixed for multifd
+ */
+/*
+ * Keyword: data display  binary  ascii
+ */
+
+#define NTYPE  7
+#define MAXCOL  128
+struct
+{
+    char            name[10];  /* name of type */
+    int             bytes;  /* byte size of type */
+    int             col;/* default number of columns */
+    char            Format[80];  /* format of type */
+}              *TYPE, Type[NTYPE] =
+{
+    "float", 4, 5, "%13.4g ",
+    "native", 4, 5, "%13.4g ",
+    "complex", 8, 3, "%10.4g,%10.4gi  ",
+    "double", 8, 5, "%13.4g ",
+    "int", 4, 10, "%4d ",
+    "short", 2, 10, "%4d ",
+    "byte", 1, 10, "%4d "
+};
+enum
+{
+    Float, NativeFloat, Complex, Double, Int, Short, Byte
+};      /* index to Type */
+char            type[10] = "float";  /* default type */
+int             number = 1;
+
+#define OUT "stdout"
+#define HEAD "/dev/null"
+
+#include <sepConfig.h>
+#include <stdlib.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+ADD_DEF_SEP_DOC
+#include <sep.main>
+int MAIN(void)
+{
+long            i, n, count;
+int             l[MAXCOL];
+short           s[MAXCOL];
+float           f[MAXCOL], ff[MAXCOL * 2];
+double          d[MAXCOL];
+unsigned char   b[MAXCOL], format[80];
+int              nrd,n0;
+int             esize;
+int             skip, byteskip ,byte_grab;
+double   bytetotsize,totsize;
+
+ if(isatty(fileno(stdin))) {
+      doc(SOURCE);
+fprintf(stderr,"called doc(%s)\n",SOURCE);
+ }
+
+    esize = -1;
+    if (fetch ("esize", "d", &esize))
+    {
+  switch (esize)
+  {
+  case 0:
+      seperr ("Can't handle ASCII SEPlib \"data\" files.\n");
+      break;
+  case 1:
+      strcpy (type, "byte");
+      break;
+  case 2:
+      strcpy (type, "short");
+      break;
+  case 4:
+      strcpy (type, "float");
+      break;
+  case 8:
+      strcpy (type, "complex");
+      break;
+  }
+    }
+
+    /* fetch parameters */
+    getch ("type", "s", type);
+    getch ("number", "1", &number);
+    switch (*type)
+    {
+    case 'f':
+    case 'F':
+    case 'r':
+    case 'R':
+  TYPE = &Type[(int) Float];
+  break;
+    case 'n':
+    case 'N':
+  TYPE = &Type[(int) NativeFloat];
+  break;
+    case 'c':
+    case 'C':
+  TYPE = &Type[(int) Complex];
+  break;
+    case 'd':
+    case 'D':
+  TYPE = &Type[(int) Double];
+  break;
+    case 'l':
+    case 'L':
+    case 'i':
+    case 'I':
+  TYPE = &Type[(int) Int];
+  break;
+    case 's':
+    case 'S':
+  TYPE = &Type[(int) Short];
+  break;
+    case 'b':
+    case 'B':
+  TYPE = &Type[(int) Byte];
+  break;
+    default:
+  seperr ("unknown type %s\n", type);
+    }
+
+    if (esize == -1)
+  esize = TYPE->bytes;
+
+    byte_grab=-1;
+    if (0==hetch ("n1", "d", &byte_grab))
+  fprintf (stderr, "%s: n1 not set; assuming n1=-1 %d \n", sepxargv[0],byte_grab);
+    bytetotsize=(double)byte_grab;
+    if (bytetotsize == -1)
+    {
+  byte_grab = ssize_block ("in",TYPE->bytes);
+  bytetotsize = (double) byte_grab *(double)TYPE->bytes ;
+  if (bytetotsize < 0)
+      seperr ("Can't figure out size of file\n");
+
+  fprintf (stderr, "%s: File is %f bytes long\n", sepxargv[0], bytetotsize);
+    }
+    else
+    {
+  if (!fetch ("n2", "d", &n0))
+      n0 = 1;
+  bytetotsize *= (double)n0;
+  if (!fetch ("n3", "d", &n0))
+      n0 = 1;
+  bytetotsize *= (double)n0;
+  if (!fetch ("n4", "d", &n0))
+      n0 = 1;
+  bytetotsize *= (double)n0;
+  bytetotsize *= (double)esize;
+    }
+
+    getch ("col", "d", &TYPE->col);
+    if (TYPE->col > MAXCOL)
+  TYPE->col = MAXCOL;
+    if (fetch ("format", "s", format))
+  sprintf (TYPE->Format, "%s", format);
+
+    byteskip = 0;
+    getch ("skip", "d", &byteskip);
+    if ((double)byteskip >= bytetotsize)
+    {
+  seperr ("bytes to skip (%d) >= total file size (%f)\n",
+    byteskip, bytetotsize);
+    }
+    if (byteskip % TYPE->bytes)
+    {
+  if ((TYPE->name[0] == 'f' || TYPE->name[0] == 'c') && (byteskip % sizeof (float)))
+      seperr ("Offseting %d bytes from normal reading frame not allowed with sreed.\n", byteskip % TYPE->bytes);
+
+    }
+    skip = byteskip / TYPE->bytes;
+
+    bytetotsize = bytetotsize - (double)byteskip;
+
+    totsize = bytetotsize / (double)TYPE->bytes;
+    if (!getch ("count", "d", &byte_grab))
+    {
+  byte_grab=(int)(bytetotsize - (double)TYPE->bytes * (double)((int)(bytetotsize /(double)TYPE->bytes)));
+/*  if (bytetotsize % TYPE->bytes)*/
+  if (byte_grab !=0)
+  {
+      fprintf (stderr, "%s: Discarding %d bytes of partial element at end.\n", sepxargv[0], byte_grab);
+  }
+    }
+    else totsize = (double) byte_grab;
+    if (totsize * (double)TYPE->bytes > bytetotsize)
+    {
+  fprintf (stderr, "%s: count (%f) > number elements (%f); stopping at end.\n", sepxargv[0], totsize, bytetotsize / TYPE->bytes);
+    }
+
+    hclose ();
+    /* read and print data */
+
+#define SKIP(X)\
+  for (nrd = 1; (byteskip != 0) && (nrd = sreed_raw("in", X, MIN(MAXCOL*TYPE->bytes,byteskip))) > 0; byteskip -= nrd);\
+  if (nrd <= 0)\
+  {\
+  seperr("Hit end of data with %d bytes left to skip.\n", byteskip);\
+  }
+
+#define CASE(X)\
+  for (count=skip; (totsize > 0) && (nrd = sreed_raw("in",X,(int)MIN(TYPE->col,(double)totsize)*TYPE->bytes)) > 0; count+=n, totsize-=n)\
+  {\
+  n = nrd/TYPE->bytes;\
+  if (number) fprintf (outstream,"%4ld: ",count);\
+  for (i=0;i<n;i++) fprintf (outstream,TYPE->Format,X[i]);\
+  fprintf (outstream,"\n");\
+  }\
+  if (nrd <= 0)\
+  {\
+  seperr("Hit end of data with %f elements left to go.\n", totsize);\
+  }
+
+
+    switch (TYPE->name[0])
+    {
+    case 'f':
+  /* float is a special case that uses sreed */
+  for (nrd = 1; (byteskip != 0) && (nrd = sreed ("in", f, MIN (MAXCOL * TYPE->bytes, byteskip))) > 0; byteskip -= nrd);
+  if (nrd == 0)
+      seperr ("Hit end of data with %d bytes left to skip.\n", byteskip);
+
+  count = skip;
+  do
+  {
+      nrd = MIN (TYPE->col, (int)(totsize - (double)count)) * TYPE->bytes;
+      n = sreed ("in", f, nrd) / TYPE->bytes;
+      if (number)
+    fprintf (outstream, "%4ld: ", count);
+      for (i = 0; i < n; i++)
+    fprintf (outstream, TYPE->Format, f[i]);
+      fprintf (outstream, "\n");
+      count += n;
+  } while (count < totsize && n > 0);
+  if (n == 0)
+      seperr ("Hit end of data with %f elements left to go.\n",(int) (totsize - count));
+  break;
+    case 'c':
+  for (nrd = 1; (byteskip != 0) && (nrd = sreed ("in", ff, MIN (MAXCOL * TYPE->bytes, byteskip))) > 0; byteskip -= nrd);
+  if (nrd == 0)
+      seperr ("Hit end of data with %d bytes left to skip.\n", byteskip);
+
+  count = skip;
+  do
+  {
+      nrd = MIN (TYPE->col, totsize - count) * TYPE->bytes;
+      n = sreed ("in", ff, nrd) / TYPE->bytes;
+      if (number)
+    fprintf (outstream, "%4ld: ", count);
+      for (i = 0; i < n; i++)
+      {
+    fprintf (outstream, TYPE->Format, ff[2 * i], ff[2 * i + 1]);
+      }
+      fprintf (outstream, "\n");
+      count += n;
+  } while (count < totsize && n > 0);
+  if (n == 0)
+      seperr ("Hit end of data with %f elements left to go.\n", totsize - count);
+  break;
+/* Native floating-point */
+    case 'n':
+  SKIP (f);
+  CASE (f);
+  break;
+  case 'd':
+  SKIP (d);
+  CASE (d);
+  break;
+    case 'l':
+    case 'i':
+  SKIP (l);
+  CASE (l);
+  break;
+    case 's':
+  SKIP (s);
+  CASE (s);
+  break;
+    case 'b':
+  SKIP (b);
+  CASE (b);
+  break;
+    }
+  return(EXIT_SUCCESS);
+
+}

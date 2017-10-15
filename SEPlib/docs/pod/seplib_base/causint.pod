@@ -1,0 +1,38 @@
+=head1 NAME
+
+
+causint - Causal integration
+
+=head1 SYNOPSIS
+
+
+C<ierr=causint_lop(adj,add,x,y)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item adj,add,x,y  -
+
+      standard operator interface
+
+=back
+
+=head1 DESCRIPTION
+
+
+Causal integration
+
+=head1 SEE ALSO
+
+
+L<cdoubint>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

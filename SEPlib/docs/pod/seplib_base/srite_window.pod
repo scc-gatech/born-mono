@@ -1,0 +1,78 @@
+=head1 NAME
+
+
+srite_window - write a seplib window
+
+
+=head1 SYNOPSIS
+
+
+C<int srite_window(tag_history,n_dim_cube,n_cube,n_wind,f_wind,j_wind,esize,values)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+
+=item    char* - tag_history     
+
+         tag of History File
+
+=item    int*  - n_dim_cube	     
+
+          Number of Dimensions in the cube
+
+=item    int*  - n_cube		       
+
+         Vector of lenght n_dim_cube length of the axes in the cube
+
+=item    int*  - n_wind          
+
+         Vctor of lenght n_dim_cube axes length after windowing
+
+=item    int*  - f_wind          
+
+         Vector of lenght n_dim_cube index of first elements C<(0<= o < n)>
+
+=item    int*  - j_wind          
+
+         Vector of lenght n_dim_cube sampling rate along axes C<(1<= j < n)>
+
+=item    int   - esize	   
+
+         number of bytes per element
+
+=item    void* - values          
+
+         array of values to be written.
+
+
+=back
+
+=head1 RETURN VALUE
+
+
+ 0 = if successful
+
+ -1 = if fails for other reasons
+
+ -2 = if the values in n_wind, f_wind, j_wind are incorrect
+
+=head1 DESCRIPTION
+
+
+It writes a subset (window) of a Seplib cube
+
+=head1 SEE ALSO
+
+
+L<srite_window>
+
+=head1 LIBRARY
+
+
+B<sep>
+
+=cut
+

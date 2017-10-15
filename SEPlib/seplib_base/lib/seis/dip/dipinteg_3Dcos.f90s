@@ -1,0 +1,94 @@
+module dipinteg_3Dcos
+  use sep
+  use dottest
+  use fftw_flags_mod
+#ifndef USE_FFTW
+use fftw_sep_fake_mod
+#endif
+!  use fftwflags
+!  use fft_types
+  implicit none
+
+  integer, save               ::n1_in,n2_in,n3_in
+  integer*8,private,save                :: plan3df,plan2df,plan2di,plan3di
+  real, allocatable      :: cos_1d_1axis(:),cos_1d_1axis_out(:)
+  real, allocatable ::  cos_1d_2axis(:),cos_1d_2axis_out(:),cos_1d_3axis(:)
+  real, allocatable  :: cos_1d_3axis_out(:)
+  real,allocatable :: temp2d(:,:),temp3d(:,:,:)
+
+
+contains
+  subroutine dipinteg_3Dcos_init( n1,n2,n3)
+    integer n1,n2,n3
+    n1_in=n1;n2_in=n2;n3_in=n3				
+   allocate(temp3d(n1,n2,n3))
+write(0,*) "CHECK MAS",n1,n2,n3;
+   call sfftw_plan_r2r_3d(plan3df,n1,n2,n3,temp3d ,temp3d,FFTW_REDFT10,FFTW_REDFT10,FFTW_REDFT10,FFTW_ESTIMATE)
+   call sfftw_plan_r2r_3d(plan3di,n1,n2,n3,temp3d ,temp3d,FFTW_REDFT01,FFTW_REDFT01,FFTW_REDFT01,FFTW_ESTIMATE)
+
+  end subroutine dipinteg_3Dcos_init
+  subroutine dipinteg_2Dcos_init( n1,n2)
+    integer n1,n2
+    n1_in=n1;n2_in=n2				
+   allocate(temp2d(n1,n2))
+   call sfftw_plan_r2r_2d(plan2df,n1,n2,temp2d ,temp2d,FFTW_REDFT10,FFTW_REDFT10,FFTW_REDFT10,FFTW_PATIENT)
+   call sfftw_plan_r2r_2d(plan2di,n1,n2,temp2d,temp2d,FFTW_REDFT01,FFTW_REDFT01,FFTW_REDFT01,FFTW_ESTIMATE)
+
+  end subroutine dipinteg_2Dcos_init
+
+  subroutine dipinteg_3Dcos_close()
+
+  end subroutine dipinteg_3Dcos_close
+
+
+  subroutine dipinteg_3Dcos_exec( rt_3D,cos_trans)
+    integer		       :: ct,cx,cy
+    real                      :: cos_trans(:,:,:),rt_3D(:,:,:)
+    integer*8                :: plan
+    integer :: i1,i2,i3
+!    call sfftw_plan_r2r_3d(plan,n1_in,n2_in,n3_in,rt_3D ,rt_3D,FFTW_REDFT10,FFTW_REDFT10,FFTW_REDFT10,FFTW_ESTIMATE)
+    temp3d=rt_3d
+    call sfftw_execute(plan3df) 
+     rt_3d=temp3d
+!    call sfftw_destroy_plan(plan) 
+     temp3d=0.
+     do i3=1,size(cos_trans,3)
+       do i2=1,size(cos_trans,2)
+         do i1=1,size(cos_trans,1)
+           if(cos_trans(i1,i2,i3)>.000001) cos_trans(i1,i2,i3)=&
+             cos_trans(i1,i2,i3)/(cos_trans(i1,i2,i3)*cos_trans(i1,i2,i3)+&
+               .000000001)/(8.*(n1_in*n2_in*n3_in))
+           temp3d(i1,i2,i3)=rt_3d(i1,i2,i3)*cos_trans(i1,i2,i3)
+     end do
+     end do
+     end do
+!call srite("mm.H",cos_trans,size(temp3d)*4)
+!    call srite("cc.H",temp3d,size(temp3d)*4)
+    !where (cos_trans(:,:,:)>.000001) temp3d=(temp3d*cos_trans(:,:,:))/(cos_trans(:,:,:)*cos_trans(:,:,:)+.000000001)
+!       call sfftw_plan_r2r_3d(plan,n1_in,n2_in,n3_in,rt_3D ,rt_3D,FFTW_REDFT01,FFTW_REDFT01,FFTW_REDFT01,FFTW_ESTIMATE)
+       call sfftw_execute(plan3di) 
+!       call sfftw_destroy_plan(plan)    
+       rt_3D=temp3d
+     end subroutine dipinteg_3Dcos_exec
+
+     subroutine dipinteg_2Dcos_exec( rt_2D,cos_trans)
+       integer		       :: ct,cx,cy
+       real                      :: cos_trans(:,:),rt_2D(:,:)
+       integer*8                :: plan
+        temp2d=rt_2d
+!       call sfftw_plan_r2r_2d(plan,n1_in,n2_in,rt_2D ,rt_2D,FFTW_REDFT10,FFTW_REDFT10,FFTW_REDFT10,FFTW_ESTIMATE)
+!call srite("ba.H",temp2d,size(rt_2d)*4)
+!call srite("ba.H",temp2d,size(rt_2d)*4)
+       call sfftw_execute(plan2df) 
+!       call sfftw_destroy_plan(plan) 
+       where (cos_trans>.000001) temp2d=(temp2d*cos_trans)/(cos_trans*cos_trans+.000000001)
+!          call sfftw_plan_r2r_2d(plan,n1_in,n2_in,rt_2D ,rt_2D,FFTW_REDFT01,FFTW_REDFT01,FFTW_REDFT01,FFTW_ESTIMATE)
+          call sfftw_execute(plan2di) 
+!call srite("ba.H",temp2d,size(rt_2d)*4)
+!          call sfftw_destroy_plan(plan)    
+          rt_2D=temp2d/(4.*(n1_in*n2_in))
+        end subroutine dipinteg_2Dcos_exec
+
+
+
+      end module dipinteg_3Dcos

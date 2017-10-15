@@ -1,0 +1,50 @@
+!#
+!#  The XTpen app-defaults file used by Joe Dellinger at BP Amoco.
+!#  The new Sun monitors have a full-screen resolution of 1280 x 1024 pixels.
+!#
+!# If you leave this out, then it just takes the user's default font
+XTpen*Font:	9x15bold
+!#
+!#
+!# User does "xtpen -name fullscreen" or "xtpen -name slide" to get fullscreen
+!# version.
+!#
+!# fullscreen is a shade less than a full screen, so that "see_progress" can
+!# work. slide is exactly the whole screen; for some reason under Solaris
+!# they won't let you open a window bigger than the screen. (They "fix your
+!# mistake" for you.)
+!#
+!# You may also want to use xtpen's options to turn off the various buttons
+!# and message windows when using these:
+!# 	buttons=no labels=no want_text=no
+!#
+
+XTpen.geometry:	815x715+300+125
+
+fullscreen.geometry:	1274x1018-0-0
+slide.geometry:	1280x1024-0-0
+
+XTpen*Quit.label:	QUIT
+
+!#
+!# I don't use so many of the keys...
+!#
+*pen_picture*translations: #override\n\
+<KeyPress>Q: 		xt_quit() \n\
+<KeyPress>q: 		xt_quit() \n\
+<KeyPress>n:		xt_stop() xt_next() \n\
+<KeyPress>m:		xt_stop() xt_prev() \n\
+<KeyPress>p:		xt_stop() xt_prev() \n\
+<KeyPress>s:		xt_slower() \n\
+<KeyPress>f:		xt_faster() \n\
+<Key>0:       	   xt_number(0) \n\
+<Key>1:       	   xt_number(1) \n\
+<Key>2:       	   xt_number(2) \n\
+<Key>3:       	   xt_number(3) \n\
+<Key>4:       	   xt_number(4) \n\
+<Key>5:       	   xt_number(5) \n\
+<Key>6:       	   xt_number(6) \n\
+<Key>7:       	   xt_number(7) \n\
+<Key>8:       	   xt_number(8) \n\
+<Key>9:       	   xt_number(9) \n\
+<Key>Return:       xt_goto_frame() xt_reset_number()

@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Pef - Estimate PEF in N dimensions</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#modules">MODULES</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Pef - Estimate PEF in N dimensions</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Pef &lt; data.H a= [center=] [gap=] [maskin=] [maskout=] &gt; pef.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Estimates PEF by least squares, using helix convolution. 
+Can ignore missing data</p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_from_history">from history</a></strong><br />
+</dt>
+<dd>
+<strong>integer array</strong> <em>n</em> - reads <em>n1</em>, <em>n2</em>, <em>n3</em>, etc.
+</dd>
+<p></p>
+<dt><strong><a name="item_from_par">from par</a></strong><br />
+</dt>
+<dd>
+<strong>integer array</strong> <em>a</em>= - filter size
+</dd>
+<dd>
+<p><strong>integer</strong> <em>niter</em>=2*prod(a) (optional) - number of 
+PEF iterations</p>
+</dd>
+<dd>
+<p><strong>integer array</strong> <em>center</em>=a/2+1 (optional) - zero-lag position (filter centering)</p>
+</dd>
+<dd>
+<p><strong>integer array</strong> <em>gap</em>=0 (optional) - filter gap</p>
+</dd>
+<dd>
+<p><strong>filename</strong> <em>maskin, maskout</em> (optional) - data selectors</p>
+</dd>
+<p></p>
+<dt><strong><a name="item_to_history">to history</a></strong><br />
+</dt>
+<dd>
+<strong>integer array</strong> <em>lag</em> - comma separated list of filter lags
+</dd>
+<p></p></dl>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<p><em>gee/mda/hole90/</em>, <em>gee/mda/miss390/</em>, <em>gee/mda/morgan/</em>, 
+<em>gee/mda/seab90/</em>, <em>gee/pch/signoi90/</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="modules">MODULES</a></h1>
+<p><em>shape.r90</em>, <em>bound.r90</em>, <em>misinput.r90</em>, <em>pef.r90</em>, 
+<em>compress.r90</em>, <em>print.r90</em>, <em>helix.r90</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>MSPef</em>, <em>Fillmiss</em>, <a href="./../seplib_prog/Helicon.html">the Helicon manpage</a>, <em>Decon</em></p>
+
+</body>
+
+</html>

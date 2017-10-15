@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>interpolate_mod - Linear interpolation</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>interpolate_mod - Linear interpolation</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Initialized=<code>call init_1d_linear_interp(o1out,d1out,n1out,b)</code></p>
+<p>Operator=<code>call interp_1d_linear(input,output,var)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_o1out__2d_real">o1out - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      output axis begining</pre>
+</dd>
+<dt><strong><a name="item_d1out__2d_real">d1out - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      output axis sampling</pre>
+</dd>
+<dt><strong><a name="item_n1out__2d_integer">n1out - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of output points</pre>
+</dd>
+<dt><strong><a name="item_b__2dinteger">b -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      boundary condition (0-zero outside var boundary, 1 replicate
+       last value)</pre>
+</dd>
+<dt><strong><a name="item_real">input -  <code>real(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Input values</pre>
+</dd>
+<dt><strong>var -  <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Input sample location</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong>output - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      output linear interpolated</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Interpolate an irregular sampled function to a regular function.</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepauxf90</strong></p>
+
+</body>
+
+</html>

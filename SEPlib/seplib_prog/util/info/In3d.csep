@@ -1,0 +1,600 @@
+/*
+
+=head1 NAME
+
+In3d - info in seplib datasets
+
+=head1 SYNOPSIS
+
+In3d header.H [header2.H .....] [pars]
+
+
+=head1 Input parameters
+
+=over 4
+
+
+=item  keys- character  
+
+       [y] print out header keys
+
+=item   maxkeys - integer 
+
+        [number of keys] maximum number of keys to print
+
+=item   grid character 
+
+        [y]  print grid axes if they exist
+
+=item    check character
+
+        [y]  check for zeros in file
+
+=item   maxcheck - integer 
+
+        [1] Number of megabytes to check for non-zero value
+
+=back
+
+=head1 DESCRIPTION 
+
+Provides useful information about SEP3d datasets.  This includes
+
+   DATA->   [ % expected number of traces/% nonzero samples ]
+
+
+=head1 SEE ALSO
+
+L<In>, L<Attr>, L<Attr3dhead>
+
+=head1 CATEGORY
+
+B<util/info>
+
+=cut
+>*/
+/*
+Author:Robert G. Clapp
+
+9/18/95 Begun
+4/17/97 Added data_format and esize to output, need to deal with vplot
+        Should just not call filesize
+7/5/97  Changed the way number of data axes is calculated to new standard
+6/2/99  Bob-Begun change to GNU standard 
+*/
+#define         HEAD    "/dev/null"
+#define         OUT    "/dev/null"
+/*#include <sep.main>*/
+/*#include <seplib.h>*/
+#include <sepConfig.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#include <seplib.h>
+#include <sep3dc.h>
+#ifdef HAVE_SYS_FILE_H
+#include <sys/file.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#include <sepmath.h>
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
+
+
+#ifdef HAVE_STDLIB_H
+#include<stdlib.h>
+#else
+extern int atoi();
+#endif /* HAVE_STDLIB  */
+#define STRING_SIZE 20024
+    char zero_check[9];
+
+#define WIDTH 75
+#define NSECT_MAX 20000
+int do_grid,nkeys,do_check,do_key,max_check;
+int have_drn,nkeys;
+char files[99][STRING_SIZE],nfiles;
+char div_line[WIDTH+1];
+long long my_sizes[NSECT_MAX][3][3];
+char tag_sect[NSECT_MAX][STRING_SIZE];
+char mach_sect[NSECT_MAX][STRING_SIZE];
+int master_data,ithread;
+
+void get_size_info(char *tag, sep3d *sep3dc);
+int grab_file_names(int argc, char **argv);
+int grab_parameters();
+int print_file_info(char *file);
+void make_size(sep3d *mys, int itype, char *mysz);
+void my_file_size(char *tag, long long mysize[3]);
+void print_type_format(char *tag,sep3d *sep3dc);
+void print_axis_line(int iax, int n, float o, float d, char *label);
+void print_key(int ikey, char *name, char *type, char *fmt);
+void print_size_info(char *tag, sep3d *sep3dc,int idata,char *line,int isect,int ipart);
+/*MAIN()*/
+int main (int argc, char **argv)
+{
+int i,n;
+
+  initpar(argc,argv);
+  master_data=1;
+
+
+initpar( argc, argv ) ;
+ADD_SEP_DOC
+doc (SOURCE);
+if(0!=grab_file_names(argc,argv))
+  seperr("trouble grabbing file names \n");
+
+if(0!=grab_parameters())
+  seperr("trouble grabbin parameters \n");
+
+for(i=0; i < nfiles; i++){
+  if(0!=print_file_info(files[i]))
+    seperr("trouble printing file info file=%s \n",files[i]);
+  if(ithread==0 && nfiles>1 &&i<nfiles-1) fprintf(stdout,"%s\n\n\n",div_line);
+}
+return(0);
+}
+
+
+
+
+
+
+void print_type_format(char *tag, sep3d *sep3dc){
+char temp1[STRING_SIZE],temp2[STRING_SIZE],temp3[STRING_SIZE],temp4[STRING_SIZE],line[WIDTH+1];
+int i,nremain,nsize;
+
+/* file_type=GRID SYNCHED  data=float  esize=4*/
+sprintf(temp1,"file_type=%s",sep3dc->file_format);
+
+temp2[0]='\0';
+if(sep3dc->file_format[0]!='R'){
+  if(0==auxpar("same_record_number","d",&i,tag)) i=1;
+  if(i==1) sprintf(temp2,"SYNCHED");
+  else sprintf(temp3,"UNSYNCHED");
+}
+
+if(0==auxpar("data_format","s",temp4,tag)){
+  strcpy(temp4,sep3dc->data_format);
+}
+sprintf(temp3,"format=%s",temp4);
+
+if(sep3dc->data_format[0]=='F') sprintf(temp4,"esize=4");
+if(sep3dc->data_format[0]=='C') sprintf(temp4,"esize=8");
+if(sep3dc->data_format[0]=='I') sprintf(temp4,"esize=4");
+if(sep3dc->data_format[0]=='B') sprintf(temp4,"esize=1");
+
+nsize=(int)(strlen(temp1)+strlen(temp2)+strlen(temp3)+strlen(temp4));
+nremain=WIDTH-nsize;
+
+if(nremain< 3 && ithread==0) fprintf(stdout,"%s %s %s %s\n",temp1,temp2,temp3,temp4);
+else{
+  if(ithread==0) fprintf(stdout,"%s",temp1);
+  nsize=nremain/3;
+  for(i=0; i < nsize; i++){if(ithread==0) fprintf(stdout,"%s"," ");}
+
+  nremain=nremain-nsize;
+  nsize=nremain/2;
+  if(ithread==0) fprintf(stdout,"%s",temp2);
+  for(i=0; i < nsize; i++){if(ithread==0) fprintf(stdout,"%s"," ");}
+
+  nsize=nremain-nsize;
+  if(ithread==0){ fprintf(stdout,"%s",temp3);}
+  for(i=0; i < nsize; i++) if(ithread==0) {fprintf(stdout,"%s"," ");}
+  if(ithread==0) fprintf(stdout,"%s\n",temp4);
+}
+}
+
+
+
+
+void print_key(int ikey, char *name, char *type, char *fmt){
+char temp1[128];
+int nlen,i;
+
+/*
+keyXX=XXXXXXXXXXX   type=scalar_float   format=native_float
+o123456789 123456789 123456789 123456789 123456789 123456789 123456789
+*/
+sprintf(temp1,"key%d=%s",ikey,name);
+if(ithread==0) fprintf(stdout,"%s",temp1);
+for(i=0; i < 25 - (int)strlen(temp1); i++) {if(ithread==0) fprintf(stdout,"%s"," ");}
+
+sprintf(temp1,"type=%s",type);
+if(ithread==0) fprintf(stdout,"%s",temp1);
+for(i=0; i < 45 - 25-(int)strlen(temp1); i++){ if(ithread==0) fprintf(stdout,"%s"," ");}
+
+
+if(ithread==0) fprintf(stdout,"format=%s\n",fmt);
+
+
+}
+
+void print_axis_line(int iax, int n, float o, float d, char *label){
+char temp1[128];
+int nlen,i,ii,isub;
+
+/*
+nxx=XXXXXXX oxx=XXXXXXXXX dxx=XXXXXXXXX labelxx=XXXXXXXX
+o123456789 123456789 123456789 123456789 123456789 123456789 123456789
+*/
+sprintf(temp1,"n%d=%d",iax,n);
+if(ithread==0) fprintf(stdout,"%s",temp1);
+for(i=0; i < 14 - (int)strlen(temp1); i++){ if(ithread==0) fprintf(stdout,"%s"," ");}
+
+sprintf(temp1,"o%d=%g",iax,(double)o);
+if((int)strlen(temp1) >=14){
+  isub=(int)strlen(temp1)-13;
+  for(i=0,ii=0; i < (int)strlen(temp1); i++){
+    if(temp1[i]=='e')ii=isub;
+    temp1[i-ii]=temp1[i];
+  }
+  temp1[13]='\0';
+}
+     
+if(ithread==0) fprintf(stdout,"%s",temp1);
+
+for(i=0; i < 28 - 14-(int)strlen(temp1); i++){if(ithread==0)  fprintf(stdout,"%s"," ");}
+
+sprintf(temp1,"d%d=%g",iax,(double)d);
+if((int)strlen(temp1) >=14){
+  isub=(int)strlen(temp1)-13;
+  for(i=0,ii=0; i < (int)strlen(temp1); i++){
+    if(temp1[i]=='e')ii=isub;
+    temp1[i-ii]=temp1[i];
+  }
+  temp1[13]='\0';
+}
+     
+if(ithread==0) fprintf(stdout,"%s",temp1);
+for(i=0; i < 41 - 26-(int)strlen(temp1); i++){if(ithread==0)  fprintf(stdout,"%s"," ");}
+
+if(ithread==0) fprintf(stdout,"label%d=%s\n",iax,label);
+}
+
+
+
+
+void get_size_info(char *tag, sep3d *sep3dc){
+char temp_ch[STRING_SIZE],temp2_ch[STRING_SIZE],temp3_ch[STRING_SIZE];
+char temp2[STRING_SIZE];
+char temp1[STRING_SIZE];
+int i,isect,n3,ierr;
+int *sects;
+long long n2;
+
+    ierr=1;i=2;n2=1;
+    while(ierr==1){
+      sprintf(temp1,"n%d",i);
+      ierr=auxpar(temp1,"d",&n3,tag);
+      if(ierr==1) n2=n2*n3;
+      i++;
+    }
+  my_sizes[0][0][0]=(long long)n2*(long long)sep3dc->n[0]*(long long)sep3dc_get_esize(sep3dc);
+  my_file_size(tag,my_sizes[0][0]);
+  if(sep3dc->file_format[0]!='R'){
+    fget_header_format_tag(tag,temp_ch);
+    ierr=1;i=2;n2=1;
+    while(ierr==1){
+      sprintf(temp1,"n%d",i);
+      ierr=auxpar(temp1,"d",&n3,temp_ch);
+      if(ierr==1) n2=n2*n3;
+      i++;
+    }
+    my_sizes[0][1][0]=(long long)4*(long long)n2*(long long)(sep3dc->nkeys+have_drn);
+    my_file_size(temp_ch,my_sizes[0][1]);
+  } 
+  if(sep3dc->file_format[0]=='G'){
+    fget_grid_format_tag(tag,temp_ch);
+    for(i=1,my_sizes[0][2][0]=4; i < sep3dc->ndims; i++)
+       my_sizes[0][2][0]=my_sizes[0][2][0]*(long long)sep3dc->n[i];
+    my_file_size(temp_ch,my_sizes[0][2]);
+  } 
+}
+
+void print_size_info(char *tag, sep3d *sep3dc,int idata,char *line,int mysect,int ipart){
+int n1,n2,n3,n4,i;
+char in[STRING_SIZE];
+char temp1[STRING_SIZE],temp2[STRING_SIZE],temp3[STRING_SIZE],temp4[STRING_SIZE];
+int ncompare,logic;
+int aaa[2],ierr;
+float exist,zero;
+long long checks[3];
+
+
+i=2;ierr=1;
+n2=1;
+while(ierr==1){
+  if(ipart==2) sprintf(temp1,"n%d_grid",i);
+  else sprintf(temp1,"n%d",i);
+  ierr=auxpar(temp1,"d",&n3,tag);
+  if(ierr==1) n2=n2*n3;
+  i+=1;
+}
+ierr=auxpar("in","s",in,tag);
+
+
+temp1[0]=temp2[0]=temp3[0]=temp4[0]='\0';
+strcpy(temp3,"     ");
+strcpy(temp2,"     ");
+
+
+if(sep3dc->file_format[0]!='R' && idata==1) sprintf(temp1,"ntraces=%d",n2);
+  if(my_sizes[mysect][ipart][0]<0) sprintf(temp4,"NO Binary file\n");
+  else{
+    if(ierr==1) sprintf(temp4,"in=%s",in);
+    else sprintf(temp4,"NO BINARY FILE");
+    sprintf(temp2,"%f",100.*my_sizes[mysect][ipart][1]/my_sizes[mysect][ipart][0]);
+    if(do_check==1){
+      checks[1]=MIN(max_check,my_sizes[mysect][ipart][0]); 
+      sprintf(temp3,"%f",100.*my_sizes[mysect][ipart][2]/checks[1]);
+    }
+  }
+
+n1=(int)strlen(temp1); n2=4;
+n3=4; n4=(int)strlen(temp4);
+/*                 [exist/zero]    Binary file                               */;
+/*ntraces=12345678 [94.5/32.5]   /net/koko/scr1/bob/AAAAAAAAAAAAAAAAAAAAAAA*/
+for(i=0;i < n1; i++) line[i]=temp1[i];
+for(i=n1; i < 16;i++) line[i]=' '; 
+if(do_check==1){
+  line[16]='[';
+  for(i=0; i < 2; i ++) line[17+i]=' ';
+  for(i=0; i < 4; i ++) line[19+i]=temp2[i];
+  line[23]='/'; 
+  for(i=0; i < 4; i ++) line[24+i]=temp3[i];
+  line[28]=' ';
+  line[29]=']';
+}
+else{
+  for(i=0; i < 3; i ++) line[16+i]=' ';
+  line[19]='[';
+  line[20]=' ';
+  for(i=0; i < 4; i ++) line[21+i]=temp2[i];
+  line[25]=' ';
+  line[26]=']';
+  for(i=0; i < 3; i ++) line[27+i]=' ';
+}
+ for(i=0; i < 2; i ++) line[30+i]=' '; line[32]='\0';
+ sprintf(line,"%s%s",line,temp4);
+}
+
+
+
+
+void my_file_size(char *tag, long long *sizes){
+char temp_ch[STRING_SIZE];
+int i,logic,ncheck,ndone,ndo,ierr;
+char array[50000];
+long long my_check;
+
+my_check=max_check;
+ierr=auxpar("in","s",temp_ch,tag);
+if(ierr==1)
+  if(0==strcmp("-1",temp_ch)) ierr=0;
+if(NULL==auxin(tag)) ierr=0;
+if(ierr==0) sizes[1]=-1; 
+else{
+  sizes[1]=ssize_info(tag);
+  if(sizes[1] < my_check) my_check=sizes[1];
+  sizes[2]=-1;;
+  if(do_check==1){
+    logic=-1; ndone=0;
+    while(logic==-1 && ndone < my_check){
+      ndo=MIN(50000,(int)(my_check-ndone));
+      sreed_raw(tag,array,ndo);
+      for(i=0; i < ndo && logic==-1; i++) if(array[i]) logic=i;
+      ndone+=ndo;
+    }
+    if(logic!=-1) sizes[2]=ndone-ndo+logic;
+    else sizes[2]=my_check;
+  }
+}
+
+}
+
+
+
+int print_file_info(char *file){
+sep3d myfile;
+char line[STRING_SIZE],line1[STRING_SIZE],line2[STRING_SIZE],line3[STRING_SIZE];
+char axes[10][WIDTH+1],temp_ch[STRING_SIZE],mysz[66];
+int nlen,i,beg,end,n,drn;
+
+i=(int)strlen(file);
+
+
+i = access ( file, F_OK );
+
+if ( i != 0 ){
+   fprintf(stderr,"FILE %s doesn't exist \n",file);
+   return(0);
+ }
+
+
+if(0!= init_sep3d_tag(file,&myfile,"INPUT"))
+  return(sepwarn(NOT_MET,"trouble initializing sep3dc for tag %s \n", file));
+
+
+nlen=(int)strlen(file);
+n=strlen(file);
+if(ithread==0)fprintf(stdout,"%s\n\t \t %s\n%s\n",div_line,file,div_line);
+print_type_format(file,&myfile);
+
+if(ithread==0) fprintf(stdout,"%s\n",div_line);
+
+/* print axes*/
+for(i=0;  i < myfile.ndims; i++){
+  print_axis_line(i+1,myfile.n[i],myfile.o[i],myfile.d[i],
+    myfile.label[i]);
+} 
+if(ithread==0) fprintf(stdout,"%s\n",div_line);
+if(myfile.file_format[0]!='R'){
+  have_drn=1;
+  drn=9999;
+  if(0!=sep_get_key_index(file,"data_record_number",&drn)) have_drn=0;
+}
+
+get_size_info(file,&myfile);
+
+  make_size(&myfile,0,mysz);
+if(ithread==0)   fprintf(stdout,"HISTORY%s->%s\n",mysz,file);
+if(myfile.file_format[0]!='R'){
+  fget_header_format_tag(file,temp_ch);
+  make_size(&myfile,1,mysz);
+if(ithread==0)   fprintf(stdout,"HFF    %s->%s\n",mysz,temp_ch);
+  if(myfile.file_format[0]=='G'){
+    fget_grid_format_tag(file,temp_ch);
+    make_size(&myfile,2,mysz);
+if(ithread==0)     fprintf(stdout,"GFF    %s->%s\n",mysz,temp_ch);
+  }
+}
+if(ithread==0)   fprintf(stdout,"%s\n",div_line);
+
+
+
+if(do_key==1 && myfile.file_format[0]!='R'){
+  for(i=0; i < MIN(myfile.nkeys+have_drn,nkeys); i++){
+    if(i+1 < drn || have_drn==0)  
+      print_key(i+1,myfile.keyname[i],myfile.keytype[i], myfile.keyfmt[i]);
+    else{
+      if(i+1==drn) print_key(i+1,"data_record_number","scalar_int","xdr_int");
+      else{
+        print_key(i+1,myfile.keyname[i-1],myfile.keytype[i-1],myfile.keyfmt[i-1]);
+      }
+    }
+  }
+if(ithread==0)   fprintf(stdout,"%s\n",div_line);
+}
+
+
+if(do_check==0) 
+if(ithread==0) fprintf(stdout,"                            [Exist%%]     Binary\n");
+else
+if(ithread==0) fprintf(stdout,"Checking first %d MB      [Exist%%/Zero%%]  Binary\n",max_check/1000000);
+
+print_size_info(file,&myfile,1,line1,0,0);
+if(ithread==0) fprintf(stdout,"DATA->   %s\n",line1);
+if(myfile.file_format[0]!='R'){
+  fget_header_format_tag(file,temp_ch);
+  print_size_info(temp_ch,&myfile,1,line2,0,1);
+if(ithread==0)   fprintf(stdout,"HEADER-> %s\n",line2);
+}
+if(myfile.file_format[0]=='G'){
+  fget_grid_format_tag(file,temp_ch);
+  print_size_info(temp_ch,&myfile,0,line3,0,2);
+if(ithread==0)   fprintf(stdout,"GRID->   %s\n",line3);
+}
+
+
+if(0!=sep3dc_close_tag(file,&myfile))
+  return(sepwarn(NOT_MET,"trouble closeing tag %s \n",file));
+
+if(0!=sep3dc_delete(&myfile))
+  return(sepwarn(NOT_MET,"trouble closeing tag %s \n",file));
+
+
+return(0);
+}
+void make_size(sep3d *sep3dc, int itype, char *string){
+float myval;
+char mytype[10];
+long long mysz;
+int i;
+long long kb,mb,gb,tb;
+
+ mysz=my_sizes[0][itype][0];
+
+ kb=1024;
+ mb=1024*kb;
+ gb=1024*mb;
+ tb=1024*gb;
+
+
+ if(mysz>tb){
+  strcpy(mytype,"TBytes");
+  myval=mysz/tb;
+ }
+ else if(mysz>gb){
+  strcpy(mytype,"GBytes");
+  myval=mysz/gb;
+ }
+ else if(mysz>mb){
+  strcpy(mytype,"MBytes");
+  myval=mysz/mb;
+ }
+ else if(mysz>kb){
+  strcpy(mytype,"KBytes");
+  myval=mysz/kb;
+ }
+ else{
+  strcpy(mytype,"Bytes ");
+  myval=mysz;
+ }
+ if(myval >100){
+	sprintf(string,"[%5.1f%s]",myval,mytype);
+ }
+ else if(myval >10){
+	sprintf(string,"[  %3.1f%s]",myval,mytype);
+ }
+ else{
+	sprintf(string,"[   %2.1f%s]",myval,mytype);
+ }
+}
+
+int grab_parameters(){
+char temp_ch[STRING_SIZE];
+int i;
+
+if(0==getch("keys","s",temp_ch)) strcpy(temp_ch,"y");
+if(temp_ch[0]=='y' || temp_ch[0]=='1'){
+   if(0==getch("maxkeys","d",&nkeys)) nkeys=999;
+}
+else nkeys=0;
+
+
+if(0==getch("keys","s",temp_ch)) strcpy(temp_ch,"y");
+if(temp_ch[0]=='y' || temp_ch[0]=='1') do_key=1;
+else do_key=0;
+
+if(0==getch("grid","s",temp_ch)) strcpy(temp_ch,"y");
+if(temp_ch[0]=='y' || temp_ch[0]=='1') do_grid=1;
+else do_grid=0;
+
+
+if(0==getch("check","s",temp_ch)) strcpy(temp_ch,"y");
+if(temp_ch[0]=='y' || temp_ch[0]=='1') do_check=1;
+else do_check=0;
+
+if(0==getch("maxcheck","d",&max_check)) max_check=1;
+max_check=max_check*1000000;
+
+for(i=0; i < WIDTH ; i++) div_line[i]='-';
+div_line[WIDTH]='\0';
+
+return(SUCCESS);
+}
+
+int grab_file_names(int argc, char **argv){
+int i2,i;
+
+for (i2=1,nfiles=0;i2<argc;i2++){
+  if(0==index(argv[i2],'=')){ /* we have a file*/
+    strcpy(files[nfiles], argv[i2]);
+    nfiles++;
+   }
+}
+if(nfiles==0) return(sepwarn(NOT_MET,"no files specified \n"));
+
+return(SUCCESS);
+}

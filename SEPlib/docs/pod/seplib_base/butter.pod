@@ -1,0 +1,63 @@
+=head1 NAME
+
+
+butter - Find butterworth filter
+
+=head1 SYNOPSIS
+
+
+ call butter(hilo,cutoff,npoly,num,den)
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item hilo - real
+
+      >0 low-pass, <0 high-pass
+
+=item cutoff - real
+
+      cut-off frequency
+
+=item npoly  - integer
+
+      number of poly
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item  num- real(npoly)
+
+       numerator
+
+=item  den - real(npoly)
+
+       denominator
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Find the numerator and denominator Z-transforms of the Butterworth filter.
+ hilo={1.,-1.} for {low,high}-pass filter
+ cutoff in Nyquist units, i.e. cutoff=1 for (1,-1,1,-1...)
+
+=head1 SEE ALSO
+
+
+L<Bandpass>
+
+=head1 LIBRARY
+
+
+B<sepfilterf90>
+
+=cut
+

@@ -1,0 +1,53 @@
+=head1 NAME
+
+
+array - create an array operator
+
+=head1 SYNOPSIS
+
+
+C<call array(oper1,oper2,adj,add,mod,dat1,dat2)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item oper1,oper2  -  func
+
+      standard operator
+
+=item adj,add,mod -
+
+      standard operator interface
+
+=item  dat1,dat2  -  real(:)
+
+       portions of data
+
+=back
+
+=head1 DESCRIPTION
+
+
+Create an opertor which actually a compound operator , eg:
+
+  | dat1  |    | oper1|
+
+  | ----  |  = | ---- |   model
+
+  | dat2  |    |oper2 |
+
+
+=head1 SEE ALSO
+
+
+L<chain>,L<solver>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

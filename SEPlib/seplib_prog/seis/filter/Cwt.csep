@@ -1,0 +1,523 @@
+/*$
+
+=head1 NAME
+
+Cwt  - Complex continuous wavelet transform of seismic traces
+
+=head1 SYNOPSIS
+
+      Cwt < tdata.H > tfdata.H  [optional parameters]
+      
+      
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item   noct - integer
+ 
+          [5]:  Number of octaves
+          
+=item   nv - integer
+ 
+          [10]:  Number of voices per octove
+          
+=item   fmax - real 
+ 
+          [Nyq]:  Highest frequency in transform
+          
+=item   p - real
+ 
+          [.5]:  Power of scale value normalizing CWT 
+           0 - for amp-preserved spec. decomp.
+          
+=item   c - real
+ 
+          [1/(2*fmax)]:   Time-domain inverse gaussian 
+          damping parameter  (bigger c means more wavelet
+           oscillations, , default gives minimal oscillations)
+
+
+=item   out_type - integer
+ 
+          [1]:  Output amplitude of CWT; 
+          2- output phase
+          3- output real
+          4 -output imaginary,
+          5- output complex
+          
+=item   k - integer
+ 
+          [1]:  Use complex Morlet as wavelet transform kernel
+           2 - use Fourier kernel
+          
+=item   fs - integer
+ 
+          [1]:  Use dyadic freq sampling 
+            (CWT standard honors noct, nv)
+          2- use linear freq sampling
+          
+
+=back
+
+=head1 EXAMPLES
+          
+  This generates amplitude spec of the CWT impulse response (IR).
+     Spike k1=1 n1=125 | Cwt |Grey|Tube
+ Real part of Fourier IR with linear freq sampling 
+     Spike k1=1 n1=125 | Cwt  k=2 fs=2 out_type=3 |Grey|Tube
+
+=head1 Notes
+
+1. Total number of scales: nscales = noct*nv  
+2. Each input trace spawns nscales output traces (n2) 
+3. Lowest frequency in the transform is fmax/( 2^(noct-1/nv) )   
+
+
+=head1 CATEGORY
+
+B<seis/filter>
+
+
+
+=cut
+
+  >*/
+/*
+ * Author:  UTulsa: Chris Liner, 11/11/03
+ *
+ * History:
+ * 2/20/04
+ *  made p=-0.5 default
+ * 2/16/04
+ *  added p option to experiment with CWT normalization
+ * 2/12/04
+ *  replace fb (bandwidth parameter) with c (t-domain gaussian damping const.)
+ * 2/10/04 --- in sync with EAS paper in prep
+ *  changed morlet scaling (c = 1) to preserve time-domain peak amplitude
+ *  changed morlet exp sign to std CWT definition (conjugate) and 
+ *    mathematica result that only gives positive freq gaussian with neg exp
+ * 1/26/04
+ *  added linear frequency sampling option
+ * 1/23/04
+ *  figured out fb and made it a getpar
+ *     key: Look at real ccwt output and determine fb by number of oscillations desired
+ *			Default gives -+-+-+-
+ * 1/20/04
+ *  beefed up verbose output 
+ *  dimension wavelet to length 2*nt and change correlation call
+ *     ... this is done to avoid conv edge effects
+ * 1/19/04
+ *  added fourier wavlet option for comparison with Fourier Transform action
+ * 1/17/04
+ *  complex morlet amp scaling now set to preserve first scale amp with IR 
+ * 1/16/04
+ *  added dt getpar to handle depth input properly
+ *  preserves first tracl so tracl is ok after spice
+ *
+ * To do:
+ *  linear sampling will fail when fmax < fnyq
+ *
+ * Trace header fields set: tracl, cdp, cdpt, unscale, gut
+ */
+/**************** end self doc ********************************/
+
+
+#include<complex.h>
+/* Function Prototypes */
+static void cmorlet (float a, float fmax, float c, float p,float dt, int nt, float complex *w);
+static void cfourier (float a, float fmax, float c, float dt, int nt, float complex *w);
+void cconv (int lx, int ifx, float complex *x,
+	    int ly, int ify, float complex *y,
+	    int lz, int ifz, float complex *z);
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <sep3d.h>
+
+int main(int argc, char **argv)
+{
+        int icdp;		/* output (t,f) spectrum counter */
+		int ia;			/* cwt scale index counter */
+		int ioct;		/* octave index counter */
+		int iv;			/* voice index counter */
+		int it;			/* time index counter */
+        int itracl;		/* output trace counter */
+        int na;			/* number of cwt scales */
+        int noct;		/* number of octaves */
+        int nv;			/* number of voices per octave */
+		int nt;			/* number of time samples */
+        int out;		/* output option flag */
+	
+        float *a;		/* array of scale values */
+         float complex *w;		/* wavelet trace */
+        float complex *ctr;		/* complex trace whose real part is the input trace */
+        float complex *ctmp;		/* temporary complex trace  */
+
+        float dt;		/* time sample rate */
+        float fmax;	   	/* maximum peak frequency of wavelet */
+        float c;		/* bandwidth parameter for wavelet */
+        float e;		/* temporary variable */
+        int k;			/* kernel flag */
+
+		int gottrace;   /* non-zero if an input trace was read */
+        int verbose;
+		int fs;			/* frequency sampling flag: 1=dyadic, 2=linear */
+		float tmax;		/* length of input traces in sec */
+		float df;		/* freq sample rate for fs=2 option */
+		float p;		/* power of scale in CWT transform */
+        int n[5];
+        float o[5];
+        float d[5];
+        char label[128];
+        float *data,*cwt;
+        int ibig,nbig,i;
+        float oo,dd;
+        int i2;
+        int esize=4;
+        
+       
+		/* hook up getpar to handle the parameters */
+		initpar(argc,argv);
+		ADD_SEP_DOC
+        sep_begin_prog();
+	doc(SOURCE);
+	
+        /* Get parameters */
+        if (!getch ("noct", "d",&noct)) 	    noct = 5;
+        if (!getch ("nv","d", &nv)) 		    nv = 10;
+        if (!getch("verbose","d", &verbose))	verbose= 0;
+        if (!getch ("out_type","d", &out)) 		    out = 1;
+        if (!getch ("fs","d", &fs)) 		    fs = 1;
+        if (!getch ("p","f", &p))				p = -0.5;
+        
+        i2=1;
+        if(0!=sep_get_data_axis_par("in",&i2,&n[0],&o[0],&d[0],label))
+          seperr("trouble getting axis \n");
+        for( i=1; i < 5; i++){
+           i2=i+1;
+           if(0!=sep_get_data_axis_par("in",&i2,&n[i],&o[i],&d[i],label))
+             seperr("trouble grabbing axis %d \n",i+1);
+             i2+=1;
+           if(0!=sep_put_data_axis_par("out",&i2,&n[i],&o[i],&d[i],label))
+             seperr("trouble putting axis %d \n",i+2);
+        }
+        
+       dt=d[0];
+       nt=n[0];
+
+        
+      
+        /* number of scales in cwt */
+        na = noct * nv;
+		if (fs == 2) na = nt;
+	        
+        /* get fmax from user or default to nyquist */
+        if (!getch ("fmax", "f",&fmax)) fmax = 1/(2*dt);
+        if (!getch ("c","f", &c)) c = 1/(2*fmax);
+		fprintf(stderr,"c = %g\n",c);
+        /* get kernel wavelet preference from user */
+        if (!getch ("k","d", &k)) k = 1;
+		if (k != 1 && k != 2) {
+			k = 1;
+			sepwarn(1,"Bad kernel wavelet choice ... use Morlet");
+		}
+
+		/* allocate arrays */
+		a=(float*) malloc(sizeof(float)*na);
+		w=(float complex*) malloc(sizeof( float complex)*2*nt);
+		ctr=(float complex*) malloc(sizeof( float complex )*nt);
+		ctmp=(float complex*) malloc(sizeof( float complex)*nt);
+		data=(float*) malloc(sizeof(float)*nt);
+		cwt=(float*) malloc(sizeof(float)*2*nt);
+        
+        /* load cwt scale array 
+			fs=1 is dyadic (cwt) freq sampling
+			fs=2 is linear (fourier) freq sampling */
+		if (fs == 2) {
+			tmax = (1-nt)*dt;
+			df = 1/(2.0*tmax);
+			sepwarn(2,"df = %g",df);
+			for (ia=na-1; ia>=0; ia--) {
+				a[ia] = fmax/(fmax + (ia)*df);
+			}
+			oo=a[0]; dd=a[1]-a[0]; i2=2;
+			sep_put_data_axis_par("out",&i2,&na,&oo,&dd,"Linear freq");
+		} else {
+			ia = 0;
+			
+			for (ioct=0; ioct<=noct-1; ++ioct) {
+				for (iv=0; iv<=nv-1; ++iv) {
+					e = ioct + (float) iv/nv;
+					a[ia] = pow(2.0,e);
+					ia += 1;
+				}
+			}
+			oo=a[0]; dd=a[1]-a[0];i2=2;
+			sep_put_data_axis_par("out",&i2,&na,&oo,&dd,"Dydatic  freq");
+		}
+        
+        /* echo extra info if verbose is requested */
+		if (verbose==1) sepwarn(3,"fmax = %g, fmin = %g\n", fmax, fmax/a[na-1]);
+		if (verbose==1) sepwarn(4,"scale_index / scale_value / frequency");
+		if (verbose==1) {
+			for (ia=0; ia<na; ia++) {
+
+				//sepwarn("  %i / %f / %f", ia, a[ia],fmax/a[ia]);
+			}
+		}
+        
+       
+   
+         for(ibig=0; ibig < n[1]*n[2]*n[3]*n[4]; ibig++){
+        /* loop over traces */
+
+            sreed("in",data,nt*4);
+            /* load input trace into real part of complex trace */
+            for (it=0;it<nt;++it) {
+                 __real__ ctr[it] = data[it];
+                 __imag__ ctr[it]= 0.0;
+            }
+
+            /* loop over scales */
+            for (ia=0; ia<na; ia++) {
+				
+			//	fb = fmax/a[ia];
+				
+                /* make wavelet trace w[2*nt] for this scale
+				   ... length is 2*nt to give avoid conv edge effects */
+                if (k == 2) {
+					cfourier(a[ia],fmax,c,dt,2*nt,w);
+				} else {
+					cmorlet(a[ia],fmax,c,p,dt,2*nt,w);
+				}
+				          
+
+   
+                /* Convolve w[nt] with input trace */
+                cconv(2*nt, -nt, w, nt, 0, ctr, nt, 0, ctmp);
+          
+                /* load output trace 
+                   out=1 for real part
+                   out=2 for imaginary part 
+                   out=3 for amplitude 
+                   out=4 for phase 
+                   out=5 output complex  
+                */
+                if (out==1) {
+                    for (it=1;it<=nt;++it) {
+                        cwt[it] =cabsf(ctmp[it]);
+                    }
+                } else if (out==2) {
+                    for (it=0;it<=nt;++it) {
+                        float re = __real__ ctmp[it];
+                        float im = __imag__ ctmp[it];
+                   
+                        if (re*re+im*im)  {
+							cwt[it] = atan2(im, re);
+                        } else {
+							cwt[it] = 0.0;
+						}
+                    }
+                } else if (out==3) {
+                    for (it=0;it<nt;++it) {
+                        cwt[it] =  __real__ ctmp[it];
+                    }
+                } else if (out==4) {
+                    for (it=0;it<nt;++it) {
+                        cwt[it] = __imag__ ctmp[it];
+                    }
+                } 
+                else if(out==5){
+                   esize=8;
+                   for (it=0;it<nt;++it) {
+                        cwt[it*2] = __real__ ctmp[it];
+                        cwt[it*2+1] = __imag__ ctmp[it];
+                    }
+                
+                }
+                /* send output trace on its way */
+                srite("out",cwt,nt*esize);
+                
+                /* bump output trace counter */
+                itracl += 1;
+            }
+            
+            /* bump output cwt spectrum counter */
+            icdp += 1;
+		
+	} 
+        
+	putch("esize","d",&esize);
+ return EXIT_SUCCESS;
+}
+
+
+static void cfourier (float a, float fmax, float c, float dt, int nt, float complex *w)
+/*****************************************************************************
+Compute complex Fourier wavelet trace for given translation (b) and scale (a)
+
+    w[t,fmax,c] = Exp(i 2 pi fmax t)
+    
+******************************************************************************
+Input:
+a			wavelet scale
+fmax			center frequency of wavelet
+c			bandwidth of wavelet (unused)
+dt			time sample rate
+nt			number of time samples
+w[nt]		complex wavelet trace array
+******************************************************************************
+Notes: 
+******************************************************************************
+Author:  Chris Liner, UTulsa, 1/19/2004
+******************************************************************************/
+{
+	float t;
+        float tc;
+        int it;
+        float complex x;
+        float complex tmp1,tmp2;
+        float arg;
+        float complex exparg;
+        float rexp;
+        
+        double PI=atan(1.)*4;
+         
+        /* center at time index nt/2 - 1 */
+        tc = (nt/2 - 1)*dt;
+
+        /* loop over time samples to build wavelet */
+        for (it=1;it<=nt;++it) {
+            t = (it-1)*dt;
+            /* Set up args for complex exponential */
+            arg = 2.0 * PI * fmax * ((t-tc)/a);
+            w[it] = cexpf(I*arg);
+        }
+}
+
+
+/* complex convolution (from sufxdecon.c)  
+   CWP: Carlos E. Theodoro (10/07/97)  
+        Based on Hale's real conv routine described below
+******************************************************************************
+Compute z = x convolved with y; i.e.,
+
+           ifx+lx-1
+    z[i] =   sum    x[j]*y[i-j]  ;  i = ifz,...,ifz+lz-1
+            j=ifx
+******************************************************************************
+Input:
+lx		length of x array
+ifx		sample index of first x
+x		array[lx] to be convolved with y
+ly		length of y array
+ify		sample index of first y
+y		array[ly] with which x is to be convolved
+lz		length of z array
+ifz		sample index of first z
+
+Output:
+z		array[lz] containing x convolved with y
+******************************************************************************
+Notes:
+The x samples are contained in x[0], x[1], ..., x[lx-1]; likewise for
+the y and z samples.  The sample indices of the first x, y, and z values
+determine the location of the origin for each array.  For example, if
+z is to be a weighted average of the nearest 5 samples of y, one might
+use 
+	...
+	x[0] = x[1] = x[2] = x[3] = x[4] = 1.0/5.0;
+	conv(5,-2,x,lx,0,y,ly,0,z);
+	...
+In this example, the filter x is symmetric, with index of first sample = -2.
+
+This function is optimized for architectures that can simultaneously perform
+a multiply, add, and one load from memory; e.g., the IBM RISC System/6000.
+Because, for each value of i, it accumulates the convolution sum z[i] in a
+scalar, this function is not likely to be optimal for vector architectures.
+******************************************************************************
+Author:  Dave Hale, Colorado School of Mines, 11/23/91
+*****************************************************************************/
+void cconv (int lx, int ifx, float complex *x,
+       	    int ly, int ify, float complex *y,
+	    int lz, int ifz, float complex *z)
+{
+        int ilx=ifx+lx-1,ily=ify+ly-1,ilz=ifz+lz-1,i,j,jlow,jhigh;
+		float complex sum;
+	  
+		x -= ifx;  y -= ify;  z -= ifz; 
+		for (i=ifz; i<=ilz; ++i) {
+	        jlow = i-ily;  if (jlow<ifx) jlow = ifx;
+		jhigh = i-ify;  if (jhigh>ilx) jhigh = ilx;
+		__real__ sum =0.;
+		__imag__ sum=0.;
+		for (j=jlow; j<=jhigh; ++j){
+/*		        sum = cadd(sum,cmul(x[j],y[i-j]));*/
+		        __real__ sum += __real__ x[j] * __real__ y[i-j] - __imag__ x[j] * __imag__ y[i-j];
+		        __imag__ sum += __real__ x[j] * __imag__ y[i-j] - __imag__ x[j] * __real__ y[i-j];
+		}
+		z[i] = sum;
+	}
+}
+
+static void cmorlet (float a, float fmax, float c, float p, float dt, int nt, float complex *w)
+/*****************************************************************************
+Compute complex morlet wavelet trace for given translation (b) and scale (a)
+
+    w[t,fmax,a,c] = a^p Exp( - i 2 pi (fmax*t/a) ) Exp( - ( t/(a*c) )^2 )
+    
+Ref:  Matlab wavelet toolbox www info
+http://www.math.mcgill.ca/sysdocs/matlabr12/help/toolbox/wavelet/ch06_a37.html
+   
+******************************************************************************
+Input:
+a			wavelet scale
+fmax		center frequency of wavelet (default = nyquist)
+c			t-domain gaussian taper parameter (default = dt)
+p			power of scale in CWT 
+dt			time sample rate
+nt			number of time samples
+w[nt]		complex wavelet trace array
+******************************************************************************
+Notes: 
+******************************************************************************
+Author:  Chris Liner, UTulsa, 11/18/2003
+******************************************************************************/
+{
+		float t;    /* time variable */
+        float cc;	/* scale factor to normalize */
+        float tc;   /* center time of wavelet */
+		float fc;   /* wavelet center frequency at this scale */
+        int it;     /* time index */
+        float arg;        /* real argument of exponential */
+        float complex exparg;   /* complex exponential E^z */
+        float rexp;       /* real exponential E^x */
+        double PI=atan(1.)*4.;
+         
+        /* center at time index nt/2 - 1 */
+        tc = (nt/2 - 1)*dt;
+        
+        /* constant scale factor 
+			... normalized to give ImpResp=1.0 at all scales */
+		cc = pow(a,p);
+
+		/* wavelet center frequency at this scale */
+		fc = fmax / a;
+		
+        /* loop over time samples to build wavelet */
+        for (it=0;it<nt;++it) {
+            t = (it)*dt;
+            /* Set up args for complex exponential */
+      //      arg = 2.0 * PI * fc * (t-tc);
+            arg = - 2.0 * PI * fc * (t-tc);
+            exparg = cexpf(I*arg);
+            /* real exponential */
+			arg = (t-tc)/(a*c);
+			arg = - arg*arg;
+            rexp = cc*exp( arg );
+            w[it] = exparg*rexp; 
+               // if(it==100) fprintf(stderr,"check w %f %f %f %f \n",
+            //    arg,exparg,__real__ w[it], __real__ w[it]);
+        }
+}

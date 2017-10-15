@@ -1,0 +1,48 @@
+=head1 NAME
+
+
+nhconest - non stationary  convolution using helix filters, adjoint is filter
+
+=head1 SYNOPSIS
+
+
+Initializer - C<call nhconest_init(x,aa)>
+
+Operator    - C<ierr=nhconest_lop(adj,add,xx,yy)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item x  - C<real(:)>
+
+      data
+
+=item aa - type(filter)
+
+      helix filter to perform convolution with
+
+=item adj,add,xx,yy -
+
+      standard operators parameters
+
+=back
+
+=head1 DESCRIPTION
+
+
+  Masked  non-stationary helix convolution, adjoint is the filter$
+
+=head1 SEE ALSO
+
+
+L<nhelix>,L<hconest>,L<nhelicon>,L<npolydiv>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

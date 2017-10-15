@@ -1,0 +1,62 @@
+=head1 NAME
+
+
+fullnm - expand filename to a fully qualified name with all path prefixes
+
+=head1 SYNOPSIS
+
+
+C<int fullnm(filename,maxlen)>
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item filename - char* 
+
+      filename
+
+=item maxlen   -  int 
+
+      maximum length
+
+=back
+
+=head1 DESCRIPTION
+
+
+Fullnm is a utility function that filename expands a string.  This
+includes generating the pwd (1) prefix for unqualified names as well
+as metacharacters a la csh (1).  Up to the first 'maxlen' characters
+of the output will replace the input and a count of any remaining
+characters will be returned. It also attempts to strip autoumounter
+paths from the directory name.
+
+=head1 SEE ALSO
+
+
+csh(1), pwd(1), sh(1), find(1), basename(1)
+
+=head1 DIAGNOSTICS
+
+
+Fullnm returns the value -1 in case of error.
+
+=head1 BUGS
+
+Only csh metacharacters are recognized.
+
+=head1 KEYWORDS
+
+
+expand filename
+
+=head1 LIBRARY
+
+
+B<sep>
+
+=cut
+

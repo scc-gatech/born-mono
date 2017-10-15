@@ -1,0 +1,47 @@
+=head1 NAME
+
+
+cneg - negative of complex number
+
+
+=head1 SYNOPSIS
+
+
+C<val= cneg(a)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item a - complex 
+
+      number to negate
+
+=back
+
+=head1 RETURN VALUES
+
+
+=over 4
+
+=item val - complex
+
+      the negated number
+
+=back
+
+=head1 DESCRIPTION
+
+
+Cneg returns the negative of the complex number 
+
+
+
+=head1 LIBRARY
+
+
+B<sepmath>
+
+=cut
+

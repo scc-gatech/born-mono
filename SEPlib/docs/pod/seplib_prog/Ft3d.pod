@@ -1,0 +1,71 @@
+=head1 NAME
+
+
+Ft3d - incore Fourier tranform
+
+=head1 SYNOPSIS
+
+
+Ft3d < in.H sign{1,2,3}=0. center{1,2,3}=0. > out.H
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  sign{1,2,3} -integer 
+
+	[0]: means omit Fourier transform
+	 +1,-1: sign of sqrt(-1) on dimension {1,2,3}
+
+=item  center{1,2,3}-integer 
+
+	[0]: don't multiply
+	 +1: multiply by 1,-1,1,-1,... before transform
+         (centers axis in transform space)
+	 -1: multiply by 1,-1,1,-1,... after transform
+        (allows centered transforms to be inverted)
+
+=item  n1,n2,n3 -integer     
+
+       standard seplib params
+       dimensions transformed must be of size 2**N
+       scaling is 1/sqrt(n) all direction
+
+=item  o1,o2,o3 -real        
+
+        standard seplib params
+
+=item  d1,d2,d3 -real        
+
+       standard seplib params
+
+=item	maxsize - int         
+
+      [20] Amount of memory to use in megabytes
+
+=back
+
+=head1 DESCRIPTION
+
+
+Ft3d - in core 1,2, or 3 dimensional Fourier transform
+
+=head1 COMMENTS
+
+
+Assumes in= contains COMPLEX-VALUED data.
+
+=head1 SEE ALSO
+
+
+L<Cfft>
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

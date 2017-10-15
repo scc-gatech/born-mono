@@ -1,0 +1,156 @@
+=head1 NAME
+
+
+Dots - plots data as 'lollipops'
+
+=head1 SYNOPSIS
+
+
+<in.H  Dots  [options]  | Tube
+
+=head1 DESCRIPTION
+
+
+Plots a data plane, like 'Wiggle,' but lollipops on strings.
+Adapts default data format to values of n1,n2.
+Can put a separate label on each trace.  (see labels=)
+Data area fills screen when title= label1= labels= 
+are undefined.
+
+=head1 COMMENTS
+
+
+A program somewhat like Wiggle, but better in some ways because
+it tries to be smarter. The output style depends on the input
+n1 and n2. For loosely packed traces with only a few data 
+points Dots plots the data as lollipops on strings, showing
+each data point clearly. There are also options for separately
+labeling each trace, omitting dead traces, making bar graphs,
+etc. As n1 and n2 increase Dots by default simplifies the
+output and eventually behaves almost the same as Wiggle.
+Unfortunately Dots does not use the axis drawing and plotting
+routines shared by Wiggle, Contour, Graph and Ta2vplot, and
+so Dots' options and ouput plot size, position, and axes 
+are currently incompatible with those for other plot programs.
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item seemean-int 
+
+      [1] draw axes lines (=0 means don't)
+      0  default not to when n2>30 to avoid clutter
+
+=item strings-int 
+
+      [1]  draw strings from axis to balloons
+      0  default not to when n1>400 since too slow
+
+=item wantaxis-int 
+
+      [1]  draw  bottom axis
+
+=item dots   -int 
+
+      [1] draw the balloons
+      0 default not to when n1>130 since dots are small
+      2 draw dots only where signal is not zero.
+
+=item corners-int 
+
+      [6] corners on area-filled polygon dots.
+
+=item connect-int 
+
+      1 connect the dots on diagonal lines.
+      2 connect the dots as a bar graph.
+      3 bar graph with only horizontal bars.
+      4 connect dots only where signal is not zero.
+      0 don't connect adjacent values in any way.
+
+=item clip  -float 
+
+      your chosen clip value.
+
+=item overlap-float 
+
+      [.90]  trace overlap at clip value
+
+=item gaineach - int 
+
+      1 gain each trace independently (=0 gain all together)
+
+=item constsep - int 
+
+      0 trace separations depend on both max and min.
+      1 trace separation depends on max abs value.
+
+=item seedead -  int 
+
+      0 plot dead traces as zero traces or don't plot them.
+
+=item silk    -  int 
+
+      [0] wiggle traces
+      1 silk screen variable area(see SEP CD-ROM platter plot)
+
+=item title,label1- char*  
+
+      usual meaning
+
+=item labels - char* 
+
+      trace labels, i.e. labels=in:filt:out
+
+=item labelsz -int 
+
+      [8] label size
+
+=item yreverse - int 
+
+      [0] =1, reverse order of channels.
+
+=item transp - int 
+
+      [0] flip axes.   (Buggy for title and label1).
+
+=item xxscale - float 
+
+      [1.] <1. for smaller plots, narrow plots, etc.
+
+=item yyscale - float 
+
+      [1.] <1. for smaller plots, narrow plots, etc.
+
+=item radius  - float  
+
+      radius of the dot to be plotted. Defaults to 
+      some fraction of the screen width.
+
+=back
+
+
+=head1 SEE ALSO
+
+
+L<xtpen>, L<Graph>, L<Histogram>
+
+=head1 BUGS
+
+
+ Needs pclip, you must preprocess for unusual clip needs.
+
+=head1 COMPILE LEVEL
+
+
+ DISTR
+
+=head1 CATEGORY
+
+
+B<sep_graphics>
+
+=cut
+

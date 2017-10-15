@@ -4,7 +4,7 @@ gpuProp::gpuProp(std::shared_ptr<SEP::genericIO> io){
 	storeIO(io);
 	std::shared_ptr<SEP::paramObj> pars=getParam();
 	int n_gpus=pars->getInt("n_gpus",1);
-	//setup_cuda(n_gpus,argc,argv);
+	// setup_cuda(n_gpus,argc,argv);
 }
 void gpuProp::setNtblock(int nb){
 

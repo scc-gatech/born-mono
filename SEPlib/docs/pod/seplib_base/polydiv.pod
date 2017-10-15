@@ -1,0 +1,50 @@
+=head1 NAME
+
+
+polydiv - polynomial division
+
+=head1 SYNOPSIS
+
+
+Initializer - C<call polydiv_init(nd,aa)>
+
+Operator    - C<ierr=polydiv_lop(adj,add,xx,yy)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item nd - integer
+
+      number of data points
+
+=item aa - type(filter)
+
+      helix filter to perform convolution with
+
+=item adj,add,xx,yy -
+
+      standard operators parameters
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Polynomial division (deconvolution), inverse to convolution.
+ Requires the filter be causal with an implicit "1." at the onset.
+
+
+=head1 SEE ALSO
+
+
+L<helix>,L<hconest>,L<helicon>,L<npolydiv>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

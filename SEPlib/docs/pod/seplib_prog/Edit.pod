@@ -1,0 +1,54 @@
+=head1 NAME
+
+
+Edit - patching driver
+
+=head1 SYNOPSIS
+
+
+  <in.H Edit.x [options] > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item	w1,w2,w3- integer
+
+      window sizes
+
+=item nfactor - integer
+
+      factor to mulitiply the median of the residuals
+      to produce a tolerance above which samples
+      will be removed, default is 5
+
+=item htrc    - integer
+
+      number of traces on either side of a trace
+      to be used in predicting the trace, htrc=1
+      means one trace on either side, or a two trace
+      prediction
+
+=item n1,n2,n3-integer
+
+      wall sizes, defaults to the input
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Patching driver
+
+=head1 REFERENCE
+
+      see SEP88 (Ray Abma's thesis) for more information on data editing.
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

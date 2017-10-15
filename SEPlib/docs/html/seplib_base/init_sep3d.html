@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>init_sep3d - initialize a SEP3d type</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>init_sep3d - initialize a SEP3d type</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call init_sep3d(instruct, outstruct, usage)</code></p>
+<p><code>call init_sep3d(intag,outstruct,usage)</code></p>
+<p><code>call init_sep3d(outstruct,usage,data_format,file_format,n,o,d,label,unit,ntraces,keyname,keytype,keyfmt,nh)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_important_for_fortran_users_include_c_3cctag_3d_22">IMPORTANT FOR FORTRAN USERS
+    include <code>ctag=&quot;out&quot;</code> as an argument when initializing output.
+    (have you noticed a f90 file mysteriously in your directory?)</a></strong><br />
+</dt>
+<dt><strong><a name="item_instruct__2d_sep3d">instruct  -  sep3d</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Sep3d to structure to copy from</pre>
+</dd>
+<dt><strong><a name="item_usage__2d_char_2a">usage     -  char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Usage of the output tag</pre>
+</dd>
+<dt><strong><a name="item_tag__2d_char_2a">tag       -  char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Tag to initilize from</pre>
+</dd>
+<dt><strong><a name="item_data_format_2d_char_2a">data_format- char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Data format (FLOAT,INTEGER,BYTE,COMPLEX)</pre>
+</dd>
+<dt><strong><a name="item_file_format_2d_char_2a">file_format- char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      File format (GRID,HEADER,REGULAR)</pre>
+</dd>
+<dt><strong><a name="item_n_2d_int_2a">n-  int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (optional) axis dimensions</pre>
+</dd>
+<dt><strong><a name="item_o_2d_float_2a">o-  float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+     (optional)  first sample axis</pre>
+</dd>
+<dt><strong><a name="item_d_2d_float_2a">d-  float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (optional)  sampling of axis</pre>
+</dd>
+<dt><strong><a name="item_label_2d_char_2a">label-  char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (optional)  label for axis</pre>
+</dd>
+<dt><strong><a name="item_unit_2d_char_2a">unit-  char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (optional)  unit for axis</pre>
+</dd>
+<dt><strong><a name="item_ntraces__2d_int">ntraces   -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (optional)  number of trac3es</pre>
+</dd>
+<dt><strong><a name="item_keyname__2d_char_2a_2a">keyname  - char**</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (optional)  keyname for dataset</pre>
+</dd>
+<dt><strong><a name="item_keytype__2d_char_2a_2a">keytype  -  char**</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (optional)  keytype for dataset</pre>
+</dd>
+<dt><strong><a name="item_keyfmt__2d_char_2a_2a">keyfmt -  char**</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (optional)  keyfmt for dataset</pre>
+</dd>
+<dt><strong><a name="item_nh_2d_int">nh-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (optional)  number of headers to store</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_outstruct__2d_sep3d">outstruct -  sep3d</a></strong><br />
+</dt>
+<dd>
+<pre>
+      sep3d structure to create</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Initialize structure</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>supersetf90</strong></p>
+
+</body>
+
+</html>

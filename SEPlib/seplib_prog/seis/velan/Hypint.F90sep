@@ -1,0 +1,284 @@
+
+!!$
+!!$=head1 NAME
+!!$
+!!$Hypint - velocity space transform
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Hypint conj=0 inv=0 vmin=1.4 vmax=3.0 n2= < in.H > out.H
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Velocity space transformation using INTEGRATION.
+!!$The conjugate operator is hyperbola superposition.
+!!$pseudo-unitary weighting with offset and velocity.
+!!$includes causal filter sqrt(i omega)
+!!$uniform intervals of slowness.
+!!$nearest neighbor interpolation.
+!!$
+!!$=head1  INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item  conj -   integer
+!!$
+!!$      [0]  adjoint
+!!$
+!!$=item  inv  -   integer
+!!$
+!!$      [0]  inverse
+!!$
+!!$=item  vmin -   real
+!!$
+!!$      [1.4]  minimum velocity
+!!$
+!!$=item  vmax -   real
+!!$
+!!$      [3.0]  maximum velocity
+!!$
+!!$=item n1,n2,n3-integer
+!!$
+!!$      standard seplib parameters
+!!$
+!!$=item o1,o2,o3-real
+!!$
+!!$      standard seplib parameters
+!!$
+!!$=item d1,d2,d3-real
+!!$
+!!$      standard seplib parameters
+!!$
+!!$=back
+!!$
+!!$=head1 COMMENTS
+!!$
+!!$conj=0 & inv=0 operator itself
+!!$conj=1 & inv=0 conjugate transpose
+!!$conj=0 & inv=1 pseudoinverse
+!!$conj=1 & inv=1 conjugate-transpose-pseudoinverse
+!!$
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Hypmovie>
+!!$
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/velan>
+!!$
+!!$=cut
+!!$
+!>
+! KEYWORDS  half-order integrate differentiate canon
+!
+! SEE ALSO
+!  all canon programs
+!
+! WHERE
+!  ./cube/canon/Hypint.rs
+!
+program zyxabc
+use sep
+implicit none
+real, allocatable, dimension (:,:) :: tx
+real, allocatable, dimension (:,:) :: zv
+real, allocatable, dimension (:,:,:) :: count
+integer*4, allocatable, dimension (:,:,:) :: itab1
+integer*4, allocatable, dimension (:,:,:) :: itab2
+! 4-19-87   jon  wrote it.
+! 19Oct2002 - Morgan - Fixed to history.
+integer conj,inv, nt, nx, nv
+call SEP_ADD_DOC()
+call SEP_INIT('')
+call sep_begin_prog()
+  if (0>= getch('conj','d',conj )) then
+    conj = 0
+  end if
+  if (0.ne.putch('Read  from param: #conj ','d',conj)) then
+    call erexit('Trouble writing conj to history')
+  end if
+  if (0>= getch('inv','d',inv )) then
+    inv = 0
+  end if
+  if (0.ne.putch('Read  from param: #inv ','d',inv)) then
+    call erexit('Trouble writing inv to history')
+  end if
+  if (0>= hetch('n1','d',nt )) then
+    call erexit('Trouble reading  n1 from history  ')
+  end if
+!from conj:  integer n2 : nx=nv : nv=nx
+if (conj .eq. inv) then
+    if (0>= hetch('n2','d',nx )) then
+      call erexit('Trouble reading  n2 from history  ')
+    end if
+    if (0>= getch('nv','d',nv )) then
+      nv = nx
+    end if
+    if (0.ne.putch('Read  from param: #nv ','d',nv)) then
+      call erexit('Trouble writing nv to history')
+    end if
+else
+    if (0>= hetch('n2','d',nv )) then
+      call erexit('Trouble reading  n2 from history  ')
+    end if
+    if (0>= getch('nx','d',nx )) then
+      nx = nv
+    end if
+    if (0.ne.putch('Read  from param: #nx ','d',nx)) then
+      call erexit('Trouble writing nx to history')
+    end if
+end if 
+allocate (tx(nt,nx),  zv(nt,nv))
+allocate (count(nx,nv,nt))
+allocate (itab1(nx,nv,nt))
+allocate (itab2(nx,nv,nt) )
+call setup ( nt, nx, nv, tx, zv, count, itab1,itab2 )
+end program zyxabc 
+subroutine setup( nt, nx, nv, tx, zv, count, itab1,itab2 )
+use sep_mod
+integer :: ierr
+integer  conj, inv, iz,it,nt, ix,nx, iv,nv, i3,n3
+integer*4 itab1(nx,nv,nt)
+integer*4 itab2(nx,nv,nt)
+real t0,dt, x0,dx, v0,dv, vmin,vmax
+real   tx(nt,nx),  zv(nt,nv), count(nx,nv,nt)
+  if (0>= fetch('n3','d',n3 )) then
+    n3 = 1
+  end if
+  if (0>= getch('conj','d',conj )) then
+    conj = 0
+  end if
+  if (0.ne.putch('Read  from param: #conj ','d',conj)) then
+    call erexit('Trouble writing conj to history')
+  end if
+  if (0>= getch('inv','d',inv )) then
+    inv = 0
+  end if
+  if (0.ne.putch('Read  from param: #inv ','d',inv)) then
+    call erexit('Trouble writing inv to history')
+  end if
+if (      conj .eq. 0 .and. inv .eq. 0 ) then
+    if (0 .ne. putch ('Operation is','s','itself')) then
+      call erexit('trouble writing to file ')
+    end if
+else if ( conj .eq. 1  .and. inv .eq. 0 ) then
+    if (0 .ne. putch ('Operation is','s','conjugate transpose')) then
+      call erexit('trouble writing to file ')
+    end if
+else if ( conj .eq. 0  .and. inv .eq. 1 ) then
+    if (0 .ne. putch ('Operation is','s','pseudoinverse')) then
+      call erexit('trouble writing to file ')
+    end if
+else if ( conj .eq. 1  .and. inv .eq. 1 ) then
+    if (0 .ne. putch ('Operation is','s','conjugate-transpose-pseudoinverse'&
+      &)) then
+      call erexit('trouble writing to file ')
+    end if
+!character labx*40, labv*40  # label2 processing might be buggy due to saw
+end if
+if ( conj .eq. inv ) then
+    if (0 .ne. putch ('label2','s','slowness')) then
+      call erexit('trouble writing to file ')
+    end if
+else
+    if (0 .ne. putch ('label2','s','offset')) then
+      call erexit('trouble writing to file ')
+    end if
+! establish mesh sizes
+end if
+  if (0>= hetch('o1','f',t0 )) then
+    t0 = 0.
+  end if
+  if (0>= hetch('d1','f',dt )) then
+    call erexit('Trouble reading  d1 from history  ')
+  end if
+  if (0>= getch('vmin','f',vmin )) then
+    vmin = 1.4
+  end if
+  if (0.ne.putch('Read  from param: #vmin ','f',vmin)) then
+    call erexit('Trouble writing vmin to history')
+  end if
+  if (0>= getch('vmax','f',vmax )) then
+    vmax = 3.0
+  end if
+  if (0.ne.putch('Read  from param: #vmax ','f',vmax)) then
+    call erexit('Trouble writing vmax to history')
+  end if
+! internally, v0 and dv refer to SLOWNESSES, not velocities !
+!from conj:  real o2 : x0=0. : v0=1/vmax
+!from conj:  real d2 : dx=.1 : dv=(1/vmin-1/vmax)/(nv-1.)
+if (conj.eq.inv) then
+    if (0>= hetch('o2','f',x0 )) then
+      call erexit('Trouble reading  o2 from history  ')
+    end if
+    if (0>= hetch('d2','f',dx )) then
+      call erexit('Trouble reading  d2 from history  ')
+    end if
+    if (0>= getch('v0','f',v0 )) then
+      v0 = 1/vmax
+    end if
+    if (0.ne.putch('Read  from param: #v0 ','f',v0)) then
+      call erexit('Trouble writing v0 to history')
+    end if
+    if (0>= getch('dv','f',dv )) then
+      dv = (1/vmin-1/vmax)/(nv-1.)
+    end if
+    if (0.ne.putch('Read  from param: #dv ','f',dv)) then
+      call erexit('Trouble writing dv to history')
+    end if
+    if (0.ne. putch('o2','f',v0 )) then
+      call erexit('Trouble writing  o2 to history  ')
+    end if
+    if (0.ne. putch('d2','f',dv )) then
+      call erexit('Trouble writing  d2 to history  ')
+    end if
+else
+    if (0>= hetch('o2','f',v0 )) then
+      call erexit('Trouble reading  o2 from history  ')
+    end if
+    if (0>= hetch('d2','f',dv )) then
+      call erexit('Trouble reading  d2 from history  ')
+    end if
+    if (0>= getch('dx','f',dx )) then
+      dx = .1
+    end if
+    if (0.ne.putch('Read  from param: #dx ','f',dx)) then
+      call erexit('Trouble writing dx to history')
+    end if
+    if (0>= getch('x0','f',x0 )) then
+      x0 = 0.
+    end if
+    if (0.ne.putch('Read  from param: #x0 ','f',x0)) then
+      call erexit('Trouble writing x0 to history')
+    end if
+    if (0.ne. putch('o2','f',x0 )) then
+      call erexit('Trouble writing  o2 to history  ')
+    end if
+    if (0.ne. putch('d2','f',dx )) then
+      call erexit('Trouble writing  d2 to history  ')
+    end if
+end if
+!call hypinttab ( t0,dt, x0,dx, v0,dv, nt,nx,nv, itab1,itab2, ctx, czv )
+call hypinttab ( t0,dt, x0,dx, v0,dv, nt,nx,nv, itab1,itab2, count)
+do i3=1,n3  
+  if ( conj .eq. inv ) then
+    ierr= sreed('in', tx, nt*nx*4)
+  else
+    ierr= sreed('in', zv, nt*nv*4)
+  end if 
+  if (i3.eq.1) then
+    call hclose()
+  end if
+!  call hypint ( conj,inv, nt,nx,nv, itab1,itab2, ctx, czv, tx, zv )
+  call hypint ( conj,inv, nt,nx,nv, itab1,itab2, count, tx, zv )
+  if ( conj .eq. inv ) then
+    ierr= srite('out', zv, nt*nv*4 )
+  else
+    ierr= srite('out', tx, nt*nx*4 )
+  end if
+end do 
+call sep_end_prog()
+return
+end  

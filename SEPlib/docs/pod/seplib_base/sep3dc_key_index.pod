@@ -1,0 +1,46 @@
+=head1 NAME
+
+
+sep3dc_key_index - The index of a given axis
+
+
+
+=head1 SYNOPSIS
+
+
+C<index= sep3dc_key_index(sep3dc *space1, char *axis_name)>
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  space1  -  sep3d
+
+     structure 
+
+=item  axis_name  -  char*
+
+     The label of an axis
+
+=back
+
+=head1 DESCRIPTION
+
+
+
+The internal axis index associated with a given key (-1 if not found)
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

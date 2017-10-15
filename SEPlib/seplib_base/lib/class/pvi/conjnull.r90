@@ -1,0 +1,11 @@
+subroutine conjnull( conj, add, x, nx,  y, ny )
+integer ix, iy,      conj, add,    nx,     ny
+real                            x( nx), y( ny )
+if( add == 0 )
+        if( conj == 0 )
+                do iy= 1, ny 
+                        y(iy) = 0.
+        else
+                do ix= 1, nx 
+                        x(ix) = 0. 
+return; end

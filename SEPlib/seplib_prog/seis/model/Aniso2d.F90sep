@@ -1,0 +1,959 @@
+
+!!$
+!!$=head1 NAME
+!!$
+!!$Aniso2d - anisotropic modeling
+!!$
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Aniso2d  par=Par < Hsourcefn  > Hverticalgeophone
+!!$
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item    moduli - file
+!!$
+!!$        velocity model file (c11,c13,c33,c14, and rho ) (next 4 pars
+!!$        from this file
+!!$
+!!$=item   n1   - integer
+!!$
+!!$        # of z grid points (becomes nz in the program) max=400
+!!$
+!!$=item   n2   - integer
+!!$
+!!$        # of x grid points (becomes nz in the program) max=400
+!!$
+!!$=item   d1   - real
+!!$
+!!$        z grid point spacing (becomes dz in the program)
+!!$
+!!$=item   d2   - real
+!!$
+!!$        x grid point spacing (becomes dx in the program)
+!!$        The constants are in order c11,c13,c33,c44,rho and
+!!$        are stored nz(fast) by nx
+!!$
+!!$=item  Hsource - file
+!!$
+!!$       Source function file (next two pars from this file)
+!!$
+!!$=item  n1 - integer
+!!$
+!!$       length of source
+!!$
+!!$=item  d1- real
+!!$
+!!$       time sample interval (this will be used for calculations)
+!!$       so it should be within stability limits
+!!$
+!!$=item  nt - integer
+!!$
+!!$       number of time steps to run, max=4000
+!!$
+!!$=item  nsrc- integer    #
+!!$
+!!$        of shots to make (default=1)
+!!$
+!!$=item  src_1 - integer
+!!$
+!!$       Position of first source (in grid points)
+!!$
+!!$=item  src_type - integer
+!!$
+!!$       vertical force =1; horizontal =2; shear source =3
+!!$       explosive force=4
+!!$
+!!$=item  src_inc  - integer
+!!$
+!!$       shot increment (in x grid points) default=1
+!!$
+!!$=item  group_1  - integer
+!!$
+!!$       Position of first receiver for first shot default=1
+!!$
+!!$=item  ngroup   - integer
+!!$
+!!$       Number of receivers default=nx
+!!$
+!!$=item  src_depth- integer
+!!$
+!!$       Shot depth (grid points)
+!!$
+!!$=item  geo_depth- integer
+!!$
+!!$       depth of geophones (in grid points)
+!!$
+!!$=item  surf_type- integer
+!!$
+!!$       free surface (default) =1; absorbing =0
+!!$
+!!$=item  snap_i   - integer
+!!$
+!!$       number of time steps between snapshots
+!!$
+!!$=item  rollalong- integer
+!!$
+!!$       receiver spread rollalong with the
+!!$       shots? 1=yes=default; 0=no
+!!$
+!!$=item  vpmax    - real
+!!$
+!!$       maximum velocity in model (optional stability check)
+!!$       for stability vpmax*dt/dx <.5
+!!$       since anisotropic sqrt(max(c11,c33)/rho)*dt/dx <.5
+!!$       for no dispersion (vmin/fmax)/dx >2.8
+!!$
+!!$=back
+!!$
+!!$=head1  OUTPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item Hverticalgeophone - file
+!!$
+!!$      is output file for the vertical component seismogram
+!!$
+!!$=back
+!!$
+!!$=head1  DESCRIPTION
+!!$
+!!$   Program to do anisotropic heterogenous elastic modelling in 2d,
+!!$   explicit finite-difference 2nd order in time 16th order in x and z
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Iso2d>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/model>
+!!$
+!!$=cut
+!!$
+!>
+!
+! **Necessary parameters******************************************
+! ****** Warning most qauntitites like distances refer to grid points
+!
+!  moduli = header of velocity model (c11,c13,c33,c14, and rho )
+!    from moduli need
+!        n1 = # of z grid points (becomes nz in the program) max=400
+!        n2 = # of x grid points (becomes nz in the program) max=400
+!        d1 = z grid point spacing (becomes dz in the program)
+!        d2 = x grid point spacing (becomes dx in the program)
+!             The constants are in order c11,c13,c33,c44,rho and
+!             are stored nz(fast) by nx
+!
+!  Hsource = Source function header (stdin)
+!     from Hsource need
+!        n1 = length of source
+!        d1 = time sample interval (this will be used for calculations)
+!             so it should be within stability limits
+!
+!    From the command line or parameter file
+!         nt = number of time steps to run, max=4000
+!       nsrc = # of shots to make (default=1)
+!      src_1 = Position of first source (in grid points)
+!   src_type = vertical force =1; horizontal =2; shear source =3
+!              explosive force=4
+!    src_inc = shot increment (in x grid points) default=1
+!    group_1 = Position of first receiver for first shot default=1
+!     ngroup = Number of receivers default=nx
+!  src_depth = Shot depth (grid points)
+!  geo_depth = depth of geophones (in grid points)
+!  surf_type = free surface (default) =1; absorbing =0
+!     snap_i = number of time steps between snapshots
+!  rollalong = receiver spread rollalong with the shots? 1=yes=default; 0=no
+!      vpmax = maximum velocity in model (optional stability check)
+!                   for stability vpmax*dt/dx <.5
+!                   since anisotropic sqrt(max(c11,c33)/rho)*dt/dx <.5
+!                   for no dispersion (vmin/fmax)/dx >2.8
+!
+! **************************************************************************
+! Variable dictionary
+! **************************************************************************
+!          quantities in brackets denote dimensions
+!
+!           ux = x-comp of displacement and time derivatives thereof (nz,nx,3)
+!           uz = z-comp of displacement and time derivatives thereof (nz,nx,3)
+!          sxx = x-normal stress (nz,nx)
+!          szz = z-normal stress (nz,nx)
+!          sxz = Shear stress (nz,nx)
+!  c11,c13,c33 = Rigidity parameters (nx,nz)
+!          c44 = Rigidity parameter (nx,nz)
+!          rho = Density parameter (nx,nz)
+!         mult = Absorbing boundary multiplier (34)
+!       source = Source function time history (4000)
+!           nt = Number of time steps to compute
+!     ntsource = Length of the source wavelet in samples
+!           nx = X-dimension of velocity model (in grid points) <400
+!           nz = Z-dimension of velocity model (in grid point)  <400
+!          isx = Internal variable, shot location in x-grid point
+!          isz = Internal variable, shot location in z-grid point
+!       horizg = Tag to horiz comp seismogram.
+!       moduli = Tag to velocity model
+!       uxsnap = Tag to snapshot file
+!       uzsnap = Tag to snapshot file
+!         nsrc = number of source positions
+!    src_depth = Depth of shots, in grid points
+!      src_inc = Source move-up in gridpoints (if multi-source run)
+!        src_1 = Location of first source (in x grid points)
+!    geo_depth = Depth of receivers (in grid points)
+!       ngroup = # of receiver groups to output
+!      group_1 = Location of first group for first source position
+!       snap_i = Snapshots are taken every snap_i time steps
+!    rollalong = receiver spread rollalong with the shots? 1=yes=default; 0=no
+!        vpmax = maximum velocity (supplied by user for stability check)
+!
+!
+program aa 
+  use sep
+  implicit none
+  integer n1,n2,nx,nz,nt,ntmax,nts,moduli,ngroup
+  integer na,nb,nc,nd,ne,h
+  real d1,dz,d2,dx,dt
+  call SEP_ADD_DOC()
+  call SEP_INIT('')
+  call sep_begin_prog()
+  call from_aux("moduli","n1",nz)
+  call from_aux("moduli","n2",nx)
+  call from_aux("moduli","d1",dz)
+  call from_aux("moduli","d2",dx)
+    call from_history("n1",nts)
+    call from_history("d1",dt)
+    call from_param("nt",nt)
+    call from_param("ngroup",ngroup)
+  ntmax=max(nt,nts)
+  na=(nz+2*35)*(nx+2*24)*3
+  nb=(nz+2*35)*(nx+2*24)
+  nc=(nz+2*35)*(nx+2*48)
+  nd=(nz+2*31)*(nx+2*20)
+  call aelastic2dpsv(nx,nz,nt,nts,ntmax,dz,dx,dt,ngroup)
+  call sep_end_prog()
+end program 
+subroutine aelastic2dpsv(nx,nz,nt,nts,ntmax,dz,dx,dt,ngroup)
+ use sep_mod
+  implicit none
+  integer ntmax,nx,nz,nts,ierr
+  real ux(-34:nz+35,-23:nx+24,3),uz(-34:nz+35,-23:nx+24,3)
+  real sxx(-34:nz+35,-23:nx+24),sxz(-34:nz+35,-23:nx+24)
+  real szz(-34:nz+35,-23:nx+24),c11(-30:nz+31,-19:nx+20)
+  real c13(-30:nz+31,-19:nx+20),c33(-30:nz+31,-19:nx+20)
+  real c44(-30:nz+31,-19:nx+20)
+  real rho(-30:nz+31,-19:nx+24),a1,a2,a3,a4
+  real uxs(ntmax,nx),uzs(ntmax,nx)
+  real uxsc(ntmax,nx),uzsc(ntmax,nx),mult(-34:0),sourcef(ntmax)
+  real pi,derv(-4:4),wate(-4:4)
+  real dsxxm,dszzm,dsxzxp,dsxzzp,vpmax,dx,dz,dzi,dxi,duxdx,duzdz
+  real duzdx,duxdz,dt,delp,dels
+  real a1x,a2x,a3x,a4x,a1z,a2z,a3z,a4z,b1,b2,b3,b4,stab,dt2
+  integer nt,isx,isz,ntrc,itr1,uxsnap,uzsnap,horizg,huzc,moduli
+  integer huxc,src_type,surf_type,rollalong,snap_i,src_depth
+  integer cen_hxg,cen_hzg,src_1,nsrc,centered,not_centered,geo_depth
+  integer ntsource,src_inc,group_1,ngroup,izmin,isrc,it,i,j,jj
+  integer dummy
+! the sourcefunction is the redirected standard input
+! only one input sourcefile
+! get sample interval of sourcefunction
+  dummy = fetch('d1','r',dt)
+  dummy = fetch('n1','i',ntsource)
+!
+! the elastic moduli are in a file par=moduli
+!
+!
+! the moduli file has to have nx and nz the size of the model.
+! the order they are in is c11,c13,c33,c44,rho
+!
+  dummy = auxpar('n1','i',nz,'moduli')
+  dummy = auxpar('n2','i',nx,'moduli')
+! the grid spaceing as well
+  dummy = auxpar('d1','r',dz,'moduli')
+  dummy = auxpar('d2','r',dx,'moduli')
+!
+! Now fetch a set of parameters from the command line
+! the number of time steps
+  nt=10
+  dummy = fetch('nt','i',nt)
+! get the number of sources default=1
+  nsrc=1
+  dummy = fetch('nsrc','i',nsrc)
+! the first shot location (in x grid points)
+  src_1=nx/2
+  dummy = fetch('src_1','i',src_1)
+! the shot location increment (in x grid points)
+  src_inc=1
+  dummy = fetch('src_inc','i',src_inc)
+! the shot depth (in z grid points)
+  src_depth=1                      !Surfacesourcedefault
+  dummy = fetch('src_depth','i',src_depth)
+! sourcetype
+  src_type=1                       !default = vertical force
+  dummy = fetch('src_type','i',src_type)
+! surface boundary condition type
+  surf_type=1                      !free surface default
+  dummy = fetch('surf_type','i',surf_type)
+  if (surf_type.eq.1) then
+    izmin=1
+  else
+    izmin=-30
+  end if 
+! the location of the first trace (in x gridpoints)
+  group_1=1
+  dummy = fetch('group_1','i',group_1)
+! the number of traces to record
+  ngroup=nx                         !record all surface points
+  dummy = fetch('ngroup','i',ngroup)
+! geophone depth
+  geo_depth=1
+  dummy = fetch('geo_depth','i',geo_depth)
+! roll the reciever spread along with the shots (constant geometry recording)
+  rollalong=1                       !Default = yes
+  dummy = fetch('rollalong','i',rollalong)
+! snapshot increment
+  snap_i=nt+1                       !Default no snapshots
+  dummy = fetch('snap_i','i',snap_i)
+! output a centered grid or no          default=yes
+  centered=1
+  dummy = fetch('centered','i',centered)
+! output a non-centered grid or no          default=no
+  not_centered=0
+  dummy = fetch('not_centered','i',not_centered)
+! optional stability check
+  dummy = fetch('vpmax','r',vpmax)
+  stab=vpmax*dt/amin1(dx,dz)
+  if (stab<=0.5) then
+      if (0 .ne. putch ('vpmax*dt/dx','r',stab)) then
+        call erexit('trouble writing to file ')
+      end if
+  else
+!         write(0,*)"stability not ok vpmax*dt/dx = ",stab
+    stop
+  end if 
+! now putch out info for the surface vertical geophones
+    if (0 .ne. putch ('n1','i',nt)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ('n2','i',ngroup)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ('n3','i',nsrc)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ('rollalong','i',rollalong)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ('surf_type','i',surf_type)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ('geo_depth','i',geo_depth)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ('src_1','i',src_1)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ('src_depth','i',src_depth)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ('src_inc','i',src_inc)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ('d1','r',dt)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ('d2','r',dx)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ('group_1','i',group_1)) then
+      call erexit('trouble writing to file ')
+    end if
+    if (0 .ne. putch ('o2','r',(group_1-1)*dx)) then
+      call erexit('trouble writing to file ')
+    end if
+! now putch out info for the surface inline horizontal geophones
+  if (not_centered.eq.1) then
+    ierr= auxputch('n1','i',nt,'horizg')
+    ierr= auxputch('n2','i',ngroup,'horizg')
+    ierr= auxputch('n3','i',nsrc,'horizg')
+    ierr= auxputch('rollalong','i',rollalong,'horizg')
+    ierr= auxputch('surf_type','i',surf_type,'horizg')
+    ierr= auxputch('geo_depth','i',geo_depth,'horizg')
+    ierr= auxputch('src_1','i',src_1,'horizg')
+    ierr= auxputch('src_depth','i',src_depth,'horizg')
+    ierr= auxputch('src_inc','i',src_inc,'horizg')
+    ierr= auxputch('d1','r',dt,'horizg')
+    ierr= auxputch('d2','r',dx,'horizg')
+    ierr= auxputch('group_1','i',group_1,'horizg')
+    ierr= auxputch('o2','r',(group_1-1)*dx,'horizg')
+  end if
+! Putch out info for the snapshots of the wavefield (horizontal accelerations)
+  if (snap_i<=nt) then
+    ierr= auxputch('n1','i',nz,'uxsnap')
+    ierr= auxputch('n2','i',nx,'uxsnap')
+    ierr= auxputch('n3','i',nt/snap_i*nsrc,'uxsnap')
+    ierr= auxputch('snap_i','r',snap_i*dt,'uxsnap')
+    ierr= auxputch('d1','r',dz,'uxsnap')
+    ierr= auxputch('d2','r',dx,'uxsnap')
+! Putch out info for the snapshots of the wavefield (vertical accelerations)
+    ierr= auxputch('n1','i',nz,'uzsnap')
+    ierr= auxputch('n2','i',nx,'uzsnap')
+    ierr= auxputch('n3','i',nt/snap_i*nsrc,'uzsnap')
+    ierr= auxputch('snap_i','r',snap_i*dt,'uzsnap')
+    ierr= auxputch('d1','r',dz,'uzsnap')
+    ierr= auxputch('d2','r',dx,'uzsnap')
+  end if
+! Putch out info for the centered surface wavefield records (x-comp)
+  if (centered.eq.1) then
+    ierr= auxputch('n1','i',nt,'cen_hxg')
+    ierr= auxputch('n2','i',ngroup,'cen_hxg')
+    ierr= auxputch('n3','i',nsrc,'cen_hxg')
+    ierr= auxputch('rollalong','i',rollalong,'cen_hxg')
+    ierr= auxputch('surf_type','i',surf_type,'cen_hxg')
+    ierr= auxputch('geo_depth','i',geo_depth,'cen_hxg')
+    ierr= auxputch('src_1','i',src_1,'cen_hxg')
+    ierr= auxputch('src_depth','i',src_depth,'cen_hxg')
+    ierr= auxputch('src_inc','i',src_inc,'cen_hxg')
+    ierr= auxputch('d1','r',dt,'cen_hxg')
+    ierr= auxputch('d2','r',dx,'cen_hxg')
+    ierr= auxputch('group_1','i',group_1,'cen_hxg')
+    ierr= auxputch('o2','r',(group_1-1)*dx,'cen_hxg')
+! Putch out info for the centered surface wavefield records (z-comp)
+    ierr= auxputch('n1','i',nt,'cen_hzg')
+    ierr= auxputch('n2','i',ngroup,'cen_hzg')
+    ierr= auxputch('n3','i',nsrc,'cen_hzg')
+    ierr= auxputch('rollalong','i',rollalong,'cen_hzg')
+    ierr= auxputch('surf_type','i',surf_type,'cen_hzg')
+    ierr= auxputch('geo_depth','i',geo_depth,'cen_hzg')
+    ierr= auxputch('src_1','i',src_1,'cen_hzg')
+    ierr= auxputch('src_depth','i',src_depth,'cen_hzg')
+    ierr= auxputch('src_inc','i',src_inc,'cen_hzg')
+    ierr= auxputch('d1','r',dt,'cen_hzg')
+    ierr= auxputch('d2','r',dx,'cen_hzg')
+    ierr= auxputch('group_1','i',group_1,'cen_hzg')
+    ierr= auxputch('o2','r',(group_1-1)*dx,'cen_hzg')
+  end if
+! close up the headers and get to work
+  call hclose()
+! pete's derivative operators!!
+!a1=1.231841
+!a2=-.10506745
+!a3=.0222886155
+!a4=-.0051439365
+!  francis's derivative operators
+  a1=1225./1024.
+  a2=-1225./(1024*15)
+  a3=1225./(1024*125)
+  a4=-1225./(1024*1715)
+! Pete's interpolation operators
+  b1=.6159165
+  b2=-.10506745
+  b3=.0557128
+  b4=-.0179983
+! make the derivative ops work for x and z different grid spacing
+  dxi=1./dx
+  dzi=1./dz
+  a1x=dxi*a1
+  a2x=dxi*a2
+  a3x=a3*dxi
+  a4x=a4*dxi
+  a1z=dzi*a1
+  a2z=dzi*a2
+  a3z=dzi*a3
+  a4z=dzi*a4
+  dt2=dt*dt
+! make the stuff for the shear sourcef
+  pi=3.1415926535
+  do jj=-4,4
+    wate(jj)=.5*(cos((float(jj)-.5)/4.5*pi)+1.)
+  end do 
+  derv(0)=a1x
+  derv(1)=-a1x
+  derv(-1)=a2x
+  derv(2)=-a2x
+  derv(-2)=a3x
+  derv(-3)=a4x
+  derv(4)=a4x
+! make the absorbing boundary multiplier
+  do j=-34,0
+    mult(j)=1.*exp(-.0002*j*j)  ! the coeff is arbitrary but works ok
+  end do 
+! first read in the sourcefunction
+  ierr= sreed('in',sourcef,4*ntsource)
+! now read in the various elastic moduli and the density from
+! one file the order is c11 c13 c33 c44 rho
+  do  j=1,nx
+    ierr= sreed('moduli',c11(:,j),4*nz)
+  end do 
+  do  j=1,nx
+    ierr= sreed('moduli',c13(:,j),4*nz)
+  end do 
+  do j=1,nx
+    ierr= sreed('moduli',c33(:,j),4*nz)
+  end do 
+  do j=1,nx
+    ierr= sreed('moduli',c44(:,j),4*nz)
+  end do 
+  do j=1,nx
+    ierr= sreed('moduli',rho(:,j),4*nz)
+  end do 
+! copy the velocity out into the boundaries
+  if (surf_type.eq.0) then
+    do i=izmin,0  
+      do j=1,nx  
+        c11(i,j)=c11(1,j)
+        c13(i,j)=c13(1,j)
+        c33(i,j)=c33(1,j)
+        c44(i,j)=c44(1,j)
+        rho(i,j)=rho(1,j)
+      end do
+    end do
+  end if
+  do i=nz+1,nz+20  
+    do j=1,nx  
+      c11(i,j)=c11(nz,j)
+      c13(i,j)=c13(nz,j)
+      c33(i,j)=c33(nz,j)
+      c44(i,j)=c44(nz,j)
+      rho(i,j)=rho(nz,j)
+    end do
+  end do 
+  do i=izmin,nz+20  
+    do j=-19,0  
+      c11(i,j)=c11(i,1)
+      c13(i,j)=c13(i,1)
+      c33(i,j)=c33(i,1)
+      c44(i,j)=c44(i,1)
+      rho(i,j)=rho(i,1)
+    end do
+  end do 
+  do i=izmin,nz+20  
+    do j=nx+1,nx+20 
+      c11(i,j)=c11(i,nx)
+      c13(i,j)=c13(i,nx)
+      c33(i,j)=c33(i,nx)
+      c44(i,j)=c44(i,nx)
+      rho(i,j)=rho(i,nx)
+    end do
+  end do 
+! ******************************************************************
+! loop over shots
+! ******************************************************************
+  do isrc=1,nsrc  
+!2000
+    isx=(isrc-1)*src_inc+src_1
+    isz=src_depth
+    if (rollalong.eq.1) then
+      itr1=(isrc-1)*src_inc+group_1
+    else
+      itr1=group_1
+    end if 
+! initialize all wavefields
+    do j=-23,nx+24  
+      do i=-34,nz+24  
+        ux(i,j,1)=0.
+        ux(i,j,2)=0.
+        ux(i,j,3)=0.
+        uz(i,j,1)=0.
+        uz(i,j,2)=0.
+        uz(i,j,3)=0.
+      end do
+    end do 
+    do j=1,ngroup  
+      do it=1,nt  
+        uxs(i,j)=0.
+        uzs(i,j)=0.
+        uxsc(i,j)=0.
+        uzsc(i,j)=0.
+      end do
+    end do
+! **********************************************************************
+! Now do the time steps
+! **********************************************************************
+    do it=1,nt  
+!1000
+!  write(0,*)'timestep',it,'  of',nt
+! now calculate the  stresses
+      do  j=-19,nx+20  
+        do  i=izmin,nz+20  
+          duxdx=a1x*(ux(i,j+1,2)-ux(i,j,2))+a2x*(ux(i,j+2,2)-ux(i,j-1,2&
+            &))  +a3x*(ux(i,j+3,2)-ux(i,j-2,2))+a4x*(ux(i,j+4,2)-ux(i,j-3,2))
+          duzdz=a1z*(uz(i+1,j,2)-uz(i,j,2))+a2z*(uz(i+2,j,2)-uz(i-1,j,2&
+            &))        +a3z*(uz(i+3,j,2)-uz(i-2,j,2))+a4z*(uz(i+4,j,2)-uz(i-3,j,2))
+          duxdz=a1z*(ux(i,j,2)-ux(i-1,j,2))+a2z*(ux(i+1,j,2)-ux(i-2,j,2&
+            &))        +a3z*(ux(i+2,j,2)-ux(i-3,j,2))+a4z*(ux(i+3,j,2)-ux(i-4,j,2))
+          duzdx=a1x*(uz(i,j,2)-uz(i,j-1,2))+a2x*(uz(i,j+1,2)-uz(i,j-2,2&
+            &))        +a3x*(uz(i,j+2,2)-uz(i,j-3,2))+a4x*(uz(i,j+3,2)-uz(i,j-4,2))
+          sxx(i,j)=c11(i,j)*duxdx+c13(i,j)*duzdz
+          szz(i,j)=c33(i,j)*duzdz+c13(i,j)*duxdx
+          sxz(i,j)=c44(i,j)*(duxdz+duzdx)*.5
+        end do
+      end do 
+! now calculate the stresses in the bottom boundary
+      do  j=-19,nx+20  
+        do  i=nz+21,nz+23  
+          duxdx=dxi*(ux(i,j+1,2)-ux(i,j,2))
+          duzdz=dzi*(uz(i+1,j,2)-uz(i,j,2))
+          duxdz=dzi*(ux(i,j,2)-ux(i-1,j,2))
+          duzdx=dxi*(uz(i,j,2)-uz(i,j-1,2))
+          sxx(i,j)=c11(nz+20,j)*duxdx+c13(nz+20,j)*duzdz
+          szz(i,j)=c33(nz+20,j)*duzdz+c13(nz+20,j)*duxdx
+          sxz(i,j)=c44(nz+20,j)*(duxdz+duzdx)*.5
+        end do
+      end do 
+! now calculate the stresses in the right side boundary
+      do  i=izmin,nz+20  
+        do  j=nx+21,nx+23  
+          duxdx=dxi*(ux(i,j+1,2)-ux(i,j,2))
+          duzdz=dzi*(uz(i+1,j,2)-uz(i,j,2))
+          duxdz=dzi*(ux(i,j,2)-ux(i-1,j,2))
+          duzdx=dxi*(uz(i,j,2)-uz(i,j-1,2))
+          sxx(i,j)=c11(i,nx+20)*duxdx+c13(i,nx+20)*duzdz
+          szz(i,j)=c33(i,nx+20)*duzdz+c13(i,nx+20)*duxdx
+          sxz(i,j)=c44(i,nx+20)*(duxdz+duzdx)*.5
+        end do
+      end do 
+! now calculate the stresses in the left side boundary
+      do  i=izmin,nz+20  
+        do  j=-22,20  
+          duxdx=dxi*(ux(i,j+1,2)-ux(i,j,2))
+          duzdz=dzi*(uz(i+1,j,2)-uz(i,j,2))
+          duxdz=dzi*(ux(i,j,2)-ux(i-1,j,2))
+          duzdx=dxi*(uz(i,j,2)-uz(i,j-1,2))
+          sxx(i,j)=c11(i,-19)*duxdx+c13(i,-19)*duzdz
+          szz(i,j)=c33(i,-19)*duzdz+c13(i,-19)*duxdx
+          sxz(i,j)=c44(i,-19)*(duxdz+duzdx)*.5
+        end do
+      end do 
+! Now handle the stress at the surface
+      if (surf_type.eq.0) then
+        do i=-33,-31  
+          do j=-19,nx+20  
+            duxdx=dxi*(ux(i,j+1,2)-ux(i,j,2))
+            duzdz=dzi*(uz(i+1,j,2)-uz(i,j,2))
+            duxdz=dxi*(ux(i,j,2)-ux(i-1,j,2))
+            duzdx=dzi*(uz(i,j,2)-uz(i,j-1,2))
+            sxx(i,j)=c11(-30,j)*duxdx+c13(-30,j)*duzdz
+            szz(i,j)=c33(-30,j)*duzdz+c13(-30,j)*duxdx
+            sxz(i,j)=c44(-30,j)*(duxdz+duzdx)*.5
+          end do
+        end do
+!
+      else
+        i=0
+        do j=-19,nx+20  
+          duzdz=a1z*(uz(i+1,j,2)-uz(i,j,2))+a2z*(uz(i+2,j,2)-uz(i-1,j,2&
+            &))        +a3z*(uz(i+3,j,2)-uz(i-2,j,2))+a4z*(uz(i+4,j,2)-uz(i-3,j,2))
+          duxdx=a1x*(ux(i,j+1,2)-ux(i,j,2))+a2x*(ux(i,j+2,2)-ux(i,j-1,2&
+            &))        +a3x*(ux(i,j+3,2)-ux(i,j-2,2))+a4x*(ux(i,j+4,2)-ux(i,j-3,2))
+          sxx(i,j)=c11(1,j)*duxdx+c13(1,j)*duzdz
+          szz(i,j)=c33(1,j)*duzdz+c13(1,j)*duxdx
+        end do
+      end if 
+! if requested: add an explosive sourcef at the sourcelocation
+      if (src_type.eq.4) then
+        if (surf_type.eq.1) then
+!zero above free surface
+          do j=-19,nx+20  
+            sxx(-1,j)=0.
+            sxx(-2,j)=0.
+            sxx(-3,j)=0.
+            szz(-1,j)=0.
+            szz(-2,j)=0.
+            szz(-3,j)=0.
+          end do
+        end if
+        do j=isx-4,isx+4  
+          do i=isz-4,isz+4  
+!             sxx(i,j)=sxx(i,j)-c11(isz,isx)/rho(isz,isx)*sourcef(it)
+            sxx(i,j)=sxx(i,j)-sourcef(it)                             &
+              &           *exp(-.15*((j-isx)**2+(i-isz)**2))
+!             szz(i,j)=szz(i,j)-c11(isz,isx)/rho(isz,isx)*sourcef(it)
+            szz(i,j)=szz(i,j)-sourcef(it)                             &
+              &           *exp(-.15*((j-isx)**2+(i-isz)**2))
+          end do
+        end do
+      end if
+! the next step is to calculate ux and uz the 2nd time derivatives of displace
+! ment
+      do j=-19,nx+20  
+        do  i=izmin,nz+20  
+          dsxxm=a1x*(sxx(i,j)-sxx(i,j-1))+a2x*(sxx(i,j+1)-sxx(i,j-2)) &
+            &       +a3x*(sxx(i,j+2)-sxx(i,j-3))+a4x*(sxx(i,j+3)-sxx(i,j-4))
+          dsxzxp=a1x*(sxz(i,j+1)-sxz(i,j))+a2x*(sxz(i,j+2)-sxz(i,j-1))&
+            &        +a3x*(sxz(i,j+3)-sxz(i,j-2))+a4x*(sxz(i,j+4)-sxz(i,j-3))
+          dsxzzp=a1z*(sxz(i+1,j)-sxz(i,j))+a2z*(sxz(i+2,j)-sxz(i-1,j))&
+            &        +a3z*(sxz(i+3,j)-sxz(i-2,j))+a4z*(sxz(i+4,j)-sxz(i-3,j))
+          dszzm=a1z*(szz(i,j)-szz(i-1,j))+a2z*(szz(i+1,j)-szz(i-2,j)) &
+            &       +a3z*(szz(i+2,j)-szz(i-3,j))+a4z*(szz(i+3,j)-szz(i-4,j))
+          ux(i,j,3)=1./rho(i,j)*(dsxxm+dsxzzp)
+          uz(i,j,3)=1./rho(i,j)*(dszzm+dsxzxp)
+        end do
+      end do 
+! take care of free surface
+      if (surf_type.eq.1) then
+        i=0
+        do  j=-19,nx+20  
+          dsxzzp=a1z*(sxz(i+1,j)-sxz(i,j))+a2z*(sxz(i+2,j)-sxz(i-1,j))&
+            &        +a3z*(sxz(i+3,j)-sxz(i-2,j))+a4z*(sxz(i+4,j)-sxz(i-3,j))
+          dsxxm=a1x*(sxx(i,j)-sxx(i,j-1))+a2x*(sxx(i,j+1)-sxx(i,j-2)) &
+            &       +a3x*(sxx(i,j+2)-sxx(i,j-3))+a4x*(sxx(i,j+3)-sxx(i,j-4))
+          dszzm=a1z*(szz(i,j)-szz(i-1,j))+a2z*(szz(i+1,j)-szz(i-2,j)) &
+            &       +a3z*(szz(i+2,j)-szz(i-3,j))+a4z*(szz(i+3,j)-szz(i-4,j))
+          ux(i,j,3)=1./rho(1,j)*(dsxxm+dsxzzp)
+          uz(i,j,3)=4./rho(1,j)*(dszzm)
+        end do
+      end if
+! record the surface displacements
+      i=geo_depth
+      do j=1,nx  
+        uxsc(it,j)=b1*(ux(i,j+1,2)+ux(i,j,2))+b2*(ux(i,j+2,2)+ux(i,j-1&
+          &,2))             +b3*(ux(i,j+3,2)+ux(i,j-2,2))+b4*(ux(i,j&
+          &+4,2)+ux(i,j-3,2))
+        uzsc(it,j)=b1*(uz(i+1,j,2)+uz(i,j,2))+b2*(uz(i+2,j,2)+uz(i-1,j&
+          &,2))             +b3*(uz(i+3,j,2)+uz(i-2,j,2))+b4*(uz(i+4&
+          &,j,2)+uz(i-3,j,2))
+        uxs(it,j)=ux(i,j,2)
+        uzs(it,j)=uz(i,j,2)
+      end do 
+      if (src_type.eq.1) then
+        if (surf_type.eq.1) then
+!zero above free surface
+          do  j=-19,nx+20 
+            uz(-1,j,3)=0.
+            uz(-2,j,3)=0.
+            uz(-3,j,3)=0.
+          end do
+        end if
+        do  j=isx-4,isx+4  
+          do i=isz-4,isz+4  
+!                uz(i,j,3)=uz(i,j,3)-1./rho(isz,isx)*sourcef(it)
+            uz(i,j,3)=uz(i,j,3)-sourcef(it)                          &
+              &*exp(-.15*((j-isx)**2+(i-isz)**2))
+          end do
+        end do
+      end if
+      if (src_type.eq.2) then
+        if (surf_type.eq.2) then
+!zero above free surface
+          do j=-19,nx+20  
+            ux(-1,j,3)=0.
+            ux(-2,j,3)=0.
+            ux(-3,j,3)=0.
+          end do
+        end if
+        do  j=isx-4,isx+4  
+          do i=isz-4,isz+4  
+!                ux(i,j,3)=ux(i,j,3)-1./rho(isz,isx)*sourcef(it)
+            ux(i,j,3)=ux(i,j,3)-sourcef(it)                          &
+              &*exp(-.15*((j-isx)**2+(i-isz)**2))
+          end do
+        end do
+      end if
+! if requested: add a shear sourcef at the sourcelocation
+      if (src_type.eq.3) then
+        if (surf_type.eq.1) then
+!zero above free surface
+          do j=-19,nx+20 
+            ux(-1,j,3)=0.
+            ux(-2,j,3)=0.
+            ux(-3,j,3)=0.
+            uz(-1,j,3)=0.
+            uz(-2,j,3)=0.
+            uz(-3,j,3)=0.
+          end do
+        end if
+        do j=isx-3,isx+4  
+          do i=isz-3,isz+4  
+!             ux(i,j,3)=ux(i,j,3)-1/rho(isz,isx)*sourcef(it)*
+            ux(i,j,3)=ux(i,j,3)-sourcef(it)*                       wate&
+              &(j-isx)*derv(i-isz)
+          end do
+        end do 
+        do j=isx-3,isx+4  
+          do i=isz-3,isz+4  
+!             uz(i,j,3)=uz(i,j,3)-1/rho(isz,isx)*sourcef(it)*
+            uz(i,j,3)=uz(i,j,3)-sourcef(it)*                       wate&
+              &(i-isz)*derv(j-isx)
+          end do
+        end do
+      end if
+! Now output the desired wavefields  (First test) I will output the
+!  accelerations at the 1/2 grid point screwy locations that
+!   they are calculated at Do this only every 100th time step
+      if (mod(it,snap_i).eq.0) then
+        do  j=1,nx
+          ierr= srite('uxsnap',ux(:,j,3),4*nz)
+        end do 
+!
+        do  j=1,nx
+          ierr= srite('uzsnap',uz(:,j,3),4*nz)
+        end do
+      end if
+! now taper the wave field in the boundaries
+      if (surf_type.eq.0) then
+        do j=1,nx  
+          do i=-34,0  
+            ux(i,j,3)=ux(i,j,3)*mult(i)
+            ux(i,j,2)=ux(i,j,2)*mult(i)
+            ux(i,j,1)=ux(i,j,1)*mult(i)
+            uz(i,j,3)=uz(i,j,3)*mult(i)
+            uz(i,j,2)=uz(i,j,2)*mult(i)
+            uz(i,j,1)=uz(i,j,1)*mult(i)
+          end do
+        end do
+      end if
+      do j=1,nx  
+        do i=nz+1,nz+20  
+          ux(i,j,3)=ux(i,j,3)*mult(-i+nz+1)
+          ux(i,j,2)=ux(i,j,2)*mult(-i+nz+1)
+          ux(i,j,1)=ux(i,j,1)*mult(-i+nz+1)
+          uz(i,j,3)=uz(i,j,3)*mult(-i+nz+1)
+          uz(i,j,2)=uz(i,j,2)*mult(-i+nz+1)
+          uz(i,j,1)=uz(i,j,1)*mult(-i+nz+1)
+        end do
+      end do 
+      do j=-19,0  
+        do i=izmin,nz+20  
+          ux(i,j,3)=ux(i,j,3)*mult(j)
+          ux(i,j,2)=ux(i,j,2)*mult(j)
+          ux(i,j,1)=ux(i,j,1)*mult(j)
+          uz(i,j,3)=uz(i,j,3)*mult(j)
+          uz(i,j,2)=uz(i,j,2)*mult(j)
+          uz(i,j,1)=uz(i,j,1)*mult(j)
+        end do
+      end do 
+      do j=nx+1,nx+20  
+        do i=izmin,nz+20  
+          ux(i,j,3)=ux(i,j,3)*mult(-j+nx+1)
+          ux(i,j,2)=ux(i,j,2)*mult(-j+nx+1)
+          ux(i,j,1)=ux(i,j,1)*mult(-j+nx+1)
+          uz(i,j,3)=uz(i,j,3)*mult(-j+nx+1)
+          uz(i,j,2)=uz(i,j,2)*mult(-j+nx+1)
+          uz(i,j,1)=uz(i,j,1)*mult(-j+nx+1)
+        end do
+      end do 
+! now update the displacement values
+      do j=-19,nx+20  
+        do i=izmin,nz+20  
+          ux(i,j,3)=2*ux(i,j,2)-ux(i,j,1)+dt2*ux(i,j,3)
+          ux(i,j,1)=ux(i,j,2)
+          ux(i,j,2)=ux(i,j,3)
+          uz(i,j,3)=2*uz(i,j,2)-uz(i,j,1)+dt2*uz(i,j,3)
+          uz(i,j,1)=uz(i,j,2)
+          uz(i,j,2)=uz(i,j,3)
+        end do
+      end do 
+      if (surf_type.eq.1) then
+        i=0
+        do j=-19,nx+20  
+          ux(i,j,3)=2*ux(i,j,2)-ux(i,j,1)+dt2*ux(i,j,3)
+          ux(i,j,1)=ux(i,j,2)
+          ux(i,j,2)=ux(i,j,3)
+          uz(i,j,3)=2*uz(i,j,2)-uz(i,j,1)+dt2*uz(i,j,3)
+          uz(i,j,1)=uz(i,j,2)
+          uz(i,j,2)=uz(i,j,3)
+        end do
+      end if
+! update the bottom boundary
+      do i=nz+21,nz+24  
+        do j=-19,nx+20  
+          delp=sqrt(c33(nz,j)/rho(nz,j))*dt*dzi
+          dels=sqrt(.5*c44(nz,j)/rho(nz,j))*dt*dzi
+          uz(i,j,2)=1./(1.+delp)*((1-delp)*(uz(i,j,1)-uz(i-1,j,2)))+  &
+            &                     uz(i-1,j,1)
+          ux(i,j,2)=1./(1.+dels)*((1-dels)*(ux(i,j,1)-ux(i-1,j,2)))+  &
+            &                     ux(i-1,j,1)
+        end do
+      end do 
+!!$DIR SCALAR
+      do  i=nz+21,nz+24  
+        do  j=-19,nx+20  
+          ux(i,j,1)=ux(i,j,2)
+          uz(i,j,1)=uz(i,j,2)
+        end do
+      end do 
+! update the top absorbing boundary if used
+      if (surf_type.eq.0) then
+        do i=-31,-34,-1  
+          do j=-19,nx+20  
+            delp=sqrt(c33(1,j)/rho(1,j))*dt*dzi
+            dels=sqrt(.5*c44(1,j)/rho(1,j))*dt*dzi
+            uz(i,j,2)=1/(1+delp)*((1-delp)*(uz(i,j,1)-uz(i+1,j,2)))+  &
+              &                           uz(i+1,j,1)
+            ux(i,j,2)=1/(1+dels)*((1-dels)*(ux(i,j,1)-ux(i+1,j,2)))+  &
+              &                           ux(i+1,j,1)
+          end do
+        end do 
+!
+!!$DIR SCALAR
+        do i=-31,-34,-1  
+          do j=-19,nx+20  
+            ux(i,j,1)=ux(i,j,2)*mult(i)
+            uz(i,j,1)=uz(i,j,2)*mult(i)
+          end do
+        end do
+      end if
+! update the right side boundary
+      do  j=nx+21,nx+24  
+        do  i=izmin,nz+20  
+          delp=sqrt(c11(i,nx)/rho(i,nx))*dt*dxi
+          dels=sqrt(.5*c44(i,nx)/rho(i,nx))*dt*dxi
+          ux(i,j,2)=1/(1+delp)*((1-delp)*(ux(i,j,1)-ux(i,j-1,2)))+    &
+            &                 ux(i,j-1,1)
+          uz(i,j,2)=1/(1+dels)*((1-dels)*(uz(i,j,1)-uz(i,j-1,2)))+    &
+            &                 uz(i,j-1,1)
+        end do
+      end do 
+      do j=nx+21,nx+24  
+        do i=izmin,nz+20  
+          ux(i,j,1)=ux(i,j,2)
+          uz(i,j,1)=uz(i,j,2)
+        end do
+      end do 
+! update the left side boundary
+      do j=-20,-23,-1  
+        do i=izmin,nz+20  
+          delp=sqrt(c11(i,1)/rho(i,1))*dt*dxi
+          dels=sqrt(.5*c44(i,1)/rho(i,1))*dt*dxi
+          ux(i,j,2)=1/(1+delp)*((1-delp)*(ux(i,j,1)-ux(i,j+1,2)))+    &
+            &                 ux(i,j+1,1)
+          uz(i,j,2)=1/(1+dels)*((1-dels)*(uz(i,j,1)-uz(i,j+1,2)))+    &
+            &                 uz(i,j+1,1)
+        end do
+      end do 
+      do  j=-20,-23,-1  
+        do  i=izmin,nz+20  
+          ux(i,j,1)=ux(i,j,2)
+          uz(i,j,1)=uz(i,j,2)
+        end do
+      end do 
+! Ok end of time step go back and do it again
+!
+    end do 
+!1000 continue
+! Now write out the surface seismi# shot record that is
+!  required
+    if (not_centered.eq.1) then
+      do  j=itr1,itr1+ngroup-1
+        ierr= srite('out',uzs(:,j),4*nt)
+      end do 
+      do  j=itr1,itr1+ngroup-1
+        ierr= srite('horizg',uxs(:,j),4*nt)
+      end do
+    end if
+! output on a centered grid if requested
+    if (centered.eq.1) then
+      do j=itr1,itr1+ngroup-1
+        ierr= srite('cen_hzg',uzsc(:,j),4*nt)
+      end do 
+      do j=itr1,itr1+ngroup-1
+        ierr= srite('cen_hxg',uxsc(:,j),4*nt)
+      end do
+    end if
+! ok all done with this shot
+  end do 
+!2000 continue
+end subroutine  

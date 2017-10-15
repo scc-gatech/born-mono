@@ -1,0 +1,46 @@
+=head1 NAME
+
+
+sep3d_set_sect_param - Write a parameter to all the local sections
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3d_set_sect_param(struct,par,val)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure
+
+=item par  -  char*
+
+      parameter name
+
+=item value  -  void*
+
+      parameter value
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Write a parameter to all local sections
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

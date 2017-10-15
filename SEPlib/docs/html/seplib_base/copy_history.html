@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>auxscr,auxsockout,copy_history - returns I/O pointer 
+to auxiliary data file</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#example">EXAMPLE</a></li>
+	<li><a href="#diagnostics">DIAGNOSTICS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+	<li><a href="#keywords">KEYWORDS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>auxin, auxout, auxinout, auxscr,auxsockout,copy_history - returns I/O pointer 
+to auxiliary data file</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+        From C:
+        #include &lt;seplib.h&gt;</pre>
+<pre>
+        FILE *auxin(tag)
+        FILE *auxtmp(tag);
+        FILE *auxout(tag)
+        FILE *auxinout(tag)
+        FILE *auxsockout(tag)
+        FILE *auxscr(tag)
+        void copy_history( intag, outtag )
+        char *tag, *intag, *outtag;</pre>
+<pre>
+        From Fortran:</pre>
+<pre>
+        integer auxin(tag)
+        integer auxout(tag)
+        integer auxinout(tag)
+        integer auxsockout(tag)
+        integer auxscr(tag)
+        integer auxtmp(tag)
+        integer copy_history(intag,outtag)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>These routines open an auxillary seplib dataset for input, output, or
+both. For historical reasons they return a stream pointer 
+(or a file descriptor for Fortran users).  These return values should not
+be used for I/O. Always use the tag name to read and write data. The
+return values should only be used to check for errors.</p>
+<p>For <code>auxin()</code> the location of this data is determined by a line ``in=filename'' 
+in the auxiliary input history.  The history is in turn located according the
+following priorities:
+Look for 'tag=history' on the command line.
+Look for 'tag=history' on standard input.
+Look for the file `tag' in the current directory.</p>
+<p>For auxout(), an output history is created and
+initialized as necessary. The default name `tag' of this
+output history may be overrrided by specifying `tag=history'
+on the command line. If the output
+history already exists it will be overwritten.
+The location of the data file is constructed
+automatically following rules similar to those used by
+output(). If the file exists it will be truncated to zero length
+before starting output.</p>
+<p>For auxinout(), the history file will be searched for using the same
+rules as auxin and appended to if it exists.
+If the history already exists, the data file it points at will be
+reused. If you wish to append to the end of that file you should
+seek to the end before writing.  If the history file doesn't exist the 
+history file and data file will be created as for auxout.
+The call to <code>auxinout()</code> must be the first use of the tag in your program.
+Any other call will implicity open the dataset as either an input or
+output dataset.</p>
+<p><code>copy_history()</code> is used to copy the input history from the stream
+defined by tagin to the stream defined by tagout.</p>
+<p>
+</p>
+<hr />
+<h1><a name="example">EXAMPLE</a></h1>
+<pre>
+        A binary file &quot;elevations&quot; has been generated for a 
+        seismic section. The history, say Helev, describing it 
+        would contain</pre>
+<pre>
+                in=&quot;elevations&quot;</pre>
+<pre>
+                ne=120 units=feet datum=250</pre>
+<pre>
+        A program written to use these elevations would be invoked</pre>
+<pre>
+                &lt;Hin Prog elev=Helev &gt;Hout</pre>
+<pre>
+        and the source for Prog might contain code such as</pre>
+<pre>
+                auxpar(&quot;ne&quot;,&quot;d&quot;,&amp;ne,&quot;elev&quot;);</pre>
+<pre>
+                auxpar(&quot;esize&quot;,&quot;d&quot;,&amp;esize,&quot;elev&quot;);</pre>
+<pre>
+                auxpar(&quot;units&quot;,&quot;s&quot;,units,&quot;elev&quot;);</pre>
+<pre>
+                auxpar(&quot;datum&quot;,&quot;f&quot;,&amp;datum,&quot;elev&quot;);</pre>
+<pre>
+                sreed(&quot;elev&quot;,elevations,ne*esize)</pre>
+<pre>
+                for(i=0; i&lt;ne; ++i) elevations[i] -= datum;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="diagnostics">DIAGNOSTICS</a></h1>
+<pre>
+        Calls to auxin()/auxout()/auxinout()/auxsockout()/auxscr() from C return 
+        NULL if there is no auxiliary history or data whilst
+        the fortran routine returns -1 in the same situation.
+        Other errors will cause program termination with a
+        suitable message.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<pre>
+        L&lt;auxclose&gt;, L&lt;auxpar&gt;, L&lt;auxputch&gt;, input, L&lt;sreed&gt;, L&lt;srite&gt;, 
+        L&lt;sseek&gt;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<pre>
+        Don't forget to declare auxin an integer in Fortran 
+        and Ratfor programs.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="keywords">KEYWORDS</a></h1>
+<p>auxillary dataset input output</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep</strong></p>
+
+</body>
+
+</html>

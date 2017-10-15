@@ -1,0 +1,103 @@
+=head1 NAME
+
+
+velan_subs_mod - Do semblance analsysis
+
+=head1 SYNOPSIS
+
+
+C<call init_velan(vel0,delv,numv,o_1,d_1,d_tout,sm,mu)>
+
+C<call velan_exe(input,output,offsq)>
+
+=head1 INITIALIZER init_velan
+
+
+=head2 INPUT PARAMETERS
+
+=over 4
+
+=item vel0 -  real
+
+        initial velocity
+
+=item delv -  real
+
+        sampling in velocity
+
+=item numv -  integer
+
+        number of velocities
+
+=item o_1  -  real
+
+        first time
+
+=item d_1  -  real
+
+        sampling in time
+
+=item d_tout -real
+
+        sampling of output times
+
+=item sm    - real
+
+        smoothing window
+
+=item mu    - real
+
+        muting parameter to apply
+
+=back
+
+=head1 OPERATOR
+
+
+=head2 INPUT PARAMETERS
+
+=over 4
+
+=item input - C< real(:,:)>
+
+        input  traces
+
+=item offsq - C< real(:)>
+
+        Offset for traces
+
+=back
+
+=head2 OUTPUT PARAMETERS
+
+=over 4
+
+=item output - C<real(:,:)>
+
+         output velocity
+
+
+=back
+
+=head1 DESCRIPTION
+
+
+Module to make semblance panels given irregular traces
+
+=head1 COMMENTS
+
+
+Used by Velan90
+
+=head1 SEE ALSO
+
+
+L<nmo_mod>,L<Nmo3d>
+
+=head1 LIBRARY
+
+
+B<sepvelanf90>
+
+=cut
+

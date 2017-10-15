@@ -1,0 +1,2107 @@
+
+/*$   
+
+=head1 NAME
+
+Contour - makes a contour plot
+
+=head1 SYNOPSIS
+
+Contour [par=] [< In.H] | Tube   
+
+=head1 DESCRIPTION 
+
+Make a contour plot of a seplib file
+
+=head1 COMMENTS
+
+  Input a real-valued (esize=4) dataset and output vplot commands
+  for a two-dimensional contour plot of the data. (The vplot 
+  output can be viewed on a screen using the program Tube, or
+  plotted on a postscript printer using Pspen.) Contour has
+  many, many options to specify at what values to draw contours,
+  where to position the plot on the page, how big to make the
+  plot, which way to draw the axes, where to place tick marks
+  and labels, etc. All of these parameters attempt to default
+  reasonably. Contour also allows auxiliary input files which
+  can be used to annotate the contour plot with symbols,
+  curves or arrows. You may find the utility programs Window
+  and Reverse useful pre-processing data to be plotted with
+  Contour. See also Vppen and Box for a crude way of adding
+  annotation, and pls and pldb for a crude way of editing.
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item n1 - int         
+
+      standard seplib n1 parameter
+
+=item c  - float       
+
+      value to contour; if not specified calculated from nc c0 and dc 
+
+=item nc  - int         
+
+      [5] number of countours
+
+=item c0  - float       
+
+      [calculated] first value to contour 
+
+=item dc  - float       
+
+      [calculated from c0 and nc]  contour interval
+
+=item n2  - int         
+
+      determined from file size and n1 and n3
+
+=item n3  - int         
+
+      [1]
+
+=item d1,d2,d3 - float   
+
+      [1.]standard sampling sampleing parameter
+
+=item o1,o2,o3 - float   
+
+      [0.]standard seplib axis origin parameter
+
+=item pad    - char      
+
+      (0,1 n,y)  (If user specifies mins or maxes then 
+      padding is turned off unless pad is specified. 
+      pad is useful if you want the length of the plot 
+      to be the same as the length of the graph.  
+
+=item transp  -char      
+
+      [1] whether or not to transpose output (standard vplot)
+
+=item xreverse,yreverse -char 
+
+      standard vplot definitions four output file
+
+=item screenht-float     
+
+      [10.24] height of output medium
+
+=item screenwd-float     
+
+      [13.75] width of output medium
+
+=item screeratio-float   
+
+      [.75] ratio of screen height to width
+
+
+=item  xll,yll,xur,yur - float
+
+          set Lower Left and Upper Right coordinates
+
+
+
+
+=item xinch - float      
+
+      [10.24] standard vplot definition
+
+=item yinch - float      
+
+      [7.5] standard vplot definition
+
+=item crowd,crowd1,crowd2 - float 
+
+      [.75]  crowd1=crowd  crowd2=crowd 
+      (.75< crowd < 1.) crowds labels off the 
+      screen by expanding data on 1 or 2 axis.
+
+=item wantframe,wantframenum -char 
+
+      standard vplot definitions (0,1, n,y)
+
+=item wantaxis,wantaxis1,wantaxis2 - char 
+
+      [1] standard vplot definition(0,1 n,y)
+
+=item min1,min2,max1,max - float 
+
+      standard vplot definitions
+
+=item axisor1,axisor2  - float 
+
+      [min1],[min2] standard vplot definition
+
+=item o1num,o2num,d1num,d2num - float
+
+      tic placement
+
+=item n1tic,n2tic - int 
+
+      [1] number of tics
+
+=item wheretics - char 
+
+      [f] (f,a) where to put tics (frame, axes)
+
+=item wheretitle -char 
+
+      [t] (t,b,l,r) where to put title 
+
+=item wherexlabel - char 
+
+      [b] (t,b) where to put x label
+
+=item whereylabel - char 
+
+      [l] (l,r) where to put y label
+
+=item titlefat,labelfat - int 
+
+      [1] title and label fat
+
+=item label1,label2 - char* 
+
+      label for axes
+
+=item title - char* 
+
+      title for plot
+
+=item labelsz - int 
+
+      [8] label size
+
+=item titlesz - int 
+
+      [10] label size
+
+=item labelrot - char 
+
+      [y] (0,1 n,y) rotates labels 90 degrees
+
+=item grid,grid1,grid2 - char 
+
+      [0]   (0,1 n,y) turns on grid
+
+=item g1num,g2num - float 
+
+      [d1num],[d2num] grid spacing
+
+=item gridcol - int 
+
+      [axiscol] grid color
+
+=item backcol  - float* 
+
+      [0,0,0] background color (R,G,B) between 0 and 1
+
+=item fillcol  - float* 
+
+      [backcol(0,0,0)] fill color (R,G,B) between 0 and 1
+
+=item plotcol  - int*  
+
+      [6,5,4,3,2,1,...] color for each line plotted 
+
+=item axiscol  - int*  
+
+      [7,7,7,7,...] color of each axis
+
+=item plotfat  - int*  
+
+      [0,0,0,...] each line fat 
+
+=item axisfat  - int*  
+
+      [0,0,0,...] each axis fat 
+
+=item arrow    -  char  
+
+      [0] (0,1 n,y) for complex data, plots arrows rather than lines
+
+=item dash     -  int*  
+
+      [0]
+      0 default is continuous.
+      1 fine dash
+      2 fine dot
+      3 dash
+      4 large dash
+      5 dot dash
+      6 large dash smalldash
+      7 double dot
+      8 double dash
+      9 loose dash  The part after the decimal point determines 
+                    the pattern repetition interval
+
+=item curve   -file      
+
+      header file for curves to be overlayed over 
+      the contours. n1=Npoints n2=Ncurves n3=Nframes
+      esize=2*sizeof(float). The format of the data 
+      file should be: x1,y1,x2,y2,...
+
+=item curvecol- int*     
+
+      [6,5,4,3,2,1,...] color for each contour 
+
+=item curvefat- int      
+
+      [2] makes each contour fat
+
+=item pick    - file     
+
+      header file for picks to be overlayed over 
+      the contours. n1=Npoints n2=Npicks n3=Nframes 
+      esize=2*sizeof(float) The format of the data 
+      file should be: x1,y1,x2,y2,...
+
+=item pickcol - int*     
+
+      [6,5,4,3,2,1]  color for each pick
+
+=item picksize- int      
+
+      [15] size of each pick
+
+=item picksymbl-int      
+
+      [5] symbol for each pick (2,3,4,5,20,21,22,23)  (see vp_umark) 
+
+=item pickw    -file     
+
+     [pickweights] header file for the weight of the picks;
+     the size of the symbol will be proportional to 
+     the weights. n1=Npoints n2=Npicks n3=Nframes 
+     esize=sizeof(float)
+
+=back
+
+ 
+=head1 SEE ALSO
+
+L<Grey>,L<Thplot>,L<xtpen>
+    
+
+=head1 COMPILE LEVEL
+
+ DISTR
+
+=head1 CATEGORY
+
+B<sep_graphics>
+
+=cut
+
+*/
+/*
+
+
+KEYWORDS   contour plot
+
+WHERE
+  ./cube/plot/Contour.c
+
+copyright (c) 1991 Stanford University
+***********************  END SELFDOC  ********************************
+*/  
+
+/*
+Keyword: contour plot
+  
+Technical reference:  Cottafava,G. and Le Moli,G., 1969, Automatic contour map:
+  Communications of the ACM, volume 12, number 7, July, 1969.
+Dave Hale, 12/05/82
+Modified 2/18/83  S. Levin  changed to seplib;  made colors and fatness repeat.
+          also made changes to be more consistent with lint.
+          Low order floating point bit operations are still
+          inherently non-portable.
+Modified 2/28/83  S. Levin  changed Cplotlib calls to honor Hale's 2/24/83
+          revisions.
+Modified 2/28/83  Jon       recognizes n1 as a synonym for nx
+Modified 3/15/83  Jon       but n1 takes precedence over nx
+Modified 11/10/83 J. Toldi        /sep/usr/documents/standards update
+Modified 09/23/84 Joe Dellinger   Made it recognize n3 for pen movies
+Modified 10/03/84 Joe Dellinger   Added call to rdscript(), fastplot()
+Modified 4/25/84  J. Toldi  ncurve stuff added
+Modified 9/25/85  Stewart A. Levin  Low-order VAX bit flagging revision for convex
+Modified 9/18/86  Joe      Updated Vplot calls to new standards, changed
+        Toldi's ncurve stuff to be more general
+Modified 12/6/87 Biondo      Added picks stuff
+Modified 3/24/88 Jos      Added arrow-option (arrow stuff was put in by Joe)
+Modified 3/6/90  Jenni Hufnagel   Converted to glplot and structures
+Modified 1/8/92  Jon Claerbout, delete nx,ny anachronisms.
+Modified 11/2/92 Martin Karrenbach, wmax1 bug and datapickw.n3 bug fixed
+                                     read/write always external eszie bytes
+Modified 3/29/93 Steve Cole, added dashed-line capability similar to Graph
+Modified 12/22/95 Dave Nichols Fix printout of MAXNC exceeded error message
+Modified 10/96  Bob Clapp Changed the way the **z is handled to conform to more
+                          current C
+*/
+
+#define MAXNC 200
+float           c[MAXNC];
+
+static float    vint[4] = {1., 2., 5., 10.};
+static float    sqr[3] = {1.414214, 3.162278, 7.071068};
+
+#include <assert.h>
+#include "glplot.h"
+struct coordinfo coordinatew;
+struct coordinfo coordinate;
+struct coordinfo coordinatetemp;
+struct coordinfo coordinatec;
+struct axisinfo axis1;
+struct axisinfo axis2;
+struct plotposition position;
+struct dashinfo dash;
+struct datainfo data;
+struct datainfo datapick;
+struct datainfo datapickw;
+struct datainfo datac;
+struct gridinfo grid;
+struct plotinfo plot;
+struct plotinfo plotc;
+struct titleinfo title;
+struct colorinfo color;
+int             wantframe, wantframenum, dummy1, n3count, d3count, o3count;
+int             n1count, d1count, o1count, n2count, d2count, o2count;
+int             nccount, dccount, c0count, ccounter;
+int             i, j, picksymbl, pickcol[MAXNC], picksize[MAXNC];
+int             minusone, temp, one;
+int             nc, ic, iy;
+int             lines, ntemp, n3_loop;
+int             amtread;
+int             tmp;
+float           dummy, dc, c0;
+float         **z, **tempz, zmin, zmax, zmin1, zmax1;
+int             icurve, fdcurve, ii;
+int             lpick, ipick, fdpick;
+int             lpickw, ipickw, fdpickw, nweight;
+int             wpicksize, ipicksize;
+int             arrow;
+float          *curve, *pick, *pickw;
+float           wmax, wmin, w, dpicksize, wmean, iwdelta;
+float           x1, yy1, x2, y2;
+extern char    *alloc (size_t);
+/*extern  vp_filep ();*/
+#ifdef CONVEX
+extern float smin_ (), smax_ ();
+#endif
+int             first_time;
+
+ADD_DEF_SEP_DOC
+#include <sep.main>
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+float **alloc2float(int n1, int n2);
+void **alloc2 (int n1, int n2,int size);
+int calminmax ( struct coordinfo *coordinatec, struct coordinfo coordinate, struct datainfo data);
+int minmax1 (float *point1, struct coordinfo *coordinate, struct datainfo *data);
+int arrows (float x0,float  y0,float  x1,float  y1,float  r,  struct coordinfo coord);
+int markup (int npts,int  mtype, int  msize, float  x0, float  y0, struct coordinfo coord);
+int where (float *x,float *y,  struct coordinfo coord);
+int  move (float x0, float y0,  struct coordinfo coord);
+int moveu (float x0, float y0, struct coordinfo coord);
+int drawu (float x0, float y0, struct coordinfo coord);
+int draw (float x0, float y0, struct coordinfo coord);
+int plotcurve (void);
+int pickplot (void);
+int graphinitial (void);
+int contour (float **z, int n1, int n2, float c);
+int cconnect (float **z, int n1, int n2,float  c, int *ix, int *iy);
+void sets (int *i);
+int  wset (int *i);
+void  setw (int *i);
+void  clrw (int *i);
+int  sset (int *i);
+void  clrs (int *i);
+float delta (float a, float b, float  c);
+int minmax (float **f, int n, int m, float *pmin, float *pmax);
+int extranpickpickw (void);
+int extranpickpick (void);
+int extracurvepick (void);
+int update (void);
+int initial (void);
+int contourinitial(void);
+int get_scl (float xmin, float xmax, int n, float *xminp, float *xmaxp, float *dist);
+int transp (float *x, float *y);
+int rotate (float x, float *x1, float max, float min);
+_XFUNCPROTOEND
+#else
+float **alloc2float();
+void **alloc2 ();
+int calminmax ();
+int minmax1 ();
+int arrows ();
+int markup ();
+int where ();
+int  move ();
+int moveu ();
+int drawu ();
+int draw ();
+int plotcurve ();
+int pickplot ();
+int graphinitial ();
+int contour ();
+int cconnect ();
+void sets ();
+int  wset ();
+void  setw ();
+void  clrw ();
+int  sset ();
+void  clrs ();
+float delta ();
+int minmax ();
+int extranpickpickw ();
+int extranpickpick ();
+int extracurvepick ();
+int update ();
+int initial ();
+int contourinitial();
+int get_scl ();
+int transp ();
+int rotate ();
+#endif
+
+
+#include <stdlib.h>
+
+int MAIN (void)
+{
+int ix;
+    /*
+     * initize data structure for data size 
+     */
+    initial ();
+
+  z=alloc2float(data.n1[0],data.n2);
+
+
+  tmp=data.n1[0]* data.n2 * 4;
+/*
+ *   Reading in the data in one chunk.  tmp is the number of points
+ *   and sizeof(float) determines the byte size 
+ */
+    if ((amtread = sreed ("in", *z, tmp)) != tmp)
+    {
+  fprintf (stderr, " ************WARNING********** \n");
+  fprintf (stderr, "amount data read was not the amount specified\n");
+  fprintf (stderr, "check n1 and n2 \n");
+  fprintf (stderr, " ***************************** \n");
+    }
+    vp_filep (outstream);
+
+    /*
+     * initialize plotting structure 
+     */
+    arrow = 1;
+    dummy1 = getch ("arrow", "1", &arrow);
+
+/* 
+close output header before putting out contours */
+    contourinitial ();
+    update ();
+
+/*
+ * for each frame of movie, datac.n2 extra curves may be added to the plot,
+ * these can be something like picked curves.
+ */
+    extracurvepick ();
+
+/*
+ * for each frame of movie, npick extra pick may be added to the plot,
+ * these can be something like picked points.
+ */
+    extranpickpick ();
+
+/*
+ * for each frame of movie, npick extra pick may be added to the plot,
+ * these can be something like picked points.
+ */
+    extranpickpickw ();
+
+/*
+ * Loop over n3 for movie!
+ */
+    for (n3_loop = 0; n3_loop < data.n3; n3_loop++)
+    {
+  if (n3_loop > 0)
+  {
+      tmp = data.n1[0] * data.n2 * 4;
+      if ((amtread = sreed ("in",  *z, tmp)) != tmp)
+      {
+    fprintf (stderr, " ************WARNING********** \n");
+    fprintf (stderr, "amount data read was not the amount specified\n");
+    fprintf (stderr, "check n1 and n2 \n");
+    fprintf (stderr, " ***************************** \n");
+      }
+  }
+  graphinitial ();
+  gl_erase ();
+  gl_vplotint (&position, &coordinate, &axis1, &axis2);
+  gl_plotpram (&color, &coordinate);
+  gl_vplotint (&position, &coordinatec, &axis1, &axis2);
+  gl_uclip (coordinatetemp.min1, coordinatetemp.min2, coordinatetemp.max1, coordinatetemp.max2);
+
+  /*
+   * contour 
+   */
+  for (ic = 0; ic < nc; ic++)
+  {
+            gl_dashfig (&dash, ic);
+            gl_dash (&dash);
+      gl_color (plot.col[ic]);
+      gl_fat (plot.fat[ic]);
+      contour (z, data.n1[0], data.n2, c[ic]);
+  }
+
+  /*
+   * initialization for plotting axes 
+   */
+  gl_vplotint (&position, &coordinate, &axis1, &axis2);
+
+   /*
+    * We know about proper text justification... use proportional
+    * spacing 
+    */
+   gl_tfont (NO_CHANGE, CHAR, NO_CHANGE);
+  plotcurve ();
+  pickplot ();
+  gl_stdplot (&data, &coordinate, &axis1, &axis2, &grid, &title, n3_loop, 0, wantframe,wantframenum);
+    }        /* end of movie loop */
+  return(EXIT_SUCCESS);
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int plotcurve (void)
+_XFUNCPROTOEND
+#else
+int plotcurve ()
+#endif
+{
+
+    /*
+     * add datac.n2 curves to plot, if requested 
+     */
+    if (fdcurve != -1 && datac.n1[0] > 1)
+    {
+  if ((datac.n3--) > 0)
+  {
+      tmp = datac.n1[0] * datac.n2 * 2 * 4;
+      if ((amtread = sreed ("curve", curve, tmp)) != tmp)
+      {
+    fprintf (stderr, " ************WARNING********** \n");
+    fprintf (stderr, "amount data read was not the amount specified\n");
+    fprintf (stderr, "check n1 and n2 for curve\n");
+    fprintf (stderr, " ***************************** \n");
+      }
+  }
+  for (icurve = 0; icurve < datac.n2; icurve++)
+  {
+            gl_dashfig (&dash, icurve);
+            gl_dash (&dash);
+      gl_color (plotc.col[icurve]);
+      gl_fat (plotc.fat[icurve]);
+      first_time = 1;
+      for (ii = 1; ii < datac.n1[0]; ii++)
+      {
+    x1 = curve[2 * (ii - 1) + icurve * 2 * datac.n1[0]];
+    yy1 = curve[2 * (ii - 1) + 1 + icurve * 2 * datac.n1[0]];
+    moveu (x1, yy1, coordinatec);
+    where (&x1, &yy1, coordinatec);
+    x2 = curve[2 * ii + icurve * 2 * datac.n1[0]];
+    y2 = curve[2 * ii + 1 + icurve * 2 * datac.n1[0]];
+    moveu (x2, y2, coordinatec);
+    where (&x1, &yy1, coordinatec);
+    if (arrow && first_time && (x1 - x2) * (x1 - x2) + (yy1 - y2) * (yy1 - y2) > (.4) * (.4))
+    {
+/*      arrows (x1, yy1, (x1 + x2) / 2., (yy1 + y2) / 2.,.07, coordinatec);*/
+        move ((x1 + x2) / 2., (yy1 + y2) / 2., coordinatec);
+        draw (x2, y2, coordinatec);
+        first_time = 0;
+    }
+    else
+    {
+        move (x1, yy1, coordinatec);
+        draw (x2, y2, coordinatec);
+    }
+      }
+      if (arrow)
+    arrows (x1, yy1, x2, y2, .07, coordinatec);
+  }
+    }
+  return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int pickplot (void)
+_XFUNCPROTOEND
+#else
+int pickplot ()
+#endif
+{
+
+    /*
+     * add datac.n2 curves to plot, if requested 
+     */
+    if (fdpick != -1 && datapick.n1[0] > 1)
+    {
+  if (datapick.n3-- > 0)
+  {
+      tmp = datapick.n1[0] * datapick.n2 * 2 * 4;
+      if ((amtread = sreed ("pick", pick, tmp)) != tmp)
+      {
+    fprintf (stderr, " ************WARNING********** \n");
+    fprintf (stderr, "amount data read was not the amount specified\n");
+    fprintf (stderr, "check n1 and n2  for pick\n");
+    fprintf (stderr, " ***************************** \n");
+      }
+  }
+  for (ipick = 0; ipick < datapick.n2; ipick++)
+  {
+      ipicksize = picksize[ipick];
+      dpicksize = (ipicksize * iwdelta);
+      gl_color (pickcol[ipick]);
+      for (ii = 0; ii < lpick; ii++)
+      {
+    x1 = pick[2 * ii + ipick * 2 * datapick.n1[0]];
+    yy1 = pick[2 * ii + 1 + ipick * 2 * datapick.n1[0]];
+    w = fabs (pickw[ii + ipick * datapick.n1[0]]);
+    wpicksize = ((int) (ipicksize + dpicksize * (w - wmean)));
+    markup (1, picksymbl, wpicksize, x1, yy1, coordinatec);
+      }
+  }
+    }
+  return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int graphinitial (void)
+_XFUNCPROTOBEGIN
+#else
+int graphinitial ()
+#endif
+{
+
+    /*
+     * initialization of where things will be 
+     */
+
+    /*
+     * set wantframe to 1  this is the default   will plot the frame  
+     */
+    wantframe = 1;
+    wantframenum = 1;
+
+    /*
+     * getch the variable wantframe 
+     */
+    dummy1 = getch ("wantframe", "1", &wantframe);
+    dummy1 = getch ("wantframenum", "1", &wantframenum);
+
+    /*
+     * initialize where the labels will be for each axis. the x axis will
+     * have the label on top and the y-axis will have it on the left 
+     */
+    strcpy (axis1.wherelabel, "t");
+    strcpy (axis2.wherelabel, "l");
+
+    /*
+     * default for transpose is yes.  the fast direction will be the y-axis 
+     */
+    coordinate.transp = 1;
+
+    /*
+     * setting of direction for axes.  x direction increases to the right y
+     * axis increases downward  towards the bottom  ie  origin of plot is the
+     * upper left hand corner 
+     */
+    coordinate.xreverse = 0;
+    coordinate.yreverse = 1;
+
+    /*
+     * default position for title is bottom 
+     */
+    strcpy (title.wheretitle, "b");
+
+    /*
+     * fetching of previous mentioned variables 
+     */
+    gl_coordint (&position, &coordinate, &axis1, &axis2);
+
+    /*
+     * setting of coordinatec  the contour coordinate frame to previous
+     * mentioned variables 
+     */
+    coordinatec.transp = coordinate.transp;
+    coordinatec.xreverse = coordinate.xreverse;
+    coordinatec.yreverse = coordinate.yreverse;
+
+    /*
+     * setting of default mins and maxs 
+     */
+    coordinate.min1 = data.o1[0];
+    coordinate.max1 = data.o1[0] + (data.n1[0] - 1) * data.d1[0];
+    coordinate.min2 = data.o2;
+    coordinate.max2 = data.o2 + (data.n2 - 1) * data.d2;
+
+    /*
+     * fetching of user specified  min and maxes 
+     */
+    gl_minmax (&coordinate);
+
+    /*
+     * setting if fetched variables to the contour frame this is needed for
+     * padding 
+     */
+    coordinatec.fmin1 = coordinate.fmin1;
+    coordinatec.fmin2 = coordinate.fmin2;
+    coordinatec.fmax1 = coordinate.fmax1;
+    coordinatec.fmax2 = coordinate.fmax2;
+
+    /*
+     * calculating of contour min and maxes, then setting coordinatetemp for
+     * clipping (incase padding is used) 
+     */
+    calminmax (&coordinatec, coordinate, data);
+    coordinatetemp.min1 = coordinatec.min1;
+    coordinatetemp.min2 = coordinatec.min2;
+    coordinatetemp.max1 = coordinatec.max1;
+    coordinatetemp.max2 = coordinatec.max2;
+
+    /*
+     * setting of padding defaults to no padding 
+     */
+    coordinate.pad = 0;
+
+    /*
+     * getch pad npad is used in gl_padint to determine if pad was set from
+     * user 
+     */
+    coordinate.npad = getch ("pad", "1", &coordinate.pad);
+    coordinatec.npad = coordinate.npad;
+    coordinatec.pad = coordinate.pad;
+
+    /*
+     * if coordinate.npad is set then will call routine to pad coordinates 
+     */
+    if (coordinate.npad)
+    {
+  gl_padint (&coordinate);
+  gl_padint (&coordinatec);
+    }
+
+    /*
+     * initialize general axis info, and plotinfo 
+     */
+    gl_axisint (&axis1, &axis2, &coordinate, &position);
+    gl_plotint (&plot, &dash);
+    gl_gridint (&grid, &coordinate, &axis1, &axis2);
+    gl_titleint (&title);
+    gl_colorint (&color);
+  return(0);
+}
+
+/*
+    north (0)
+      (ix,iy+1) --------- (ix+1,iy+1)
+    | cell  |
+       west (3) | ix,iy | east (1)
+    |       |
+  (ix,iy) --------- (ix+1,iy)
+    south (2)
+*/
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int contour (float **z, int n1, int n2, float c)
+_XFUNCPROTOEND
+#else
+int contour (z, n1, n2, c)
+    int             n1, n2;
+    float         **z, c;
+#endif
+{
+register int    ix, iy, non;
+int             jx, jy;
+register float  zxymc, zemc, znmc;
+float           x, y,  *pzxy;
+
+    /*
+     * find all the intersections 
+     */
+    non = 0;      /* clear intersection counter */
+    for (iy = 0; iy < n2 - 1; iy++)
+    {
+  for (ix = 0; ix < n1 - 1; ix++)
+  {
+      pzxy = &z[iy][ix];
+      zxymc = (*pzxy) - c;/* z(x,y) - c */
+      zemc = z[iy][ix + 1] - c;  /* (z to the east) - c */
+      znmc = z[iy + 1][ix] - c;  /* (z to the north) - c */
+#define OPPSIGN(A,B) (1==(((A)<0.)+((B)<0.)))
+      if (OPPSIGN (zxymc, znmc))  /* if west edge intersected */
+      {
+    setw ((int *) pzxy);  /* set the west bit */
+    non++;    /* and increment counter */
+      }
+      else    /* else */
+    clrw ((int *)pzxy);  /* clear the west bit */
+      if (OPPSIGN (zxymc, zemc))  /* if south edge intersected */
+      {
+    sets ((int *)pzxy);  /* set the south bit */
+    non++;    /* and increment counter */
+      }
+      else    /* else */
+    clrs ((int *)pzxy);  /* clear the south bit */
+  }
+    }
+    for (ix = 0, iy = n2 - 1; ix < n1 - 1; ix++)  /* northern boundary */
+    {
+  pzxy = &z[iy][ix];
+  zxymc = (*pzxy) - c;  /* z(x,y) - c */
+  zemc = z[iy][ix + 1] - c;  /* (z to the east) - c */
+  if (OPPSIGN (zxymc, zemc))  /* if south edge intersected */
+  {
+      sets ((int *)pzxy);  /* set the south bit */
+      non++;    /* and increment counter */
+  }
+  else      /* else */
+      clrs ((int *)pzxy);  /* clear the south bit */
+  clrw ((int *)pzxy);    /* clear the west bit */
+    }
+    for (iy = 0, ix = n1 - 1; iy < n2 - 1; iy++)  /* eastern boundary */
+    {
+  pzxy = &z[iy][ix];
+  zxymc = (*pzxy) - c;  /* z(x,y) - c */
+  znmc = z[iy + 1][ix] - c;  /* (z to the north) - c */
+  if (OPPSIGN (zxymc, znmc))  /* if west edge intersected */
+  {
+      setw ((int *) pzxy);  /* set the west bit */
+      non++;    /* and increment counter */
+  }
+  else      /* else */
+      clrw ((int *)pzxy);  /* clear the west bit */
+  clrs ((int *)pzxy);    /* clear the south bit */
+    }
+
+    /*
+     * draw contours intersecting a boundary 
+     */
+    for (ix = 0, iy = n2 - 1; ix < n1 - 1 && non > 0; ix++)
+  /* north boundary */
+    {
+  if (sset ((int *)(&z[iy][ix])))
+  {
+      x = ix + delta (c, z[iy][ix], z[iy][ix + 1]);
+      y = iy;
+      moveu (x, y, coordinatec);
+      clrs ((int *)(&z[iy][ix]));
+      non--;
+      jx = ix;
+      jy = iy - 1;
+      while (cconnect (z, n1, n2, c, &jx, &jy))
+    non--;
+  }
+    }
+    for (ix = n1 - 1, iy = 0; iy < n2 - 1 && non > 0; iy++)  /* east boundary */
+    {
+  if (wset ((int *)(&z[iy][ix])))
+  {
+      x = ix;
+      y = iy + delta (c, z[iy][ix], z[iy + 1][ix]);
+      moveu (x, y, coordinatec);
+      clrw ((int *)(&z[iy][ix]));
+      non--;
+      jx = ix - 1;
+      jy = iy;
+      while (cconnect (z, n1, n2, c, &jx, &jy))
+    non--;
+  }
+    }
+    for (ix = 0, iy = 0; ix < n1 - 1 && non > 0; ix++)  /* south boundary */
+    {
+  if (sset ((int *)(&z[iy][ix])))
+  {
+      x = ix + delta (c, z[iy][ix], z[iy][ix + 1]);
+      y = iy;
+      moveu (x, y, coordinatec);
+      clrs ((int *)(&z[iy][ix]));
+      non--;
+      jx = ix;
+      jy = iy;
+      while (cconnect (z, n1, n2, c, &jx, &jy))
+    non--;
+  }
+    }
+    for (ix = 0, iy = 0; iy < n2 - 1 && non > 0; iy++)  /* west boundary */
+    {
+  if (wset ((int *)(&z[iy][ix])))
+  {
+      x = ix;
+      y = iy + delta (c, z[iy][ix], z[iy + 1][ix]);
+      moveu (x, y, coordinatec);
+      clrw ((int *) (&z[iy][ix]));
+      non--;
+      jx = ix;
+      jy = iy;
+      while (cconnect (z, n1, n2, c, &jx, &jy))
+    non--;
+  }
+    }
+
+    /*
+     * draw interior contours 
+     */
+    for (iy = 0; iy < n2 - 1 && non > 0; iy++)
+    {
+  for (ix = 0; ix < n1 - 1 && non > 0; ix++)
+  {
+      if (sset ((int *)(&z[iy][ix])))  /* check south edge of cell */
+      {
+    x = ix + delta (c, z[iy][ix], z[iy][ix + 1]);
+    y = iy;
+    moveu (x, y, coordinatec);
+    clrs ((int *)(&z[iy][ix]));
+    non--;    /* clear start */
+    jx = ix;
+    jy = iy;
+    if (cconnect (z, n1, n2, c, &jx, &jy))
+        sets ((int *)(&z[iy][ix]));  /* finish = start */
+    while (cconnect (z, n1, n2, c, &jx, &jy))
+        non--;
+      }
+  }
+    }
+  return(0);
+}
+
+/* 
+cconnect draws a line from one intersection of the cell (ix,iy)
+   to another intersection of the cell, provided the latter intersection exists,
+   and then clears the latter intersection and updates ix and iy.
+   cconnect returns 0 if the latter intersection does not exist or if the 
+   latter intersection is a grid boundary; otherwise returns 1.
+*/
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int cconnect (float **z, int n1, int n2,float  c, int *ix, int *iy)
+_XFUNCPROTOEND
+#else
+int cconnect (z, n1, n2, c, ix, iy)
+    int             n1, n2, *ix, *iy;
+    float         **z, c;
+#endif
+{
+register int    jx, jy;
+float           x, y;
+
+    jx = (*ix);
+    jy = (*iy);
+
+    if (sset ((int *)(&z[jy + 1][jx])))  /* if exiting north */
+    {
+  jy++;
+  x = jx + delta (c, z[jy][jx], z[jy][jx + 1]);
+  y = jy;
+  drawu (x, y, coordinatec);
+  clrs ((int *)(&z[jy][jx]));
+  if (++(*iy) >= n2 - 1)
+      return (0);
+    }
+    else
+    if (wset ((int *)(&z[jy][jx + 1])))  /* if exiting east */
+    {
+  jx++;
+  x = jx;
+  y = jy + delta (c, z[jy][jx], z[jy + 1][jx]);
+  drawu (x, y, coordinatec);
+  clrw ((int *)(&z[jy][jx]));
+  if (++(*ix) >= n1 - 1)
+      return (0);
+    }
+    else
+    if (sset ((int *)(&z[jy][jx])))  /* if exiting south */
+    {
+  x = jx + delta (c, z[jy][jx], z[jy][jx + 1]);
+  y = jy;
+  drawu (x, y, coordinatec);
+  clrs ((int *)(&z[jy][jx]));
+  if (--(*iy) < 0)
+      return (0);
+    }
+    else
+    if (wset ((int *)(&z[jy][jx])))  /* if exiting west */
+    {
+  x = jx;
+  y = jy + delta (c, z[jy][jx], z[jy + 1][jx]);
+  drawu (x, y, coordinatec);
+  clrw ((int *)(&z[jy][jx]));
+  if (--(*ix) < 0)
+      return (0);
+    }
+    else
+  return (0);    /* no exit found */
+    return (1);
+}
+
+/* 
+subroutines to set, clear, and check status of bits */
+#define SOUTH 0x00000001
+#define WEST 0x00000002
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void sets (int *i)
+_XFUNCPROTOBEGIN
+#else
+void sets (i)
+    int   *i;
+#endif
+{
+    *i |= SOUTH;
+}
+
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void  clrs (int *i)
+_XFUNCPROTOEND
+#else
+void  clrs (i)
+    int   *i;
+#endif
+{
+    *i &= ~SOUTH;
+}
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int  sset (int *i)
+_XFUNCPROTOEND
+#else
+int  sset (i)
+    int   *i;
+#endif
+{
+    return ((*i) & SOUTH);
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void  setw (int *i)
+_XFUNCPROTOEND
+#else
+void  setw (i)
+    int   *i;
+#endif
+{
+    *i |= WEST;
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void  clrw (int *i)
+_XFUNCPROTOEND
+#else
+void  clrw (i)
+    int   *i;
+#endif
+{
+    *i &= ~WEST;
+}
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int  wset (int *i)
+_XFUNCPROTOEND
+#else
+int  wset (i)
+    int   *i;
+#endif
+{
+    return ((*i) & WEST);
+}
+
+/* 
+subroutine to compute (a-b)/(c-b) for use in linear interpolation */
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+float delta (float a, float b, float  c)
+_XFUNCPROTOEND
+#else
+float delta (a, b, c)
+    float           a, b, c;
+#endif
+{
+float           t;
+
+    t = c - b;      /* avoids pathological comparison */
+    if (t != 0.0)
+  return ((a - b) / t);
+    else
+  return ((float) 0.5);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int minmax (float **f, int n, int m, float *pmin, float *pmax)
+_XFUNCPROTOEND
+#else
+int minmax (f, n, m, pmin, pmax)
+    int             n, m;
+    float         **f, *pmin, *pmax;
+#endif
+{
+register int    i, j;
+register float  min, max, fij;
+
+    min = 1.e30;
+    max = (-1.e30);
+    for (i = 0; i < m; i++)
+    {
+  for (j = 0; j < n; j++)
+  {
+      fij = f[i][j];
+      min = (min < fij) ? min : fij;
+      max = (max > fij) ? max : fij;
+  }
+    }
+    *pmin = min;
+    *pmax = max;
+  return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int extranpickpickw (void)
+_XFUNCPROTOBEGIN
+#else
+int extranpickpickw ()
+#endif
+
+{
+/*
+ * for each frame of movie, npick extra pick may be added to the plot,
+ * these can be something like picked points.
+ */
+    if(auxin ("pickw") != NULL)
+       fdpickw = fileno(auxin ("pickw"));
+    else
+       fdpickw = -1;
+    if (fdpickw != -1)
+    {
+  if (!auxpar ("n1", "d", datapickw.n1, "pickw"))
+  {
+      seperr ("Sorry, you have to specify n1 in a pickw file\n");
+  }
+  if (datapickw.n1[0] != datapick.n1[0])
+  {
+      seperr ("Sorry n1 in pickw is different from n1 in pick \n");
+  }
+  datapickw.n2 = 1;
+  auxpar ("n2", "d", &datapickw.n2, "pickw");
+  if (datapickw.n2 != datapick.n2)
+  {
+      seperr ("Sorry n2 in pickw is different from n2 in pick \n");
+  }
+  datapickw.n3 = 1;
+  auxpar ("n3", "d", &datapickw.n3, "pickw");
+  if (datapickw.n3 != datapick.n3)
+  {
+      seperr ("Sorry n3 in pickw is different from n3 in pick \n");
+  }
+  auxpar ("esize", "d", &datapickw.esize, "pickw");
+  if (datapickw.esize != sizeof (float))
+  {
+      seperr ("Sorry, pickw esize (%d) must be 1 floats in size \n", datapickw.esize);
+  }
+
+  nweight = datapickw.n1[0] * datapickw.n2 * datapickw.n3;
+
+  pickw = (float *) alloc (nweight * sizeof (float));
+  tmp = nweight * 4 ;
+  if ((amtread = sreed ("pickw", pickw, tmp)) != tmp)
+  {
+      fprintf (stderr, " ************WARNING********** \n");
+      fprintf (stderr, "amount data read was not the amount specified\n");
+      fprintf (stderr, "check n1 and n2  for pickw\n");
+      fprintf (stderr, " ***************************** \n");
+  }
+
+  one = 1;
+#ifdef CONVEX
+  wmin = smin_ (&nweight, pickw, &one);
+  wmax = smax_ (&nweight, pickw, &one);
+#else
+
+  minmax1 (pickw, &coordinatew, &datapickw);
+  wmin = coordinatew.min1;
+/*
+   BUG :::: how could it work before??? 
+  wmax = coordinatew.min1;
+*/
+  wmax = coordinatew.max1;
+#endif
+
+  wmean = fabs ((wmax + wmin) / 2);
+  iwdelta = 1. / (wmax - wmin);
+
+    }
+    else
+    {
+  datapickw.n1[0] = datapick.n1[0];
+  datapickw.n2 = datapick.n2;
+/* 
+BUG:    how could it work before ???
+  datapickw.n2 = datapick.n3;
+*/
+  datapickw.n3 = datapick.n3;
+  nweight = datapickw.n1[0] * datapickw.n2 * datapickw.n3;
+  if (nweight > 0) {
+  pickw = (float *) alloc (nweight * sizeof (float));
+  for (ipickw = 0; ipickw < nweight; ipickw++)
+  {
+      pickw[ipickw] = 1.;
+  }
+  }
+  wmean = 1.;
+  iwdelta = 1.;
+    }
+  return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int extranpickpick (void)
+_XFUNCPROTOBEGIN
+#else
+int extranpickpick ()
+#endif
+{
+/*
+ * for each frame of movie, npick extra pick may be added to the plot,
+ * these can be something like picked points.
+ */
+    if (auxin ("pick") != NULL)
+       fdpick = fileno(auxin ("pick"));
+    else
+       fdpick = -1;
+    if (fdpick != -1)
+    {
+  if (!auxpar ("n1", "d", datapick.n1, "pick"))
+  {
+      seperr ("Sorry, you have to specify n1 in a pick file\n");
+  }
+  datapick.n2 = 1;
+  auxpar ("n2", "d", &datapick.n2, "pick");
+  datapick.n3 = 1;
+  auxpar ("n3", "d", &datapick.n3, "pick");
+  auxpar ("esize", "d", &datapick.esize, "pick");
+  if (datapick.esize != 2 * sizeof (float))
+  {
+      seperr ("Sorry, pick esize (%d) must be 2 floats in size ((x, y) pairs)\n", datapick.esize);
+  }
+
+
+  pick = (float *) alloc (datapick.n1[0] * datapick.n2 * 2 * sizeof (float));
+
+  if (!getch ("pickcol", "d", pickcol))
+  {
+      for (ipick = 0; ipick < datapick.n2; ipick++)
+      {
+    pickcol[ipick] = ipick % 6;
+    if (pickcol[ipick] == 0)
+        pickcol[ipick] = 7;
+      }
+  }
+  if (!getch ("picksize", "d", picksize))
+  {
+      for (ipick = 0; ipick < datapick.n2 - 1; ipick++)
+      {
+    picksize[ipick] = 10;
+      }
+      picksize[datapick.n2 - 1] = 15;
+  }
+  if (!getch ("picksymbl", "d", &picksymbl))
+  {
+      picksymbl = 5;
+  }
+    }
+  return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int extracurvepick (void)
+_XFUNCPROTOEND
+#else
+int extracurvepick ()
+#endif
+{
+/*
+ * for each frame of movie, datac.n2 extra curves may be added to the plot,
+ * these can be something like picked curves.
+ */
+    if (auxin ("curve") != NULL)
+       fdcurve = fileno(auxin ("curve"));
+    else
+       fdcurve = -1;
+    if (fdcurve != -1)
+    {
+  if (!auxpar ("n1", "d", &datac.n1[0], "curve"))
+  {
+      seperr ("Sorry, you have to specify n1 in a curve file\n");
+  }
+  datac.n2 = 1;
+  auxpar ("n2", "d", &datac.n2, "curve");
+  datac.n3 = 1;
+  auxpar ("n3", "d", &datac.n3, "curve");
+  auxpar ("esize", "d", &datac.esize, "curve");
+  if (datac.esize != 2 * sizeof (float))
+  {
+      seperr ("Sorry, curve esize (%d) must be 2 floats in size ((x, y) pairs)\n", datac.esize);
+  }
+
+
+  curve = (float *) alloc (datac.n1[0] * datac.n2 * 2 * sizeof (float));
+
+  if (!getch ("curvecol", "d", plotc.col))
+  {
+      for (icurve = 0; icurve < datac.n2; icurve++)
+      {
+    plotc.col[icurve] = icurve % 6;
+    if (plotc.col[icurve] == 0)
+        plotc.col[icurve] = 7;
+      }
+  }
+  if (!getch ("curvefat", "d", plotc.fat))
+  {
+      for (icurve = 0; icurve < datac.n2 - 1; icurve++)
+      {
+    plotc.fat[icurve] = 0;
+      }
+      plotc.fat[datac.n2 - 1] = 2;
+  }
+    }
+  return(0);
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int update (void)
+_XFUNCPROTOBEGIN
+#else
+int update ()
+#endif
+{
+    putch ("n1", "d", &minusone);
+    putch ("n2", "d", &one);
+    putch ("n3", "d", &one);
+    set_format("out","vplot");
+    hclose ();
+  return(0);
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int initial (void)
+_XFUNCPROTOEND
+#else
+int initial ()
+#endif
+{
+    minusone = -1;
+    one = 1;
+    data.n3 = 0;
+    data.d3 = 1.;
+    data.o3 = 0.;
+    n3count = fetch ("n3", "d", &data.n3);
+    d3count = fetch ("d3", "f", &data.d3);
+    o3count = fetch ("o3", "f", &data.o3);
+    if ((n1count = fetch ("n1", "d", data.n1)) == 0)
+    {
+  fprintf (stderr, "missing required parameter n1\n");
+  exit (-1);
+    }
+    if (n1count > 1 && n1count <= NPMAX)
+    {
+  fprintf (stderr, " entered more than one n1, using only first value \n");
+    }
+    if (n1count > NPMAX)
+    {
+  fprintf (stderr, "number of n1's entered is %d, exceeds NPMAX(%d) \n", n1count, NPMAX);
+  exit (-1);
+    }
+    if ((d1count = fetch ("d1", "f", data.d1)) == 0)
+  data.d1[0] = 1;
+    if (d1count > 1 && d1count <= NPMAX)
+    {
+  fprintf (stderr, " entered more than one d1, using only first value \n");
+    }
+    if (d1count > NPMAX)
+    {
+  fprintf (stderr, "number of d1's entered is %d, exceeds NPMAX(%d) \n", n1count, NPMAX);
+  exit (-1);
+    }
+    if ((o1count = fetch ("o1", "f", data.o1)) == 0)
+  data.o1[0] = data.d1[0];
+    if (o1count > 1 && o1count <= NPMAX)
+    {
+  fprintf (stderr, " entered more than one o1, using only first value \n");
+    }
+    if (o1count > NPMAX)
+    {
+  fprintf (stderr, "number of o1's entered is %d, exceeds NPMAX(%d) \n", n1count, NPMAX);
+  exit (-1);
+    }
+    switch (data.n3)
+    {
+    case 0:
+  if ((n2count = fetch ("n2", "d", &data.n2)) == 0)
+
+  {
+      fprintf (stderr, "missing required parameter n2\n");
+      exit (-1);
+  }
+  data.n3 = ssize ("in") / (data.n1[0] * data.n2 * 4);
+  if (data.n3 == 0)
+  {
+      fprintf (stderr, "Can't figure out n3; I'm assuming that n3 is 1.\n");
+      data.n3 = 1;
+  }
+  break;
+    case 1:
+  if ((n2count = fetch ("n2", "d", &data.n2)) == 0)
+      data.n2 = ssize ("in") / (data.n1[0] * 4);
+  break;
+    default:
+  if ((n2count = fetch ("n2", "d", &data.n2)) == 0)
+  {
+      fprintf (stderr, "missing required parameter n2\n");
+      exit (-1);
+  }
+  break;
+    }
+    if ((d2count = fetch ("d2", "f", &data.d2)) == 0)
+  data.d2 = 1.;
+    if ((o2count = fetch ("o2", "f", &data.o2)) == 0)
+  data.o2 = data.d2;
+  return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int contourinitial(void)
+_XFUNCPROTOEND
+#else
+int contourinitial ()
+#endif
+{
+    nc = 5;
+    nccount = getch ("nc", "d", &nc);
+    if (nccount > 1)
+    {
+  fprintf (stderr, "Too many values for nc were entered, only one is accepted\n");
+  exit (-1);
+    }
+
+    if (nc > MAXNC)
+    {
+  fprintf (stderr, "Maximum number of contours is MAXNC=%d\n",MAXNC);
+  exit (-1);
+    }
+    minmax (z, data.n1[0], data.n2, &zmin, &zmax);
+    get_scl (zmin, zmax, nc, &zmin1, &zmax1, &dc);
+    dccount = getch ("dc", "f", &dc);
+    if (dccount > 1)
+    {
+  fprintf (stderr, "Too many values for dc were entered, only one is accepted\n");
+  exit (-1);
+    }
+    for (c0 = (int) (zmin1 / dc) * dc - dc; c0 < zmin1; c0 += dc);
+    c0count = getch ("c0", "f", &c0);
+    if (c0count > 1)
+    {
+  fprintf (stderr, "Too many values for c0 were entered, only one is accepted\n");
+  exit (-1);
+    }
+    for (ic = 0; ic < MAXNC; ic++)
+    {
+  c[ic] = 1.e30;
+  plot.col[ic] = -1;
+  plot.fat[ic] = -1;
+    }
+    ccounter = getch ("c", "f", c);
+    if (ccounter > MAXNC)
+    {
+  fprintf (stderr, "Too many values for c were entered, exceeded MAXNC(%d)\n", MAXNC);
+  exit (-1);
+    }
+    if (ccounter != 0)
+    {
+  ic = 0;
+  while (c[ic] < 1.e30)
+      ic++;
+  nc = ic;
+    }
+    else
+    {
+  for (ic = 0; ic < nc; ic++)
+      c[ic] = c0 + ic * dc;
+    }
+    if (getch ("cntrcol", "d", plot.col))  /* changed 2-18-83 stew to
+             * repeat */
+    {        /* cntrcol as a unit */
+  ntemp = 0;
+  while (plot.col[ntemp] != -1)  /* count number of colors specified */
+      ntemp++;
+  for (ic = ntemp; ic < MAXNC; ic++)
+      plot.col[ic] = plot.col[ic % ntemp];
+    }
+    else
+    {
+  for (ic = 0; ic < MAXNC; ic++)
+      plot.col[ic] = 6 - ic % 6;
+    }
+    if (getch ("cntrfat", "d", plot.fat))  /* changed 2-18-83 stew to
+             * repeat */
+    {        /* cntrfat as a unit */
+  ntemp = 0;
+  while (plot.fat[ntemp] != -1)
+      ntemp++;    /* after this loop ntemp = #cntrfat values
+         * read */
+  for (ic = ntemp; ic < MAXNC; ic++)
+      plot.fat[ic] = plot.fat[ic % ntemp];
+    }
+    else
+    {
+  for (ic = 0; ic < MAXNC; ic++)
+      plot.fat[ic] = 0;
+    }
+  return(0);
+}
+
+/* 
+subroutine to determine readable scales for axes
+   taken from Algorithm 463 -- Collected Algorithms from CACM */
+/*
+ * keyword scale size axis
+ */
+
+/* 
+Kamal 1/15/87  fixed the bug that caused problem when xmax < xmin */
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int get_scl (float xmin, float xmax, int n, float *xminp, float *xmaxp, float *dist)
+_XFUNCPROTOEND
+#else
+int get_scl (xmin, xmax, n, xminp, xmaxp, dist)
+    int             n;
+    float           xmin, xmax, *xminp, *xmaxp, *dist;
+#endif
+
+{
+int             nal, i, m1, m2;
+float           del, fn, fm1, fm2, a, b, al;
+/*double          log10 () fabs (), pow ();*/
+    if (n <= 0)
+    {
+  fprintf (stderr, "non-positive n in function get_scl\n");
+  exit (-1);
+    }
+    if (xmax == xmin)
+    {
+  *dist = (.5);
+  *xminp = xmin + .1;
+  *xmaxp = xmax - .1;
+  return (0);
+    }
+    fn = n;
+
+    /*
+     * roundoff error tolerance 
+     */
+    del = .00002;
+
+    /*
+     * find approximate interval size a 
+     */
+/* 
+allow for xmax < xmin   Kamal 1/15/87 */
+    if (xmax > xmin)
+  a = (xmax - xmin) / fn;
+    else
+  a = (xmin - xmax) / fn;
+    al = log10 (a);
+    nal = al;
+    if (a < 1.)
+  nal--;
+
+    /*
+     * a is scaled into variable named b between 1 and 10 
+     */
+    b = a / pow (10., (double) nal);
+
+    /*
+     * the closest permissible value for b is found 
+     */
+    for (i = 0; i < 3 && b >= sqr[i]; i++);
+
+    /*
+     * the interval size is computed 
+     */
+    *dist = vint[i] * pow (10., (double) nal);
+/* 
+allow for xmax < xmin   Kamal 1/15/87 */
+    if (xmax > xmin)
+  fm1 = xmin / *dist;
+    else
+  fm1 = xmax / *dist;
+    m1 = fm1;
+    if (fm1 < 0.)
+  m1--;
+    if (fabs (m1 + 1. - fm1) < del)
+  m1++;
+
+    /*
+     * the new minimum and maximum limits are found 
+     */
+/* 
+allow for xmax < xmin   Kamal 1/15/87 */
+    if (xmax > xmin)
+    {
+  *xminp = *dist * m1;
+  fm2 = xmax / *dist;
+    }
+    else
+    {
+  *xmaxp = *dist * m1;
+  fm2 = xmin / *dist;
+    }
+    m2 = fm2 + 1.;
+    if (fm2 < -1.)
+  m2--;
+    if (fabs (fm2 + 1. - m2) < del)
+  m2--;
+
+    /*
+     * adjust limits to account for roundoff if necessary 
+     */
+/* 
+allow for xmax < xmin   Kamal 1/15/87 */
+    if (xmax > xmin)
+    {
+  *xmaxp = *dist * m2;
+  if (*xminp > xmin)
+      *xminp = xmin;
+  if (*xmaxp < xmax)
+      *xmaxp = xmax;
+    }
+    else
+    {
+  *xminp = *dist * m2;
+  if (*xminp < xmin)
+      *xminp = xmin;
+  if (*xmaxp > xmax)
+      *xmaxp = xmax;
+    }
+/* 
+negative increment if xmax < xmin   Kamal 1/15/87 */
+    if (xmax < xmin)
+  *dist = -*dist;
+  return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int transp (float *x, float *y)
+_XFUNCPROTOBEGIN
+#else
+int transp (x, y)
+    float          *x, *y;
+#endif
+
+{
+float           xyexch;
+
+    xyexch = *x;
+    *x = *y;
+    *y = xyexch;
+  return(0);
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int rotate (float x, float *x1, float max, float min)
+_XFUNCPROTOEND
+#else
+int rotate (x, x1, max, min)
+    float           x, *x1, max, min;
+#endif
+{
+float           temp, temp2;
+
+    temp = x;
+    temp2 = (min + max) - temp;
+    *x1 = temp2;
+  return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int draw (float x0, float y0, struct coordinfo coord)
+_XFUNCPROTOBEGIN
+#else
+int draw (x0, y0, coord)
+    float           x0, y0;
+    struct coordinfo coord;
+#endif
+{
+float           x1, y1;
+float x, y; x=x0;y=y0;
+
+    if (coord.transp)
+  transp (&x, &y);
+    if (coord.xreverse)
+    {
+  rotate (x, &x2, coord.min1, coord.max1);
+  x = x2;
+    }
+    if (coord.yreverse)
+    {
+  rotate (y, &x2, coord.min2, coord.max2);
+  y = x2;
+    }
+    gl_draw (x, y);
+  return(0);
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int drawu (float x0, float y0, struct coordinfo coord)
+_XFUNCPROTOBEGIN
+#else
+int drawu (x0, y0, coord)
+    float           x0, y0;
+    struct coordinfo coord;
+#endif
+
+{
+float           x2;
+float x, y; x=x0;y=y0;
+
+    if (coord.transp)
+  transp (&x, &y);
+    if (coord.xreverse)
+    {
+  rotate (x, &x2, coord.min1, coord.max1);
+  x = x2;
+    }
+    if (coord.yreverse)
+    {
+  rotate (y, &x2, coord.min2, coord.max2);
+  y = x2;
+    }
+    gl_udraw (x, y);
+  return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int moveu (float x0, float y0, struct coordinfo coord)
+#else
+int moveu (x0, y0, coord)
+    float           x0, y0;
+    struct coordinfo coord;
+#endif
+
+{
+float           x2;
+float x, y; x=x0;y=y0;
+
+    if (coord.transp)
+  transp (&x, &y);
+    if (coord.xreverse)
+    {
+  rotate (x, &x2, coord.min1, coord.max1);
+  x = x2;
+    }
+    if (coord.yreverse)
+    {
+  rotate (y, &x2, coord.min2, coord.max2);
+  y = x2;
+    }
+    gl_umove (x, y);
+  return(0);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int  move (float x0, float y0,  struct coordinfo coord)
+_XFUNCPROTOEND
+#else
+int  move (x0, y0, coord)
+    float           x0, y0;
+    struct coordinfo coord;
+#endif
+
+{
+float           x2;
+float x, y; x=x0;y=y0;
+
+    if (coord.transp)
+  transp (&x, &y);
+    if (coord.xreverse)
+    {
+  rotate (x, &x2, coord.min1, coord.max1);
+  x = x2;
+    }
+    if (coord.yreverse)
+    {
+  rotate (y, &x2, coord.min2, coord.max2);
+  y = x2;
+    }
+    gl_umove (x, y);
+  return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int where (float *x,float *y,  struct coordinfo coord)
+_XFUNCPROTOEND
+#else
+int where (x, y, coord)
+    float          *x, *y;
+    struct coordinfo coord;
+#endif
+
+{
+float           x1, y1;
+
+    gl_where (&x1, &y1);
+    if (coord.transp)
+  transp (&x1, &y1);
+    if (coord.xreverse)
+    {
+  rotate (x1, &x2, coord.min1, coord.max1);
+  x1 = x2;
+    }
+    if (coord.yreverse)
+    {
+  rotate (y1, &x2, coord.min2, coord.max2);
+  y1 = x2;
+    }
+    *x = x1;
+    *y = y1;
+  return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int markup (int npts,int  mtype, int  msize, float  x0, float  y0, struct coordinfo coord)
+_XFUNCPROTOEND
+#else
+int markup (npts, mtype, msize, x0, y0, coord)
+    int             npts, mtype, msize;
+    float           x0, y0;
+    struct coordinfo coord;
+#endif
+
+{
+float x,y;
+assert(npts == 1);
+  x=x0;y=y0;
+    if (coord.transp)
+  transp (&x, &y);
+    if (coord.xreverse)
+    {
+  rotate (x, &x2, coord.min1, coord.max1);
+  x = x2;
+    }
+    if (coord.yreverse)
+    {
+  rotate (y, &x2, coord.min2, coord.max2);
+  y = x2;
+    }
+    gl_upmark (npts, mtype, msize, &x, &y);
+  return(0);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int arrows (float x0,float  y0,float  x1,float  y1,float  r,  struct coordinfo coord)
+_XFUNCPROTOEND
+#else
+int arrows (x0, y0, x1, y1, r, coord)
+    float           x0, y0, x1, y1, r;
+    struct coordinfo coord;
+#endif
+
+{
+float           y2;
+float x,y; x=x1;y=y1;
+
+    if (coord.transp)
+  transp (&x0, &y0);
+    if (coord.xreverse)
+    {
+  rotate (x0, &x2, coord.min1, coord.max1);
+  x0 = x2;
+    }
+    if (coord.yreverse)
+    {
+  rotate (y0, &x2, coord.min2, coord.max2);
+  y0 = x2;
+    }
+    if (coord.transp)
+  transp (&x, &y);
+    if (coord.xreverse)
+    {
+  rotate (x, &x2, coord.min1, coord.max1);
+  x = x2;
+    }
+    if (coord.yreverse)
+    {
+  rotate (y, &x2, coord.min2, coord.max2);
+  y = x2;
+    }
+    gl_arrow (x0, y0, x, y, r);
+  return(0);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int minmax1 (float *point1, struct coordinfo *coordinate, struct datainfo *data)
+_XFUNCPROTOEND
+#else
+int minmax1 (point1, coordinate, data)
+    float          *point1;
+    struct coordinfo *coordinate;
+    struct datainfo *data;
+#endif
+{
+double          mintemp, maxtemp;
+int             ii, jj, kk;
+
+/* 
+first calculate max and min  of original data*/
+    mintemp = 1.e+30;
+    maxtemp = -1.e+30;
+    kk = 0;
+    for (ii = 0; ii < data->n2; ii++)
+    {
+  for (jj = 0; jj < data->n1[ii]; jj++)
+  {
+      mintemp = (point1[kk] < mintemp) ? point1[kk] : mintemp;
+      maxtemp = (point1[kk] > maxtemp) ? point1[kk] : maxtemp;
+      kk++;
+  }
+    }
+    coordinate->min1 = mintemp;
+    coordinate->max1 = maxtemp;
+  return(0);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int calminmax (
+    struct coordinfo *coordinatec,
+    struct coordinfo coordinate,
+    struct datainfo data)
+_XFUNCPROTOEND
+#else
+int calminmax (coordinatec, coordinate, data)
+    struct coordinfo *coordinatec;
+    struct coordinfo coordinate;
+    struct datainfo data;
+#endif
+{
+    if (coordinate.transp)
+    {
+  coordinatec->max2 = (coordinate.max2 - data.o1[0]) / data.d1[0];
+  coordinatec->max1 = (coordinate.max1 - data.o2) / data.d2;
+  coordinatec->min2 = coordinatec->max2 - ((coordinate.max2 - coordinate.min2) / data.d1[0]);
+  coordinatec->min1 = coordinatec->max1 - ((coordinate.max1 - coordinate.min1) / data.d2);
+    }
+    else
+    {
+  coordinatec->max1 = (coordinate.max1 - data.o1[0]) / data.d1[0];
+  coordinatec->max2 = (coordinate.max2 - data.o2) / data.d2;
+  coordinatec->min1 = coordinatec->max1 - ((coordinate.max1 - coordinate.min1) / data.d1[0]);
+  coordinatec->min2 = coordinatec->max2 - ((coordinate.max2 - coordinate.min2) / data.d2);
+
+    }
+return(0);
+}
+
+/* allocate a 2-d array  from SU-alloc.c from CWP SU package
+written by Dave Hale*/
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void **alloc2 (int n1, int n2,int size)
+#else
+void **alloc2 (n1,n2,size)
+int n1,n2,size;
+#endif
+{
+  int i2;
+  void **p;
+
+  if ((p=(void**)malloc(n2*sizeof(void*)))==NULL)
+    return NULL;
+  if ((p[0]=(void*)malloc(n2*n1*size))==NULL) {
+    free(p);
+    return NULL;
+  }
+  for (i2=0; i2<n2; i2++)
+    p[i2] = (char*)p[0]+size*n1*i2;
+  return p;
+}
+
+
+/* allocate a 2-d array of floats as above, taken from CWP alloc.c*/
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+float **alloc2float(int n1, int n2)
+_XFUNCPROTOEND
+#else
+float **alloc2float(n1,n2)
+int n1,n2;
+#endif
+{
+  return (float**)alloc2(n1,n2,sizeof(float));
+}

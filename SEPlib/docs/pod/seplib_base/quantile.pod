@@ -1,0 +1,43 @@
+=head1 NAME
+
+
+quantile - find data quantile
+
+=head1 SYNOPSIS
+
+
+C<val=quantile(k,a)> 
+
+=head1 PARAMETERS
+
+
+=over 4
+
+
+=item k - integer   
+
+      position in array 
+
+=item a - real(:)   
+
+      array
+
+=back
+
+=head1 RETURN VALUE
+
+
+val - the  a(k) value of the array if the array was sorted
+
+=head1 DESCRIPTION
+
+
+Find the a(k) value of the array if the array was sorted
+
+=head1 LIBRARY
+
+
+B<geef90>
+#$  
+=cut
+

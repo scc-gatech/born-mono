@@ -1,0 +1,179 @@
+!!$=head1 NAME
+!!$
+!!$Flatten - Flatten (or unflatten) a cube 
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Flatten < in.H > out.H inv=0 tau=tau.H niter=10 eps=.0001
+!!$
+!!$
+!!$=head1 PARAMETERS
+!!$
+!!$=over 3
+!!$
+!!$=item tau - sepfile
+!!$
+!!$ [sepfile]  Tau cube (result from Dipintegrator)
+!!$
+!!$=item inv - logical
+!!$
+!!$ [0]  - Wheter or not to perform inverse flattening
+!!$
+!!$=item niter - integer
+!!$
+!!$  [20] Number of iterations for inverse flattening 
+!!$
+!!$=item eps - real
+!!$
+!!$  [.0001] Epsilon for inverse flattening
+!!$
+!!$=item npts - integer
+!!$
+!!$  [8] Number of points for sinc interpolator
+!!$
+!!$=item ntable - integer
+!!$
+!!$  [513] Number of samples in sinc interpolationt able
+!!$
+!!$=item ref_2 - integer
+!!$
+!!$  [n2;/2] Reference trace that doesn't shift
+!!$
+!!$=item is_2d - logical
+!!$
+!!$  [.false.] Whether or not we are doing 2-D flattening
+!!$
+!!$=item ref_3 - integer
+!!$
+!!$  [n3;/2] Reference trace that doesn't shift
+!!$
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Flatten (Lomask)
+!!$
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/dip>
+!!$
+!!$
+!!$=cut
+
+program flatten
+  use sep
+  use cgstep_mod
+  use solver_mod
+  use causint_mod
+  use sinc_interp_mod
+  integer  ::  n1,n2,n3,n,ref_2,ref_3,i1
+  real     ::  o1,d1
+  real, allocatable :: model(:,:),data(:,:),tau(:,:,:),base(:),tau2(:),tau3(:)
+  logical :: inv,is_2d
+  real    :: eps
+  integer :: niter,npts,ntable,ierr
+
+  call SEP_ADD_DOC()
+  call sep_init('')
+  call from_history("n1",n1)
+  call from_history("n2",n2)
+  call from_history("n3",n3)
+  call from_history("o1",o1)
+  call from_history("d1",d1)
+
+  if(.not. exist_file("tau")) call seperr("must provide taus")
+  call from_param("inv",inv,.false.)
+  call from_param("niter",niter,20)
+  call from_param("eps",eps,.0001)
+  call from_param("ref_2",ref_2,n2/2) 
+  call from_param("ref_3",ref_3,n3/2) 
+  call from_param("is_2d",is_2d,.false.)
+
+  call from_aux("tau","n1",n) 
+  if(n/=n1) call seperr("n1 of tau and input must be the same")
+
+  call from_aux("tau","n2",n) 
+  if(n/=n2) call seperr("n2 of tau and input must be the same")
+
+  call from_aux("tau","n3",n) 
+  if(n/=n3) call seperr("n3 of tau and input must be the same")
+
+  call from_param("npts",npts,8)
+  call from_param("ntable",ntable,513)
+
+
+  call from_param("npts",npts,8)
+  call from_param("ntable",ntable,513)
+  call sinc_build_table(npts,ntable)
+
+  allocate(model(n1,n2),data(n1,n2),tau(n1,n2,n3),base(n1),tau2(n1),tau3(n1))
+ ierr= sreed("tau",tau,size(tau)*4)
+
+  do i3=1,n1
+    base(i3)=i3
+  end do
+
+  do i3=1,n3
+    if(.not. inv) then
+      ierr= sreed("in",model,size(model)*4)
+      do i2=1,n2
+        if(is_2d) then
+          tau3(:)=tau(:,i2,i3)-tau(:,ref_2,i3)+base
+        else
+          tau3(:)=tau(:,i2,i3)-tau(:,ref_2,ref_3)+base
+        end if
+        call sinc_1d_init(tau3)
+        ierr=interp_1d_axis_op(.false.,.false.,model(:,i2),data(:,i2))
+        call sinc_1d_clean()
+      end do
+      ierr= srite("out",data,size(data)*4)
+    else 
+      ierr= sreed("in",data,size(data)*4)
+      do i2=1,n2
+!        tau(:,i2,i3)=tau(:,i2,i3)-tau(:,ref_2,ref_3)+base
+        tau3(:)=tau(:,i2,i3)-tau(:,ref_2,ref_3)+base
+        call restrech(n1,tau3,tau2)
+        call sinc_1d_init(tau2)
+!        call solver_prec(interp_1d_axis_op,cgstep,causint_lop,n1,model(:,i2),data(:,i2),niter,eps)
+        ierr=interp_1d_axis_op(.false.,.false.,data(:,i2),model(:,i2))
+!  do i1=1,n1
+!write(0,*) "OUT",i1,model(i1,i2),data(i1,i2)
+!   end do
+!        call cgstep_close()
+        call sinc_1d_clean()
+      end do
+      ierr= srite("out",model,size(model)*4)
+    end if
+  end do
+end program
+subroutine restrech(n1,tin,tout)
+  integer :: n1,iin,iout
+  real    :: tin(n1),tout(n1)
+  real    :: f
+
+
+  iin=1
+  do iout=1,n1
+    do while(iin < n1 .and. tin(iin) < iout ) 
+      iin=iin+1
+    end do
+    if(iin==1) then
+      tout(iout)=1
+    else if(iin==n1 .and. tin(iin) < iout) then
+      tout(iout)=n1
+    else
+      f=(real(iout)-tin(iin-1))/(tin(iin)-tin(iin-1))
+      tout(iout)=(1.-f)*real(iin-1)+f*real(iin)
+!write(0,*) "CHECK F",iout,f,iin,tin(iin),tout(iout)
+    end if 
+  end do
+!  do iin=1,n1
+!write(0,*) "IN",iin,tin(iin)
+!   end do
+!  do iout=1,n1
+!write(0,*) "OUT",iout,tout(iout)
+!   end do
+!call seperr("")
+end subroutine

@@ -1,0 +1,74 @@
+=head1 NAME
+
+
+FMeikonal - Fast marching eikonal solver
+
+=head1 SYNOPSIS
+
+
+FMeikonal < VelocityCube.H >TTCube.H  pars
+
+=head1 INPUT  PARAMETERS
+
+
+=over 4
+
+=item shotfile          - sepfile
+
+      file with multiple shots (n2 - number of shots, n1=3)
+
+
+=item zshot,yshot,xshot - real 
+
+      [0., o2 + 0.5*(n2-1)*d2, o3 + 0.5*(n3-1)*d3 shot location
+
+=item b1,b2,b3          - integer 
+
+      [1,1,1] constant-velocity box around the source
+
+=item br1,br2,br3       - real 
+
+      [d1,d2,d3] constant-velocity box around the source
+
+
+=item vel               - integer 
+
+      [1]  velocity (1) or slowness (0)
+
+=item vel0   - real
+
+      velocity (or slowness) at the source [vel[0]]
+
+=item order             - integer 
+
+      [2]  first (1), second (2) or third (3) order
+
+=back
+
+=head1 DESCRIPTION
+
+
+Fast marching eikonal solver
+
+=head1 SEE ALSO
+
+
+L<Hwt3d>, L<fastmarch>, L<Gfgradz>
+
+=head1 COMMENTS
+
+
+Be careful with sources outside the domain.
+You should smooth the velocity field if you want high-order accuracy.
+Stability problems *may* occur if traveltime accuracy is beyond 
+    machine precision.
+The program uses constant velocity ray-tracing inside an initial box,
+    and until it detects a velocity variation, whichever is greater.
+
+=head1 CATEGORY
+
+
+B<seis/travel>
+
+=cut
+

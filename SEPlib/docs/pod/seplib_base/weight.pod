@@ -1,0 +1,39 @@
+=head1 NAME
+
+
+weight - simple weighting operator
+
+=head1 SYNOPSIS
+
+
+C<call weight_init(w)>
+
+C<ierr=weight_lop(adj,add,model,data)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item w  - C<real(:)>  
+
+      Weight to apply 
+
+=item adj,add,model,data -
+
+      Standard operator interfaces 
+
+=back
+
+=head1 DESCRIPTION
+
+
+Simple weighting operator.  Model and data must be the same size.
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

@@ -1,0 +1,27 @@
+=head1 NAME
+
+
+weisll - Multiple  slowness operator lloyd vel/find
+
+=head1 SYNOPSIS
+
+
+ ierr=weisll()
+
+=head1 DESCRIPTION
+
+
+  multiple slowness operator lloyd
+
+=head1 SEE ALSO
+
+
+L<weisloN_init> L<weislo1> L<weislsN_init>
+
+=head1 LIBRARY
+
+
+ sepweif90
+
+=cut
+

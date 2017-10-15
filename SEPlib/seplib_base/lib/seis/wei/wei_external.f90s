@@ -1,0 +1,22 @@
+!!$
+!!$ Module containing all of the external variables and constants
+!!$  in wei
+!!$
+!!$
+!!$
+module wei_external_mod
+
+  !SEPlib externals
+
+
+  !OMP EXTERNALS
+#ifdef SEP_OMP
+  integer, external :: omp_get_thread_num
+  integer, external :: omp_get_num_threads
+#endif
+  real, public    :: pi=3.1415926536
+  integer, public :: OK=0
+  integer, public :: goB2T=+1,goT2B=-1
+  integer, public :: mode_init=0,mode_begin=1,mode_end=2
+  logical, public  :: T=.true.,F=.false.
+end module

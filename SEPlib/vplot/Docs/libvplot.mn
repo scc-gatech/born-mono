@@ -1,0 +1,1312 @@
+/*$
+
+=head1 NAME
+
+libvplot - programmer's interface to the vplot  pen graphics system
+
+=head1 SYNOPSIS
+
+ #include <vplot.h>
+
+{cc,f77} myprog.o -lvplot -lm
+to link in the
+B<libvplot>
+functions.
+
+=head1 DESCRIPTION
+
+B<Libvplot>
+is a set of subroutines which write graphics calls
+in the
+B<vplot>
+graphics language.
+
+The output file may be an ordinary file or a pipe to a
+B<pen>
+display program.
+
+The subroutines are callable either from C or from FORTRAN.
+C function names have an embedded underbar (e.g., `vp_break()')
+while the corresponding FORTRAN name will not use the
+underbar (`CALL VPBREAK()').
+
+In some cases normal floating point coordinate precision can produce
+inaccurate plots and annotations.  For this reason, double precision
+equivalents of the "vp" routines can also be used by appending
+"_g" (or a simple "G" for FORTRAN names), e.g. `vp_break_g()' or
+`CALL VPBREAKG()'. (It is safe to use both single and double precision
+vplot library calls in the same program.)
+
+Input to
+B<vplot>
+plot files should be done ONLY through the
+B<libvplot>
+calls.
+Programs which write
+B<vplot>
+language directly are doomed to early
+obsolescence.
+Future versions of
+B<vplot>
+will provide backwards compatibility at the
+B<libvplot>
+subroutine call level, not necessarily at the
+B<vplot>
+language level.
+
+One of the functions {vp_file(), vp_filep(), or vp_unit()} must be called
+to initialize the output file.
+
+Separate functions are available to accept geometric arguments
+in inches and in arbitrary user units. 
+The routines which accept user units have `u' prepended to
+their root names.
+Absolute coordinates (x,y) in inches are computed internally
+from user coordinates (xu,yu) in user units via:
+
+=over 4
+
+=item x = x0+(xu-xu0)*xscl
+
+=item y = y0+(yu-yu0)*yscl
+
+=back
+
+ 
+
+This transformation is set by calls to
+
+=over 4
+
+=item B<vp_orig> which sets x0 and y0;
+
+=item B<vp_uorig> which sets xu0 and yu0; and
+
+=item B<vp_scale> which sets xscl and yscl.
+
+=back
+
+ 
+
+=head1 COORDINATES
+
+Vplot fits the largest rectangle with a 3 (high) by 4 (wide) aspect ratio
+(SCREENRATIO in vplot.h) onto your device screen that it can.
+This window defines your output space.
+(Although clipping is still done at the edges of the actual screen.)
+
+Two different coordinate system orientations are available, ``standard''
+and ``rotated''. In the standard coordinate orientation, the origin is
+in the lower left hand corner and the X axis is horizontal and the Y axis
+is vertical. In the rotated coordinate orientation, the origin is in the upper
+left hand corner and the X axis is vertical and the Y axis is horizontal.
+The standard coordinate orientation is the default. (See vp_style.)
+New programs should avoid using rotated style if at all possible!
+
+Two different scaling methods are available, ``relative'' and ``absolute''.
+Which mode is used can be set by the device, options to pen, or vp_style.
+In absolute mode inches in vplot correspond to real inches on the device
+display screen. In relative mode the plot is scaled to the size of the screen.
+In the standard coordinate system orientation the screen is considered to be
+10.24 (STANDARD_HEIGHT) inches tall, and in the rotated coordinate orientation
+system the screen is considered to be 7.5 (ROTATED_HEIGHT) inches tall.
+
+The routine vp_stretch is a utility routine which calls vp_scale, vp_orig,
+and vp_uorig for you if you just want to ``fill the screen''.
+
+For more on coordinate systems and ``magic numbers'', refer to the Vplot
+manual page.
+
+=head1 FORTRAN
+
+All of these routines can also be called from FORTRAN. The argument types
+are given for C, but these can be easily converted to FORTRAN by the
+following table:
+
+=over 4
+ 
+=item int x -- integer x
+
+=item float y -- real y
+
+=item float *x -- real x()  (unless otherwise noted)
+
+=item int *y -- integer y()  (unless otherwise noted)
+
+=item char *s -- character(*) s
+
+=item unsigned char *a -- No Standard Fortran Equivalent
+
+=back
+
+ 
+
+=head1 SUBROUTINES
+
+=over 4
+
+=item int geth(iop)
+
+register    FILE * iop;
+
+Get a two-byte integer from file or pipe `iop'.
+Uses the same byte order on all machines. (This is important!)
+Usually called by other libvplot functions, not by user programs
+
+_________________________________________________________________
+
+
+=item puth(w, iop)
+
+register int    w;
+
+register    FILE * iop;
+
+Put the low two bytes of `w' on stream `iop'.
+Uses the same byte order on all machines.
+Usually called by other libvplot functions, not by user programs.
+
+_________________________________________________________________ 
+
+
+=item vp_area(xp, yp, lp, fat, xmask, ymask)
+
+C<vp_uarea(xp, yp, lp, fat, xmask, ymask)>
+
+float  *xp, *yp;
+
+int     lp, fat, xmask, ymask;
+
+Fill the area within the polygon defined by the points
+in the `xp' and `yp' arrays.  Uses the VP_OLDAREA
+vplot command, which knows how to do solid fills or simple
+halftone-style stipples.  `Lp' is the number of
+vertices.  `Fat' is the fatness of the border line.  If
+fat<0, no border is drawn.  The filling style varies
+depending on whether or not the device has color.
+If the device has color, the fill is done solidly
+using the current drawing color.  If the device is
+monochrome, the masks tell how many blank pixels
+to use to pad each pixel to be drawn.
+Filling is done by tiling the area with
+rectangles of size `xmask' by `ymask', with only
+the lower right pixel turned on.  Thus, both
+masks 1 gives a solid fill; xmask=1 and ymask=2 produces
+horizontal lines spaced one pixel apart; xmask=4, ymask=4 gives
+a 9.1% `gray' color.  If either xmask or ymask is zero, then
+the interior is not filled (even on color devices).
+
+_________________________________________________________________ 
+
+
+=item vp_arc(x0, y0, r, degstart, degend)
+
+C<vp_uarc(x0, y0, r, degstart, degend)>
+
+float   x0, y0, r, degstart, degend;
+
+Plot an arc of a circle centered at (x0,y0) with radius `r'.
+The start of the arc is at `degstart', with zero degrees being
+along the positive x axis.  The end of the arc is at `degend'
+in a counterclockwise direction.  Negative values for angles
+are allowable.
+
+_________________________________________________________________ 
+
+
+=item vp_arrow(x0, y0, x, y, r)
+
+C<vp_uarrow(x0, y0, x, y, r)>
+
+float   x0, y0, x, y, r;
+
+Plot an arrow from (x0,y0) to (x,y) with arrowhead-size `r'.
+The arrowhead is half a square.  `r' is the length of a side of
+the square.  If `r' is negative, the arrowhead is not filled.
+If (x0,y0) = (x,y), a centered box is drawn of size r.
+All sizes are in inches (vp_arrow) or user units (vp_uarrow).
+If your user-unit coordinate system is not square, you'll probably
+want to use vp_where and vp_arrow instead of vp_uarrow.
+
+_________________________________________________________________ 
+
+
+=item vp_bgroup(string)
+
+char *string;
+
+Begin a new group. Groups are used to combine several vplot
+primitives into one entity. Groups may be nested. Groups
+may not contain an erase or break.
+string: The name of this group.
+
+_________________________________________________________________ 
+
+
+=item vp_egroup()
+
+End a group. Each begin group must be paired with an end group,
+like parenthesis in formulas.
+
+_________________________________________________________________ 
+
+
+=item vp_break()
+
+Interrupt the output processing of the vplot file.
+Prompt the user (or pause, depending on the `pause' argument to
+B<pen>) allow interaction, and reset global plotting parameters,
+but don't erase the previous output.
+
+_________________________________________________________________ 
+
+
+=item vp_circle(x0, y0, r)
+
+C<vp_ucircle(x0, y0, r)>
+
+float   x0, y0, r;
+
+Draw a circle of radius `r' centered at (x0,y0).
+
+_________________________________________________________________ 
+
+
+=item vp_clip(xmin, ymin, xmax, ymax)
+
+C<vp_uclip(xmin,ymin,xmax,ymax)>
+
+float xmin,ymin,xmax,ymax;
+
+Define the current clipping rectangle, in inches or in user
+units. There is currently no call for simply turning off clipping.
+Just define a clipping window larger than the space you're working in.
+The best way to do this is with the call
+
+C<vp_clip(-VP_MAX, -VP_MAX, VP_MAX, VP_MAX)>
+VP_MAX is defined in vplot.h.
+
+_________________________________________________________________ 
+
+
+=item vp_color(col)
+
+int col;
+
+Set the current drawing color to a number
+`col' between 0 and 511 (MAX_COL in params.h).
+The first eight colors are predefined:
+
+=over 6
+
+=item BLACK	0
+
+=item BLUE 1
+
+=item RED	2
+
+=item PURPLE 3
+
+=item GREEN	4
+
+=item CYAN 5
+
+=item YELLOW 6
+
+=item WHITE	7
+
+=back
+
+ 
+
+These numbers are defined in <vplot.h>, so the color name
+(all in caps) can be used instead of the number (within the to-be-compiled
+program, NOT as input to plas).
+These 8 colors may be re-assigned, if desired, but usually aren't.
+Color 0 is always the background color; drawing in color 0 erases.
+Color/pattern numbers larger than 7 should be set by the program,
+using the
+B<vp_coltab()>
+call, before being used (what color you get when you plot with an unset
+color is device-dependent).
+The numbers 0-511 are used both for colors and for area-fill patterns.
+The user is responsible for keeping
+track of how the color/pattern table is set.
+See the descriptions of
+vp_fill(), vp_area(), vp_patload(),
+and
+vp_hatchload()
+for more information.
+
+_____________________________________________________________ 
+
+=over 4
+
+
+=item vp_coltab(col, red, green, blue)
+
+int col;
+
+float red, green, blue;
+
+Color number `col' is set to have the color
+(red, green, blue).  The color levels are all between
+0. and 1.  Thus, (1.,1.,1.) is white and (1.,1.,0.) is
+yellow.  `col' is between 0 and 511 (MAX_COL in params.h).
+(The handling of colors on devices that don't have many colors, or
+don't have settable colors at all is a tricky business. In general Vplot
+will try to take care of all of this for you and come as close as is
+possible to what you want. Read the Vplotraster manual page to find
+out more about this; also see the entry for
+B<vp_rascoltab()> as well.)
+Color table settings last until changed by the
+user, except that colors 0 through 7 are reset to the default when a
+pen filter is first fired up. Normally colors 0 through 7 are
+left at their default settings, so that simple plots using only
+those colors can be freely interspersed with a complex many-hued
+plot without problems. Color 0 defines the background color.
+
+_________________________________________________________________ 
+
+
+=item vp_dash(dash1, gap1, dash2, gap2)
+
+float dash1, gap1, dash2, gap2;
+
+Set the current line style, by defining a special line type.
+`Dash' and `gap' are in inches. This dashing is done within
+vplotlib itself, and so these dashes are guaranteed to scale with
+the rest of the plot. Turn dashing off by making any of the 4 arguments
+negative.
+B<Vp_setdash>
+allows a more complicated (and efficient) dashed line pattern to be defined.
+
+_________________________________________________________________ 
+
+
+=item vp_draw(x, y)
+
+C<vp_udraw(x, y)>
+
+float   x, y;
+
+Draw from the current position to (x,y) using the current
+color, fatness, and line style.
+
+_________________________________________________________________ 
+
+
+=item vp_endplot()
+
+Close the plot file (output stream).
+
+_________________________________________________________________ 
+
+
+=item vp_erase()
+
+Clear the screen, feed a page of paper, or flush a raster file to the
+output stream. Reset most global plotting parameters to their default values.
+Prompt the user (or pause, depending on the `pause' argument to
+B<pen>) and allow interaction.
+Normally every plot file should start with a
+B<vp_erase>
+call, as the very first thing (after opening the output file). A common
+mistake is to call routines
+like vp_style, vp_fat, etc, and only THEN vp_erase to erase the screen before
+actually drawing something. This is a mistake, as the vp_erase command
+will start a new frame. This is not noticeable on most screen devices (unless
+you are pausing between frames),
+but it will be very noticeable on hardcopy devices that will spit out
+a blank first page before ``doing the plot''.
+Since
+B<vp_erase>
+resets most of the vplot global parameters (fatness, current color,
+text attributes, current clipping window, dash line pattern, etc),
+you should set these to
+their desired values again after every call. Color table settings are NOT
+reset at erases.
+
+_________________________________________________________________ 
+
+
+=item vp_fat(fatness)
+
+int fatness;
+
+Set the line width, 200 (FATPERIN) per inch.  Default: 0, which is
+the thinnest line possible on the device.
+
+_________________________________________________________________ 
+
+
+=item vp_file(filename)
+
+char *filename;
+
+Open the file called `filename' as the output stream.
+Works for C and for FORTRAN.
+One of the functions {vp_file(), vp_filep(), or vp_unit()}
+MUST be called to initialize the output.
+
+_________________________________________________________________ 
+
+
+=item vp_filep(filepntr)
+
+FILE *filepntr;
+
+Connect the already-open stream pointer `filepntr' to the output stream.
+C language only. (Example: vp_filep(stdout).)
+One of the functions {vp_file(), vp_filep(), or vp_unit()}
+MUST be called to initialize the output.
+
+_________________________________________________________________ 
+
+
+=item vp_unit(lunit)
+
+int *lunit;
+
+Connect the Fortran logical unit `lunit' to the output stream.
+Works for 4.2/4.3 BSD Unix only.  This routine was written using details
+of the Berkeley Fortran implementation, which have been changed
+in ports to some machines other than VAXes.
+One of the functions {vp_file(), vp_filep(), or vp_unit()}
+MUST be called to initialize the output.
+
+_________________________________________________________________
+
+
+=item vp_fill(xp, yp, npts)
+
+C<vp_ufill(xp, yp, npts)>
+
+float *xp, *yp;
+
+int npts;
+
+Fill the area within the polygon defined by the points in
+the `xp' and `yp' arrays using the B<VP_AREA>
+vplot command.  The polygon
+fill style is determined by the current fill pattern, which is
+the loaded pattern with the same index number as the current
+drawing color.  Patterns are loaded with the vp_patload() and
+vp_hatchload() calls.  If no pattern has been loaded for this
+number, the polygon will be filled solidly with the current
+drawing color. `Npts' is the number of vertices of the bounding polygon.
+
+_________________________________________________________________
+
+
+=item vp_hatchload(angle, numhatch, ipat, array);
+
+int angle, numhatch, ipat;
+
+int *array;
+
+Load a hatch pattern as pattern number `ipat'.  (When the
+current drawing color is number `ipat', this is the pattern
+that will be used with the vp_fill() call.) The hatch
+pattern consists of `numhatch' sets of lines drawn at an angle
+of `angle' to each of the two coordinate axes.
+For each set of lines (numhatch * 2 of them),
+the array contains 4 elements specifying: `fatness', `color',
+`offset', `repeat interval'. (Thus the array is of dimension
+numhatch * 2 * 4.)
+The `repeat interval' determines the distance between
+the lines in a set.  The `offset' parameter is used to shift all
+the lines in the set.  Both of these parameters
+are in units of 1/100'ths of an inch (HATCHPERIN in vplot.h).
+Color and fatness are just as you'd expect.
+
+_________________________________________________________________
+
+
+=item vp_message(string)
+
+char *string;
+
+Have the vplot filter issue the message given in ``string''.
+
+_________________________________________________________________
+
+
+=item vp_move(x, y)
+
+C<vp_umove(x, y)>
+
+float   x, y;
+
+Resets the current position to (x,y),
+but doesn't actually draw anything. Used in conjunction with vp_draw(),
+vp_udraw(), or vp_where().
+Units are inches (vp_move) or user units (vp_umove).
+
+_________________________________________________________________
+
+
+=item vp_orig(x0, y0)
+
+float   x0, y0;
+
+Sets where on the device screen (in inches) the origin
+of the user coordinate system will be plotted.
+The initial reference point is the lower left corner of
+the display area for style=STANDARD, and the upper left
+corner for style=ROTATED.
+
+_________________________________________________________________
+
+
+=item vp_uorig(x0, y0)
+
+float   x0, y0;
+
+Assigns values, in user units, to the origin of the user coordinate
+system, whose location on the screen was set by the
+vp_orig() command.
+
+_________________________________________________________________
+
+
+=item vp_patload(ppi, nx, ny, ipat, raster)
+
+int ppi, nx, ny, ipat;
+
+int *raster;
+
+Load a raster pattern as pattern number `ipat'.
+The pattern is designed at `ppi' pixels per inch.
+The raster pattern itself is in the array `raster',
+which is an array of color table numbers.
+It will be represented on the display scanned TV-style, starting
+in the upper left hand corner and working left-to-right (up to ny)
+and then top-to-bottom (up to nx scan lines).
+
+_________________________________________________________________
+
+
+=item vp_pendn(x, y)
+
+C<vp_upendn(x, y)>
+
+float   x, y;
+
+Move to the location (x, y) in inches (vp_pendn) or user units
+(vp_upendn) and then put the pen down.
+
+_________________________________________________________________
+
+
+=item vp_penup()
+
+Pick the pen up.
+
+_________________________________________________________________
+
+
+=item vp_pline(xp, yp, npts)
+
+C<vp_upline(xp, yp, npts)>
+
+float *xp, *yp;
+
+int npts;
+
+Draw a polyline through the points given in the `xp' and `yp'
+arrays.
+
+_________________________________________________________________
+
+
+=item vp_plot(x,y,down)
+
+C<vp_uplot(x,y,down)>
+
+float x, y;
+
+int down;
+
+Draw a vector from the current position to (x, y) with the
+pen up (`down' = 0) or down (`down' = 1).  Uses the current line
+style.  (Fat, dashed lines may look odd on some devices.)
+Usually called by other libvplot functions, not by user programs.
+
+_________________________________________________________________
+
+
+=item vp_pmark(npts, mtype, msize, xp, yp)
+
+C<vp_upmark(npts, mtype, msize, xp, yp)>
+
+int npts, mtype, msize;
+
+float *xp, *yp;
+
+Plot `npts' polymarkers, of type `mtype' and size `msize'.
+`xp' and `yp' are arrays of x and y values in inches (vp_pmark)
+or user units (vp_upmark).  `msize' is in vplot text height units.
+`Mtype' gives the following special symbols from font 15
+for these special values:
+2, plus; 3, asterisk; 4, circle; 5, cross; 20, square;
+21, triangle; 22, diamond; 23, star.
+`mtype' = 0 or 1 sets a single pixel, the smallest displayable dot.
+Other values of `mtype' refer to glyph numbers in the
+current font (which should be compatible with ASCII for most fonts).
+
+_________________________________________________________________
+
+
+=item vp_purge()
+
+Flush the output buffer.  Flushes both the vplot stream and the
+device stream.
+
+_________________________________________________________________
+
+
+=item vp_rascoltab (nreserve, colname)
+
+int             nreserve;
+
+char           *colname;
+
+Create a 2-part color table suitable for raster, with raster colors
+in scrambled order in color table slots `nreserve' through 255,
+and in unscrambled linear order in color table slots 256 through 511.
+(See the vplotraster manual page for more information on why this
+might be useful.)
+
+=over 6
+
+=item nreserve
+
+The first `nreserve' slots in the color table will be left alone.
+
+=item colname
+
+One of (I,i,F,R,W,G) just like in the popular SEP program `Movie':
+
+`I' is standard greyscale, black to half grey to white.
+`i' is inverted standard greyscale, white to half grey to black.
+`F' is `flag', red to white to blue.
+`R' is red to black to blue.
+`W' is red to dark blue to white.
+`G' is the GSI scheme black to white to red.
+
+=back
+
+ 
+
+You may also append a "C" to make clipped values show up Red
+(ie colname=IC is like colname=I but with clipped values flagged).
+If `colname' is 3 characters or longer, it is assumed to give the name
+of a color-table file. A color-table file consists of lines of the
+form `integer float float float', where the integer is a color-table
+number between 0 and 255, inclusive, and the floats are red, green,
+and blue intensities, respectively, between 0. and 1., inclusive.
+Unset color-table entries will be set to black.
+
+_____________________________________________________________
+
+=over 4
+
+
+=item vp_raster (array, blast, bit, offset, xpix, ypix, xll, yll,
+ppi, xur, yur, orient, invert)
+
+C<vp_uraster (array, blast, bit, offset, xpix, ypix, xll, yll,>
+C<ppi, xur, yur, orient, invert)>
+
+unsigned char  *array;
+
+float   xll, yll, *xur, *yur, ppi;
+
+int     xpix, ypix, bit, offset, blast, orient, invert;
+
+Display the raster data pointed to by `array'.
+
+=over 6
+
+=item blast
+
+      If `blast' = 1, don't try to compact the output.  
+      If `blast' = 0, compaction will be done. 
+      Compaction does run-length encoding and compacts 
+      repeated lines.  Compaction can make the vplot 
+      file considerably smaller, but it also takes 
+      longer to create the file.
+
+=item bit
+
+      If `bit' = 1, the raster is saved as one bit 
+      per pixel;
+      if `bit' = 0, as one byte per pixel.  
+      Byte raster is faster!
+
+=item [xy]pix
+
+      `xpix', `ypix': Number of pixels in each 
+      direction.
+
+=item [xy]ll
+
+      `xll', `yll': The display coordinates of the 
+       lower left corner of the array, in inches 
+       (vp_raster) or user units (vp_uraster).
+
+=item ppi
+
+      `ppi': If `ppi' is non-zero, scale the image by 
+       duplicating or dropping image pixels to a factor 
+       of `ppi' output pixels per inch.  The point 
+       (xur, yur) is returned as the upper right hand 
+       corner.  If `ppi' is zero, use whatever 
+       resolution is required to make (xur, yur), which 
+       must then be supplied, the upper right hand 
+       corner.
+
+=item [xy]ur
+
+      `xur', `yur': The display coordinates of the 
+      upper right corner (Well, actually, not quite. 
+      Read the vplotraster manual page.).  Either in 
+      inches (vp_raster) or user units (vp_uraster). 
+      These two variables should NOT be arrays in
+      FORTRAN, despite being declared `float *' for 
+      C.  Note that `xll' <= `xur', `yll' <= `yur'.
+
+=item array
+
+      `array': The `array' contains values from 0 
+      to 255.  For byte raster these values have 
+      `offset' added to them and then they are 
+      interpreted as color values.  For bit raster, 
+      a value of 0 is interpreted as color 0, and 
+      anything else is interpreted as color `offset'.
+
+=item orient
+
+      For `orient' = 0 and `invert' = 0, the array
+      is drawn on the screen television style.  
+      The filling starts from the upper left and works 
+      to the right and then down.  `Orient' 1 rotates 
+      this 90 degrees clockwise, `orient' 2 180 
+      degrees, etc.
+
+=item invert
+
+      `Invert' reverses the `array' over the slow axis.  
+      The data occupies the same area of the output 
+      regardless of the value of `orient' and `invert'.
+
+      Note that the point (xll, yll) is the lower
+      leftmost pixel of the data, whereas the point 
+      (xur, yur) is one to the right and above the 
+      upper rightmost pixel of the data.  This is 
+      so that (xur-xll) and (yur-yll) give the 
+      length of the two dimensions of the data box.
+
+=item offset
+
+      The `offset' parameter is provided so that 
+      several different raster color tables can 
+      be maintained at once, perhaps from 0-255 
+      for ordinary colors and from 256-511 for 
+      a gray scale.
+
+=back
+
+
+_______________________________________________________
+
+=over 6
+
+
+=item vp_scale(xscl,yscl)
+
+float xscl, yscl;
+
+Set the scale of user units for the plot, in inches per user unit.
+
+________________________________________________________
+
+
+=item vp_setdash(dashp,gapp,lp)
+
+float *dashp, *gapp;
+
+int   lp;
+
+Set the dashed line pattern. The pattern is set to 
+dashp[0], gapp[0], dashp[1], gapp[1], ..., dashp[lp-1], gapp[lp-1],
+where dashp contains the lengths of the solid-line segments (dashes) of the
+pattern and gapp contains the lengths of the gaps between
+dashes. All lengths must be specified in INCHES. Setting lp to 0 means no
+dash pattern, and so turns off the dashing. ``Setdash''-style dashing will
+be done either by the device hardware itself or by generic
+code in the pen filter. This dash pattern will be of the specified
+size in inches regardless of any scaling done to the plot as a whole!
+
+Generally, unless you have some reason to require that the dash pattern
+scale exactly with the size of the plot, vp_setdash is preferable to vp_dash.
+This is especially true when using devices that support
+fat dashed lines in hardware.
+
+_________________________________________________________
+
+
+=item vp_stretch(xmin,ymin,xmax,ymax)
+
+float xmin, ymin, xmax, ymax;
+
+This routine makes calls to vp_orig, vp_uorig, and vp_scale for you so that
+(xmin,ymin) is the user coordinate of the lower left hand corner of the output
+space and (xmax,ymax) is the user coordinate of the upper right hand corner.
+
+As an example, suppose that you want to display everything in the unit box
+(0. to 1.) on both axes, but that you also want your coordinate system to
+remain isotropic. You would call
+C<vp_stretch(0.,0.,1./SCREENRATIO,1.).>
+_________________________________________________________
+
+
+=item vp_style(st)
+
+int     st;
+
+Set the overall display style.  Choices are:
+
+=back
+
+=over 8
+
+=item STANDARD
+
+      (default, for terminals and laserprinters) 
+      Origin in lower left,
+      scaled so that the maximum Y value (top of 
+      the screen) is 10.24 (STANDARD_HEIGHT) 
+      `inches'.
+
+=item ABSOLUTE
+
+      (default, for large bed or electrostatic 
+      plotters) Origin in lower left, plotted 
+      in physical inches on the device.
+
+=item ROTATED
+
+      Origin in upper left, Y-axis horizontal 
+      increasing to the right, X-axis vertical 
+      and increasing down, scaled so that the 
+      maximum X value (bottom of the screen) 
+      is 7.5 (ROTATED_HEIGHT) `inches'. 
+      Use of rotated style is discouraged; it 
+      is kept around only to support many 
+      ancient programs that still use it.
+
+      I write `inches' because unless absolute 
+      scaling is being used vplot's `inches' do 
+      not correspond to real, physical inches on 
+      the device screen.
+
+      Note that the STANDARD style scales the 
+      output so a square 10.24 inches on a side 
+      will fit on the terminal screen.  This 
+      allows a full 8.5x11-inch image to be shown 
+      on most terminals.  The magic numbers 10.24 
+      and 7.5 are defined in B<vplot.h>.
+      More about coordinate systems can be found 
+      in the Vplot manual page.  The plot style 
+      reverts to the default at the start of 
+      every frame.
+
+=back
+
+_________________________________________________________
+
+=over 4
+
+=item vp_text(x, y, size, orient, string)
+
+C<vp_utext(x, y, size, orient, string)>
+
+float x, y;
+
+int size, orient;
+
+char *string;
+
+Display text, using the currently-defined font, precision, and
+text alignment.
+
+=back
+
+=over 6
+
+=item x, y:
+
+      The coordinates of the reference point 
+      for the string.  Either in inches 
+      (vp_text) or user units (vp_utext).
+
+=item size:
+
+      Height of a character, 33 (TXPERIN 
+      in vplot.h) units per inch (!!!).
+
+=item orient:
+
+      Text drawing direction, in degrees 
+      counter-clockwise from horizontal, 
+      right-facing.
+
+=item string:
+
+      The text string that is to be displayed.
+      `man vplottext' explains the many special 
+      escape sequences recognized by the generic 
+      vplot text routine gentext.
+
+=back
+
+ 
+
+_________________________________________________________________
+
+=over 4
+
+=item vp_gtext(x, y, dxpath, dypath, dxup, dyup, string)
+
+C<vp_ugtext(x, y, dxpath, dypath, dxup, dyup, string)>
+
+float x, y;
+
+float dxpath, dypath;
+
+float dxup, dyup;
+
+char *string;
+
+Display text, using the currently-defined font, precision, and
+text alignment. The text coordinate system is defined in the GKS
+standard.
+
+=back
+
+=over 6
+
+=item x, y:
+
+      The coordinates of the reference 
+      point for the string.  Either in 
+      inches (vp_gtext) or user units 
+      (vp_ugtext).
+
+=item dxpath, dypath:
+
+      A vector pointing in the direction 
+      the text string will extend.  
+      Either in inches (vp_gtext) or 
+      user units (vp_ugtext).
+
+=item dxup, dyup:
+
+      A vector pointing in the ``up'' 
+      direction for individual letters.  
+      Either in inches (vp_gtext) or 
+      user units (vp_ugtext).
+
+      For normal, unstretched text, the 
+      up vector is 90 degrees 
+      counterclockwise from the path 
+      vector, and both vectors are the 
+      same length. This length is the 
+      text size. Projecting these two 
+      vectors will project the entire 
+      text string accordingly.
+
+=item string:
+
+      The text string to be displayed, 
+      just as in the other text command.
+
+=back
+
+_________________________________________________________
+
+=over 4
+
+=item vp_tfont(font, prec, ovly)
+
+int font, prec, ovly;
+
+Choose the font to be used for output. (All the following values
+are defined in vplot.h.)
+
+=back
+
+=over 6
+
+=item font:
+
+      Which font to use.  Sixteen 
+      software fonts are defined 
+      (if you have the Hershey fonts 
+      installed, otherwise you've only 
+      got font 0. You may also have 
+      hardware fonts starting at 100 
+      (NUMGENFONT in params.h) available 
+      on some devices).  The fonts names 
+      are defined in vplot.h.  Font 0 
+      (PEN in vplot.h), the traditional
+      vplot font, is fastest and is the 
+      default on terminals (unless they 
+      have an even faster hardware font).
+      Another better-looking font should 
+      be the default on hard copy devices.  
+      NO_CHANGE leaves the font unchanged 
+      from that in effect before the call.
+
+=item prec:
+
+      Font precision. This doesn't matter 
+      much if you're using a software font 
+      to begin with.  Prec is one of:
+
+=back
+ 
+=over 8
+
+=item STRING
+
+      Use the hardware text capabilities 
+      to write the whole string. The 
+      default for screen devices.
+
+=item CHAR
+
+      Use hardware characters, but 
+      position them individually.
+
+=item STROKE
+
+      Software text. This should be 
+      the default for hardcopy devices.  
+      Ligatures in the Vplot software 
+      fonts are only enabled at STROKE 
+      precision. (See the vplottext 
+      manual page for more about this.)
+
+=item NO_CHANGE
+
+      Use the previous value.
+
+=back
+
+ 
+=over 6
+
+=item ovly:
+
+Overlay mode:
+
+=back
+
+=over 8
+
+=item OVLY_NORMAL:
+
+      just draw the text over 
+      what's there in the 
+      standard way;
+
+=item OVLY_BOX:
+
+      draw a box around the 
+      text first;
+
+=item OVLY_SHADE:
+
+      clear a box under the 
+      text first;
+
+=item OVLY_SHADE_BOX:
+
+      box the text and clear 
+      under it too;
+
+=item NO_CHANGE:
+
+      use the previous value.
+
+=back
+
+_________________________________________________________________
+
+=over 4
+
+=item vp_tjust(hjust, vjust)
+
+int hjust, vjust;
+
+Set the position of the reference point for 
+locating strings or characters.  Choices are 
+(these are defined in vplot.h):
+
+hjust:
+
+=back
+
+=over 6 
+
+=item TH_NORMAL
+
+      Use the default.
+
+=item TH_LEFT
+
+      Left justify.
+
+=item TH_CENTER
+
+      Center the string.
+
+=item TH_RIGHT
+
+      Right justify.
+
+=item TH_SYMBOL
+
+      Position the character 
+      for use as a symbol 
+      marking the point.
+
+=back
+
+vjust:
+
+=over 6
+
+=item TV_NORMAL
+
+      Use the default.
+
+=item TV_BOTTOM
+
+      Reference point is at 
+      the bottom of the letters.
+
+=item TV_BASE
+
+      Reference point is at 
+      the bottom of the descenders.
+
+=item TV_HALF
+
+      Centered.
+
+=item TV_TOP
+
+      Reference point at the 
+      top of the writing area,
+      including space above letters.
+
+=item TV_CAP
+
+      Reference point is at the 
+      tops of capital letters.
+
+=item TV_SYMBOL
+
+      Position the character for 
+      use as a symbol marking 
+      the point.
+
+=back
+
+It is possible to change font size, change font, and do many other
+tricks ``on the fly'' by including escape codes in the text string.
+See the vplottext manual page for information about the details of
+interpretation of special characters within vplot text.
+
+_______________________________________________________________
+
+=over 4
+
+=item vp_where(x,y)
+
+float *x, *y;
+
+Return the current position, in inches. Fortran users note that x and y
+are not arrays, despite being declared `float *' in C.
+
+=back
+
+ 
+
+=head1 ACCESSING VPLOTLIB VARIABLES
+
+At present, few inquiry functions are provided by
+libvplot.  It would be wonderful if someone could turn the one-way
+pipes into two-way sockets and provide some. The changes required to
+the pen filters themselves would be minimal, as the required device
+dependent structures already exist.
+
+The current values of the global parameters used in libvplot
+are stored in the external structure
+vp_pc.  This structure is defined
+in the file vp_pc.h, which is ``#include''ed by the libvplot routines
+that need to refer to the variables in vp_pc. User programs should
+probably have no need to do this.
+
+=head1 MAGIC NUMBERS
+
+The magic numbers (200, 100, 33, 7.5, 10.24, etc) used in this
+document are subject to being changed at new sites. At Stanford we
+are forced to live with these off-the-wall numbers in order to not
+break a large mass of ancient code. They are all defined in ``vplot.h''
+(which should be in /usr/include, and which you should probably #include)
+and ``params.h'' (which you probably don't need to worry about).
+
+I would have loved to have turned everything into inches or centimeters,
+but it just wasn't possible here. It is especially annoying that text
+is currently quantized in such rough units. Sometimes it is impossible to get
+text the exact size you need!
+
+=head1 COPYRIGHT
+
+The Vplot code is copyrighted. Refer to the Vplot manual page for the
+official copyright notice.
+
+=head1 SEE ALSO
+
+L<pen>, L<vplot>, L<vplottext>, L<vplotraster>
+
+=head1 AUTHOR
+
+Dave Hale, Joe Dellinger, Chuck Karish, and Steve Cole
+
+=head1 LIMITATIONS
+
+Vector fonts and hardware fonts cannot be intermixed in a single
+string.
+
+Inquiry functions should be provided.
+
+Vpunit() only works under 4.x BSD FORTRAN.
+
+Vplot.h should have defines for the various special markers.
+
+=head1 BUGS
+
+None, that I know of. It is likely that some of the lesser-used FORTRAN
+routines still harbor bugs.
+
+=head1 CATEGORY
+
+B<graphics/vplot>
+
+=cut

@@ -1,0 +1,41 @@
+=head1 NAME
+
+
+sep3dc_inorder - Signify that the data and headers are synched
+
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3dc_inorder(sp3dc *space1)>
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  space1  -  sep3d
+
+     structure 
+
+=back
+
+=head1 DESCRIPTION
+
+
+Signify that the headers and data are synched
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

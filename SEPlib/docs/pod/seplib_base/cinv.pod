@@ -1,0 +1,47 @@
+=head1 NAME
+
+
+cinv - Inverse of cmplex number
+
+=head1 SYNOPSIS
+
+
+C<val=complex cinv(a)>;
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item a - complex  
+
+      number
+
+=back
+
+=head1 RETURN VALUES
+
+
+=over 4
+
+=item val - complex 
+
+      reciprocal
+
+=back
+
+=head1 DESCRIPTION
+
+
+Complex reciprocal
+ Cinv returns 1/a.
+
+
+
+=head1 LIBRARY
+
+
+B<sepmath>
+
+=cut
+

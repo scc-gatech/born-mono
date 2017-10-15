@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>refine2 - refine mesh</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>refine2 - refine mesh</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call refine2_init(co1,cd1,co2,cd2,m1,m2,fo1,fd1,fo2,fd2,n1,n2)</code></p>
+<p><code>ierr= refine2_lop(adj,model,data)</code></p>
+<p><code>call refine2_close()</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_co1_2cco2__2d_real">co1,co2 - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Coarse grain origin</pre>
+</dd>
+<dt><strong><a name="item_cd1_2ccd2__2d_real">cd1,cd2 - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Coarse grain sampling</pre>
+</dd>
+<dt><strong><a name="item_ro1_2cro2__2d_real">ro1,ro2 - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Refined grain origin</pre>
+</dd>
+<dt><strong><a name="item_rd1_2crd2__2d_real">rd1,rd2 - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Refined grain sampling</pre>
+</dd>
+<dt><strong><a name="item_m1_2cm2__2d_integer">m1,m2   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Size of coarse grain input</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2__2d_integer">n1,n2   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Size of fine grain output</pre>
+</dd>
+<dt><strong><a name="item_adj_2cadd_2cmodel_2cdata__2d">adj,add,model,data -</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Standard operator interface</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Refine a mesh by linear interpolation</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/lint2.html">the lint2 manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,67 @@
+=head1 NAME
+
+
+interpolate_mod - Linear interpolation
+
+=head1 SYNOPSIS
+
+
+Initialized=C<call init_1d_linear_interp(o1out,d1out,n1out,b)>
+
+Operator=C<call interp_1d_linear(input,output,var)>
+
+=head1 INPUT PARAMETERS
+
+
+=over
+
+=item o1out - real
+
+      output axis begining
+
+=item d1out - real
+
+      output axis sampling
+
+=item n1out - integer
+
+      number of output points
+
+=item b -integer
+
+      boundary condition (0-zero outside var boundary, 1 replicate
+       last value)
+
+=item input -  C<real(:)>
+
+      Input values
+
+=item var -  C<real(:)>
+
+      Input sample location
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item output - real(:)
+
+      output linear interpolated
+
+=back
+
+=head1 DESCRIPTION
+
+
+Interpolate an irregular sampled function to a regular function.
+
+=head1 LIBRARY
+
+
+B<sepauxf90>
+
+=cut
+

@@ -1,0 +1,52 @@
+=head1 NAME
+
+
+burg - burg decon
+
+=head1 SYNOPSIS
+
+
+C<call burg(lx,x,la,a)>
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item lx - integer
+
+      input length
+
+=item x  - real(lx)
+
+      input
+
+=item la - integer
+
+      output length
+
+=item a  - real(la)
+
+      output
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Burg routione adopted from FGDP page 137
+
+=head1 SEE ALSO
+
+
+B<wilson>
+
+=head1 LIBRARY
+
+
+B<sepfilterf90>
+
+=cut
+

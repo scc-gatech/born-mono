@@ -1,0 +1,366 @@
+
+ /*$
+
+=head1 NAME
+
+Histogram  - Create a histogram
+
+=head1 DESCRIPTION
+
+Data frequency distribution 
+
+=head1 SYNOPSIS
+
+Histogram < in.H ninterv=50 | Graph | Tube
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item ninterv - integer 
+
+      [50,...] :    Number of intervals (default equals 50)
+
+=item dinterv - real    
+
+      interval step
+
+=item min     - real    
+
+      minimum data value
+
+=item max     - real    
+
+      maximum data value
+
+=item dim     - integer 
+
+      [1] or 2(or 3(...))): computes histogram for every trace
+                            (or plane(or cube(...)))
+
+=back
+
+=head1 COMMENTS
+
+        dinterv = (max - min)/ninterv
+  
+  Histogram computes automatically the maximum and minimum values
+  of your dataset, but you can choose to overwrite these values,
+        specifying min and max. Cube may be up to 4-dimensions.
+  
+  The default value for the parameter dim is the highest dimension
+  of your dataset. The parameters ninterv, dinterv, min, and max
+  accept multiple entries separated with commas.
+
+  For example, for the dataset in.H with n1=3, n2=4, n3=2 n4=2:
+
+  Histogram < in.H ninterv=10,11,12,10 dinterv=20,30,35,40 dim=2 
+  | Graph movie=y | Tube
+
+  will display 4 histograms. Each histogram will have a different
+  number of intervals, and a different number of interval step.
+
+=head1 SEE ALSO
+
+L<Graph>, L<xtpen>
+
+=head1 CATEGORY
+
+B<sep_graphics>
+
+=head1 COMPILE LEVEL
+
+DISTR
+
+=cut
+*/
+/*
+  AUTHOR 
+  Hector Urdaneta   5/97
+
+  MODIFICATIONS
+
+*/
+
+ADD_DEF_SEP_DOC
+
+#include <sep.main>
+#include <string.h>
+#include <stdio.h>
+#include <glplot.h>
+
+#define NDIM 5
+#define MSTRSZ 2000
+#define MNBSZ 200
+
+/* prototypes */
+void update ();
+int maximum_n1() ;
+
+struct axis {
+  int   ninterv;
+  float dinterv;
+  float min;
+  float max;
+}; 
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void update (struct axis *hist, int dim, int ndim, int nhists, int *nd) ;
+int maximum_n1(struct axis *hist, int nhists) ;
+_XFUNCPROTOEND
+#else
+void update ();
+int maximum_n1();
+#endif
+
+int MAIN (void)
+{
+    int ii, jj, kk;
+    int *nd, esize, ntemp;
+    int dim, ndim, nsamples, nhists, nsamp_hist;
+    int *bout, maxn1;
+    int  itemp[NPMAX];
+    float ftemp[NPMAX];
+    float ex1, ex2;
+    float *data, *fout;
+    struct axis *hist;
+
+   vp_filep(outstream); /* tell plotting routines where to stick it */
+
+    /* number of samples along each dimension */
+    nd = (int *) alloc ((sizeof(int))*(NDIM+1));
+    
+    hetch("n1","d",&nd[0]);    /* first dim. */
+    if(!hetch("n2","d",&nd[1])) nd[1]=1;
+    if(!hetch("n3","d",&nd[2])) nd[2]=1;
+    if(!hetch("n4","d",&nd[3])) nd[3]=1;
+		esize=4; hetch("esize","d",&esize);
+    nd[NDIM-1]=1;
+
+    /* compute number of dimensions */
+    ndim = 0; ii=0;
+    while(nd[ii]!=1 && ii<NDIM) { ndim++; ii++; }
+
+    /* number of samples for dataset */
+    nsamples = nd[0]; ii = 1;
+    while(ii<ndim) { nsamples *= nd[ii++]; }
+
+    /* if dim is not specified compute only
+       one histogram for the whole dataset.  */
+    if(!getch ("dim", "d", &dim)) dim = ndim ;
+    if(dim < 1 || dim > ndim) {
+      seperr("Check that 0 < dim < number of dimensions\n");
+    }
+
+    /* number of histograms */
+    nhists = nd[dim] ; ii = dim;
+    while(ii<ndim) { nhists *= nd[++ii]; }
+
+    /* number of samples per histogram */
+    nsamp_hist = nsamples / nhists;
+
+    /* read in data */
+    /* Assume that the data consists of floats */
+	  if(esize!=4) seperr("esize must be 4 \n");
+    data = (float *) alloc (esize*nsamples);
+    sreed("in", data, nsamples*esize);
+
+    /* allocate hist */
+    hist = (struct axis *) alloc (sizeof(struct axis)*nhists);
+
+    /* initialize max and min values of hist */
+    ii = -1;
+    while(++ii<nhists) { hist[ii].min = hist[ii].max = data[ii*nsamp_hist]; }
+
+    /* compute max and min from data */
+    for(ii=0;ii<nhists;ii++) {
+      for(jj=0;jj<nsamp_hist;jj++) {
+  if(data[jj+ii*nsamp_hist] < hist[ii].min) {
+    hist[ii].min = data[jj+ii*nsamp_hist];
+  }
+  if(data[jj+ii*nsamp_hist] > hist[ii].max) {
+    hist[ii].max = data[jj+ii*nsamp_hist];
+  }
+      }
+    }
+
+    /* read in ninterv and dinterv, initialize what is not read */
+    ntemp = getch("ninterv","d",itemp);
+    for(ii=0;ii<ntemp;ii++) { hist[ii].ninterv = itemp[ii]; }
+    for(ii=ntemp;ii<nhists;ii++) { hist[ii].ninterv = 50; }
+    ntemp = getch("dinterv","f",ftemp);
+    for(ii=0;ii<ntemp;ii++) { hist[ii].dinterv = ftemp[ii]; }
+    for(ii=ntemp;ii<nhists;ii++) { hist[ii].dinterv = 0.; }
+
+    /* allow overwriting of min and max values */
+    if((ntemp = getch ("min", "f", ftemp)) > nhists) {
+      seperr ("too many min values picked, exceeding nhists value\n");
+    } 
+    for(ii=0;ii<ntemp;ii++) { hist[ii].min = ftemp[ii]; }
+    if((ntemp = getch ("max", "f", ftemp)) > nhists) {
+      seperr ("too many max values picked, exceeding nhists value\n");
+    }
+    for(ii=0;ii<ntemp;ii++) { hist[ii].max = ftemp[ii]; }
+
+    /* compute dinterv from data in case not given */
+    for(ii=0;ii<nhists;ii++) {
+      if(hist[ii].dinterv == 0.) { 
+  hist[ii].dinterv = (hist[ii].max - hist[ii].min) / hist[ii].ninterv; 
+  hist[ii].dinterv *= (1.+.01/hist[ii].ninterv);
+      } else { 
+  hist[ii].ninterv = (int) ((hist[ii].max - hist[ii].min)                                         / hist[ii].dinterv); 
+      }
+    }   
+
+    /* update history file */
+    update(hist, dim, ndim, nhists, nd);
+    hclose();
+
+
+    /* figure maximum value of n1 */
+    maxn1 = maximum_n1(hist, nhists);
+    bout = (int *) alloc (sizeof(int)*maxn1);
+    fout = (float *) alloc (esize*maxn1);
+
+    for(ii=0;ii<nhists;ii++) {
+      for(jj=0;jj<maxn1;jj++) { bout[jj] = 0; fout[jj] = 0; }
+
+      for(jj=0;jj<nsamp_hist;jj++) {
+  for(kk=0;kk<hist[ii].ninterv;kk++) {
+    ex1 = hist[ii].min + kk*hist[ii].dinterv;
+    ex2 = ex1 + hist[ii].dinterv;
+    if(data[jj+ii*nsamp_hist] >= ex1 && data[jj+ii*nsamp_hist] < ex2) 
+            bout[kk]++;
+  }      
+      }
+      for(jj=0;jj<hist[ii].ninterv;jj++) fout[jj] = (float) bout[jj];
+      srite("out", fout, sizeof(float)*hist[ii].ninterv);
+    }
+
+    /* free dynamic memory */
+    free(bout);
+    free(fout);
+    free(nd);
+    free(data);
+    free(hist);
+
+    return EXIT_SUCCESS;
+}
+
+/*---------------------------------------------------------------------------*/
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void update (struct axis *hist, int dim, int ndim, int nhists, int *nd) 
+_XFUNCPROTOEND
+#else
+void update (hist, dim, ndim, nhists, nd) 
+struct axis *hist;
+int dim, ndim, nhists, *nd;
+#endif
+{
+  int ii, jj, n1;
+  float d1, o1;
+  float d[NDIM], o[NDIM];
+  char sn1[MNBSZ],sd1[MNBSZ],so1[MNBSZ];
+  char ssn1[MSTRSZ],ssd1[MSTRSZ],sso1[MSTRSZ];
+
+  /* read d and o values in history file */
+  hetch("d2","f",&d[1]);
+  if(!hetch("d3","f",&d[2])) d[2]=1.;
+  if(!hetch("d4","f",&d[3])) d[3]=1.;
+  hetch("o2","f",&d[1]);
+  if(!hetch("o3","f",&o[2])) o[2]=0.;
+  if(!hetch("o4","f",&o[3])) o[3]=0.;
+
+  /* update d and o values */
+  if(dim != 1) {
+    for(ii=1;ii<ndim;ii++) {
+      d[ii] = (ii+dim-1<ndim) ? d[ii+dim-1]: 1.;
+      o[ii] = (ii+dim-1<ndim) ? o[ii+dim-1]: 0.;
+    }
+  }
+  
+  /* Start by initializing ssn1, ssd1, sso1 */
+  sprintf(ssn1,"n1=");
+  sprintf(ssd1,"d1=");
+  sprintf(sso1,"o1=");
+
+  /* write into a string values of n1, d1, and o1 */
+  for(ii=0;ii<nhists;ii++) {
+    n1 = hist[ii].ninterv;
+    d1 = hist[ii].dinterv;
+    o1 = hist[ii].min + .5*hist[ii].dinterv;
+    sprintf(sn1,"%d,",n1);
+    sprintf(sd1,"%.4g,",d1);
+    sprintf(so1,"%.4g,",o1);
+
+    strcat(ssn1,sn1);  
+    if(strlen(ssd1)+strlen(sd1) > MSTRSZ) 
+      seperr("d1 string is too long\n");
+    strcat(ssd1,sd1);
+    if(strlen(sso1)+strlen(so1) > MSTRSZ) 
+      seperr("o1 string is too longn");
+    strcat(sso1,so1); 
+  }
+
+  /* erase last comma from ssn1, ssd1, & sso1 */
+  ssn1[strlen(ssn1)-1]='\0';
+  ssd1[strlen(ssd1)-1]='\0';
+  sso1[strlen(sso1)-1]='\0';
+
+  /* output n1, d1, and o1 */
+  puthead ("\n");
+  puthead ("%s\n",ssn1);
+  puthead ("%s\n",ssd1);
+  puthead ("%s\n",sso1);
+
+  /* output n2, n3, n4 */
+  for(ii=dim,jj=1;ii<ndim && jj<NDIM;ii++,jj++) {
+    puthead("n%d=%d ",jj+1,nd[ii]);
+  }
+
+  /* output d2, d3, d4 */
+  for(ii=1;ii<ndim;ii++) {
+    puthead("d%d=%f ",ii+1,d[ii]);
+  }
+
+  /* output o2, o3, o4 */
+  for(ii=1;ii<ndim;ii++) {
+    puthead("o%d=%f ",ii+1,o[ii]);
+  }
+
+  for(jj=ndim-dim+1;jj<NDIM-1;jj++) {
+    puthead("n%d=1 ",jj+1);
+  }
+  puthead ("\n");
+  puthead ("   title=Histogram\n");
+  puthead ("   label1=Interval\n");
+  puthead ("   label2=Frequency\n");
+
+  return;
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int maximum_n1(struct axis *hist, int nhists) 
+_XFUNCPROTOEND
+#else
+int maximum_n1(hist, nhists) 
+struct axis *hist;
+int nhists;
+#endif
+{
+  int ii, max;
+  
+  max = 1;
+  for(ii=0;ii<nhists;ii++) {
+    if(max < hist[ii].ninterv) max = hist[ii].ninterv;
+  }
+
+  return max;
+}

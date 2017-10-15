@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>heliarr - two helix convolutions</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>heliarr - two helix convolutions</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Initialize: <code>call heliarr_init(nx,aa1,aa2)</code></p>
+<p>Operator  : <code>ierr= heliarr_lop(adj,add, xx,yy)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_type">aa1,aa2  - <code>type(filter)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+       Helix filters</pre>
+</dd>
+<dt><strong><a name="item_nx1__2d_integer">nx1      - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Size of model space where aa1 will be applied</pre>
+</dd>
+<dt><strong><a name="item_adj_2cadd_2cxx_2cyy">adj,add,xx,yy</a></strong><br />
+</dt>
+<dd>
+<pre>
+       standard operator conventions;</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>An array of helix convolutions.  aa1 Will be applied to  points
+(1:nx1) operator two to the remaining data.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/helicon.html">the helicon manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

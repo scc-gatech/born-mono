@@ -1,0 +1,478 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$Stretch - Generic stretch routine
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Stretch rule=nmo conj=0 inv=0 [vel=1.5] [velfile=vel.H] < in.H > out.H
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$
+!!$=item  conj  -   integer
+!!$
+!!$      [0]  - operator itself
+!!$      1  - conjugate operator
+!!$
+!!$=item  inv   -   integer
+!!$
+!!$      [0] -  operator itself
+!!$      1  - pseudo inverse
+!!$
+!!$=item  rule  -   character string
+!!$
+!!$      -NMO, linear interp. and tabulation
+!!$       nmo0  -NMO, nearest neigbor, integer arithmetic.
+!!$       nmo1  -NMO, nearest neighbor interpolation.
+!!$       nmo2  -NMO, linear interpolation
+!!$       unmo  -NMO, pseudoUnitary. (conjugate is pseudoinverse)
+!!$       rownmo-NMO by linear interp,
+!!$       inverse divides out the row sum.
+!!$       offset-trace resampling on 2-axis along hyperbolic curves.
+!!$       linear on 2-axis, near neighbor on 1-axis.
+!!$       inverse approximated by conjugate.
+!!$       radial - radial trace without nmo.
+!!$       radnmo - radial trace, u=x/tau, nearest
+!!$       neighbor, does NMO too.
+!!$       inverse not exact when v=v(tau)
+!!$       stolt  - stolt stretch, give n1= on command line.
+!!$       lmo1  -LMO, nearest neighbor interpolation.
+!!$       lmo2  -LMO, linear interpolation
+!!$
+!!$=item t_of_tau - file
+!!$
+!!$      somefile.H  overrides vel.H
+!!$
+!!$=item  vel     -  real
+!!$
+!!$      [1.5]   velocity
+!!$
+!!$=item velfile  - file
+!!$
+!!$      velocity file, supersedes constant velocity.  Can be 2-D.
+!!$      If 2-D, n2 of velocity file must equal n3 of data.  Otherwise
+!!$      the first velocity function is used for all n3.  Consistency
+!!$      of o2,d2 of velocity file with o3,d3 of data is NOT checked.
+!!$
+!!$=item n1,n2   -  integer
+!!$
+!!$      standard seplib parameters (from history)
+!!$
+!!$=item o1,o2   -  real
+!!$
+!!$      standard seplib parameters (from history)
+!!$
+!!$=item d1,d2   -  real
+!!$
+!!$      standard seplib parameters (from history)
+!!$
+!!$=item  n1     -   integer
+!!$
+!!$      (from velfile) length of velocity trace
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$  Stretch transformations with:   2       2     2    2
+!!$                                 t  =  tau  +  x  / v(tau)
+!!$
+!!$
+!!$=head1 COMMENTS
+!!$
+!!$  rule=radnmo not yet passing dot product test.
+!!$  rule=stolt not yet implemented
+!!$  rule=lmo not well tested
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/velan>
+!!$
+!!$=cut
+!>
+! KEYWORDS   stretch deformation nmo unitary radial-trace conjugate
+!
+!
+! WARNING
+!  Externally follows seplib conventions, but inside Fortran
+!       subroutines origin definitions are  x=x0+ix*dx; ix=1,2,...,nx
+!       (this was a bad decision)
+!
+! WHERE
+!  ./cube/canon/Stretch.rs
+!
+!--------------------------------------------------------------------------------
+! Modifications:
+! 	19Oct2002 - Morgan - Implemented space-variable velocity.  Before, velfile
+!                        was a single 1-D vel function.  subroutine vtris() had
+!                        hard-coded array dims.  Changed to dynamic, consistent
+!                        with F90.
+!--------------------------------------------------------------------------------
+program zyxabc
+use sep
+implicit none
+real, allocatable, dimension (:,:) :: pp
+real, allocatable, dimension (:,:) :: qq
+real, allocatable, dimension (:,:) :: s1
+real, allocatable, dimension (:,:) :: s2
+real, allocatable, dimension (:,:) :: s3
+real, allocatable, dimension (:,:) :: s4
+real, allocatable, dimension (:,:) :: s5
+integer      :: conj,inv, n1, n2p, n2q
+call initpar()
+call SEP_ADD_DOC()
+call SEP_INIT('')
+  if (0>= getch('conj','d',conj )) then
+    conj = 0
+  end if
+  if (0.ne.putch('Read  from param: #conj ','d',conj)) then
+    call erexit('Trouble writing conj to history')
+  end if
+  if (0>= getch('inv','d',inv )) then
+    inv = 0
+  end if
+  if (0.ne.putch('Read  from param: #inv ','d',inv)) then
+    call erexit('Trouble writing inv to history')
+  end if
+  if (0>= hetch('n1','d',n1 )) then
+    call erexit('Trouble reading  n1 from history  ')
+  end if
+call sep_begin_prog()
+if ( conj.eq.inv) then
+    if (0>= hetch('n2','d',n2p )) then
+      call erexit('Trouble reading  n2 from history  ')
+    end if
+    if (0>= hetch('n2q','d',n2q )) then
+      n2q = n2p
+    end if
+else
+    if (0>= hetch('n2','d',n2q )) then
+      call erexit('Trouble reading  n2 from history  ')
+    end if
+    if (0>= hetch('n2p','d',n2p )) then
+      n2p = n2q
+    end if
+end if 
+allocate (pp(n1,n2p), qq(n1,n2q))
+allocate (s1(n1,n2q))
+allocate (s2(n1,n2q))
+allocate (s3(n1,n2q))
+allocate (s4(n1,n2q))
+allocate (s5(n1,n2q))
+!--------------------------------------------------------------------------------
+call strech ( n1, n2p, n2q, pp, qq, s1,s2,s3,s4,s5 )
+end program zyxabc 
+subroutine strech( n1, n2p, n2q, pp, qq, s1,s2,s3,s4,s5 )
+use sep_mod
+integer :: ierr
+integer           :: i1, n1, i2, n2p, n2q, i3, n3, n2vel, nvel,       &
+  &                velfd,         &
+  &             junk, conj, inv
+real              :: vel, o1, d1, o2, d2, pp(n1,n2p), qq(n1,n2q),     &
+  &                 s1(n1,n2q), s2(n1,n2q), s3(n1,n2q), s4(n1,n2q),&
+  & s5(n1,n2q),                      o1q, d1q, o2q, d2q
+character*80      :: hvel, rule
+character*40      :: label2, label2q
+real, allocatable :: slow(:)
+allocate(slow(n1))
+  if (0>= fetch('n3','d',n3 )) then
+    n3 = 1
+  end if
+  if (0>= getch('conj','d',conj )) then
+    conj = 0
+  end if
+  if (0.ne.putch('Read  from param: #conj ','d',conj)) then
+    call erexit('Trouble writing conj to history')
+  end if
+  if (0>= getch('inv','d',inv )) then
+    inv = 0
+  end if
+  if (0.ne.putch('Read  from param: #inv ','d',inv)) then
+    call erexit('Trouble writing inv to history')
+  end if
+if ( getch('velfile', 's', hvel) > 0 ) then
+  junk = auxpar('n1', 'i', nvel, 'velfile')
+  junk = auxpar('n2', 'i', n2vel, 'velfile')
+  if ( n1 .ne. nvel ) then
+      if (0 .ne. putch ( 'n1'    ,'i', n1  )) then
+        call erexit('trouble writing to file ')
+      end if
+      if (0 .ne. putch ( 'nvel'  ,'i', nvel)) then
+        call erexit('trouble writing to file ')
+      end if
+      if (0 .ne. putch ('velfile','s', hvel)) then
+        call erexit('trouble writing to file ')
+      end if
+    call erexit('velocity file length does not match data')
+  end if
+  if ( n3 .ne. n2vel ) then
+    write(0,*) 'Warning: n3(data) != n2(velocity).'
+    write(0,*) 'Using v(:,1) for all n3.'
+  end if
+  call putlin(' going for velocity file ')
+  ierr= sreed('velfile', slow, n1*4 )
+  do i1=1,n1  
+    slow(i1) = 1. / slow(i1)
+  end do
+else
+  if ( fetch('vel','f',vel) .eq. 0 ) then
+    vel = 1.5
+      if (0 .ne. putch (' The default velocity is ','f',vel)) then
+        call erexit('trouble writing to file ')
+      end if
+  end if
+  do i1=1,n1  
+    slow(i1) = 1. / vel
+  end do
+end if 
+if ( getch('rule','s',rule) .ne. 0 ) then
+    if (0 .ne. putch ('stretch rule','s',rule)) then
+      call erexit('trouble writing to file ')
+    end if
+else
+    if (0 .ne. putch ('The default stretch rule','s','nmo')) then
+      call erexit('trouble writing to file ')
+    end if
+end if 
+if (      conj .eq. 0 .and. inv .eq. 0 ) then
+    if (0 .ne. putch ('Operation is','s','itself')) then
+      call erexit('trouble writing to file ')
+    end if
+else if ( conj .eq. 1  .and. inv .eq. 0 ) then
+    if (0 .ne. putch ('Operation is','s','conjugate transpose')) then
+      call erexit('trouble writing to file ')
+    end if
+else if ( conj .eq. 0  .and. inv .eq. 1 ) then
+    if (0 .ne. putch ('Operation is','s','pseudoinverse')) then
+      call erexit('trouble writing to file ')
+    end if
+else if ( conj .eq. 1  .and. inv .eq. 1 ) then
+    if (0 .ne. putch ('Operation is','s','conjugate-transpose-pseudoinverse'&
+      &)) then
+      call erexit('trouble writing to file ')
+    end if
+! establish mesh sizes
+end if
+  if (0>= hetch('o1','f',o1 )) then
+    o1 = 0.
+  end if
+  if (0>= hetch('d1','f',d1 )) then
+    call erexit('Trouble reading  d1 from history  ')
+  end if
+if ( rule(1:6) .eq. 'radnmo' ) then
+  call radgrd(conj,inv,n1,n2p,o1,d1,o2,d2,slow(n1),n1,n2q,o1q,d1q,o2q&
+    &,d2q)
+end if
+if ( rule(1:6) .eq. 'radial' ) then
+  if (conj.eq.inv) then
+      if (0>= hetch('d2','f',d2 )) then
+        call erexit('Trouble reading  d2 from history  ')
+      end if
+      if (0>= hetch('o2','f',o2 )) then
+        call erexit('Trouble reading  o2 from history  ')
+      end if
+      if (0>= hetch('label2','s',label2 )) then
+        label2 = "distance"
+      end if
+      if (0>= getch('d2q','f',d2q )) then
+        d2q = abs(d2/(d1*n1))
+      end if
+      if (0.ne.putch('Read  from param: #d2q ','f',d2q)) then
+        call erexit('Trouble writing d2q to history')
+      end if
+      if (0>= getch('o2q','f',o2q )) then
+        o2q = o2/(n1*d1)
+      end if
+      if (0.ne.putch('Read  from param: #o2q ','f',o2q)) then
+        call erexit('Trouble writing o2q to history')
+      end if
+      if (0>= getch('label2q','s',label2q )) then
+        label2q = 'unscaled_velocity'//char(0)
+      end if
+      if (0.ne.putch('Read  from param: #label2q ','s',label2q)) then
+        call erexit('Trouble writing label2q to history')
+      end if
+  else
+      if (0>= hetch('d2','f',d2q )) then
+        call erexit('Trouble reading  d2 from history  ')
+      end if
+      if (0>= hetch('o2','f',o2q )) then
+        call erexit('Trouble reading  o2 from history  ')
+      end if
+      if (0>= hetch('label2','s',label2q )) then
+        label2q = 'unscaled_velocity'//char(0)
+      end if
+      if (0>= getch('d2','f',d2 )) then
+        d2 = abs(d2q*d1*n1)
+      end if
+      if (0.ne.putch('Read  from param: #d2 ','f',d2)) then
+        call erexit('Trouble writing d2 to history')
+      end if
+      if (0>= getch('o2','f',o2 )) then
+        o2 = o2q*(n1*d1)
+      end if
+      if (0.ne.putch('Read  from param: #o2 ','f',o2)) then
+        call erexit('Trouble writing o2 to history')
+      end if
+      if (0>= getch('label2','s',label2 )) then
+        label2 = 'distance'
+      end if
+      if (0.ne.putch('Read  from param: #label2 ','s',label2)) then
+        call erexit('Trouble writing label2 to history')
+      end if
+  end if 
+!  from conj: real d2: d2=abs(d2q*d1*n1) : d2q=abs(d2/(d1*n1))
+!  from conj: real o2: o2=o2q*(n1*d1): o2q=o2/(n1*d1)
+!  from conj: character label2:label2='distance': label2q='unscaled_velocity'//char(0)
+else if (  rule(1:6) .eq. 'offset' ) then
+!  from conj: real d2: d2=d2q*(n2q-1.)/(n2p-1.): d2q=d2*(n2p-1.)/(n2q-1.)
+  if (conj.eq.inv) then
+      if (0>= hetch('d2','f',d2 )) then
+        call erexit('Trouble reading  d2 from history  ')
+      end if
+      if (0>= getch('d2q','f',d2q )) then
+        d2q = d2*(n2p-1.)/(n2q-1.)
+      end if
+      if (0.ne.putch('Read  from param: #d2q ','f',d2q)) then
+        call erexit('Trouble writing d2q to history')
+      end if
+  else
+      if (0>= hetch('d2','f',d2q )) then
+        call erexit('Trouble reading  d2 from history  ')
+      end if
+      if (0>= getch('d2','f',d2 )) then
+        d2 = d2q*(n2q-1.)/(n2p-1.)
+      end if
+      if (0.ne.putch('Read  from param: #d2 ','f',d2)) then
+        call erexit('Trouble writing d2 to history')
+      end if
+  end if
+    if (0>= hetch('o2','f',o2 )) then
+      o2 = 0.
+    end if
+  o2q = o2
+else
+    if (0>= hetch('o2','f',o2 )) then
+      call erexit('Trouble reading  o2 from history  ')
+    end if
+    if (0>= hetch('d2','f',d2 )) then
+      call erexit('Trouble reading  d2 from history  ')
+    end if
+  o2q = o2
+end if 
+! real world to Fortran grid:  o = o1 + (i1-1) * d1
+o1 = o1 - d1
+o2 = o2 - d2
+o2q = o2q - d2q
+! real world to grid is now:  o = o1 + i1 * d1
+call hclose()  !  putch() no longer allowed.
+do i3=1,n3  
+  if ( conj .eq. inv ) then
+    ierr= sreed('in',pp,n1*n2p*4)
+  else
+    ierr= sreed('in',qq,n1*n2q*4)
+  end if 
+  if ( rule(1:4) .eq. 'nmo1') then
+    call nmo_2d_n (conj,inv,slow,o1,d1,o2,d2,n1,n2p,pp,qq)
+  else if ( rule(1:4) .eq. 'nmo0') then
+    call nmo_2d_i (conj,inv,slow,o1,d1,o2,d2,n1,n2p,pp,qq)
+  else if ( rule(1:4) .eq. 'nmo2') then
+    call nmo_2d_l (conj,inv,slow,o1,d1,o2,d2,n1,n2p,pp,qq)
+  else if ( rule(1:6) .eq. 'rownmo') then
+    call row_nmo_2d (conj,inv,slow,o1,d1,o2,d2,n1,n2p,pp,qq)
+  else if ( rule(1:3) .eq. 'nmo' ) then
+    call nmo_2d_l_tab(conj,inv,i3,slow,o1,d1,o2,d2,n1,n2p,pp,qq,s1,s2&
+      &,s3,s4,s5)
+  else if ( rule(1:4) .eq. 'unmo' ) then
+    call unmo_2d(conj,inv,i3,slow,o1,d1,o2,d2,n1,n2p,pp,qq,s1,s2,s3,s4&
+      &,s5)
+  else if ( rule(1:6) .eq. 'offset' ) then
+    call offset(conj,inv,slow,n1,o1,d1,n2p,o2,d2,n2q,o2q,d2q,pp,qq)
+  else if ( rule(1:6) .eq. 'radnmo' ) then
+    call radnmo(conj,inv,slow,o1,d1,o2,d2,o1q,d1q,o2q,d2q,n1,n2p,n2q,&
+      & pp,qq,s1)
+  else if ( rule(1:6) .eq. 'radial' ) then
+    call radial(conj,inv,o1,d1, o2,d2,o2q,d2q, n1,n2p,n2q, pp,qq,s1)
+  else if ( rule(1:4) .eq. 'lmo1') then
+    call lmo_2d_n (conj,inv,slow,o1,d1,o2,d2,n1,n2p,pp,qq)
+  else if ( rule(1:4) .eq. 'lmo2') then
+    call lmo_2d_l (conj,inv,slow,o1,d1,o2,d2,n1,n2p,pp,qq)
+  else
+    call nmo_2d_l(conj,inv,i3,slow,o1,d1,o2,d2,n1,n2p,pp,qq,s1,s2,s3,s4&
+      &,s5)
+  end if 
+  if ( conj .eq. inv ) then
+    ierr= srite( 'out', qq, n1 * n2q * 4 )
+  else
+    ierr= srite( 'out', pp, n1 * n2p * 4 )
+  end if 
+! If the # of velocity functions = # CMPs, read velocity
+! function foreach i3.
+  if ( n2vel.eq.n3) then
+    ierr= sreed('velfile', slow, n1*4 )
+    do i1=1,n1  
+      slow(i1) = 1. / slow(i1)
+    end do
+  end if
+end do 
+call sep_end_prog()
+return
+end
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+! variable coefficient tridiagonal solver from FGDP.
+!--------------------------------------------------------------------------------
+subroutine vtris(n, a, b, c, d, t)
+use sep_mod
+integer n, k
+real a(n), b(n), c(n), t(n), d(n), e(n), f(n), temp
+!real a(n), b(n), c(n), t(n), d(n), e(4096), f(4096), temp
+if ( b(1) .ne. 0. ) then
+  e(1) = - a(1) / b(1)
+else
+  call erexit('vtris divisor b(1) vanishes')
+end if 
+do k = 2, n-1  
+  temp = ( b(k) + c(k-1) * e(k-1) )
+  if ( temp .eq. 0. ) then
+!    call putch( 'problem in vtris k', 'i', k )
+!    call putch( 'problem in vtris n', 'i', n )
+!    call putch( 'problem in vtris b(k)', 'f', b(k) )
+!    call putch( 'problem in vtris c(k)', 'f', c(k) )
+!    call putch( 'problem in vtris c(k-1)', 'f', c(k-1) )
+!    call putch( 'problem in vtris e(k-1)', 'f', e(k-1) )
+    call erexit(' vtris:  zero divisor')
+  else
+    e(k) = - a(k) / temp
+  end if
+end do 
+f(1) =  d(1) / b(1)
+do k = 2, n  
+  temp = ( b(k) + c(k-1) * e(k-1) )
+  if ( temp .eq. 0. ) then
+!    call putch( 'Problem in vtris k', 'i', k )
+!    call putch( 'Problem in vtris n', 'i', n )
+!    call putch( 'Problem in vtris b(k)', 'f', b(k) )
+!    call putch( 'Problem in vtris c(k)', 'f', c(k) )
+!    call putch( 'Problem in vtris c(k-1)', 'f', c(k-1) )
+!    call putch( 'Problem in vtris e(k-1)', 'f', e(k-1) )
+!    f(k) = 0.
+    call    erexit(' Vtris:  zero divisor')
+  else
+    f(k) = ( d(k) - c(k-1) * f(k-1) ) / temp
+  end if
+end do 
+t(n) = f(n)
+do k = n-1, 1, -1
+  t(k) = e(k) * t(k+1) + f(k)
+end do 
+return
+end
+! FGDP:    C(K  ) * T(K-1) + B(K) * T(K) + A(K) * T(K+1) = D(K)
+! here:    c(K-1) * T(K-1) + B(K) * T(K) + A(K) * T(K+1) = D(K)
+! So for a symmetric matrix:   c(K) = A(K)
+!--------------------------------------------------------------------------------
+  

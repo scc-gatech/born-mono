@@ -1,0 +1,47 @@
+=head1 NAME
+
+
+Median - median filter
+
+=head1 SYNOPSIS
+
+
+Median < in.H > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item wind1 - integer
+
+      [0]: median window distance in n1 direction
+
+=item wind2 - integer
+
+      [0]: median window distance in n2 direction
+
+=item wind3 - integer
+
+      [0]: median window distance in n3 direction
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Median smoother.  Window size is (2*wind1+1)*(2*wind2+1)*(2*wind3+1)
+
+=head1 EXAMPLE
+
+
+		Median < in.H wind1=10 wind2=5 wind3=2 > out.H
+				??????????????????????????????
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

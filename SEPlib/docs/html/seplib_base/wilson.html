@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>wilson - wilson's factorization</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>wilson - wilson's factorization</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call wilson_init(nmax)</code></p>
+<p><code>call wilson_factor(niter,s0,ss,a0,aa)</code></p>
+<p><code>call wilson_close()</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_nmax__2d_integer">nmax - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      maximum number of space needed (n1*10 good number)</pre>
+</dd>
+<dt><strong><a name="item_s0__2d_real">s0   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      zero lag value of input</pre>
+</dd>
+<dt><strong><a name="item_type">ss   - <code>type(filter)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      auto correlation</pre>
+</dd>
+<dt><strong><a name="item_a0__2d_real">a0   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Output zero lag value</pre>
+</dd>
+<dt><strong>aa   - <code>type(filter)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Minimum  phase filter</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Find a minumum phase filter with the given auto-correaltion function</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/cross_wilson.html">the cross_wilson manpage</a>,<a href="./../seplib_base/lapfac.html">the lapfac manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

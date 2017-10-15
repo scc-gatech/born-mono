@@ -1,0 +1,64 @@
+=head1 NAME
+
+
+sep3df - sep3d f90 structure (superset)
+
+=head1 SYNOPSIS
+
+
+type(sep3d)
+
+=head1 DESCRIPTION
+
+
+type sep3d{
+
+	character(len=128) :: tag              #tag to sep3df, MUST  BE SPECIFIED
+
+	integer, dimension(:),pointer  :: n #length of regular axes
+
+	real, dimension(:) ,pointer    :: o,d #initial and sampling  of regular axes
+
+	character(len=128),dimension(:),pointer::label,unit #label and unit for axes
+
+	integer :: nkeys,ndims   	#number of keys and regular dimensions
+
+	integer :: drn #data record number (-1 if in same order)
+
+	integer :: ntraces # number of traces in the dataset
+
+  integer :: nsect   # number of sections
+
+  integer :: nmpi   # number of threads
+
+  integer :: impi   # thread number
+
+	character(len=128),pointer,dimension(:) :: keyname,keytype,keyfmt #keyname,type and format
+
+	character(len=128) :: usage #usage (INPUT,OUTPUT,SCRATCH) for dataset
+
+	character(len=128) :: data_format #data format (FLOAT,BYTE,COMPLEX,INTEGER)
+
+	character(len=128) :: file_format #file format (REGULAR,HEADER,GRID)
+
+
+
+
+
+
+=head1 COMMENTS
+
+
+
+
+
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

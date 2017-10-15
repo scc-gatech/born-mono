@@ -1,0 +1,132 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$ Lloyd_vel - Select reference velocities 
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Lloyd_vel  < vel.H >out.H
+!!$
+!!$
+!!$=over 4
+!!$
+!!$
+!!$=item nref (integer)
+!!$
+!!$  Number of reference velocities
+!!$
+!!$=item vel_map (local)
+!!$
+!!$  [.false.] Whether or not stdout is the reference velocities
+!!$
+!!$            or substiture selected reference velocity in orignal velocity model
+!!$
+!!$=item min_region_pct (real)
+!!$
+!!$  [1.]  Minimum percentage of the velocity field associated with a given reference
+!!$
+!!$=item min_slow_dev 
+!!$
+!!$  [6.]  Minimum deviation (in percent) between reference velocities
+!!$
+!!$=item niter_lloyd 
+!!$
+!!$  [30] Number of iteratons of the lloyd to run
+!!$
+!!$=item When doing offset gathers  ahy_n,ahy_d,ahy_o = axis 4 of D and R
+!!$
+!!$=item nzs must be a multiple of az__n
+!!$
+!!$=item nws*nmpi_threads*nomp_threads must be a multiple of aw__n
+!!$
+!!$=back
+!!$
+!!$=cut
+!!$
+!!$
+
+program lloyd
+use sep3d_struct_mod
+use lloyd_mod
+use sep_mod
+implicit none
+type(sep3d) :: slow_s
+real, allocatable :: slow(:),bound(:),ref_slow(:),slice(:),junk(:,:)
+real :: err
+integer :: nref,i,iref,izs,ia,ib,imap,n(3),ntot
+logical :: vel_map,notfirst
+
+call SEP_ADD_DOC()
+call sep_init('')
+call from_param("nref",nref,4)
+call from_param("vel_map",vel_map,.false.)
+call init_lloyd();
+
+call init_sep3d("in",slow_s,"INPUT")
+!if(sep3d_ndims(slow_s)/=3) &
+!  call sepwarn("WARNING:expecting velocity to be 3-D")
+
+
+n=1
+n(1:sep3d_ndims(slow_s))=slow_s%n(1:sep3d_ndims(slow_s))
+
+
+
+if(.not. vel_map) then
+  call to_history("n1",nref)
+  call to_history("n2",2)
+  call to_history("n3",n(3))
+end if
+
+allocate(bound(nref),ref_slow(nref), &
+  junk(nref,2), slow(n(1)*n(2)), slice(n(1)*n(2)))
+
+notfirst=.false.
+ntot=0
+iref=0
+do izs=1,n(3)
+   if(size(slice)*4/= sreed("in",slow,size(slice)*4))&
+    call seperr("trouble reading in")
+   slice=1./slow
+   iref=lloyd_go(slice,ref_slow,nref,bound,err,iref)
+   ntot=ntot+iref
+   notfirst=.true.
+   if(vel_map) then
+     do ib=1,size(slice)
+       imap=1
+       do while(slow(ib) > bound(imap))
+         imap=imap+1
+       end do
+       slow(ib)=1./ref_slow(imap)
+     end do
+     if(4*size(slow)/= srite("out",slow,size(slow)*4)) &
+      call seperr("trouble writing out data")
+   else
+     junk=-1
+     junk(1:iref,1)=ref_slow
+     junk(1:iref,2)=bound
+     if(size(junk)*4/= srite("out",junk,size(junk)*4))&
+       call seperr("trouble writing out")
+   end if
+     
+end do
+
+write(0,*) "TOTAL steps",ntot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+end program

@@ -1,0 +1,60 @@
+=head1 NAME
+
+
+triangle - triangle smoothing
+
+=head1 SYNOPSIS
+
+
+initializer- C<call triangle_init(nbox,dat)>
+
+operator  - C<int=triangle_lop(adj,add,x,y)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item nbox - int
+
+      size of the box
+
+=item ndat - int
+
+      number of data points
+
+=item adj  - logical
+
+      whether or not run adjoint
+
+=item add  - logical
+
+      wherther or not to add output to input
+
+=item x    - C<real(ndat)>
+
+      model
+
+=item y    - C<real(ndat)>
+
+      data
+
+=back
+
+=head1 DESCRIPTION
+
+
+Triangle smoothing
+
+=head1 SEE ALSO
+
+
+L<triangle>,L<triangle2>,L<cdoubint>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

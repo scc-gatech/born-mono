@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Window3d - Window a SEPlib dataset by cutting and/or decimating samples.</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#example">EXAMPLE</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Window3d - Window a SEPlib dataset (3-D or 2-D) by cutting and/or decimating samples.</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Window3d &lt;in.H [params] &gt;out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_f___2d_int">f_ - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      first element to keep along axis specified by a number replacing the '_'.</pre>
+</dd>
+<dt><strong><a name="item_j___2d_int">j_ - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       sampling of the elements to keep along the specified axis.</pre>
+</dd>
+<dt><strong><a name="item_n___2d_int">n_ - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       number of elements to keep along the specified axis.</pre>
+</dd>
+<dt><strong><a name="item_min___2d_float">min_ - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Minimum sample value to grab from specified axis.</pre>
+</dd>
+<dt><strong><a name="item_max___2d_float">max_ - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       Maximum sample value to grab from specified axis.</pre>
+</dd>
+<dt><strong><a name="item_synch__2d_int">synch - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0]whether or not to sink</pre>
+</dd>
+<dt><strong><a name="item_squeeze__2d_int">squeeze - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1] Wheter to squeeze axes</pre>
+</dd>
+<dt><strong><a name="item_max_memory__2d_int">max_memory - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [50] Maximum memory in megabytes to use</pre>
+</dd>
+<dt><strong><a name="item_verb__2d_int">verb - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0]  Wheter or not to be verbose</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Windows dataset by cutting and/or subsampling along specified axes.</p>
+<p>
+</p>
+<hr />
+<h1><a name="example">EXAMPLE</a></h1>
+<p>Window3d &lt;in.H min1=0.3 max1=0.5 j2=3 f2=2 &gt;out.H</p>
+<pre>
+   Creates out.H, which is in.H windowed from 0.3 to 0.5 along the 1 axis, and
+   includes only every 3rd sample along the 2 axis, starting with the 2nd.  
+   Assuming that the first axis is time (in seconds), and the second axis is offset,
+   out.H will contain times from 0.3 to 0.5 seconds, and every third trace begining 
+   with trace number 2.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Window.html">the Window manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/cube</strong></p>
+
+</body>
+
+</html>

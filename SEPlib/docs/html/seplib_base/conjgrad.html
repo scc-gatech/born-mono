@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>conjgrad - one step of conjugate gradient</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>conjgrad - one step of conjugate gradient</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>OPERATOR:<code>ierr= conjgrad_init(forget,x,g,rr,gg)</code></p>
+<p>CLOSE:  <code>call conjgrad_close()</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_forget__2d_logical">forget - logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Whether or not to forget previous step</pre>
+</dd>
+<dt><strong><a name="item_real">x      - <code>real(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Model</pre>
+</dd>
+<dt><strong>g      - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Gradient</pre>
+</dd>
+<dt><strong>rr      - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      residual</pre>
+</dd>
+<dt><strong>gg      - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      gradient mapped into residual space</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>One step of conjugate gradient method</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/cgmeth.html">the cgmeth manpage</a>, <a href="./../seplib_base/cdstep.html">the cdstep manpage</a>,<a href="./../seplib_base/solver_reg.html">the solver_reg manpage</a>,<a href="./../seplib_base/cgstep.html">the cgstep manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

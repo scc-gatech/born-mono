@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Thplot - Create a hidden line plot</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters_">INPUT PARAMETERS:</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+	<li><a href="#compile_level">COMPILE LEVEL</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Thplot - Create a hidden line plot</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Hidden line plotting program.</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Thplot par= &lt; Hin | Pen</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters_">INPUT PARAMETERS:</a></h1>
+<dl>
+<dt><strong><a name="item_n3__2d_int">n3  -    int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]  (It erases the screen between frames (for a movie))</pre>
+</dd>
+<dt><strong><a name="item__28zc_2cxc_29__2d_float">(zc,xc) -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      position of the lower left hand corner of the plot
+      from the corner of the page in inches.
+      xc defaults so as to center the plot.</pre>
+</dd>
+<dt><strong><a name="item_sz__2d_float">sz      -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      vertical scale.</pre>
+</dd>
+<dt><strong><a name="item_alpha__2d_float">alpha   -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      apparent angle in degrees; |alpha| &lt; 89</pre>
+</dd>
+<dt><strong><a name="item_uflag__2d_int">uflag   -   int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] - plot upper side of the surface,
+      0 - do not plot upper side. (yellow).</pre>
+</dd>
+<dt><strong><a name="item_dflag__2d_int">dflag   -   int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      the same but for the down side. (red).</pre>
+</dd>
+<dt><strong><a name="item_clip_2cgpow_2ctpow_2cepow_2cplot__2d_int">clip,gpow,tpow,epow,plot - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      clipping {( data * e**epow*t * t**tpow )**gpow}</pre>
+</dd>
+<dt><strong><a name="item_norm__2d_char">norm    -   char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [n] for no clipping.</pre>
+</dd>
+<dt><strong><a name="item_pclip__2d_int">pclip   -   int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      percentile to set the clip</pre>
+</dd>
+<dt><strong><a name="item_dclip__2d_float">dclip   -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      change the clip: clip = (clip set by pclip)*dclip</pre>
+</dd>
+<dt><strong><a name="item_zmax_2czmin_2d_float">zmax,zmin-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0],[1] max, min (relative to clip) values to 
+       use in scaling plot</pre>
+</dd>
+<dt><strong><a name="item_xlength__2d_float">xlength -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of inches wide the plot device is; Use 10.24 
+      unless you are using absolute scaling.</pre>
+</dd>
+<dt><strong><a name="item_script__2d_file">script -    file</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Name of a file from which to get the titles in
+      a Movie, one title per line.</pre>
+</dd>
+<dt><strong><a name="item_axis_2caxis1_2caxis2_2caxis3_2d_char">axis,axis1,axis2,axis3- char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [y] any not-y character will turn off axis</pre>
+</dd>
+<dt><strong><a name="item_label1_2clabel2_2clabel3_2d_char_2a">label1,label2,label3- char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      axis labels</pre>
+</dd>
+<dt><strong><a name="item_axissz__2dint">axissz    -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [6] size of axis labels</pre>
+</dd>
+<dt><strong><a name="item_axisfat__2dint">axisfat    -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [2] makes axes fat</pre>
+</dd>
+<dt><strong><a name="item_title__2dchar_2a">title      -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      ['input file name']</pre>
+</dd>
+<dt><strong><a name="item_titlesz__2dint">titlesz    -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [6] size of title</pre>
+</dd>
+<dt><strong><a name="item_titlefat__2dint">titlefat   -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [2] makes title fat</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Grey.html">the Grey manpage</a>,<a href="./../seplib_prog/Cubeplot.html">the Cubeplot manpage</a>,<a href="./../seplib_prog/Contour.html">the Contour manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+<p>
+</p>
+<hr />
+<h1><a name="compile_level">COMPILE LEVEL</a></h1>
+<p>DISTR</p>
+
+</body>
+
+</html>

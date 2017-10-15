@@ -1,0 +1,464 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$ Marine_geom3d -Create marine geometries
+!!$
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$	Marine_geom3d < in.H  par=   > out.H
+!!$
+!!$
+!!$=head1	INPUT PARAMETERS:
+!!$
+!!$=over 4
+!!$
+!!$=item  itype -int
+!!$
+!!$       1 = shot gathers
+!!$       2 = CMP gathers
+!!$
+!!$
+!!$=item  nx3,ox3,dx3-sep_standard
+!!$
+!!$       length, origin, and sampling of
+!!$       shots axis along x
+!!$       (if itype =2 reversed with ny3)
+!!$
+!!$=item  ny3,oy3,dy3-sep_standard
+!!$
+!!$       length, origin, and
+!!$       sampling of shots axis along y
+!!$       (if itype =2 reversed with nx3)
+!!$
+!!$=item  nx2,ox2,dx2-sep_standard
+!!$
+!!$       length, origin, and sampling of
+!!$       receiver axis along x
+!!$
+!!$=item  ny2,oy2,dy2-sep_standard
+!!$
+!!$       length, origin, and sampling of
+!!$       receiver axis along y
+!!$
+!!$=item  azi         -real
+!!$
+!!$       azimuth of the receiver axis with respect
+!!$       to the source axis
+!!$       azi=0 (same grid )
+!!$       azi=90.  xgeo=yshot,ygeo=-xshot
+!!$       az=-90.  xgeo=-yshot,ygeo=xshot
+!!$
+!!$
+!!$=item	stagger-int
+!!$
+!!$      [0] stagger every other line by half in-line
+!!$      shot spacing
+!!$
+!!$=item na2,oa2,da2 -sep_standard
+!!$
+!!$      offset_azimuth in decimal degrees  (itype==2)
+!!$
+!!$=item nr2,or2,dr2 -sep_standard
+!!$
+!!$      offset_radius in km (itype==2)
+!!$      (positive values)
+!!$      ( xshot = xcmp - r*cos(a)
+!!$      ( yshot = ycmp - r*sin(a)
+!!$      ( xgeo  = xcmp + r*cos(a)
+!!$      ( ygeo  = ycmp + r*cos(a)
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ 	Make TRACE HEADERS for simple Marine Geometries
+!!$	both in  CMP and SHOT GATHERs sorts
+!!$
+!!$
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Kirmod3d>, L<Gfgradz>, L<Scatter3d>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/model>
+!!$
+!!$=cut
+!!$
+!>
+!
+!	david	8/93
+!       francois 1/94
+!	biondo 11/95
+!
+! 	keyword	trace headers survey geometry
+program zyxabc
+use sep_3d_mod
+use sep
+implicit none
+real, allocatable, dimension (:) :: hdrs
+call SEP_ADD_DOC()
+call SEP_INIT('')
+allocate (hdrs(6))
+call submain (hdrs)
+end program zyxabc 
+subroutine submain(hdrs)
+use sep_3d_mod
+use sep
+character*40	label2,label3,label4,label5
+integer         itype,elev_coord,stagger
+real 		hdrs(6)
+real            azi
+integer 	ialt, n_records
+integer         nx2,ny2,nx3,ny3
+real            ox2,dx2,oy2,dy2,ox3,dx3,oy3,dy3
+real 		dy2_even,dy2_odd
+integer         na2,nr2
+real            oa2,da2,or2,dr2,ea2
+call sep_begin_prog()
+call from_param("itype",itype,1)
+  if (0>= getch('ialt','d',ialt )) then
+    ialt = 0
+  end if
+  if (0.ne.putch('Read  from param: #ialt ','d',ialt)) then
+    call erexit('Trouble writing ialt to history')
+  end if
+  if (0>= getch('elev_coord','d',elev_coord )) then
+    elev_coord = 1
+  end if
+  if (0.ne.putch('Read  from param: #elev_coord ','d',elev_coord))&
+    & then
+    call erexit('Trouble writing elev_coord to history')
+  end if
+  if (0>= getch('stagger','d',stagger )) then
+    stagger = 0
+  end if
+  if (0.ne.putch('Read  from param: #stagger ','d',stagger)) then
+    call erexit('Trouble writing stagger to history')
+  end if
+if (itype.eq.1) then
+  write(0,*) 'itype=1 - shot gathers'
+end if
+if (itype.eq.2) then
+  write(0,*) 'itype=2 - CMP gathers'
+end if
+  if (0>= fetch('nx3','d',nx3 )) then
+    nx3 = 1
+  end if
+  if (0>= fetch('ny3','d',ny3 )) then
+    ny3 = 1
+  end if
+  if (0>= fetch('ox3','f',ox3 )) then
+    ox3 = 0
+  end if
+  if (0>= fetch('oy3','f',oy3 )) then
+    oy3 = 0
+  end if
+  if (0>= fetch('dx3','f',dx3 )) then
+    call erexit('Trouble reading  dx3 from either  ')
+  end if
+  if (0>= fetch('dy3','f',dy3 )) then
+    call erexit('Trouble reading  dy3 from either  ')
+  end if
+  if (0>= fetch('nx2','d',nx2 )) then
+    nx2 = 1
+  end if
+  if (0>= fetch('ny2','d',ny2 )) then
+    ny2 = 1
+  end if
+  if (0>= fetch('ox2','f',ox2 )) then
+    ox2 = 0
+  end if
+  if (0>= fetch('oy2','f',oy2 )) then
+    oy2 = 0
+  end if
+  if (0>= fetch('dx2','f',dx2 )) then
+    dx2 = 0
+  end if
+  if (0>= fetch('dy2','f',dy2 )) then
+    dy2 = 0
+  end if
+  if (0>= fetch('dy2_even','f',dy2_even )) then
+    dy2_even = -1.
+  end if
+  if (0>= fetch('dy2_odd','f',dy2_odd )) then
+    dy2_odd = -1.
+  end if
+  if (0>= fetch('azi','f',azi )) then
+    azi = 0.
+  end if
+  if (0>= fetch('na2','d',na2 )) then
+    na2 = 1
+  end if
+  if (0>= fetch('nr2','d',nr2 )) then
+    nr2 = 1
+  end if
+  if (0>= fetch('oa2','f',oa2 )) then
+    oa2 = 0
+  end if
+  if (0>= fetch('or2','f',or2 )) then
+    or2 = 0
+  end if
+  if (0>= fetch('da2','f',da2 )) then
+    da2 = 0
+  end if
+  if (0>= fetch('dr2','f',dr2 )) then
+    dr2 = 0
+  end if
+if (elev_coord .eq. 1) then
+  if(0.ne. sep_put_number_keys("out",6))&
+   call seperr("trouble putting number keys")
+  if(0.ne.  sep_put_key("out","s_x","scalar_float",'xdr_float',1))&
+   call seperr("trouble putting key")
+  if(0.ne.  sep_put_key("out","s_y","scalar_float",'xdr_float',2))&
+   call seperr("trouble putting key")
+  if(0.ne.  sep_put_key("out","s_elev","scalar_float",'xdr_float',3))&
+   call seperr("trouble putting key")
+  if(0.ne.  sep_put_key("out","g_x","scalar_float",'xdr_float',4))&
+   call seperr("trouble putting key")
+  if(0.ne.  sep_put_key("out","g_y","scalar_float",'xdr_float',5))&
+   call seperr("trouble putting key")
+  if(0.ne.  sep_put_key("out","g_elev","scalar_float",'xdr_float',6))&
+   call seperr("trouble putting key")
+else
+  if(0.ne. sep_put_number_keys("out",4))&
+   call seperr("trouble putting number keys")
+  if(0.ne. sep_put_key("out","s_x","scalar_float",'xdr_float',1))&
+   call seperr("trouble putting key")
+  if(0.ne. sep_put_key("out","s_y","scalar_float",'xdr_float',2))&
+   call seperr("trouble putting key")
+  if(0.ne. sep_put_key("out","g_x","scalar_float",'xdr_float',3))&
+   call seperr("trouble putting key")
+  if(0.ne. sep_put_key("out","g_y","scalar_float",'xdr_float',4))&
+   call seperr("trouble putting key")
+end if 
+ea2=float(na2-1)*da2+oa2
+if ( ea2 .gt. 360. ) then
+  write(0,*) 'azimuth max = ', ea2
+  call seperr( 'Error: azimuth max > 360 degrees :  ')
+end if
+if (itype .eq. 1 ) then
+! SHOT GATHER
+  label2="receivers X coord"//CHAR(0)
+  label3="receivers Y coord"//CHAR(0)
+  label4="sources X coord"//CHAR(0)
+  label5="sources Y coord"//CHAR(0)
+  if (sep_put_grid_axis_par("out",2 ,nx2,ox2,dx2,label2) .ne.0) then
+    call seperr("Error in setting Grid Axes")
+  end if
+  if (sep_put_grid_axis_par("out",3 ,ny2,oy2,dy2,label3) .ne.0) then
+    call seperr("Error in setting Grid Axes")
+  end if
+  if (sep_put_grid_axis_par("out",4 ,nx3,ox3,dx3,label4) .ne.0) then
+    call seperr("Error in setting Grid Axes")
+  end if
+  if (sep_put_grid_axis_par("out",5 ,ny3,oy3,dy3,label5) .ne.0) then
+    call seperr("Error in setting Grid Axes")
+  end if
+  n_records=nx2*ny2*nx3*ny3
+end if
+if (itype .eq. 2) then
+! CMP GATHER
+  label2="Offset"//CHAR(0)
+  label3="Midpoint X coord"//CHAR(0)
+  label4="Midpoint Y coord"//CHAR(0)
+  label5="Source-Receiver azimuth (degrees)"//CHAR(0)
+  if (sep_put_grid_axis_par("out",2 ,nr2,or2,dr2,label2) .ne.0) then
+    call seperr("Error in setting Grid Axes")
+  end if
+  if (sep_put_grid_axis_par("out",3 ,nx3,ox3,dx3,label3) .ne.0) then
+    call seperr("Error in setting Grid Axes")
+  end if
+  if (sep_put_grid_axis_par("out",4 ,ny3,oy3,dy3,label4) .ne.0) then
+    call seperr("Error in setting Grid Axes")
+  end if
+  if (sep_put_grid_axis_par("out",5 ,na2,oa2,da2,label5) .ne.0) then
+    call seperr("Error in setting Grid Axes")
+  end if
+  n_records=nr2*na2*nx3*ny3
+end if
+if (sep_put_data_axis_par("out",1 ,0,0.,1., "empty axis") .ne.0) then
+  call seperr("Error in setting Data Axes")
+end if
+if (sep_put_data_axis_par("out",2 ,n_records,0.,1., "trace records")&
+  & .ne.0) then
+  call seperr("Error in setting Data Axes")
+end if
+if (sep_put_header_axis_par("out",2,n_records,0.,1.,"trace records")&
+  & .ne.0) then
+  call seperr("Error in setting Header Axes")
+end if
+if (itype .eq. 1 ) then
+  call shotarray(stagger,elev_coord,ox2,dx2,nx2,oy2,dy2,dy2_even,dy2_odd&
+    &,ny2,ox3,dx3,nx3,oy3,dy3,ny3,azi,hdrs)
+end if
+if (itype .eq. 2 ) then
+  call cmparray(elev_coord,oa2,da2,na2,or2,dr2,nr2,ox3,dx3,nx3,oy3,dy3&
+    &,ny3,hdrs)
+end if
+call sep_end_prog()
+return
+end
+!############################################3C
+subroutine cmparray(elev_coord,oa2,da2,na2,or2,dr2,nr2,ox3,dx3,nx3,oy3&
+  &,dy3,ny3,hdrs) 
+use sep_mod
+use sep_3d_mod
+real            hdrs(6)
+real            pi
+integer         elev_coord,nx3,ny3,ix2,iy2,ix3,iy3,record_number
+real            ox3,dx3,oy3,dy3
+real            xs,ys,zs, xr,yr,zr, x2,y2, x3,y3
+integer         na2,nr2
+real            oa2,da2,or2,dr2
+! Initializations...
+pi=acos(-1.)
+xs= 0. 
+ys= 0. 
+zs= 0. 
+xr= 0. 
+yr= 0. 
+zr= 0.
+x3= 0. 
+y3= 0. 
+x2= 0. 
+y2= 0.
+! Create trace headers...
+do ix2=1,na2  
+  x2= (ix2-1)*da2 + oa2
+  x2= x2*pi/180.
+  do iy3=1,ny3  
+    y3= (iy3-1)*dy3 + oy3
+    do ix3=1,nx3  
+      x3= (ix3-1)*dx3 + ox3
+      do iy2=1,nr2  
+        y2= (iy2-1)*dr2 + or2
+        record_number=iy2+(ix3-1)*nr2+(iy3-1)*nr2*nx3+(ix2-1)*nr2*nx3&
+          &*ny3
+        xs= x3-y2*cos(x2)
+        ys= y3-y2*sin(x2)
+        xr= x3+y2*cos(x2)
+        yr= y3+y2*sin(x2)
+        if (elev_coord .eq. 1) then
+          hdrs(1)= xs
+          hdrs(2)= ys
+          hdrs(3)= zs
+          hdrs(4)= xr
+          hdrs(5)= yr
+          hdrs(6)= zr
+        else
+          hdrs(1)= xs
+          hdrs(2)= ys
+          hdrs(3)= xr
+          hdrs(4)= yr
+        end if 
+        if (sep_put_val_headers("out",record_number , 1, hdrs).ne. 0)&
+          & then
+          call seperr('error writing Heders')
+        end if
+      end do
+    end do
+  end do
+end do 
+return
+end
+!###############################
+subroutine shotarray(stagger,elev_coord,ox2,dx2,nx2,oy2,dy2,dy2_even&
+  &,dy2_odd,ny2,ox3,dx3,nx3,oy3,dy3,ny3,azi,hdrs)
+use sep_mod
+use sep_3d_mod
+logical 	uneven_dy
+real            hdrs(6)
+real            azi,cosaz,sinaz,pi
+integer         stagger,elev_coord,nx2,ny2,nx3,ny3,ix2,iy2,ix3,iy3&
+  &,record_number
+integer		iy2_odd,iy2_even,iiy2
+real            ox2,dx2,oy2,dy2,ox3,dx3,oy3,dy3
+real            dy2_even,dy2_odd
+real            xs,ys,zs, xr,yr,zr, x2,y2, x3,y3
+real            cos,sin,ox3_even,ox3_odd
+! Initializations...
+pi=acos(-1.)
+xs= 0. 
+ys= 0. 
+zs= 0. 
+xr= 0. 
+yr= 0. 
+zr= 0.
+x3= 0. 
+y3= 0. 
+x2= 0. 
+y2= 0.
+azi = azi*pi/180.
+cosaz = cos(azi)
+sinaz = sin(azi)
+ox3_odd=ox3
+ox3_even=ox3+.5*dx3
+if ((dy2_even > 0.) .or. (dy2_odd > 0.)) then
+  uneven_dy=.true.
+  if (dy2_even*dy2_odd <= 0.) then
+    call seperr("dy2_even*dy2_odd <= 0")
+  end if
+end if
+write(0,*)'stagger=',stagger
+! Create trace headers...
+do iy3=1,ny3  
+  y3= (iy3-1)*dy3 + oy3
+  ys=y3
+  x3= 0.
+  if ((stagger .eq. 1) .and. (mod(iy3,2) .eq. 0)) then
+    ox3=ox3_even
+  else
+    ox3=ox3_odd
+  end if 
+  do ix3=1,nx3  
+    x3= (ix3-1)*dx3 + ox3
+    xs=x3
+!	write(0,*)'ix3=',ix3
+!	write(0,*)'xs=',xs
+    do iy2=1,ny2  
+      if (uneven_dy) then
+        iiy2=iy2-(ny2/2+1)
+        iy2_odd=sign((abs(iiy2)+1)/2,iiy2)
+        iy2_even=sign((abs(iiy2))/2,iiy2)
+        y2= iy2_odd*dy2_odd + iy2_even*dy2_even  + oy2
+!	write(0,*)'iiy2=',iiy2
+!	write(0,*)'iy2_odd=',iy2_odd
+!	write(0,*)'iy2_even=',iy2_even
+!	write(0,*)'y2=',y2
+      else
+        y2= (iy2-1)*dy2 + oy2
+      end if 
+      do ix2=1,nx2  
+        x2= (ix2-1)*dx2 + ox2
+        record_number = ix2+(iy2-1)*nx2 + (ix3-1)*nx2*ny2 + (iy3-1)*nx2&
+          &*ny2*nx3
+        xr= x2*cosaz + y2*sinaz
+        yr= -x2*sinaz + y2*cosaz
+        yr=y3+yr
+        xr=x3+xr
+        if (elev_coord .eq. 1) then
+          hdrs(1)= xs
+          hdrs(2)= ys
+          hdrs(3)= zs
+          hdrs(4)= xr
+          hdrs(5)= yr
+          hdrs(6)= zr
+        else
+          hdrs(1)= xs
+          hdrs(2)= ys
+          hdrs(3)= xr
+          hdrs(4)= yr
+        end if 
+        if (sep_put_val_headers("out",record_number ,1,hdrs).ne. 0)&
+          & then
+          call seperr('error writing Heders') 
+        end if
+      end do
+    end do
+  end do
+end do 
+return
+end  

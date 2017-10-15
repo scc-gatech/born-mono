@@ -1,0 +1,241 @@
+/*$
+=head1 NAME
+
+Again - Arctangent gain
+
+=head1 SYNOPSIS
+
+Again clip=max esize=1 < in.H > out.H
+ 
+=head1 INPUT  PARAMETERS
+
+=over 4
+
+=item clip - real    
+
+      max:    clip value
+
+=item esize- integer 
+
+	  [1]: output is taplot
+        4: output is floating point 
+        8: output is native floating point on cray 
+
+=item n1,n2,n3-integer 
+
+      standard seplib parameters
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+=over 4
+
+=item transp -char*  
+
+      [no] transposes axis 1 and 2
+
+=back
+
+=head1 DESCRIPTION 
+
+Artangent gain
+ 
+=head1 EXAMPLE
+
+	Again < in.H clip=6.25 esize=4 > out.H
+	clips the input data to a maximum amplitude of 6.25 units and
+	outputs the result in floating point format.
+
+=head1 COMMENTS
+
+Don't use pipes at  output
+
+=head1 CATEGORY
+
+B<seis/filter>
+
+=cut
+>*/
+
+/*
+ 
+  KEYWORDS     arctangent gain
+ 
+  SEE ALSO
+        Taplot
+
+ 
+*/
+/*
+Martin Karrenbach    11-3-92   changed output to sizeof(xdr), set outputformat
+*/
+
+
+
+ADD_DEF_SEP_DOC
+#include <sep.main>
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int  gain1(float *x, int n, float scale);
+int  gain4(float *x, int n, float scale);
+float  clipit(float *x, int n);
+void set_output_data_format(const char *);
+_XFUNCPROTOEND
+#else
+int  gain1();
+int  gain4();
+float  clipit();
+#endif
+
+int MAIN (void)
+	{
+	int n, n1, n2, n3, esize, i,ierr;
+	float clip;
+	float *data;
+	unsigned char *data1, *end;
+
+        sep_begin_prog();
+	/* get input parameters */
+	n1 = 1; fetch("n1","d",&n1);
+	n2 = 1; fetch("n2","d",&n2);
+	n3 = 1; fetch("n3","d",&n3);
+	esize = 1; fetch("esize","d",&esize);
+
+	/* allocate working space and read input data */
+	if ((n=n1*n2*n3) == 1) n = ssize("in") / esize;
+	data = (float *) alloc (n*sizeof(float));
+	data1 = (unsigned char *) alloc (n*sizeof(char));
+	sreed( "in", data, n*esize );
+
+	/* compute clip value */
+	if (fetch("clip","f",&clip) == 0) clip = clipit(data,n) * .1;
+
+	/* put headers in output traces */
+	puthead ("n1=%d n2=%d n3=%d n=%d esize=%d\n",n1,n2,n3,n,esize);
+	puthead ("clip=%g transp=no\n",clip);
+	hclose();
+
+	/* output clipped data according to requested format */
+	if (esize == 4 || esize==8 )
+		{							/* floating point */
+		ierr=gain4(data,n,clip);
+		srite( "out",data,n*esize);
+		}
+	else
+		{							/* taplot */
+		ierr=gain1(data,n,clip);
+		for (i=0; i<n;) data1[i++] = data[i];
+		set_output_data_format("native_byte");
+		srite ("out",data1,n*esize);
+		}
+       sep_end_prog();
+       return(EXIT_SUCCESS);
+	}
+
+/*******************************************************************
+*                         function clipit                          *
+********************************************************************
+* compute the clip (maximum absolute) value of a 1-D array         *
+********************************************************************
+* Input:                                                           *
+*  n        number of sample points in input 1-D array             *
+*  x[n]     input 1-D array (trace)                                *
+*                                                                  *
+* Output:                                                          *
+*           clip amplitude value                                   *
+*******************************************************************/
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+float  clipit(float *x, int n)
+_XFUNCPROTOEND
+#else
+float  clipit( x,  n)
+float *x;
+int n;
+#endif
+
+{
+	float clip;
+	int i1;
+
+	clip=0;
+	for(i1=0;i1<n;i1++) clip=MAX(clip,abs(x[i1]));
+
+	return (clip);
+}
+
+
+/*******************************************************************
+*                         function gain4                           *
+********************************************************************
+* gain a trace according to the arctangent of its samples and a    *
+* user-supplied scale value (clip)                                 *
+********************************************************************
+* Input:                                                           *
+*  n		number of sample points in input 1-D array             *
+*  scale	value with which to scale (clip) the 1-D array         *
+*  x[n]     input 1-D array (trace)                                *
+*                                                                  *
+* Output:                                                          *
+*  x[n]     arctangent-gained input trace                          *
+*                                                                  *
+* Note:                                                            *
+*           dummy return value: always 0                           *
+*******************************************************************/
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int  gain4(float *x, int n, float scale)
+_XFUNCPROTOEND
+#else
+int  gain4( x,  n,scale)
+float *x,scale;
+int n;
+#endif
+
+{
+	int i1;
+	if(scale == 0) return (0);
+	for(i1=0; i1 < n; i1++) x[i1]=atan(x[i1]/scale);
+
+	return 0;
+}
+
+
+/*******************************************************************
+*                         function gain1                           *
+********************************************************************
+* gain a trace according to the arctangent of its samples and a    *
+* user-supplied scale value (FOR TAPLOT)                           *
+********************************************************************
+* Input:                                                           *
+*  n		number of sample points in input 1-D array             *
+*  scale	value with which to scale (clip) the 1-D array         *
+*  x[n]     input 1-D array (trace)                                *
+*                                                                  *
+* Output:                                                          *
+*  x[n]     arctangent-gained input trace                          *
+*                                                                  *
+* Note:                                                            *
+*           dummy return value: always 0                           *
+*******************************************************************/
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int  gain1(float *x, int n, float scale)
+_XFUNCPROTOEND
+#else
+int  gain1( x,  n,scale)
+float *x,scale;
+int n;
+#endif
+
+{
+	int i1;
+	if(scale == 0) return (0);
+	for(i1=0; i1 < n; i1++) x[i1]=atan(x[i1]/scale) * 80.85 + 127;
+
+	return 0;
+}

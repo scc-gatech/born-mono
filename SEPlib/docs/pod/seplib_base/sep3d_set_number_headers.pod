@@ -1,0 +1,43 @@
+=head1 NAME
+
+
+sep3d_set_number_headers - set the number of headers to store
+
+
+=head1 SYNOPSIS
+
+
+C<call sep3d_set_number_headers(struct,nh)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure
+
+=item nh      -  integer
+
+      number of headers
+
+=back
+
+=head1 DESCRIPTION
+
+
+Set number of headers to hold in structure
+
+=head1 SEE ALSO
+
+
+L<sep3d_store_grid_values>
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

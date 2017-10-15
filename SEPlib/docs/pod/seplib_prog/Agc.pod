@@ -1,0 +1,71 @@
+=head1 NAME
+
+
+Agc - Automatic gain control with first arrival detection
+
+=head1 SYNOPSIS
+
+
+Agc window=200 detect=0 dwind=10 thresh=25. < in.H > out.H
+
+=head1 INPUT  PARAMETERS
+
+
+=over 4
+
+=item window   - integer 
+
+      [200]: length of the window in number of samples
+
+=item dwind    - integer 
+
+       [10]: length of the detection window in number of samples
+
+=item detect   - integer  
+
+        [0]:  detection off (Default value)    1:  detection on
+
+=item thresh   - real     
+
+      [25.]: threshold (see comments below)
+
+=item n1,n2,n3 - integer  
+
+      standard seplib parameters 
+
+=back
+
+=head1 DESCRIPTION
+
+
+Gain program with first arrival detection
+
+=head1 COMMENTS
+
+
+        Agc gains seismic traces by normalizing each sample by the
+        power of a window of samples surrounding that point.  
+
+        When the detect= is set to 1, agc is not applied on a trace
+        until a first arrival is detected. The first arrival is  
+        detected when a moving dwind exceeds an initial dwind by a 
+        threshold factor.
+
+=head1 EXAMPLE
+
+
+	Agc < in.H window=200 detect=1 dwind=10 thresh=25. > out.H
+
+	Applies agc on a trace based on a trace window of 200 samples. 
+	Agc is only applied after the first arrival has been detected 
+	using a detection window of 10 samples. The detection of the 
+	first arrival is based on an amplitude change between consecutive 
+	detection windows of 25%.
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>burg2 - Burg 2D convolution</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>burg2 - Burg 2D convolution</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call burg2(adj,add,lag1,lag2,data,n1,n2,aa,a1,a2,residual)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_adj__2d_integer">adj - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      adjoint=1, forward=0</pre>
+</dd>
+<dt><strong><a name="item_add__2d_integer">add  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      add=0 add to current values, 0=erase</pre>
+</dd>
+<dt><strong><a name="item_lag1__2d_integer">lag1 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      lag in first dimension</pre>
+</dd>
+<dt><strong><a name="item_lag2__2d_integer">lag2 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      lag in second dimension</pre>
+</dd>
+<dt><strong><a name="item_real">data - <code>real(n1,n2)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      data</pre>
+</dd>
+<dt><strong><a name="item_n1__2d_integer">n1   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      data length along axis=1</pre>
+</dd>
+<dt><strong><a name="item_n2__2d_integer">n2 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      data length along axis=2</pre>
+</dd>
+<dt><strong>aa - <code>real(a1,a2)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      filter</pre>
+</dd>
+<dt><strong><a name="item_a1__2d_integer">a1 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      filter length axis=1</pre>
+</dd>
+<dt><strong><a name="item_a2__2d_integer">a2 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      filter length axis=2</pre>
+</dd>
+<dt><strong>residual - <code>real(n1,n2*2)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      residual</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Burg 2-D conv with (a1,a2) filter (monoplane annihilator if a2=2)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+       output residual partitioned into normal and backward parts.
+       output adjoint to FILTER.
+       output residual(,) aligns with data(,) at filter coef aa(lag1,lag2)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><strong>burg</strong></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepfilterf90</strong></p>
+
+</body>
+
+</html>

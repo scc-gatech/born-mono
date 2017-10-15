@@ -1,0 +1,38 @@
+=head1 NAME
+
+
+sep3dc_clean - Clean a structure
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3dc_clean(sep3d *sep3dc)
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item sep3c  -  sep3d
+
+     structure 
+
+=back
+
+=head1 DESCRIPTION
+
+
+Clean a structure
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

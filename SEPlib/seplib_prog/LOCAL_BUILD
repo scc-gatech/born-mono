@@ -1,0 +1,3 @@
+#/bin/csh -f
+source LOCAL_CONFIG
+./configure  --with-local --with-su=/usr/local/SU --with-file-2gb

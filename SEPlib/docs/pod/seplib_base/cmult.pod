@@ -1,0 +1,49 @@
+=head1 NAME
+
+
+cmult - complex multiplication
+
+=head1 SYNOPSIS
+
+
+C<val=complex cmult(a, b)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item a,b - complex 
+
+      numbers to multiply
+
+=back
+
+=head1 RETURN VALUES
+
+
+=over 4
+
+=item val -complex  
+
+      result of multiplication
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Cmult returns a*b.
+
+=head1 SEE ALSO
+
+
+L<cdiv>
+
+=head1 LIBRARY
+
+
+B<sepmath>
+
+=cut
+

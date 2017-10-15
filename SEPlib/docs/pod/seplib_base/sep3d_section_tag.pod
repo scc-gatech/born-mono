@@ -1,0 +1,58 @@
+=head1 NAME
+
+
+sep3d_section_tag - section a tag
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3d_section_tag(struct,axis,pattern,nsect,dff,master_data)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure
+
+=item axis  -  integer
+
+      axis to section along
+
+=item pattern  -  char*
+
+      distribution pattern ("BLOCK" or "SPREAD")
+
+=item nsect  -  int
+
+      number of sections
+
+=item dff  -  char*
+
+      [optional]  name of the internal dff tag
+
+=item master_data  -  logical
+
+      [optional-.true.]  whether or not the master thread holds data
+
+=back
+
+=head1 DESCRIPTION
+
+
+Section a dataset
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

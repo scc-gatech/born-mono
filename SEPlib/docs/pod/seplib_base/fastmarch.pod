@@ -1,0 +1,83 @@
+=head1 NAME
+
+
+fastmarch - travel times using eikonal solver
+
+=head1 SYNOPSIS
+
+
+
+C-C<fastmarch(order,s1,s2,s3,b1,b2,b3,nz,ny,nx,dz,dy,dx,slow0,slow,ttime)>
+
+F-C<fastmarch(order,s,b,n,d,slow0,slow,ttime)>
+
+
+=head1 INPUT  PARAMETERS
+
+
+=over 4
+
+=item order - integer
+
+      What order eikonal to run
+
+
+=item s1,s2,s3- float 
+
+      shot location relative to coordinate system
+
+=item s- float[3] 
+
+      shot location
+
+=item b1,b2,b3- int 
+
+      constant-velocity box around the source
+
+=item b- int[3]  
+
+      bounding box
+
+=item nz,ny,nx - integer         
+
+      standard seplib parameters
+
+=item n- int[3]  
+
+      size of slowness cube
+
+
+=item slow- float*   
+
+      slowness cube
+
+=back
+
+=head1 OUTPUT  PARAMETERS
+
+
+=over 4
+
+=item ttime - float*   
+
+      travel time cube
+
+=back
+
+=head1 DESCRIPTION
+
+
+Fast marching eikonal solver
+
+=head1 SEE ALSO
+
+
+L<FMeikonal>, L<hwt_travel_cube>
+
+=head1 LIBRARY
+
+
+B<septravel>
+
+=cut
+

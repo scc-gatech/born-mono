@@ -1,0 +1,233 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>MTTmaps - Band-limited maximum-energey Green's function maps</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>MTTmaps - Band-limited maximum-energey Green's function maps</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>MTTmaps &lt;slowmodel.H x_shot= mode=0 &gt;maps.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_stdin__2d_sepfile">stdin  - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+       slow(nz,nx) = slowness model</pre>
+</dd>
+<dt><strong><a name="item_z_shot__2d_real">z_shot - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0.] shot Z coordinate</pre>
+</dd>
+<dt><strong><a name="item_x_shot__2dreal">x_shot -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0.] first shot X coordinate</pre>
+</dd>
+<dt><strong><a name="item_dx_shot_2dreal">dx_shot-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [dxo] increment in shot X coordinate</pre>
+</dd>
+<dt><strong><a name="item_n_shot__2dinteger">n_shot -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1] number of shots</pre>
+</dd>
+<dt><strong><a name="item_mode__2dinteger">mode   -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0]  grid is stationary the shot moves across the grid
+       the second output axis coordinates are absolute.
+       1=grid moves with the shot, the second output axis
+       coordinates are relative to the shot location.</pre>
+</dd>
+<dt><strong><a name="item_oxo__2dreal">oxo    -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o2] initial surface coordinate (mode=0)</pre>
+</dd>
+<dt><strong><a name="item_dxo__2dreal">dxo    -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [d2] increment in surface coordinate (mode=0)</pre>
+</dd>
+<dt><strong><a name="item_nxo__2dinteger">nxo    -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [n2] number of surface coordinates (mode=0)</pre>
+</dd>
+<dt><strong><a name="item_ozo__2dreal">ozo    -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o1] first depth level  (mode=0)</pre>
+</dd>
+<dt><strong><a name="item_dzo__2dreal">dzo    -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [d1] depth increments (mode=0)</pre>
+</dd>
+<dt><strong><a name="item_nzo__2dinteger">nzo    -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [n1] number of depth levels on the grid  (mode=0)</pre>
+</dd>
+<dt><strong>oxo    -real</strong><br />
+</dt>
+<dd>
+<pre>
+       [(o2-x_shot)] first offset from shot coordinate  (mode=1)</pre>
+</dd>
+<dt><strong>dxo    -real</strong><br />
+</dt>
+<dd>
+<pre>
+       [d2] increment in offset (mode=1)</pre>
+</dd>
+<dt><strong>nxo    -integer</strong><br />
+</dt>
+<dd>
+<pre>
+       [n2] number of offsets (mode=1)</pre>
+</dd>
+<dt><strong>ozo    -real</strong><br />
+</dt>
+<dd>
+<pre>
+       [o1] first depth level  (mode=1)</pre>
+</dd>
+<dt><strong>dzo    -real</strong><br />
+</dt>
+<dd>
+<pre>
+       [d1] depth increments (mode=1)</pre>
+</dd>
+<dt><strong>nzo    -integer</strong><br />
+</dt>
+<dd>
+<pre>
+       [n1] number of depth levels on the grid</pre>
+</dd>
+<dt><strong><a name="item_n_theta_2dinteger">n_theta-integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [nxo]  number of angles for the polar grid</pre>
+</dd>
+<dt><strong><a name="item_nr__2dinteger">nr     -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [nzo] number of radius increments for the polar grid</pre>
+</dd>
+<dt><strong><a name="item_fmin__2dreal">fmin   -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [10] minimum frequency in estimation band</pre>
+</dd>
+<dt><strong><a name="item_fmax__2dreal">fmax   -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [60] maximum frequency in estimation band</pre>
+</dd>
+<dt><strong><a name="item_nf__2dinteger">nf     -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [16] number of frequencies to use in estimation.</pre>
+</dd>
+<dt><strong><a name="item_dt__2dreal">dt     -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [.008] sampling to use for initial traveltime estimation</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_stdout__2d_sepfile">stdout - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+      maps(nzo,nxo,3,n_shot) = output
+      Green's function maps, tt/amp/phase</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+  Band-limited maximum-energy Green's function maps</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+ Default parameters calculate one shot at user specified output location.
+ x_shot must be specified! The output grid will be the same as the input grid.</pre>
+<pre>
+ When calculating multiple maps you may want to specify the other
+ parameters that control the output grid relative to each shot.
+ There are two modes, if mode=0 the output grid is absolute.
+ If mode=1 the output grid is relative to the shot location.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Hwt3d.html">the Hwt3d manpage</a>, <a href="./../seplib_prog/FMeikonal.html">the FMeikonal manpage</a>, <a href="./../seplib_prog/Gfgradz.html">the Gfgradz manpage</a>, <a href="./../seplib_prog/Hwt3d.html">the Hwt3d manpage</a>;</p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/travel</strong></p>
+
+</body>
+
+</html>

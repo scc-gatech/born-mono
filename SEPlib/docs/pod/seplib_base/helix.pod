@@ -1,0 +1,65 @@
+=head1 NAME
+
+
+helix - module containing allocate and deallocate of a  helix filter
+
+=head1 SYNOPSIS
+
+
+C<call allocatehelix(aa,nh)>
+
+C<call deallocatehelix(aa)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item aa - type(helix)
+
+      Filter
+
+=item nh - integer
+
+      Number of coefs in filter
+
+=back
+
+=head1 DESCRIPTION
+
+
+Allocate and deallocation of helix filter.
+
+=head1 COMMENTS
+
+
+type(filter) :
+
+=over 4
+
+=item flt - C<real(:)> (nh)
+
+      filter coefficients
+
+=item lag - C<real(:)> (nh)
+
+      filter lags
+
+=item mis - C<real(:)>  (nd)
+
+      boundary conditions
+
+=back
+
+=head1 SEE ALSO
+
+
+L<nhelix>,L<mshelix>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

@@ -1,0 +1,9 @@
+#!/bin/csh
+
+#CONFIGURE SCRIPT FOR IRIX
+rm */config.cache config.cache
+setenv PPM_LD "-L/usr/local/netpbm/lib -lppm -lpgm -lpbm"
+../configure --with-local --with-su=/usr/local/SU  -prefix=/usr/local/SEP6.1/
+#gmake reconfig
+gmake 
+gmake install

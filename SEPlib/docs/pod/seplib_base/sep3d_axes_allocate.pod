@@ -1,0 +1,42 @@
+=head1 NAME
+
+
+sep3d_axes_allocate - Allocate axes for a structure
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3d_key_allocate(sep3d *sep3dc,int naxes)
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item sep3c  -  sep3d
+
+     structure 
+
+=item naxes  -  int
+
+     number of axes 
+
+=back
+
+=head1 DESCRIPTION
+
+
+Allocate axes in a structure
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

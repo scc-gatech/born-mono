@@ -1,0 +1,135 @@
+With the distribution comes a set of makerules 
+customized to your system that are by
+default installed in the include directory.
+
+
+
+To use these you must:
+
+
+1. setenv SEPINC sepincdir
+
+
+2. In your makefile put:
+
+include ${SEPINC}/SEP.top
+
+
+
+
+
+include ${SEPINC}/SEP.bottom
+
+
+3. In between these is where your local compile rules should go.
+
+
+-------------
+COMPILING
+-------------
+
+1.  Set some general variables
+
+BINDIR = /my/bin/dir {if not set, current directory}
+SRCIDR = /my/src/dir  {if not set, current directory}
+OBJDIR = /my/obj/dir  {my object directory}
+
+
+
+2.  Set additional compiler flags
+
+a. UCFLAGS, UF77FLAGS, UF90FLAGS - additional flags needed to
+   compile a C, F77, or F90 program
+
+
+b. UCLIBDIR, UF77LIBDIR, UF90LIBDIR
+
+   a list of directories where additional libraries can be found
+
+
+c. UCLIBS, UF77LIBS, UF90LIBS
+
+  addition libaries to compile with
+
+
+
+3. Setting up the make rules
+
+
+ a. C code 
+
+ if you are compiling a code made up of a single source file, you
+shouldn't need any additional rules.  If the code comes from multiple
+files ....
+
+Assuming that the main program is my_prog.o and
+you need the additional sub1, sub2, and sub3 compiled (and
+linked with the C linker)
+
+${BINDIR}/my_prog.x: $(addprefix ${OBJDIR}/, sub1.o sub2.o sub3.o)
+
+
+Note if your OBJDIR is the local directory you just need to list
+the object files, the add prefix portion is not necessary.
+
+b. F77 code
+
+the exact same rules as with C
+
+
+c. F90 code
+
+If your code uses strictly modules and a main program no additional
+rules are needed.  If you use other subroutines follow the above procedure.
+
+
+
+d. Compiling and linking
+
+
+To compile a code:
+
+  gmake objdir/code.o  
+
+where objdir is what you set OBJDIR to
+
+
+TO link
+
+
+ gmake bindir/myprog.x
+
+where bindir is what you set BINDIR to
+
+
+
+
+
+---------------------------------------------------------------------
+---------------------------------------------------------------------
+
+Example Makefile
+
+
+
+
+
+include ${SEPINC}/SEP.top
+
+
+
+
+
+include ${SEPINC}/SEP.bottom
+
+
+
+
+
+
+
+
+
+
+
+

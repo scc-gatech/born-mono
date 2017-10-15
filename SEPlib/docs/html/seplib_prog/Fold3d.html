@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Fold3d - Calculate fold maps of a SEP3d dataset</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parmaeters">INPUT PARMAETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#examples">Examples</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Fold3d - Calculate fold maps of a SEP3d dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Fold3d  &lt;in.H &gt;out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parmaeters">INPUT PARMAETERS</a></h1>
+<dl>
+<dt><strong><a name="item_max_size_2d">max_size-</a></strong><br />
+</dt>
+<dd>
+<pre>
+      integer [10] maximum memory in megabytes</pre>
+</dd>
+<dt><strong><a name="item_compress_2d">compress-</a></strong><br />
+</dt>
+<dd>
+<pre>
+      integer(:) [none] which axes to compress (see examples below)</pre>
+</dd>
+<dt><strong><a name="item_verb_2d_logical">verb- logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [n]   whether or not to be verbose</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p><table cellspacing="0" cellpadding="0"><tr><td>Calculate fold maps of SEP3d datasets. These maps may be of any number
+<tr><td><td>of dimensions (see examples below).</table></p>
+<p>
+</p>
+<hr />
+<h1><a name="examples">Examples</a></h1>
+<p>Given a dataset with grid axes</p>
+<p>axis2=trace_in_bin; axis3=aoffset; axis4=cmp_x; axis5=cmp_y</p>
+<pre>
+ Fold3d &lt; sep3d.H compress=2 &gt; new.H
+  will create a fold map of dimensions (aoffset,cmp_x,cmp_y)</pre>
+<pre>
+ Fold3d &lt; sep3d.H compress=2,3 &gt;new.H
+  will create a fold map of dimensions (cmp_x,cmp_y)</pre>
+<pre>
+ Fold3d &lt; sep3d.H compress=2,3,5 &gt;new.H
+  will create a fold map of dimensions (cmp_x)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>Sort3d</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/cube</strong></p>
+
+</body>
+
+</html>

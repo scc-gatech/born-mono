@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>invint2 - Inverse linear interpolation;</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>invint2 - Inverse linear interpolation;</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call invint(niter,coord,ord,o1,d1,mm,mmov,eps,aa,doprec)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_niter__2d_integer">niter - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of iterations</pre>
+</dd>
+<dt><strong><a name="item_real">coord -  <code>real(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Coordinates</pre>
+</dd>
+<dt><strong><a name="item_o1_2cd1__2d_real">o1,d1 -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      First model position and sampling</pre>
+</dd>
+<dt><strong>ord   -  <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Data values</pre>
+</dd>
+<dt><strong>mm    -  <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Output model</pre>
+</dd>
+<dt><strong>mmov  -  <code>real(:,:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Model movie</pre>
+</dd>
+<dt><strong><a name="item_eps__2d_real">eps   -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Epsilon value if doing preconditioning</pre>
+</dd>
+<dt><strong><a name="item_type">aa    -  <code>type(filter)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Preconditioning operator</pre>
+</dd>
+<dt><strong><a name="item_prec__2d_logical">prec  -  logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Whether or not to do preconditioning</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Perform inverse linear interpolation</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/lint1.html">the lint1 manpage</a>,<a href="./../seplib_base/helicon.html">the helicon manpage</a>,<a href="./../seplib_base/polydiv.html">the polydiv manpage</a>,<a href="./../seplib_base/solver.html">the solver manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

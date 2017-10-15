@@ -1,0 +1,883 @@
+
+ /*$
+
+=head1 NAME
+
+Thplot - Create a hidden line plot
+
+=head1 DESCRIPTION
+
+Hidden line plotting program.
+
+=head1 SYNOPSIS
+
+Thplot par= < Hin | Pen
+
+=head1 INPUT PARAMETERS:
+
+=over 4
+
+=item n3  -    int     
+
+      [1]  (It erases the screen between frames (for a movie))
+
+=item (zc,xc) -   float   
+
+      position of the lower left hand corner of the plot
+      from the corner of the page in inches.
+      xc defaults so as to center the plot.
+
+=item sz      -   float   
+
+      vertical scale.
+
+=item alpha   -   float   
+
+      apparent angle in degrees; |alpha| < 89
+
+=item uflag   -   int     
+
+      [1] - plot upper side of the surface,
+      0 - do not plot upper side. (yellow).
+
+=item dflag   -   int     
+
+      the same but for the down side. (red).
+
+=item clip,gpow,tpow,epow,plot - int
+
+      clipping {( data * e**epow*t * t**tpow )**gpow}
+
+=item norm    -   char     
+
+      [n] for no clipping.
+
+=item pclip   -   int      
+
+      percentile to set the clip
+
+=item dclip   -   float    
+
+      change the clip: clip = (clip set by pclip)*dclip 
+
+=item zmax,zmin-  float    
+
+      [0],[1] max, min (relative to clip) values to 
+       use in scaling plot
+
+=item xlength -   float    
+
+      Number of inches wide the plot device is; Use 10.24 
+      unless you are using absolute scaling.
+
+=item script -    file     
+
+      Name of a file from which to get the titles in
+      a Movie, one title per line.
+
+=item axis,axis1,axis2,axis3- char
+
+      [y] any not-y character will turn off axis
+
+=item label1,label2,label3- char* 
+
+      axis labels
+
+=item axissz    -int      
+
+      [6] size of axis labels 
+
+=item axisfat    -int      
+
+      [2] makes axes fat
+
+=item title      -char*    
+
+      ['input file name']
+
+=item titlesz    -int      
+
+      [6] size of title
+
+=item titlefat   -int      
+
+      [2] makes title fat
+
+=back
+
+=head1  SEE ALSO
+
+L<Grey>,L<Cubeplot>,L<Contour>
+
+=head1 CATEGORY
+
+B<sep_graphics>
+
+=head1 COMPILE LEVEL
+
+DISTR
+
+=cut
+
+>*/
+/*
+
+ KEYWORDS hidden line plotting
+ 
+ WHERE
+  ./cube/plot/Thplot.c
+
+copyright (c) 1991 Stanford University
+*/
+/*
+Author: Shuki Ronen, July 1982.
+*/
+/*
+ * Keyword: hidden line plotting :      
+ */
+
+/*
+ * Edit History:
+ * Added Movie capabilities and centered plot. JAD 9-21-84
+ * Added Script and fastplot JAD 10-3-84
+ * Added axis - shuki, 11-15-85
+ * Made "norm" actually do what it says it does in the documentation. JAD 3-24-87
+ * Installed revisions from Shuki about axis 2.
+
+   30 Jan. 1995 - Ray Abma
+         Changed fetch to getch when getting an override for plotting parms.
+  7/4/96 Bob  Changed fsize to ssize
+ */
+
+#include <vplot.h>
+#define E 1e-5
+#define FBIG 1.e30
+#define OVERF 1.2
+/*#define O_S(x,y) x+OVERF*(y-x)*/
+
+float   alpha, cosa, sina,/* alpha=appearant angle in degrees             */
+        zc, xc,    /* absolute lower left of the plot in inches    */
+        dx, dz, xstart = 0., xend, scaley, sz, xlength = 10.24;
+int     nx, di;
+float  *maxmask, *minmask, oldmask, *ff;
+ADD_DEF_SEP_DOC
+
+#include <stdlib.h>
+#include <sep.main>
+
+extern void set_output_data_format(const char *);
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void gpow (float *p, int n, float gg);
+void epow (float *p,int  nt,int  nx,float ee);
+void tpow (float *p, int nt, int nx, float tt);
+void norm (float *p,int n,float c);
+void plotup (int iy)    ;
+void quant (int k, float *a,int n);
+void copyabs (float *p,float *q, int n);
+float   intersect (float f1,float  f2,float m1,float m2);
+void advdown (float x1, float f1, float x2, float f2, int i);
+void advance (float x1, float f1, float x2, float f2, int i);
+void plotdown (int iy);
+void slant (float y);
+_XFUNCPROTOEND
+#else
+void slant ();
+void gpow ();
+void epow ();
+void tpow ();
+void norm ();
+void plotup ();
+void quant ();
+void copyabs ();
+float   intersect ();
+void advdown ();
+void advance ();
+void plotdown ();
+_XFUNCPROTOEND
+#endif
+
+int MAIN(void)
+{
+    int     zero, one;
+    int     fastplt;
+    int     ix, iy, i3, n3, ny, uflag, dflag, axissz, titlsz;
+    int     plotfat, plotcolup, plotcoldn, titlefat, axisfat, k;
+    float   y, dy, zmax, zmin, fm, scale, s1, s2, tana, scalex, scalez = 1,
+           *a, clip, pclip, dclip, tt, ee, gg, ax[8], ay[8], r;
+    char    title[80], titletemp[80],
+            label1[80], label2[80], label3[80];
+    char    frame[10];
+
+/*           *axis = "yes", *axis1 = "yes", *axis2 = "yes", *axis3 = "yes", */
+
+
+    char axis[80],axis1[80],axis2[80],axis3[80];
+   vp_filep(outstream); /* tell plotting routines where to stick it */
+    strcpy(axis,"yes");
+    strcpy(axis1,"yes");
+    strcpy(axis2,"yes");
+    strcpy(axis3,"yes");
+
+
+    zero = 0;
+    one = 1;
+    fastplt = 0;
+    if (!fetch ("n1", "d", &nx))
+  seperr ("need n1\n");
+    if (!fetch ("n3", "d", &n3))
+  n3 = 1;
+    if (!fetch ("n2", "d", &ny))
+  ny = ssize ("in") / nx / 4 / n3;
+    putch ("n1", "d", &nx);
+    putch ("n2", "d", &ny);
+    putch ("n3", "d", &n3);
+
+    maxmask = (float *) alloc (nx * 4 + 4);
+    minmask = (float *) alloc (nx * 4 + 4);
+    ff = (float *) alloc (nx * ny * n3 * 4 + 4);
+
+    if( sreed ("in", ff, nx * ny * n3 * 4) != nx * ny * n3 * 4 ) 
+  seperr("failure in reading input\n");
+
+    if (!getch ("uflag", "d", &uflag))
+  uflag = 1;
+    if (!getch ("dflag", "d", &dflag))
+  dflag = 1;
+    if (!getch ("alpha", "f", &alpha))
+  alpha = 45.;
+    if (!getch ("zc", "f", &zc))
+  zc = 6.;
+    if (!getch ("sz", "f", &sz))
+  sz = 4.;
+
+    if (!getch ("titlsz", "d", &titlsz))
+  titlsz = 6;
+    if (!getch ("plotfat", "d", &plotfat))
+  plotfat = 0;
+    if (!getch ("plotcolup", "d", &plotcolup))
+  plotcolup = 6;
+    if (!getch ("plotcoldn", "d", &plotcoldn))
+  plotcoldn = 2;
+    if (!getch ("titlefat", "d", &titlefat))
+  titlefat = 2;
+
+    if (!getch ("axissz", "d", &axissz))
+  axissz = 4;
+    if (!getch ("axisfat", "d", &axisfat))
+  axisfat = 2;
+    getch ("axis", "s", axis);
+    getch ("axis1", "s", axis1);
+    getch ("axis2", "s", axis2);
+    getch ("axis3", "s", axis3);
+    if( !fetch ("label1", "s", label1)) strcpy(label1,"Axis-1");
+    if( !fetch ("label2", "s", label2)) strcpy(label2,"Axis-2");
+    if( !fetch ("label3", "s", label3)) strcpy(label3,"Axis-3");
+
+    if (getch ("tpow", "f", &tt))
+    {
+  putch ("tpow ", "f", &tt);
+  tpow (ff, nx, ny * n3, tt);
+    }
+
+    if (getch ("epow", "f", &ee))
+    {
+  putch ("epow ", "f", &ee);
+  epow (ff, nx, ny * n3, ee);
+    }
+
+    if (getch ("gpow", "f", &gg))
+    {
+  putch ("gpow ", "f", &gg);
+  gpow (ff, nx * ny * n3, gg);
+    }
+
+    if (!getch ("clip", "f", &clip))
+    {
+  if (!getch ("pclip qclip", "f", &pclip))
+      pclip = 100.;
+  k = pclip / 100.* nx * ny * n3 - 0.5;/* round, don't truncate */
+  if ((k <= 0) || (k > nx * ny * n3 - 1))
+      seperr ("bad pclip\n");
+  a = (float *) alloc (nx * ny * n3 * 4);
+  copyabs (ff, a, nx * ny * n3);
+  quant (k, a, nx * ny * n3);
+  clip = a[k];
+  free ((char *) a);
+    }
+    if (getch ("dclip", "f", &dclip))
+    {
+  putch ("dclip ", "f", &dclip);
+  clip *= dclip;
+    }
+    putch ("clip ", "f", &clip);
+    putch ("pclip ", "f", &pclip);
+    if (clip == 0.)
+  seperr ("zero clip=%f\n", clip);
+    norm (ff, nx * ny * n3, clip);
+
+    if (!fetch ("title", "s", title))
+  fetch ("in", "s", title);
+
+    alpha *= pi / 180.;
+    cosa = cos (alpha);
+    sina = sin (alpha);
+    tana = sina / cosa;
+
+    s1 = 6 * nx / (1.+ (float) (ny / nx));
+    s2 = 4 * nx * nx / ny / tana;
+    scale = MIN (s1, s2);
+    getch ("scale", "f", &scale);
+
+    di = 1;
+    xend = xstart + scale * ny / nx;
+    dy = 1./ ny;
+    dx = (xend - xstart) / (nx - 1);
+    scalex = dy / di;
+    scaley = dx / cosa;
+ /* Center it! */
+    getch ("xlength", "f", &xlength);
+    xc = (xlength - scalex * scale * ny / nx - ny * dy * scaley * cosa) / 2.;
+    getch ("xc", "f", &xc);
+    putch ("xc", "f", &xc);
+
+    putch ("style", "s", "mazama");
+    putch ("n1", "d", &zero);
+    putch ("n2", "d", &one);
+    putch ("n3", "d", &one);
+    set_output_data_format("vplot");
+    hclose ();
+
+    zmax = zmin = 0.;
+    for (i3 = 0; i3 < n3; i3++)
+  for (iy = 0; iy < ny; ++iy)
+      for (ix = 0; ix < nx; ++ix)
+      {
+    y = iy * dy * scaley;
+    fm = ff[(i3 * ny + iy) * nx + ix] + y * sina;
+    if (fm < zmin)
+        zmin = fm;
+    else
+        if (fm > zmax)
+      zmax = fm;
+      }
+    getch ("zmax", "f", &zmax);
+    getch ("zmin", "f", &zmin);
+    if (zmax == zmin)
+  fprintf (stderr, "thplot: input file is zero");
+    else
+  scalez = sz / (zmax - zmin);
+    dz = scaley * dy * sina / scalez;
+
+    vp_erase ();
+    vp_style (ROTATED);
+    vp_fat (plotfat);
+
+    for (i3 = 0; i3 < n3; i3++)
+    {
+  vp_scale (scalez, scalex);
+    /* initial a mask */
+  for (ix = 0; ix <= nx; ++ix)
+  {
+      maxmask[ix] = FBIG;
+      minmask[ix] = -FBIG;
+  }
+    /* Axis coordinates: * *                      5 ------ 6 *                /
+       |       /| *                   4 ------- 7 | *                   | 1
+       -----| 2 *                   |/        |/ *                   0 -------
+       3 */
+
+    /* make a pseudo 3-D plot */
+  for (iy = 0; iy < ny; ++iy)
+  {
+      y = iy * dy * scaley;
+      slant (y);
+      if (iy == 0)
+      {
+    vp_umove (0., xstart);
+    vp_where (ax, ay);
+    vp_umove (0., xend);
+    vp_where (ax + 3, ay + 3);
+    vp_umove (-1., xstart);
+    vp_where (ax + 4, ay + 4);
+      }
+      else
+    if (iy == ny - 1)
+    {
+        vp_umove (0., xstart);
+        vp_where (ax + 1, ay + 1);
+        vp_umove (0., xend);
+        vp_where (ax + 2, ay + 2);
+    }
+      if (dflag)
+      {
+          vp_color(plotcoldn);
+    plotdown (i3 * ny + iy);
+      }
+      if (uflag)
+      {
+          vp_color(plotcolup);
+    plotup (i3 * ny + iy);
+      }
+  }
+    /* AXIS */
+  if (fastplt < 6 && axis[0] == 'y')
+  {
+      vp_fat (axisfat);
+      vp_color (7);
+      r = 0.05 * fabs (ay[1] - ay[0]);
+/*
+To install it in your thplot look for the key word arrow,
+Axis 1 arrow should not change, for axis 2 I have produced
+a new macro O_X. Good luck.
+*/
+
+#define O_S(a,b) a+1.2*(b-a)
+/*#define O_X(a,b) a-1.2*(b-a)*/
+#define O_X(a,b) a+1.2*(b-a)
+
+  /* float ax[4],ay[4] are filled using where */
+
+    /* Axis coordinates:   _
+     *       /|
+     *      1 ------ 2
+     *          /         /
+     *         0 ------- 3 ->
+     */
+
+    /* AXIS */
+    vp_fat(axisfat);
+    vp_color(7);
+    r = 0.05*fabs(ay[1]-ay[0]);
+
+      if (*axis1 == 'y')
+      {
+    vp_arrow(ax[0],ay[0],O_S(ax[0],ax[3]),O_S(ay[0],ay[3]),r);
+    vp_text (ax[3] + 0.2, ay[3], axissz, 90 * (1), label1);
+      }
+
+      if (*axis2 == 'y')
+      {
+    float xend, yend,xs,ys;
+    xend = O_X(ax[0],ax[1]);
+    yend = O_X(ay[0],ay[1]);
+    xs = ax[0] - .15 * (ax[1]-ax[0]);
+    ys = ay[0] - .15 * (ay[1]-ay[0]);
+    vp_arrow( xs, ys, xend, yend, r);
+/*    vp_arrow(ax[0],ay[0],O_X(ax[0],ax[1]),O_X(ay[0],ay[1]),r);*/
+/*    vp_text (ax[1] - 0.2, ay[1] + 0.5, axissz, 90 * (1), label2);*/
+    vp_text (ax[0] + 0.5, ay[0] - 0.3, axissz, 90 * (1), label2);
+      }
+
+      if (*axis3 == 'y')
+      {
+    vp_arrow (ax[0], ay[0], O_S (ax[0], ax[4]), O_S (ay[0], ay[4]), r);
+    vp_text (ax[0], ay[0] - 0.1, axissz, 90 * (2), label3);
+      }
+  }
+
+    /* TITLE */
+  vp_fat (titlefat);
+  vp_scale (1., 1.);
+  vp_color (7);
+  strcpy (titletemp, title);
+  if (fastplt < 3)
+      vp_text (.8, 0.4, titlsz, 90 * (1), titletemp);
+  if (n3 > 1 && fastplt < 13)
+  {
+      if (fastplt < 6)
+      {
+    sprintf (frame, "frame %d", i3 + 1);
+      }
+      else
+      {
+    sprintf (frame, "      %d", i3 + 1);
+      }
+      vp_text (1.1 + (float) titlsz / 20., 0.4, titlsz, 90 * (1), frame);
+  }
+  if (i3 < n3 - 1)
+      vp_erase ();
+    }
+  return(EXIT_SUCCESS);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void gpow (float *p, int n, float gg)
+_XFUNCPROTOEND
+#else
+void gpow (p, n, gg)
+float   gg, *p;
+int     n;
+#endif
+{
+    register float *pp, *pe;
+    if (gg == 1.0)
+  return;
+    for (pp = p, pe = p + n; pp < pe; pp++)
+    {
+  if (*pp > 0.0)
+      *pp = exp (gg * log (*pp));
+  else
+      if (*pp < 0.0)
+    *pp = -exp (gg * log (-(*pp)));
+    }
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void epow (float *p,int  nt,int  nx,float ee)
+_XFUNCPROTOBEGIN
+#else
+void epow (p, nt, nx, ee)
+float   ee, *p;
+int     nx, nt;
+#endif
+{
+    register float *pp, t;
+    int     i;
+    if (ee == 0.0)
+  return;
+    pp = p;
+    for (i = 0; i < nx; i++)
+  for (t = 0.0; (int) t < nt; pp++, t++)
+      *pp *= exp (ee * t);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void tpow (float *p, int nt, int nx, float tt)
+_XFUNCPROTOEND
+#else
+void tpow (p, nt, nx, tt)
+float   tt, *p;
+int     nt, nx;
+#endif
+{
+    register float *pp, t;
+    int     i;
+    if (tt == 0.0)
+  return;
+    pp = p;
+    for (i = 0; i < nx; i++)
+  for (t = 0.0; (int) t < nt; pp++, t++)
+      *pp *= exp (tt * log (t));
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void norm (float *p,int n,float c)
+_XFUNCPROTOEND
+#else
+void norm (p, n, c)
+float   c, *p;
+int     n;
+#endif
+{
+    register float *pp, *pe;
+    float   oc;
+    int     wantclip;
+    wantclip = 1;
+    getch ("norm", "1", &wantclip);
+
+    oc = 1./ c;
+    for (pp = p, pe = p + n; pp < pe; pp++)
+    {
+  *pp *= oc;
+  if (wantclip)
+  {
+      if (*pp > 1.0)
+    *pp = 1.0;
+      else
+    if (*pp < -1.0)
+        *pp = -1.0;
+  }
+    }
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void slant (float y)
+_XFUNCPROTOEND
+#else
+void slant (y)    /*      computes z0,x0 and calls set0           */
+float   y;
+#endif
+{
+    float   y0, x0;
+
+    y0 = zc - y * sina;
+    x0 = xc + y * cosa;
+    vp_orig (y0, x0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void plotup (int iy)    
+_XFUNCPROTOEND
+#else
+void plotup (iy)    /*      plots a constant y cut in f(x,y)        */
+int     iy;
+#endif
+{
+    int     ix;
+    float   xnew, xold, fnew, fold;
+
+ /* update the maxmask */
+    for (ix = 0; ix <= nx - di; ++ix)
+  maxmask[ix] = maxmask[ix + di] + dz;
+    for (ix = nx - di + 1; ix <= nx; ++ix)
+  maxmask[ix] = FBIG;
+
+/*    vp_color (6); */
+    vp_umove (-ff[iy * nx], xstart);
+
+    for (ix = 1; ix < nx; ++ix)
+    {
+  xnew = xstart + dx * ix;
+  xold = xnew - dx;
+  fnew = ff[iy * nx + ix];
+  fold = ff[iy * nx + ix - 1];
+  advance (xold, fold, xnew, fnew, ix);
+    }
+    vp_umove (0., xend);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void plotdown (int iy)
+_XFUNCPROTOEND
+#else
+void plotdown (iy)
+int     iy;
+#endif
+{
+    int     ix;
+    float   xnew, xold, fnew, fold;
+
+    for (ix = 0; ix <= nx - di; ++ix)
+  minmask[ix] = minmask[ix + di] + dz;
+    for (ix = nx - di + 1; ix <= nx; ++ix)
+  minmask[ix] = -FBIG;
+
+/*    vp_color (2); */
+    vp_umove (-ff[iy * nx + 0], xstart);
+
+    for (ix = 1; ix < nx; ++ix)
+    {
+  xnew = xstart + dx * ix;
+  xold = xnew - dx;
+  fnew = ff[iy * nx + ix];
+  fold = ff[iy * nx + ix - 1];
+  advdown (xold, fold, xnew, fnew, ix);
+    }
+    vp_umove (0., xend);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void advance (float x1, float f1, float x2, float f2, int i)
+_XFUNCPROTOEND
+#else
+void advance (x1, f1, x2, f2, i)/* advance from (x1,f1) to (x2,f2) */
+float   x1, f1, x2, f2;
+int     i;
+#endif
+{
+    float   x, z, fc;
+
+ /* start and end in a seen area:                         */
+    if (-f1 < maxmask[i - 1] + E && -f2 < maxmask[i] + E)
+    {
+  oldmask = maxmask[i];
+  maxmask[i] = -f2;
+  vp_udraw (-f2, x2);
+    }
+
+ /* start and end in  dead area:                          */
+    else
+  if (-f1 > maxmask[i - 1] && -f2 > maxmask[i])
+      vp_umove (-f2, x2);
+
+ /* start in a seen area and end in a dead area:          */
+  else
+      if (-f1 < oldmask && -f2 > maxmask[i])
+      {
+    z = intersect (-f1, -f2, oldmask, maxmask[i]);
+    x = (1.- z) * x1 + z * x2;
+    fc = (1.- z) * f1 + z * f2;
+    vp_udraw (-fc, x);
+    vp_umove (-f2, x2);
+      }
+
+ /* start in a dead area and end in a seen area:          */
+      else
+    if (-f1 > maxmask[i - 1] && -f2 < maxmask[i])
+    {
+        z = intersect (-f1, -f2, maxmask[i - 1], maxmask[i]);
+        x = (1.- z) * x1 + z * x2;
+        fc = (1.- z) * f1 + z * f2;
+        oldmask = maxmask[i];
+        maxmask[i] = -f2;
+        vp_umove (-fc, x);
+        vp_udraw (-f2, x2);
+    }
+
+ /* start and end in  dead area:                          */
+    else
+        vp_umove (-f2, x2);
+}
+
+ /* advance from (x1,f1) to (x2,f2) */
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void advdown (float x1, float f1, float x2, float f2, int i)
+_XFUNCPROTOEND
+#else
+void advdown (x1, f1, x2, f2, i)
+float   x1, f1, x2, f2;
+int     i;
+#endif
+{
+    float   x, z, fc;
+
+    if (-f1 > minmask[i - 1] - E && -f2 > minmask[i] - E)
+    {
+  oldmask = minmask[i];
+  minmask[i] = -f2;
+  vp_udraw (-f2, x2);
+    }
+
+    else
+  if (-f1 < minmask[i - 1] && -f2 < minmask[i])
+      vp_umove (-f2, x2);
+
+  else
+      if (-f1 > oldmask && -f2 < minmask[i])
+      {
+    z = intersect (-f1, -f2, oldmask, minmask[i]);
+    x = (1.- z) * x1 + z * x2;
+    fc = (1.- z) * f1 + z * f2;
+    vp_udraw (-fc, x);
+    vp_umove (-f2, x2);
+      }
+
+      else
+    if (-f1 < minmask[i - 1] && -f2 > minmask[i])
+    {
+        z = intersect (-f1, -f2, minmask[i - 1], minmask[i]);
+        x = (1.- z) * x1 + z * x2;
+        fc = (1.- z) * f1 + z * f2;
+        oldmask = minmask[i];
+        minmask[i] = -f2;
+        vp_umove (-fc, x);
+        vp_udraw (-f2, x2);
+    }
+
+    else
+        vp_umove (-f2, x2);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+float   intersect (float f1,float  f2,float m1,float m2)
+_XFUNCPROTOEND
+#else
+float   intersect (f1, f2, m1, m2)
+float   f1, f2, m1, m2;
+#endif
+{
+    float   z;
+    z = (f1 - m1) / (f1 - m1 + m2 - f2);
+    return (z);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void copyabs (float *p,float *q, int n)
+_XFUNCPROTOEND
+#else
+void copyabs (p, q, n)
+int     n;
+float  *p, *q;
+#endif
+{
+    register float *pp, *qq, *pe;
+    for (pp = p, qq = q, pe = p + n; pp < pe; pp++, qq++)
+  *qq = fabs (*pp);
+}
+
+
+/*      this is a translation of program from SEP 10 p100. */
+/*      quant reorders a[] that 
+ *              a[j]<a[k] if j<k
+ *      i.e. a[k-1] is the k/n quntile.
+ */
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void quant (int k, float *a,int n)
+_XFUNCPROTOEND
+#else
+void quant (k, a, n)
+int     k, n;
+float  *a;
+#endif
+{
+    int     low, hi, i, j;
+    double  ak, aa;
+    low = 0;
+    hi = n - 1;
+    while (low < hi)
+    {
+  ak = a[k];
+  i = low;
+  j = hi;
+  do
+  {
+      while (a[i] < ak)
+      {
+    i++;
+      }
+      while (a[j] > ak)
+      {
+    j--;
+      }
+      if (i <= j)
+      {
+    aa = a[i];
+    a[i] = a[j];
+    a[j] = aa;
+    i++;
+    j--;
+      }
+  }
+  while (i <= j);
+  if (j < k)
+  {
+      low = i;
+  }
+  if (k < i)
+  {
+      hi = j;
+  }
+    }
+}

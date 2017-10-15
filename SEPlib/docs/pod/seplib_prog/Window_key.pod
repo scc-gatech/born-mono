@@ -1,0 +1,68 @@
+=head1 NAME
+
+
+Window_key - Window a dataset according to key info
+
+=head1 SYNOPSIS
+
+
+Window_key  <in.H >out.H  pars
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item verb       -  int 
+
+      [0]  Whether or not to ber berbose
+
+=item maxsize    -  int 
+
+      [20] Maximum size of memory to use for headers
+
+=item synch      -  int 
+
+      [0]  Whether (1) or not (0) to synch data
+
+=item key (1..)  -  char     
+
+      Name of the key the window
+
+=item kindex(1..)-  int      
+
+      Index of key to window
+
+=item maxk(1..)  -  float    
+
+      Max float or int size
+
+=item mink(1..)  -  float    
+
+      Max float or int size
+
+=back
+
+=head1 DESCRIPTION
+
+
+Windows SEP3D headers dataset according to key values
+
+=head1 COMMENTS
+
+
+Relies on superset
+Use to be written in ratfor77
+
+=head1 SEE ALSO
+
+
+L<Window3d>
+
+=head1 CATEGORY
+
+
+B<util/headers>
+
+=cut
+

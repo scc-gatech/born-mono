@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sep_extract_val_by_index - extract a header value by its index</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameter">INPUT PARAMETER</a></li>
+	<li><a href="#output_parameter">OUTPUT PARAMETER</a></li>
+	<li><a href="#return_value">RETURN VALUE</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sep_extract_val_by_index - extract a header value by its index</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+  Extract n-values of Header Values associated with
+        Key Index from vector of Header Values with mixed Header Types.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>sep_extract_val_by_index(tag_history,key_index,n_values,values,all_values)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameter">INPUT PARAMETER</a></h1>
+<dl>
+<dt><strong><a name="item_char_2a_2d_tag_history">char*- tag_history</a></strong><br />
+</dt>
+<dd>
+<pre>
+        tag of History File</pre>
+</dd>
+<dt><strong><a name="item_int_2a__2d_key_index">int* - key_index</a></strong><br />
+</dt>
+<dd>
+<pre>
+        Key Index of Header Key</pre>
+</dd>
+<dt><strong><a name="item_int_2a__2d_n_values">int* - n_values</a></strong><br />
+</dt>
+<dd>
+<pre>
+        Number of Values to be written in contiguos records.</pre>
+</dd>
+<dt><strong><a name="item_void_2a__2d_all_values">void* - all_values</a></strong><br />
+</dt>
+<dd>
+<pre>
+        Vector of Header Values with mixed Header Types</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameter">OUTPUT PARAMETER</a></h1>
+<dl>
+<dt><strong><a name="item_void_2a__2d_values">void* - values</a></strong><br />
+</dt>
+<dd>
+<pre>
+        Header Values at for Key Index</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_value">RETURN VALUE</a></h1>
+<pre>
+ -1= if fails for other reasons</pre>
+<pre>
+ 0 =if successful</pre>
+<pre>
+ +1 =if tag_history is a Sep77 History File</pre>
+<pre>
+ +2= if tag_history is a Sep3d History File but
+      no matching Key Index is in Header Format File</pre>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep3d</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,9 @@
+#!@CSH@
+# ----------
+#  Keyword:  complex-multiply
+# ----------
+if ($#argv < 1)  then
+Cadd
+else
+Cadd $* mode=product
+endif

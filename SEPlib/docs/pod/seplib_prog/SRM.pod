@@ -1,0 +1,76 @@
+=head1 NAME
+
+
+SRM - Stolt Residual Migration
+
+=head1 SYNOPSIS
+
+
+SRM par=parfile.P < input.H > output.H
+
+=head1 SCAN PARAMETERS
+
+
+=over 4
+
+=item or=1. - (real)
+
+ first residual slowness to scan over
+
+=item dr=1. - (real)
+
+ sampling of the residual slowness to scan over
+
+=item nr - (integer)
+
+ number of residual slowness to scan over
+
+=back
+
+=head1 STRETCH PARAMETERS
+
+
+=over 4
+
+
+=item push=.true. - (logical)
+
+ whether to do a push or pull operation in stretch
+
+=item scale=.false. - (logical)
+
+ whether to scale
+
+=item eps=.5 - (real)
+
+ fitting parameter for push/pull operation
+
+=back
+
+=head1 RUN PARAMETERS
+
+
+=over 4
+
+=item maxmem=100. - (real)
+
+ memory to use in MB
+
+=item verb=.false. - (logical)
+
+ verbosity
+
+=back
+
+=head1 DESCRIPTION
+
+
+Perform Stolt residual migration (See Paul Sava SEP-100,SEP-102)
+
+=head1 CATEGORY
+
+
+B<seis/image>
+
+=cut
+

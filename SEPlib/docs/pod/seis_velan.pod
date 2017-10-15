@@ -1,0 +1,26 @@
+
+
+=head1 NAME
+
+seis/velan - Programs that deal with velocity 
+
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Programs that deal with velocity 
+
+
+=head1 PROGRAMS
+
+
+L<Velan> - Programs that deal with velocity 
+
+
+
+
+
+=cut 

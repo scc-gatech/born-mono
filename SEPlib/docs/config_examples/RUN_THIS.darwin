@@ -1,0 +1,18 @@
+#!/bin/csh
+
+
+#COMPILE SCRIPT FOR DARWIN (MAC OSX)
+rm */config.cache config.cache
+setenv FC /opt/local/bin/g95
+setenv PERL "/usr/bin/perl"  #location of perl
+setenv CPPFLAGS  -I/usr/X11R6/include  #cpp flags
+#setenv MOTIF_LD "-L/sw/lib  -Wl,-force_flat_namespace"  #DARWIN MOTIF ISSUES
+setenv MOTIF_FLAGS "-I/opt/local/include"  #MOTIF LOCATION
+setenv CFLAGS "-I/opt/local/include"
+setenv LIBS "-L/opt/local/lib"
+#setenv motif_libs "-L/usr/OpenMotif  -Wl,-force_flat_namespace"  #DARWIN MOTIF ISSUES
+setenv motif_includes "-I/usr/OpenMotif"  #MOTIF LOCATION
+#./configure --with-local -prefix=/Applications/SEP --with-su=/Applications/SU --enable-maintainer-mode
+./configure --with-local -prefix=/opt/SEP  --enable-maintainer-mode
+
+#make

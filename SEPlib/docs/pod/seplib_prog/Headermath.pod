@@ -1,0 +1,88 @@
+=head1 NAME
+
+
+Headermath - Do mathematical operations on header keys
+
+=head1 SYNOPSIS
+
+
+Headermath <input.H pars  >output.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item keyi- char*      
+
+      keyname
+
+=item eqni- char*      
+
+      function recognizes header names and a number of
+      functions, written in mathematical equation form
+
+=item typei- char*     
+
+      [scalar_float] type of output
+
+=item maxsize - int    
+
+      maximum size of temporary (in MB) defaults to 10 MB
+
+=item verb   -  int    
+
+      [0] whether or not to be verbose[1]
+
+=item delete_keys-int* 
+
+      [NULL] key indexes to delete
+
+=item rotate-float   
+
+      [optional] rotate using (s_x,s_y,g_x,g_y,cmp_x,cmp_y) the 
+      coordinates of the dataset  (degrees)
+
+=back
+
+=head1 DESCRIPTION
+
+
+Create new keys for a SEP3d dataset
+
+
+=head1 COMMENTS
+
+
+Example: To calculate cmp_x,cmp_y,azimuth
+key1=cmp_x
+eqn1=(sx+gx)/2
+type1=scalar_float
+key2=cmp_y
+eqn2=(sy+gy)/2
+type2=scalar_float
+key3=azimuth
+eqn3=@ATAN((gy-sy)/(gx-sx))
+type3=scalar_float
+
+
+Supported Functions (specified by @ at begining):
+
+COS	SIN	TAN
+ACOS	ASIN	ATAN
+COSH	SINH	INT
+EXP	LOG	SQRT
+ABS
+
+=head1 SEE ALSO
+
+
+L<Math>,L<evaluate_expression>
+
+=head1 CATEGORY
+
+
+B<util/headers>
+
+=cut
+

@@ -1,0 +1,50 @@
+=head1 NAME
+
+
+Rm - Remove a SEP77 dataset
+
+=head1 DESCRIPTION
+
+
+Remove seplib header and data file that it points to
+
+=head1 SYNOPSIS
+
+
+C<Rm [-i] [-v] [-f] Header1 [Header2 ...]>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item i	- flag  
+
+      ask whether to delete each file
+
+=item v	- flag  
+
+      the Headers will be echoed on stdout.
+
+=item f - flag  
+
+      force delete, no ownership check will be done before deleting
+
+=item q - flag
+
+      Do not a sep history file don't give error message
+
+=back
+
+=head1 SEE ALSO
+
+
+L<Cp>,L<Mv>,L<Rm3d>,L<Mv>
+
+=head1 CATEGORY
+
+
+B<util/unix>
+
+=cut
+

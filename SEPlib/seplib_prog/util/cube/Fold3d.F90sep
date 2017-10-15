@@ -1,0 +1,227 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$Fold3d - Calculate fold maps of a SEP3d dataset
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Fold3d  <in.H >out.H
+!!$
+!!$=head1 INPUT PARMAETERS
+!!$
+!!$=over 4
+!!$
+!!$=item maxsize-
+!!$
+!!$      integer [10] maximum memory in megabytes
+!!$
+!!$=item compress-
+!!$
+!!$      integer(:) [none] which axes to compress (see examples below)
+!!$
+!!$=item verb- logical
+!!$
+!!$      [n]   whether or not to be verbose
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Calculate fold maps of SEP3d datasets. These maps may be of any number
+!!$		of dimensions (see examples below).
+!!$
+!!$=head1 Examples
+!!$
+!!$Given a dataset with grid axes
+!!$
+!!$axis2=trace_in_bin; axis3=aoffset; axis4=cmp_x; axis5=cmp_y
+!!$
+!!$
+!!$ Fold3d < sep3d.H compress=2 > new.H
+!!$  will create a fold map of dimensions (aoffset,cmp_x,cmp_y)
+!!$
+!!$ Fold3d < sep3d.H compress=2,3 >new.H
+!!$  will create a fold map of dimensions (cmp_x,cmp_y)
+!!$
+!!$ Fold3d < sep3d.H compress=2,3,5 >new.H
+!!$
+!!$  will create a fold map of dimensions (cmp_x)
+!!$
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Sort3d>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<util/cube>
+!!$
+!!$=cut
+!!
+!!>
+!!-------------------------------------------------
+!!
+!!Author: Robert Clapp, ESMB 463, 7230253
+!
+!Date Created:Sat Feb 21 16:38:38 PST 1998
+!ose
+!Purpose:
+!
+program Fold3d 
+  use sep_3d_mod
+  use sep
+  use  helixcartmod_big
+  implicit none
+  integer compress(10),ncompress,ndim,axis_c
+  real,dimension(:), allocatable :: fold(:)
+  integer, allocatable ::grid(:)
+  integer, allocatable :: n_g(:),i_g(:),n_s(:),i_s(:),g_s(:)
+
+  real :: o,d
+  character(len=128) :: label
+  integer max_memory,i2,ns,ns_dim,nread,ierr,i1,ndim_data
+  integer(kind=big_int) :: ng,ndone,i1_big,nmax,tempbi,ff
+  integer ::nleft,nsmall
+  integer :: iaxis,itot
+  logical :: verb
+  call SEP_ADD_DOC()
+  call SEP_INIT('')
+  call init_3d()
+!GRAB PARAMETERS FROM THE COMMAND LINE
+  call from_param("verb",verb,.false.)
+  call from_param("maxsize",max_memory,10)
+  max_memory=max_memory*250000
+  ncompress=getch("compress","d",compress)
+  if (ncompress.eq.0) then
+    ncompress=0
+    compress(1)=2
+  end if
+  if (0.ne.sep_get_number_data_axes("in",ndim_data)) then
+    call seperr("trouble obtaining number of data axes")
+  end if
+  if (0.ne.sep_get_number_grid_axes("in",ndim)) then
+    call seperr("trouble obtaining number of grid axes")
+  end if
+  if (ncompress.eq.0) then
+    ns_dim=ndim-1
+  else
+    ns_dim=ndim-ncompress-1
+  end if 
+!n_g input grid dimensions
+!i_g input grid location
+!n_s output grid simension
+!i_s output grid location
+!g_s mapping from input grid to output grid
+  allocate(n_g(ndim-1),i_g(ndim-1),n_s(ns_dim),i_s(ns_dim+1),g_s(ndim-1&
+    &))
+  i1=0
+  ng=1
+  ns=1
+  n_g=1
+  do i2=2,ndim 
+    if(0.ne. sep_get_grid_axis_par("in",i2,n_g(i2-1),o,d,label))&
+     call seperr("trouble getting grid axis par")
+    ng=ng*n_g(i2-1) !size of elements in the input grid
+!if
+    if (ncompress>0) then
+      if (any(compress(1:ncompress).eq.i2)) then
+!if this axis is compressed map its index to ns_dim+1
+!we will then ignore this axis when doing the transform
+        g_s(i2-1)=ns_dim+1
+      else
+        i1=        i1+1
+        ns=ns*n_g(i2-1) 
+        n_s(i1)=n_g(i2-1)
+        g_s(i2-1)=i1
+        if(0/= sep_put_data_axis_par("out",i1,n_g(i2-1),o,d,label))&
+        call seperr("trouble putting data axis")
+      end if
+    else
+      i1=			i1+1
+      n_s(i1)=n_g(i2-1)
+      ns=ns*n_g(i2-1) 
+      g_s(i2-1)=i1
+      if(0.ne. sep_put_data_axis_par("out",i1,n_g(i2-1),o,d,label))&
+        call seperr("trouble putting data axis")
+    end if
+  end do 
+  o=0
+  d=1
+  label="none"
+  do i2=ns_dim+1,ndim_data
+    if(0.ne. sep_put_data_axis_par("out",i2,1,o,d,label))&
+       call seperr("trouble putting data axis")
+  end do 
+  if (ns>max_memory) then
+    write(0,*) "size of grid",ns," elem in max_memory=",nint(max_memory/250./1000)
+    call erexit("increase maxsize")
+  end if
+!  integer(kind=big_int) :: ng,ndone,i1_big,nmax
+  tempbi=max_memory-ns
+!Find the last axis less then maxsize
+  if(ng < tempbi) then
+    nmax=ng
+    nleft=1
+  else if (tempbi < n_g(1)) then
+    call seperr("increase memory usage or run on another machine")
+  else
+    nmax=n_g(1)
+    iaxis=1
+    do while(nmax < tempbi)
+      iaxis=iaxis+1
+      nmax=n_g(iaxis)*nmax
+    end do
+    nleft=product(n_g(iaxis:))
+    nmax=nmax/n_g(iaxis)
+    iaxis=iaxis-1
+  end if
+
+
+  allocate(grid(nmax),fold(ns),stat=ierr)
+  if (ierr.ne.0) then
+    call erexit("trouble allocating grid and fold arrays")
+  end if
+  call sep_set_no_headers("out")
+  call sep_set_no_grid("out")
+    if (0 .ne. putch ("esize","d",4)) then
+      call erexit('trouble writing to file ')
+    end if
+  call sep_3d_close()
+  ndone=0
+  fold=0
+  itot=0
+  do while (ndone< ng)
+    tempbi=nmax
+    nread=min(ng-ndone,tempbi)
+    nsmall=nread
+    if (verb) then
+      write(0,*) "about to from ",ndone," to ",nread+ndone," of ",ng
+    end if
+    if (0.ne. sep_get_grid_window("in",3,(/nsmall,nleft/),(/nsmall,1/),&
+     (/0,floor(1.*ndone/nread)/),(/1,1&
+      &/),grid)) then
+      call erexit("trouble reading in grid")
+    end if
+!    write(0,*) "CHECK ",nsmall,nleft,floor(1.*ndone/nread),nread,itot,sum(grid)
+    do i2=1,nread 
+      if (grid(i2)>0) then
+!convert to position in input grid
+        call helix2cart(n_g,i2+ndone,i_g)
+!convert to position in output grid
+        do i1=1,ndim-1 
+          i_s(g_s(i1))=i_g(i1)
+        end do 
+!convert to index in output grid
+        call cart2helix(n_s,i_s(1:ns_dim),i1_big)
+        i1=i1_big !convert to regular size int
+!add to the fold
+        fold(i1)=				fold(i1)+1
+       itot=itot+1
+      end if
+    end do 
+    ndone=		ndone+nread
+  end do 
+  if (4*size(fold).ne.srite("out",fold,4*ns)) then
+    call erexit("trouble writing out grid")
+  end if
+end program  

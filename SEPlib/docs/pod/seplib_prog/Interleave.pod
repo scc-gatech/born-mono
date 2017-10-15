@@ -1,0 +1,50 @@
+=head1 NAME
+
+
+Interleave - Interleave 2 seplib datasets
+
+=head1 SYNOPSIS
+
+
+
+  Interleave < in.H other=other.H  > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  other - sepfile 
+
+       second file to interleave with stdin, must be of same dimension.
+
+=item  axis  - integer 
+
+       [2] Axis to interleave on 
+
+=back
+
+=head1 DESCRIPTION
+
+
+Merge two SEP history files along specified axis by interleaving 
+(alternating) traces.
+
+=head1 EXAMPLE
+
+
+	Given equally-dimensioned input files 'file1.H' and 'file2.H'
+
+	Interleave <file1.H other=file2.H > out.H
+
+	creates out.H, which contains all traces from each input file 
+	in alternating sequence (trace 1 from file1.H, then trace 1 from file2.H
+	then trace 2 from file1.H, etc).
+
+=head1 CATEGORY
+
+
+B<util/cube>
+
+=cut 
+

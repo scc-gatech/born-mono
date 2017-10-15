@@ -1,0 +1,306 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$Solver_ops - Mathematical operations for out-of-core solver
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Solver_ops  file1=in.H  op= [file2= scale1_r= scale2_r= scale2_i= scale1_i=]
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item  file1-  sepfile
+!!$
+!!$       Seplib file to perform mathematical operation on 
+!!$
+!!$=item  op-  char*
+!!$
+!!$       Mathematical operation (dot, multiply, zero, add, scale_add_scale,scale_add,scale)
+!!$
+!!$=item  file2-  sepfile
+!!$
+!!$       Seplib file used for mathematical operation
+!!$
+!!$=item  scale1_r,scale2_r,scale1_i,scale_i-  float
+!!$
+!!$       Scalars to apply during mathematical operation
+!!$
+!!$=item  verb-  logical
+!!$
+!!$       [0] Verbosity
+!!$
+!!$=item  pct_print-  integer
+!!$
+!!$       [10] How often to print progress
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Apply simple mathematical operation on SEPlib files needed
+!!$
+!!$ for solver operations.
+!!$
+!!$L<Math>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<util/vector>
+!!$
+!!$=cut
+!!$>
+program solver_op
+use sep3d_struct_mod
+use sep
+use sep_io_mod
+use sep_aux_mod
+implicit none
+complex :: scale1c,scale2c
+real    :: scale1r,scale2r,temp2(2)
+integer, parameter:: dbl=selected_int_kind(15)
+type(sep3d) :: file1,file2
+integer(kind=dbl) :: sz1,sz2
+integer, parameter :: dblr=selected_real_kind(10,50)
+complex(kind=dblr) :: dt1c
+real (kind=dblr) :: dt1r,t1,t2
+character(len=128) :: op,f1,f2
+character(len=256) :: temp1,temp_ch
+integer :: n1,n2,idim,maxsize,ez1,ez2,ip,ip2,i
+logical :: two_file
+integer :: ierr
+complex,allocatable :: buf1c(:),buf2c(:),outc(:)
+real,allocatable :: buf1r(:),buf2r(:),outr(:)
+integer(kind=dbl) :: itemp,iprint,inext,block,done
+integer :: blocks
+logical :: esize8,verb
+real :: scr,sci
+
+call SEP_ADD_DOC()
+call sep_init('')
+call sep_begin_prog()
+
+call getch_add_string("head=/dev/null")
+call auxinout("file1")
+call set_alternate_putch("file1")
+call getch_add_string("noheader=y")
+
+call from_param("op",op)
+call from_param("file1",f1)
+call from_param("file2",f2,"none")
+
+call from_param("scale1_r",scale1r,1.)
+call from_param("scale1_i",sci,0.); scale1c=cmplx(scale1r,sci)
+call from_param("scale2_r",scale2r,1.)
+call from_param("scale2_i",sci,0.); scale2c=cmplx(scale2r,sci)
+
+ierr= auxpar("in","s",temp_ch,"file1")
+call parcat(temp_ch,923,temp1)
+call auxtmp(temp1)
+
+
+
+two_file=.true.
+if      (op(1:3)=="dot") then
+  if(trim(f1) == trim(f2))  two_file=.false.
+  if(f2(1:4)=="none") two_file=.false.
+  dt1r=0.
+  dt1c=0.
+else if (op(1:8)=="multiply") then
+else if (op(1:4)=="zero") then
+  two_file=.false.
+else if (op(1:3)=="add") then
+else if (op(1:14)=="scale_addscale") then
+else if (op(1:9)=="scale_add") then
+else if (op(1:4)=="rand") then
+  two_file=.false.
+else if (op(1:5)=="scale") then
+  two_file=.false.
+else
+  write(0,*) "unknown op=",trim(op)
+  call seperr("")
+end if
+
+call init_sep3d("file1",file1,"SCRATCH")
+call from_param("maxsize",maxsize,100)
+maxsize=maxsize*1024*1024/4
+esize8=.false.
+if(file1%data_format(1:1)=="C")then
+   esize8=.true.
+   maxsize=maxsize/2
+end if
+if(two_file) maxsize=maxsize/2
+
+sz1=1
+do i=1,size(file1%n)
+  sz1=sz1*file1%n(i)
+end do
+if(two_file) then
+   call init_sep3d("file2",file2,"INPUT")
+   sz2=product(file2%n)
+   sz2=1
+   do i=1,size(file2%n)
+     sz2=sz2*file2%n(i)
+   end do
+   if(file1%data_format(1:1)/=file2%data_format(1:1))&
+     call seperr("file formats not the same")
+   if(sz1/=sz2) call seperr("files must be the same size")
+end if
+
+
+
+if(esize8) then
+  allocate(buf1c(maxsize),buf2c(maxsize),outc(maxsize))
+else
+  allocate(buf1r(maxsize),buf2r(maxsize),outr(maxsize))
+end if
+      
+done=0
+call from_param("verb",verb,.false.)
+inext=sz1+1
+if(verb) then
+  call from_param("iprint",ip,10)
+  iprint=real(ip)/100.*sz1
+  inext=iprint
+end if
+sz1=sz1
+do while(done < sz1)
+  block=min(sz1-done,maxsize)
+  blocks=block
+  if(inext > done .and. inext  < done+block) then
+    t1=sz1; t2=done; t2=t2/t1; ip=nint(t2*1000.)
+    t1=sz1; t2=done+block; t2=t2/t1; ip2=nint(t2*1000.)
+    write(0,*) "working from",ip/10," to ",ip2/10
+    inext=inext+iprint
+  end if
+  if(esize8) then
+    if(op(1:4) /= "zero") then
+      if(block*8/=sreed("file1",buf1c,blocks*8)) &
+        call seperr("trouble reading in file1")
+      if(two_file) then
+        if(block*8/= sreed("file2",buf2c,blocks*8))&
+          call seperr("trouble reading in file2")
+      end if
+    end if
+  else
+    if(op(1:4) /= "zero") then
+      if(block*4/=sreed("file1",buf1r,blocks*4)) &
+        call seperr("trouble reading in file1")
+      if(two_file) then
+        if(block*4/= sreed("file2",buf2r,blocks*4))&
+          call seperr("trouble reading in file2")
+      end if
+    end if
+  end if
+  if      (op(1:3)=="dot") then
+    if(trim(f1) == trim(f2) .or. f2(1:4)=="none")  then
+      if(esize8) then
+        do i=1,block
+          dt1c=dt1c+buf1c(i)*conjg(buf1c(i))
+        end do 
+      else
+        do i=1,block
+          dt1r=dt1r+buf1r(i)*buf1r(i)
+        end do 
+      end if
+    else
+      if(esize8) then 
+        do i=1,block
+          dt1c=dt1c+buf1c(i)*conjg(buf2c(i))
+        end do 
+      else
+        do i=1,block
+          dt1r=dt1r+buf1r(i)*buf2r(i)
+        end do 
+      end if
+    end if
+  else if (op(1:8)=="multiply") then
+    if(esize8) then
+      buf1c=buf1c*buf2c
+    else
+      buf1r=buf1r*buf2r
+    end if
+  else if (op(1:4)=="zero") then
+    if(esize8) then
+      buf1c=0.
+    else
+      buf1r=0.
+    end if
+  else if (op(1:3)=="add") then
+    if(esize8) then
+      buf1c=buf1c+buf2c 
+    else
+      buf1r=buf1r+buf2r 
+    end if 
+  else if (op(1:4)=="rand") then
+    if(esize8) then
+      do i=1,size(buf1c)
+        call random_number(temp2)
+        buf1c(i)=cmplx(temp2(1),temp2(2))
+      end do
+    else
+     call random_number(buf1r)
+    end if 
+  else if (op(1:14)=="scale_addscale") then
+    if(esize8) then
+      buf1c=buf1c*scale1c+scale2c*buf2c
+    else
+      buf1r=buf1r*scale1r+scale2r*buf2r
+    end if 
+  else if (op(1:9)=="scale_add") then
+    if(esize8) then
+      buf1c=buf1c+scale1c*buf2c
+    else
+      buf1c=buf1r+scale1r*buf2r
+    end if 
+  else if (op(1:5)=="scale") then
+    if(esize8) then
+      buf1c=scale1c*buf1c
+    else
+      buf1r=scale1r*buf1r
+    end if 
+  end if
+  done=done+block
+  if(op(1:3)/="dot") then
+    if(esize8) then
+!      if(op(1:4)/="zero") ierr= sseek("file1", -block*8,1)
+      if(8*block/= srite(temp1,buf1c,blocks*8)) &
+        call seperr("trouble writing outc file")
+    else
+!      if(op(1:4)/="zero") ierr= sseek("file1", -block*4,1)
+      if(4*block/= srite(temp1,buf1r,blocks*4)) &
+        call seperr("trouble writing outc file")
+    end if
+  end if
+
+end do
+if(op(1:3)=="dot") then
+  if(esize8) then
+    write(0,*) "DOT RESULT",dt1c
+  else
+    write(0,*) "DOT RESULT",dt1r
+  end if
+else
+  ierr= sseek(temp1,0,0)
+  ierr= sseek("file1",0,0)
+  done=0
+  do while(done < sz1)
+    block=min(sz1-done,maxsize)
+    if(esize8) then
+      if(8*block/= sreed(temp1,buf1c,blocks*8)) &
+        call seperr("trouble writing outc file")
+      if(8*block/= srite("file1",buf1c,blocks*8)) &
+        call seperr("trouble writing outc file")
+    else
+      if(4*block/= sreed(temp1,buf1r,blocks*4)) &
+        call seperr("trouble writing outc file")
+      if(4*block/= srite("file1",buf1r,blocks*4)) &
+        call seperr("trouble writing outc file")
+    end if
+    done=done+block
+  end do
+end if
+call aux_unlink(temp1)
+call sep_end_prog()
+end program

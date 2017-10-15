@@ -1,0 +1,68 @@
+=head1 NAME
+
+
+sep_put_key - write key info to a tag
+
+
+=head1 SYNOPSIS
+
+
+   int sep_put_key (tag_history,key_name,key_type,key_fmt,key_index)
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item   char* - tag_history      
+
+        tag of History File
+
+=item   char* - key_name         
+
+        Key Name of Header Key
+
+=item   char* - key_type         
+
+        Key Type of Header Key
+
+=item   char* - key_fmt          
+
+        Key Format of Header Key
+
+=item   int*  - key_index        
+
+        Key Index of Header Key
+
+=back
+
+=head1 RETURN VALUE
+
+
+ -1= if fails for other reasons
+
+ 0= if successful
+
+ +1= if tag_history is an Sep77 History File
+
+ +2= if tag_history is a Sep3d History File but
+
+=head1 DESCRIPTION
+
+
+   auxputch into the Header Format File the key key_index"#"
+   hdrkey"#" with hdrtype"#" and hdrfmt"#"
+
+=head1 SEE ALSO
+
+
+L<sep_get_key_index>, L<sep_get_key_fmt>, L<sep_get_key_name>
+
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

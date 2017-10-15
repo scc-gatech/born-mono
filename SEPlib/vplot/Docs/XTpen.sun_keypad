@@ -1,0 +1,43 @@
+
+XTpen.vpane.pen_picture.translations: #override\n\
+None<Key>Insert:       xt_number(0) xt_goto_frame() xt_reset_number() \n\
+None<Key>F33:       xt_number(1) xt_goto_frame() xt_reset_number() \n\
+None<Key>Down:       xt_number(2) xt_goto_frame() xt_reset_number() \n\
+None<Key>F35:       xt_number(3) xt_goto_frame() xt_reset_number() \n\
+None<Key>Left:       xt_number(4) xt_goto_frame() xt_reset_number() \n\
+None<Key>F31:       xt_number(5) xt_goto_frame() xt_reset_number() \n\
+None<Key>Right:       xt_number(6) xt_goto_frame() xt_reset_number() \n\
+None<Key>F27:       xt_number(7) xt_goto_frame() xt_reset_number() \n\
+None<Key>Up:       xt_number(8) xt_goto_frame() xt_reset_number() \n\
+None<Key>F29:       xt_number(9) xt_goto_frame() xt_reset_number() \n\
+Shift<Key>Insert:      xt_number(10) xt_goto_frame() xt_reset_number() \n\
+Shift<Key>F33:      xt_number(11) xt_goto_frame() xt_reset_number() \n\
+Shift<Key>Down:      xt_number(12) xt_goto_frame() xt_reset_number() \n\
+Shift<Key>F35:      xt_number(13) xt_goto_frame() xt_reset_number() \n\
+Shift<Key>Left:      xt_number(14) xt_goto_frame() xt_reset_number() \n\
+Shift<Key>F31:      xt_number(15) xt_goto_frame() xt_reset_number() \n\
+Shift<Key>Right:      xt_number(16) xt_goto_frame() xt_reset_number() \n\
+Shift<Key>F27:      xt_number(17) xt_goto_frame() xt_reset_number() \n\
+Shift<Key>Up:      xt_number(18) xt_goto_frame() xt_reset_number() \n\
+Shift<Key>F29:      xt_number(19) xt_goto_frame() xt_reset_number() \n\
+Ctrl<Key>Insert:      xt_number(20) xt_goto_frame() xt_reset_number() \n\
+Ctrl<Key>F33:      xt_number(21) xt_goto_frame() xt_reset_number() \n\
+Ctrl<Key>Down:      xt_number(22) xt_goto_frame() xt_reset_number() \n\
+Ctrl<Key>F35:      xt_number(23) xt_goto_frame() xt_reset_number() \n\
+Ctrl<Key>Left:      xt_number(24) xt_goto_frame() xt_reset_number() \n\
+Ctrl<Key>F31:      xt_number(25) xt_goto_frame() xt_reset_number() \n\
+Ctrl<Key>Right:      xt_number(26) xt_goto_frame() xt_reset_number() \n\
+Ctrl<Key>F27:      xt_number(27) xt_goto_frame() xt_reset_number() \n\
+Ctrl<Key>Up:      xt_number(28) xt_goto_frame() xt_reset_number() \n\
+Ctrl<Key>F29:      xt_number(29) xt_goto_frame() xt_reset_number() \n\
+<Key>0:       	   xt_number(0) \n\
+<Key>1:       	   xt_number(1) \n\
+<Key>2:       	   xt_number(2) \n\
+<Key>3:       	   xt_number(3) \n\
+<Key>4:       	   xt_number(4) \n\
+<Key>5:       	   xt_number(5) \n\
+<Key>6:       	   xt_number(6) \n\
+<Key>7:       	   xt_number(7) \n\
+<Key>8:       	   xt_number(8) \n\
+<Key>9:       	   xt_number(9) \n\
+<Key>Return:       xt_goto_frame() xt_reset_number()

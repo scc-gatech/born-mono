@@ -1,0 +1,140 @@
+
+ /*$
+
+=head1 NAME
+
+Log - Take the log of data
+
+=head1 SYNOPSIS
+
+<in.H  Log  [range=3 centered=2] > out.H
+
+=head1  INPUT PARAMETERS
+
+=over 4
+
+=item range   -real  
+
+      defines the smallest allowed value.
+      Defining max to be the maximum of the logs (best
+      signal), output values (bad signal) below (max-range)
+      are set to (max-range). Often you might choose range
+      to be a small integer, for example, range=3 means
+      each input handled as max(input, biggest/1000).
+
+=item  centered -integer  
+
+        defines method of shifting mean of log.
+        0-The max is subtracted so all logs are negative.
+        label2='log base 10' is putched
+        1- The average of max and (max-range) is subtracted.
+        (effectively scaling the original data)
+        pclip=100 is putched.
+        2-The average value of all the logs is subtracted.
+        range=2*(max-avg) is putched.
+
+=item  maxsize  - integer 
+    
+      [10] Maximum memory to use in Megabytes
+
+=back
+
+=head1 DESCRIPTION
+
+Base ten logarithm of absolute values.
+
+=head1 SEE ALSO
+
+L<Math>
+
+=head1 CATEGORY
+
+B<util/vector>
+
+
+=cut
+>*/
+/*
+
+ KEYWORDS      log logarithm
+
+ WHERE
+       ./cube/seis/Log.rs
+
+%
+ author: Claerbout and Harlan  8/9/89
+ Modified: jon 8-10-93 added tomography centering.  set default range=3
+ Modified: Bob  9-1-99 Switched to C
+
+>*/ 
+
+ADD_DEF_SEP_DOC
+#include <stdlib.h>
+#include <sep.main> 
+
+int MAIN(void)
+{
+
+  int n1,n,tempi,esize,maxsize;
+  float *input,range,*output,scale,big,avg;
+  char temp_ch[128];
+  int i,centered;
+  float tempr;
+
+  /*learn stuff about input dataset*/
+  if(0==hetch("esize","d",&esize)) esize=4;
+  if(esize!=4) seperr("esize must be 4\n");
+  if(1!=hetch("n1","d",&n1))  seperr("trouble grabing n1 from history file\n");
+  n=1;i=2;sprintf(temp_ch,"n%d",i);
+  while(1==hetch(temp_ch,"d",&tempi)){n=n*tempi;i++;sprintf(temp_ch,"n%d",i);}
+  
+  /*grab parameters */
+  if(0==getch("centered","d",&centered)) centered=2;
+  if(0==getch("range","f",&range)) range=3.;
+  if(0==getch("maxsize","d",&maxsize)) maxsize=20;
+  maxsize=maxsize*100000;
+  if(n*n1*2>maxsize) seperr(
+   "ERROR:Can not hold entire dataset in memory, increase maxsize to %d\n",
+   n*n1*2);
+  
+  input=(float*)malloc(n1*n*sizeof(float));
+  output=(float*)malloc(n1*n*sizeof(float));
+  
+  if(esize*n*n1!= sreed("in", input, esize*n*n1))
+    seperr("trouble readin in data \n");
+
+for(i=0; i< n*n1; i++) input[i] = (float)fabs((float)input[i]);
+scale = log(10.);
+for(i=0; i< n*n1; i++) output[i] = (float)log(input[i] + 1.e-35)/scale;
+big = output[1];
+for(i=0; i< n*n1; i++) big=MAX(output[i],big);
+
+for(i=0; i< n*n1; i++) output[i]=MAX(output[i],big-range);
+
+if(centered==0){
+  putch("label2", "s","log base 10");
+  for(i=0; i< n*n1; i++) output[i]=output[i]-big;
+}
+else if(centered==1){
+  tempi=100; putch("pclip", "d",&tempi);
+  avg = (big + (big-range)) / 2.;
+  for(i=0; i< n*n1; i++) output[i]=output[i]-avg;
+}
+else if(centered==2){
+  avg=0;
+  for(i=0; i< n*n1; i++) avg=output[i]+avg;
+  avg=avg/n/n1;
+  for(i=0; i< n*n1; i++) output[i]=output[i]-avg;
+  tempr=2*(big-avg);
+  putch( "range", "f",&tempr );
+}
+hclose();
+
+if(esize*n*n1!= srite("out", output, esize*n*n1))
+  seperr("trouble writing out data \n");
+ 
+ 
+return(EXIT_SUCCESS);
+ } 
+
+

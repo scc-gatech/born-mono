@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Energy - Calculate energy in running windows</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#example">EXAMPLE</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Energy - Calculate energy in running windows</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+    Energy &lt;in.h lwind=21 j1=11 normalize=no average=yes verbose=no &gt; out.h</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_lwind__2d_integer">lwind   -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [21]:  number of points in smoothing window</pre>
+</dd>
+<dt><strong><a name="item_j1__2d_integer">j1      -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [11]:  increment between window centers; 
+      equal to subsampling factor; j1=1 is no subsampling.</pre>
+</dd>
+<dt><strong><a name="item_normalize_2dchar_2a">normalize-char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [no]:  convert all energy values to range 
+      of 0.0 to 1.0 .  (normalizes each panel separately)</pre>
+</dd>
+<dt><strong><a name="item_average__2d_char_2a">average - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [yes]:  normalizes energy by length of window</pre>
+</dd>
+<dt><strong><a name="item_verbose__2d_char_2a">verbose - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [no]: gets more loquacious if =yes</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3_2d_int">n1,n2,n3- int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard seplib pars</pre>
+</dd>
+<dt><strong><a name="item_o1_2cd1__2d_real">o1,d1   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard seplib pars</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Calculate energy in running windows along fast axis of data</p>
+<p>
+</p>
+<hr />
+<h1><a name="example">EXAMPLE</a></h1>
+<pre>
+    Energy &lt; in.H lwind=21 j1=11 normalize=no average=yes verbose=no &gt; out.h
+        Calculates the trace energy in running windowis with 11-sample distance
+        between window centers. The smoothing window is 21 samples long. Normalize
+        energy by window length. No cross-window normalization is applied.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

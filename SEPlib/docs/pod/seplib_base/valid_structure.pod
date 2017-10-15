@@ -1,0 +1,54 @@
+=head1 NAME
+
+
+valid_structure - check if sep3d structure is valid
+
+=head1 SYNOPSIS
+
+
+C<logical =valid_structure(struct)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct - sep3d
+
+       Structure to check the validity of
+
+=back
+
+=head1 RETURN VALUE
+
+
+=over 4
+
+=item .true.
+
+      if valid
+
+=item .false.
+
+      if not valid
+
+=back
+
+
+=head1 DESCRIPTION
+
+
+Check to see if structure is valid
+
+=head1 SEE ALSO
+
+
+L<sep3df>
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

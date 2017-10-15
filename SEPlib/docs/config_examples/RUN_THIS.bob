@@ -1,0 +1,11 @@
+#setenv OMP_FCLD -mp
+setenv FC ifort
+setenv LIBS -L/usr/X11R6/lib64
+setenv CFCDEFINES -DpgiFortran
+setenv MPI_LD "-L/usr/local/topspin/mpi/mpich/lib64 -lmpich -lpthread"
+setenv MPI_FLAGS "-I/usr/local/topspin/mpi/mpich/include"
+setenv MPI_FLAGS "-I/usr/local/topspin/mpi/mpich/include"
+setenv MPI_FLAGS "-I/usr/local/MPI/MPI-1.2.5_C/include"
+setenv MPI_LD    "-L/usr/local/MPI/MPI-1.2.5_C/lib   -lmpich -lpthread"
+setenv MPI_FCLD "-L/usr/local/MPI/MPI-1.2.5_INTEL/lib -lmpichf90  -lfmpich  -lmpich -Bstatic"
+./configure --with-mpi  --enable-maintainer-mode --prefix=/net/koko/bob/SEP_BOB

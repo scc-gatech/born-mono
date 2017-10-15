@@ -1,0 +1,300 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>CAM - Common azimuth migration</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#coordinate_system_for_downward_continuation_description_parameters">COORDINATE SYSTEM FOR DOWNWARD CONTINUATION DESCRIPTION PARAMETERS</a></li>
+	<li><a href="#r_s_description_parameters">R/S  DESCRIPTION PARAMETERS</a></li>
+	<li><a href="#data_description_parameters">DATA DESCRIPTION PARAMETERS</a></li>
+	<li><a href="#slowness_parameters">SLOWNESS PARAMETERS</a></li>
+	<li><a href="#ph_gathers">PH GATHERS</a></li>
+	<li><a href="#memory_managemet">MEMORY MANAGEMET</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>CAM - Common azimuth migration (possibly split-step)</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>CAM par=parfile.P D=input.H  R=output.H S=slow.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="coordinate_system_for_downward_continuation_description_parameters">COORDINATE SYSTEM FOR DOWNWARD CONTINUATION DESCRIPTION PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_amx_n">amx_n (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Number of CMP in X (axis 1 of D,R and S)</pre>
+</dd>
+<dt><strong><a name="item_amx_d">amx_d (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Sampling of CMP in X</pre>
+</dd>
+<dt><strong><a name="item_amx_o">amx_o (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  First CMP  X location</pre>
+</dd>
+<dt><strong><a name="item_amy__n">amy__n (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Number of CMP in X (axis 2 of D,R and S)</pre>
+</dd>
+<dt><strong><a name="item_amy_d">amy_d (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Sampling of CMP in Y</pre>
+</dd>
+<dt><strong><a name="item_amy_o">amy_o (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  First CMP  Y location</pre>
+</dd>
+<dt><strong><a name="item_ahx__n">ahx__n (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Number of half offsets in X (axis 3 of D and possibly R  )</pre>
+</dd>
+<dt><strong><a name="item_ahx_d">ahx_d (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Sampling of half offsets in X</pre>
+</dd>
+<dt><strong><a name="item_ahx_o">ahx_o (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  First half offset  X location</pre>
+</dd>
+<dt><strong><a name="item_ahy__n">ahy__n (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Number of half offsets in Y (axis 4 of D and possibly R)</pre>
+</dd>
+<dt><strong><a name="item_ahy_d">ahy_d (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Sampling of half offset in Y</pre>
+</dd>
+<dt><strong><a name="item_ahy_o">ahy_o (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  First CMP  Y location</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="r_s_description_parameters">R/S  DESCRIPTION PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_az__n">az__n (integer) (axis 3 of S, axis 5 of R)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Number of depth steps</pre>
+</dd>
+<dt><strong><a name="item_az__d">az__d (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Sampling of depths</pre>
+</dd>
+<dt><strong><a name="item_az__o">az__o (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  First depth of model</pre>
+</dd>
+<dt><strong><a name="item_image_real">image_real (logcal)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Whether or not make the image real</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="data_description_parameters">DATA DESCRIPTION PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_aw__n">aw__n (integer) (axis 5 of D)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Number of frequencies</pre>
+</dd>
+<dt><strong><a name="item_aw__d">aw__d (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Sampling of frequencies</pre>
+</dd>
+<dt><strong><a name="item_aw__o">aw__o (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  First frequency of data</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="slowness_parameters">SLOWNESS PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_velocity">velocity  (logical)</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [.false.] whether or not S is velocity</pre>
+</dd>
+<dt><strong><a name="item_nref">nref  (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [1] number of velocities for each depth step</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="ph_gathers">PH GATHERS</a></h1>
+<dl>
+<dt><strong><a name="item_pcig">pCIG (logical)</a></strong><br />
+</dt>
+<dd>
+<pre>
+ [.false.] whether (.true.) or not (.false.) to create PH gathers</pre>
+</dd>
+<dt><strong><a name="item_apx__n">apx__n (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Number of PH in X (axis 3 of R)</pre>
+</dd>
+<dt><strong><a name="item_apx_d">apx_d (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Sampling of PH in X</pre>
+</dd>
+<dt><strong><a name="item_apx_o">apx_o (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  First PH X location</pre>
+</dd>
+<dt><strong><a name="item_apy__n">apy__n (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Number of PH in Y (axis 4 of R)</pre>
+</dd>
+<dt><strong><a name="item_apy_d">apy_d (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Sampling of PH in Y</pre>
+</dd>
+<dt><strong><a name="item_apy_o">apy_o (integer)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  First PH  Y location</pre>
+</dd>
+<dt><strong><a name="item_pcigeps">pcigeps (float)</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [.1] Epsilon parameter for Phgather construction</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="memory_managemet">MEMORY MANAGEMET</a></h1>
+<dl>
+<dt><strong><a name="item_nzs">nzs (integer)</a></strong><br />
+</dt>
+<dd>
+Number of Z steps to do in memory
+</dd>
+<p></p>
+<dt><strong><a name="item_nws">nws (integer)</a></strong><br />
+</dt>
+<dd>
+Number of W to hold in memory
+</dd>
+<p></p></dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Perform common azimuth migration/modeling with split step operator</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<dl>
+<dt><strong><a name="item_anx_n_2cahx_d_2cahx_o_and_axis_1_of_d_and_r_must_b">anx_n,ahx_d,ahx_o and axis 1 of D and R  must be the same</a></strong><br />
+</dt>
+<dt><strong><a name="item_any_n_2cahy_d_2cahy_o_and_axis_2_of_d_and_r_must_b">any_n,ahy_d,ahy_o and axis 2 of D and R  must be the same</a></strong><br />
+</dt>
+<dt><strong><a name="item_slowness_must_contain_entire_span_of_x_and_y">Slowness must contain entire  span of X and Y</a></strong><br />
+</dt>
+<dt><strong><a name="item_az__n_2caz__d_2caz__o__2c_axis_3_of_s_and_axis_5_o">az__n,az__d,az__o , axis 3 of S and axis 5 of R  must be the same</a></strong><br />
+</dt>
+<dt><strong><a name="item_when_doing_ph_gathers_apx_n__3d_ahx_n__3d_n3_of_d">When doing ph gathers apx_n = ahx_n = n3 of D</a></strong><br />
+</dt>
+<dt><strong><a name="item_when_doing_ph_gathers_apy_n__3d_ahy_n__3d_n4_of_d">When doing ph gathers apy_n = ahy_n = n4 of D</a></strong><br />
+</dt>
+<dt><strong><a name="item_when_doing_offset_gathers_ahx_n_2cahx_d_2cahx_o__3">When doing offset gathers  ahx_n,ahx_d,ahx_o = axis 3 of D and R</a></strong><br />
+</dt>
+<dt><strong><a name="item_when_doing_offset_gathers_ahy_n_2cahy_d_2cahy_o__3">When doing offset gathers  ahy_n,ahy_d,ahy_o = axis 4 of D and R</a></strong><br />
+</dt>
+<dt><strong><a name="item_nzs_must_be_a_multiple_of_az__n">nzs must be a multiple of az__n</a></strong><br />
+</dt>
+<dt><strong><a name="item_nws_2anmpi_threads_2anomp_threads_must_be_a_multip">nws*nmpi_threads*nomp_threads must be a multiple of aw__n</a></strong><br />
+</dt>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/image</strong></p>
+
+</body>
+
+</html>

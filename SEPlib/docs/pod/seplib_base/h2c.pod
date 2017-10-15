@@ -1,0 +1,60 @@
+=head1 NAME
+
+
+h2c - convert from helix to cartersian coordinates
+
+=head1 SYNOPSIS
+
+
+C<ierr=h2c(int hindex, int *n, int ndim, int *cindex)>
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item hindex -   int      
+
+      helix location index
+
+=item n -   int*     
+
+      dimension of dataset
+
+=item ndim -   int*     
+
+      skip between elements to copy
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item cindex -   int*     
+
+       location in multi-d mesh
+
+=back
+
+
+
+=head1 DESCRIPTION
+
+
+Translate from helix coordinate to multi-dimenion system
+
+=head1 SEE ALSO
+
+
+L<c2h>
+
+=head1 LIBRARY
+
+
+B<sep>
+
+=cut
+

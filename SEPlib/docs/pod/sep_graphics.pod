@@ -1,0 +1,49 @@
+
+
+=head1 NAME
+
+sep_graphics - SEPlib Plotting programs
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+SEPlib Plotting programs
+
+=head1 PROGRAMS
+
+
+L<Ftplot> - SEPlib Plotting programs
+
+
+
+L<Ta2vplot> - Convert from bytes to vplot
+
+L<Byte> - Convert floats to bytes
+
+L<Cubeplot> - plot seismic data cube
+
+L<Overlay> - draws simple overlays
+
+L<Histogram> - Create a histogram
+
+L<Operplot> - plots set of samples
+
+L<Box> - draws a balloon-style label
+
+L<Wiggle> - plots wiggle traces
+
+L<Dots> - plots data as 'lollipops'
+
+L<Graph> - line plot
+
+L<Grey> - creates raster  vplot
+
+L<Contour> - makes a contour plot
+
+L<Thplot> - Create a hidden line plot
+
+
+=cut 

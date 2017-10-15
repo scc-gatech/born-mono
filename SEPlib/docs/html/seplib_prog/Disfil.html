@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Disfil - Display data values</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Disfil - Display data values</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Disfil [ type=f,c,d,l,s,b,n col= format=(printf format) number=y ] &lt; in.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_type__2d_char">type - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      f or r-  4-byte FLOAT    (default if esize=4)
+      n -4-byte NATIVE FLOAT   (doesn't use sreed)
+      c -8-byte COMPLEX  (default if esize=8)
+      d -8-byte FLOAT
+      i-  4-byte INT
+      s- 2-byte INT    (default if esize=2)
+      b- 1-byte INT    (default if esize=1)</pre>
+</dd>
+<dt><strong><a name="item_col__2d_int">col - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of columns in output.
+      defaults 3,5, or 10 depending on type.</pre>
+</dd>
+<dt><strong><a name="item_format_2dchar_2a">format-char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      printf-style format for output.
+      defaults '%13.4g ' for float and double.
+      '%4d ' for int, short and byte.
+      '%10.4g,%10.4gi  ' for complex.</pre>
+</dd>
+<dt><strong><a name="item_number_2dint">number-int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      y  -do not number elements.</pre>
+</dd>
+<dt><strong><a name="item_skip__2dint">skip  -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]  skip this many BYTES before starting processing.</pre>
+</dd>
+<dt><strong><a name="item_count__2dint">count -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Only print out this many ELEMENTS.</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Formatted display of a binary data file</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>Dd</em>, <a href="./../seplib_prog/Dis3dhead.html">the Dis3dhead manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/info</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,29 @@
+=head1 NAME
+
+
+weiwem_init - initialize  wave equation migration
+
+=head1 SYNOPSIS
+
+
+ierr= weiwem_init()
+
+=head1 DESCRIPTION
+
+
+Wave equation migration operator
+
+Grabs kxko=2. and nkxko=2001 from par
+
+=head1 LIBRARY
+
+
+sepweif90
+
+=head1 SEE ALSO
+
+
+ L<weiwem> L<weiwem_init>
+
+=cut
+

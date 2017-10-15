@@ -1,0 +1,27 @@
+=head1 NAME
+
+
+Mv3d - Move a SEPlib dataset
+
+=head1 SYNOPSIS
+
+
+Mv3d  in.H out.H 
+
+=head1 DESCRIPTION
+
+
+Moves a SEPlib dataset
+
+=head1 SEE ALSO
+
+
+L<Mv>,L<Rm3d>,L<Cp3d>
+
+=head1 CATEGORY
+
+
+B<util/unix>
+
+=cut
+

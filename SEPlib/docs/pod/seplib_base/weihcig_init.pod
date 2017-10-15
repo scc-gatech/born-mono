@@ -1,0 +1,28 @@
+=head1 NAME
+
+
+weihcig_init - initialize offset imaging operator
+
+=head1 SYNOPSIS
+
+
+ierr= weihcig_init()
+
+=head1 DESCRIPTION
+
+
+ Initializes migration operator whose image (R) domain is offset
+
+
+=head1 LIBRARY
+
+
+sepweif90
+
+=head1 SEE ALSO
+
+
+ L<weipcig_init> L<weihcig>
+
+=cut
+

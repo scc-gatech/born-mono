@@ -1,0 +1,80 @@
+=head1 NAME
+
+
+Gfgradz - Calculate green functions for v(z) medium
+
+=head1 SYNOPSIS
+
+
+Gfgradz   par=  >  times.H
+
+=head1 INPUT 	PARAMETERS
+
+
+=over 4
+
+=item	n1-int
+
+      source-receiver depth axis:  z >= 0
+
+=item	o1-real
+
+      source-receiver depth axis:  z >= 0
+
+=item	d1-real
+
+      source-receiver depth axis:  z >= 0
+
+=item	n2-int
+
+      source-receiver offset axis: x >= 0
+
+=item	d2-real
+
+      source-receiver offset axis: x >= 0
+
+=item	o2-real
+
+      source-receiver offset axis: x >= 0
+
+=item	n3-int
+
+      [1] 1 = traveltime map
+      2 = traveltime and amplitude map
+      6 = traveltime, amplitudes and propagation angles
+
+=item	v0-real
+
+      velocity at z=0  : v0 >= 0
+
+=item	vgrad-real
+
+      constant velocity gradient  : vgrad >= 0
+
+=item	intime-int
+
+      output domain : intime=1 for time axis, 0 for depth axis
+
+=back
+
+=head1 DESCRIPTION
+
+
+	Code to calculate Green's function traveltime and
+	~amplitude for a 1-D constant gradient velocity model:
+
+			V(z) = Vo + vgrad*z 	;  z >= 0,  vgrad >= 0
+
+
+=head1 SEE ALSO
+
+
+L<Kirmod3d>, L<Marine_geom3d>, L<Scat3d>, L<FMeikonal>, L<Hwt3d>
+
+=head1 CATEGORY
+
+
+B<seis/travel>
+
+=cut
+

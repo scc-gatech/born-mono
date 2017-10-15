@@ -1,0 +1,38 @@
+=head1 NAME
+
+
+igrad1 - 1D gradient operator
+
+=head1 SYNOPSIS
+
+
+C<ierr=igrad1_lop(adj,add,xx,yy)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item  adj,add,xx,yy -
+
+       standard operator interface
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Calculate 1-D gradient
+
+=head1 SEE ALSO
+
+
+L<igrad2>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

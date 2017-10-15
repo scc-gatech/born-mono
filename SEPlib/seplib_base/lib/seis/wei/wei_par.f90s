@@ -1,0 +1,46 @@
+module wei_par_mod
+implicit none
+integer, private, save :: n_omp,i_omp
+
+contains
+
+logical function init_par()
+#ifdef SEP_OMP
+integer, external :: omp_get_num_threads,omp_get_thread_num
+#endif
+
+init_par=.false.
+                                                                                           
+#ifdef SEP_OMP
+    !$OMP PARALLEL
+    n_omp = omp_get_num_threads()
+    !$OMP END PARALLEL
+#else
+  n_omp=1
+  i_omp=1
+#endif
+init_par=.true.
+
+end  function
+
+
+subroutine store_iomp(i)
+integer :: i
+i_omp=i
+end subroutine
+
+integer function my_nomp()
+my_nomp=n_omp
+end function
+
+integer function my_iomp()
+my_iomp=i_omp
+end function
+
+
+
+
+
+
+
+end module

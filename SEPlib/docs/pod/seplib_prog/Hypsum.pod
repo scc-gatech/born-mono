@@ -1,0 +1,86 @@
+=head1 NAME
+
+
+Hypsum - Velociy space transform
+
+=head1 SYNOPSIS
+
+
+< in.H Hypsum conj=0 inv=0 vmin=1.4 vmax=3.0 n2= > out.H
+
+=head1 DESCRIPTION
+
+
+Velocity space transformation.
+The conjugate operator is hyperbola superposition.
+pseudo-unitary weighting with offset and velocity.
+includes causal filter sqrt(i omega)
+intervals of slowness.
+neighbor interpolation.
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item   conj   - integer
+
+        [0]   Adjoint
+
+=item   inv    - integer
+
+        [0]  Inverse
+
+=item   vmin   - real
+
+        [1.4]  minimum velocity
+
+=item   vmax   - real
+
+        [3.0]  maximum velocity
+
+=item    nv,nx - integer
+
+        If conj=0, specify nv (default=nx)
+        If conj=1, specify nx (default=nv)
+
+=item    n1,n2  - integer
+
+        seplib parameters
+
+=item    o1,o2  - real
+
+        seplib parameters
+
+=item  d1,d2  - real
+
+        seplib parameters
+
+=back
+
+=head1 COMMENTS
+
+
+conj=0 & inv=0 operator itself
+conj=1 & inv=0 conjugate transpose
+conj=0 & inv=1 pseudoinverse
+conj=1 & inv=1 conjugate-transpose-pseudoinverse
+
+=head1 SEE ALSO
+
+
+L<Hypint>,L<Hypmovie>
+
+=head1 REMARKS
+
+
+should integrate instead of sum.
+
+=head1 CATEGORY
+
+
+B<seis/velan>
+
+=cut
+

@@ -1,0 +1,52 @@
+=head1 NAME
+
+
+cent - nth percentile of an array
+
+=head1 SYNOPSIS
+
+
+C<val=cent(p,x,n)>
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item  p - float   
+
+       percentile <0.,99.999>
+
+=item  x - float*  
+
+       data
+
+=item  n - int      
+
+       vector raslength
+
+=back
+
+=head1 RETURN VALUES
+
+
+=over 4
+
+=item float = 
+
+      value at given percentile
+
+=back
+
+=head1 DESCRIPTION
+
+
+Percentile routine based on Canales, SEP-10
+
+=head1 LIBRARY
+
+
+B<sepaux>
+
+=cut
+

@@ -1,0 +1,43 @@
+=head1 NAME
+
+
+sep_set_no_headers - set no headers to an output tag
+
+=head1 SYNOPSIS
+
+
+#include <sep3d.h>
+
+int sep_set_no_headers(char *tag_history)
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item   char *tag_history   :  
+
+         tag of History File for which to null the gff pointer
+
+=back
+
+
+=head1 RETURN VALUE
+
+
+ 0 if successful
+
+ -1 if either tag_history is not a SEP History File
+
+=head1 DESCRIPTION
+
+
+   Set the gff pointer to -1 in the History File tag_history
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

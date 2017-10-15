@@ -1,0 +1,99 @@
+
+
+=head1 NAME
+
+supersetf90 - Fortran 90 interface for handling sep3d datasets
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Fortran 90 interface for handling sep3d datasets
+
+=head1 FUNCTIONS
+
+
+
+L<sep3df> -  sep3d f90 structure (superset)
+
+
+
+L<init_sep3d> - initialize a SEP3d type
+
+L<sep3d_grab_key_vals> - grab header values from C structure
+
+L<sep3d_set_key_vals> - set header values in C structure
+
+L<sep3d_read_data> - read in data
+
+L<sep3d_write_data> - write out data
+
+L<valid_structure> - check if sep3d structure is valid
+
+L<sep3d_grab_headers> - grab headers
+
+L<sep3d_write_description> - write out format file info
+
+L<sep3d_add_drn> - add data record number
+
+L<sep3d_key_index> - try to find key in structure
+
+L<sep3d_axis_index> - try to axis key in structure
+
+L<sep3d_set_number_headers> - set the number of headers to store
+
+L<sep3d_grab_grid_values> - store  a grid
+
+L<sep3d_store_grid_values> - store  a grid
+
+L<sep3d_with_drn> - sets
+
+L<sep3d_ndims> - number of dimensions in sep3d datasets
+
+L<sep3d_rite_num_traces> - write number of traces in a dataset
+
+L<sep3d_reshape> - reshape a dataset
+
+L<sep3d_header_copy> - Copy the headers from one dataset to another
+
+L<sep3d_grid_copy> - Copy the grid
+
+L<sep3d_ge_space> - see if space contains another space
+
+L<sep3d_conform> - see if two spaces are the same size
+
+L<sep3d_section_tag> - section a tag
+
+L<sep3d_synch> - synchronize  a dataset
+
+L<sep3d_copy> - a copy a structure and its contents
+
+L<sep3d_grab_coords> - Grab the coordinates
+
+L<sep3d_desection> - desection a tag
+
+L<sep3d_local_buffer_size> - Get the size of the data associated with a given window
+
+L<sep3d_distribute_data> - distribute a datase
+
+L<sep3d_collect_data> - collect a dataset
+
+L<sep3d_distribute_headers> - Distribute the headers
+
+L<sep3d_collect_headers> - Distribute the headers
+
+L<sep3d_update_ntraces> - Update the traces of a dataset
+
+L<sep3d_set_coords> - Specify the coordinates of a dataset in memory
+
+L<sep3d_set_sect_param> - Write a parameter to all the local sections
+
+L<sep3d_grab_sect_param> - Grab a parameter from all the local sections
+
+L<sep3d_own> - check whether I own a given index of shared axis
+
+L<sep3d_section> - check the section of a given index of shared axis
+
+=cut 

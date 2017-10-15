@@ -1,0 +1,61 @@
+=head1 NAME
+
+
+Pad - Pad a dataset with traces of zeros or nearest value
+
+=head1 SYNOPSIS
+
+
+Pad  n1= n2= n3= extend=0 < in.H > out.H beg[] end[]
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  nxout      - int
+
+       [nx]   Add nxout-nx-begx to the end of the cube dimension
+	      	(such that the total dimension along the x axis will be nxout).
+              [0] will pad to the next power of 2
+
+=item  begx      - int
+
+       [0]    Add begx to the begining of axis x
+
+=item  endx      - int
+
+       [0]    Add endx to the end of axis x (overrides nxout)
+
+=item  maxsize   - int
+
+       [20]   Maximum amount of memory to use
+
+=item  verb      - int
+
+       [0]   Whether (1) or not (0) to be verbose
+
+=item  extend      - int
+
+       [0]   Whether to extend with the nearest point (1) or zeros (0) 
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Pad 3-D data with traces of zeroes or value of nearest point.
+
+
+=head1 SEE ALSO
+
+
+L<Spike> which uses: k1=-1 n1= n2= n3= to create all-zero files from scratch
+
+=head1 CATEGORY
+
+
+B<util/cube>
+
+=cut
+

@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>separg - return the ith command linea argument</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#return_values">RETURN VALUES</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#keywords">KEYWORDS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>separg - return the ith command linea argument</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>ierr seperr(int iarg,char *arg)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_iarg__2d_int">iarg -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Argument number</pre>
+</dd>
+<dt><strong><a name="item_char_2a__2d_arg">char* -  arg</a></strong><br />
+</dt>
+<dd>
+<pre>
+     Arrgument</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_values">RETURN VALUES</a></h1>
+<ol>
+<li><strong><a name="item__2d_int">-  int</a></strong><br />
+</li>
+<pre>
+      Success</pre>
+<li><strong>-  int</strong><br />
+</li>
+<pre>
+     Requested an argument # greater than separgc</pre>
+<dt><strong><a name="item__2d1__2d_int">-1 -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Other failure</pre>
+</dd>
+</ol>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>This function returns a command line argument by
+number. It makes this assumption that the string
+has been allocated.</p>
+<p>
+</p>
+<hr />
+<h1><a name="keywords">KEYWORDS</a></h1>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep</strong></p>
+
+</body>
+
+</html>

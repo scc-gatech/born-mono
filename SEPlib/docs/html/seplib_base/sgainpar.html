@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sgainpar - gain seismic data</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sgainpar - gain seismic data</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>int sgainpar (tag,adata,ant,ahbytes,anx,adit,atpow,ait0,apclip,aphalf,aclip,agpow,adbias,adt,anp,againip)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Subroutine to compute gain factors for seismic data all arguments 
+ are addresses if any argument has the value zero, it reverts to its default.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_tag__2dchar_2a">tag    -char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      tag of dataset, may be lseeked to appropiate place, default 0</pre>
+</dd>
+<dt><strong><a name="item_data__2dfloat_2a">data   -float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       save copy of data here, useful for pipes
+       if 0, then data not saved, default 0</pre>
+</dd>
+<dt><strong><a name="item_nt__2dint_2a">nt     -int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      raslength of data vector, default 1024</pre>
+</dd>
+<dt><strong><a name="item_nx__2dint_2a">nx     -int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of vectors to examine, default all data or 256, 
+      whichever is less</pre>
+</dd>
+<dt><strong><a name="item_np__2dint_2a">np     -int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of planes of data, (n3)  default 1</pre>
+</dd>
+<dt><strong><a name="item_dit__2dint_2a">dit    -int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      integer separation between samples,
+      default nt*nx / 262144, because only 262144 values 
+      are sorted to find percentiles (for np=1)</pre>
+</dd>
+<dt><strong><a name="item_tpow__2dfloat_2a">tpow   -float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      multiply samples by ((it*dit+it0)*dt)**tpow, default 0</pre>
+</dd>
+<dt><strong><a name="item_it0__2dfloat_2a">it0    -float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      time of first sample in units of samples, default 0</pre>
+</dd>
+<dt><strong><a name="item_dbias__2dfloat_2a">dbias  -float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      subtract dbias from the data</pre>
+</dd>
+<dt><strong><a name="item_pclip__2dfloat_2a">pclip  -float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       percentile for clipping seismic data, default 99</pre>
+</dd>
+<dt><strong><a name="item_phalf__2dfloat_2a">phalf  -float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      percentile for determining gpow, default 85</pre>
+</dd>
+<dt><strong><a name="item_gainip__2dint_2a">gainip -int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      plane where clip and gpow are estimated
+      default 1 (the first plane is used)
+      when -1, data of all planes are considered</pre>
+</dd>
+<dt><strong><a name="item_d__2dfloat_2a">d  -float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      sample interval of data</pre>
+</dd>
+<dt><strong><a name="item_clip__2dfloat_2a">clip -float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      clip value</pre>
+</dd>
+<dt><strong><a name="item_gpow__2dfloat_2a">gpow    -float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      raise each data sample to this power,
+      gpow = log (.5) / log (half / clip),
+      if (half / clip &lt; .001) gpow = 1. (detects synthetics)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Grey.html">the Grey manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepaux</strong></p>
+
+</body>
+
+</html>

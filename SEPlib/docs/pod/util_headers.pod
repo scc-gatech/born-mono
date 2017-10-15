@@ -1,0 +1,29 @@
+
+
+=head1 NAME
+
+util/headers - Programs that work on SEP3d headers
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Programs that work on SEP3d headers
+
+=head1 PROGRAMS
+
+
+L<Create3d> - Programs that work on SEP3d headers
+
+
+
+L<Headermath> - Do mathematical operations on header keys
+
+L<Synch3d> - Synchronize headers and data
+
+L<Window_key> - Window a dataset according to key info
+
+
+=cut 

@@ -1,0 +1,56 @@
+=head1 NAME
+
+
+Transp - transpose a SEPlib dataset in plane of choice
+
+=head1 SYNOPSIS
+
+
+Transp  <in.H >out.H 
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item plane - int 
+
+       [12]  Plane to transpose
+
+=item max_memory/maxsize  -  int 
+
+       [10]  Maximum memory to use in  megabytes
+
+=item verb - int
+
+       [0]  Whether (1) or not (0) to be verbose
+
+=item  reshape  - int*
+
+       [none] Treat the cube dimensions differently
+
+=back
+
+=head1 DESCRIPTION
+
+
+Transp- transposes a SEPlib dataset in the plane specified.
+
+=head1 COMMENTS
+
+
+  The reshape option allows for transposes that can't be
+  strictly described by a plane. For example if you
+  want to change 1,2,3,4,5 to 5,3,4,1,2 this is really
+  a transpose of a cube where axes 1 and 2 are combined
+  and axes 3 and 4 are combined. To do this transpose
+  operation you would specify plane=13 and reshape=2,4,5
+
+
+=head1 CATEGORY
+
+
+B<util/cube>
+
+=cut
+

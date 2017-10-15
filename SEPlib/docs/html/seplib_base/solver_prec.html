@@ -1,0 +1,237 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>solver_prec - iteratively solve preconditioned system of equation</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<ul>
+
+		<li><a href="#required_parameters">REQUIRED PARAMETERS</a></li>
+		<li><a href="#optional_parameters">OPTIONAL PARAMETERS</a></li>
+	</ul>
+
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<ul>
+
+		<li><a href="#required_parameters">REQUIRED PARAMETERS</a></li>
+		<li><a href="#optional_parameters">OPTIONAL PARAMETERS</a></li>
+	</ul>
+
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>solver_prec - iteratively solve preconditioned system of equation</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call solver_prec(oper, solv, prec, nprec, x, dat, niter, eps,
+ x0,nmem,nfreq,err,res,xp,nloper,xmov,rmov,wght,verb,known,wt)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<p>
+</p>
+<h2><a name="required_parameters">REQUIRED PARAMETERS</a></h2>
+<dl>
+<dt><strong><a name="item_oper__2d_function">oper   - function</a></strong><br />
+</dt>
+<dd>
+<pre>
+      operator (standard interface)</pre>
+</dd>
+<dt><strong><a name="item_solv__2d_step_function">solv   - step function</a></strong><br />
+</dt>
+<dd>
+<pre>
+      step mecanism</pre>
+</dd>
+<dt><strong><a name="item_prec__2d_function">prec   - function</a></strong><br />
+</dt>
+<dd>
+<pre>
+      preconditioning operator (standard interface)</pre>
+</dd>
+<dt><strong><a name="item_nprec__2d_integer">nprec  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of output pts when prec is applied to the model</pre>
+</dd>
+<dt><strong><a name="item_real">dat    - <code>real(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      data</pre>
+</dd>
+<dt><strong><a name="item_niter__2d_integer">niter  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of iterations</pre>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="optional_parameters">OPTIONAL PARAMETERS</a></h2>
+<dl>
+<dt><strong>x0    - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+       Initial model</pre>
+</dd>
+<dt><strong><a name="item_nmem__2d_integer">nmem   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Change behavior after nmem itterations
+      use in conjunction with nfreq and/or wght</pre>
+</dd>
+<dt><strong><a name="item_nfreq__2d_integer">nfreq  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Restart step function every nfreq itterations
+      after nmem steps</pre>
+</dd>
+<dt><strong><a name="item_nloper__2d_func">nloper - func</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Non-linear operator to use for forward operator</pre>
+</dd>
+<dt><strong><a name="item_func">wght   - <code>func(res,m)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Weighting funtion operator</pre>
+</dd>
+<dt><strong><a name="item_verb__2d_logical">verb   - logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Wheter or not to be verbose</pre>
+</dd>
+<dt><strong><a name="item_logical">known  - <code>logical(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Specify (.true.) model values that are knonw</pre>
+</dd>
+<dt><strong>wt     - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Weighting operator to apply to residuals</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<p>
+</p>
+<h2><a name="required_parameters">REQUIRED PARAMETERS</a></h2>
+<dl>
+<dt><strong>x      - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      model</pre>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="optional_parameters">OPTIONAL PARAMETERS</a></h2>
+<dl>
+<dt><strong>err    - <code>real(niter)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Error sum((d-d~)**2)</pre>
+</dd>
+<dt><strong>res    - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Final residual (size of data)</pre>
+</dd>
+<dt><strong>xp     - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Precondited variable</pre>
+</dd>
+<dt><strong>xmov   - <code>real(:,niter)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Movie of model values as a function of iter</pre>
+</dd>
+<dt><strong>rmov   - <code>real(:,niter)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Movie of data residual</pre>
+</dd>
+<dt><strong>mdiag  - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Diagonal of model resolution matrix (see nort)</pre>
+</dd>
+<dt><strong>mres  - <code>real(:,:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Model resolution matrix (see nort)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Generic  preconditioned solver.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>All operators must follow convetion</p>
+<p>integer function (logical adj, logical add, <a href="#item_real"><code>real(:)</code></a> model, <a href="#item_real"><code>real(:)</code></a> data)</p>
+<p>All solv routines must follow the convention</p>
+<p><code>integer function(logical forget,real(:) x,real(:) g, real(:) rr,real(:) gg)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/solver.html">the solver manpage</a>,<a href="./../seplib_base/solver_prec.html">the solver_prec manpage</a>,<a href="./../seplib_base/nonlin_solver.html">the nonlin_solver manpage</a>,<a href="./../seplib_base/lsqr.html">the lsqr manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

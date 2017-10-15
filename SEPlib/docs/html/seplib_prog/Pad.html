@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Pad - Pad a dataset with traces of zeros or nearest value</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Pad - Pad a dataset with traces of zeros or nearest value</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Pad  n1= n2= n3= extend=0 &lt; in.H &gt; out.H beg[] end[]</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_nxout__2d_int">nxout      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [nx]   Add nxout-nx-begx to the end of the cube dimension
+                (such that the total dimension along the x axis will be nxout).
+              [0] will pad to the next power of 2</pre>
+</dd>
+<dt><strong><a name="item_begx__2d_int">begx      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0]    Add begx to the begining of axis x</pre>
+</dd>
+<dt><strong><a name="item_endx__2d_int">endx      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0]    Add endx to the end of axis x (overrides nxout)</pre>
+</dd>
+<dt><strong><a name="item_maxsize__2d_int">maxsize   - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [20]   Maximum amount of memory to use</pre>
+</dd>
+<dt><strong><a name="item_verb__2d_int">verb      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0]   Whether (1) or not (0) to be verbose</pre>
+</dd>
+<dt><strong><a name="item_extend__2d_int">extend      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0]   Whether to extend with the nearest point (1) or zeros (0)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Pad 3-D data with traces of zeroes or value of nearest point.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Spike.html">the Spike manpage</a> which uses: k1=-1 n1= n2= n3= to create all-zero files from scratch</p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/cube</strong></p>
+
+</body>
+
+</html>

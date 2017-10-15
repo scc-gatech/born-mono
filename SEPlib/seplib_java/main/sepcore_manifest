@@ -1,0 +1,7 @@
+Name: edu/stanford/sep/seplib/corelibs/sep
+Specification-Title: SEP core library interface
+Specification-Version: 8.0
+Specification-Vendor: Stanford Exploration Project
+Implementation-Title: edu.stanford.sep.seplib.corelibs.sep
+Implementation-Version: 8.0.1
+Implementation-Vendor: Stanford Exploration Project

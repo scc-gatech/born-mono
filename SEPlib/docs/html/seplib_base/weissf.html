@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>weissf - Split step operator</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>weissf - Split step operator</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+ ierr=weissf_init(iws,izs,ifk,ith,wfld)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_iws__2d_integer">iws - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Current frequency slice</pre>
+</dd>
+<dt><strong><a name="item_izs__2d_integer">izs - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Current depth slice</pre>
+</dd>
+<dt><strong><a name="item_ifk__2d_integer">ifk - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Current fk operation</pre>
+</dd>
+<dt><strong><a name="item_ith__2d_integer">ith - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Current thread</pre>
+</dd>
+<dt><strong><a name="item_complex">wfld - <code>complex(:,:,:,:,:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+ Wavefield</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Split step operator. Apply first order slowness correction
+  to wthe wavefield given difference between velocity at
+  location and reference velocity.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p>!
+<a href="./../seplib_base/weissf_init.html">the weissf_init manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<pre>
+ sepweif90</pre>
+
+</body>
+
+</html>

@@ -1,0 +1,166 @@
+=head1 NAME
+
+
+Wiggle - plots wiggle traces
+
+=head1 SYNOPSIS
+
+
+Wiggle < in.H > out.v
+
+=head1 DESCRIPTION
+
+
+Plotting program; displays data as wiggly traces
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item tpow - float 
+
+      [0.]  gain(it) = (it*d1+o1)**tpow, it in samples
+
+=item pclip- int   
+
+      [99]  clip percentile
+
+=item clip - float 
+
+      clip value (if not specified defaults to pclip)
+
+=item n1,n2,n3 - int      
+
+      cube dimensions
+
+=item xpos  - file         
+
+      header file containing n2 X values for the n2 traces
+
+=item overplot,preder,seeman - char 
+
+      [0]  (0,1 n,y)
+
+=item poly   -    char    
+
+      [0]   (0,1 n,y) Fills the wiggle trace where it is positive
+
+=item fatp, xmask, ymask  - char     
+
+      see libvplot vp_area.
+
+=item pad    - char      
+
+      (0,1 n,y)  (If user specifies mins or maxes then
+      padding is turned off unless pad is specified.
+      pad is useful if you want the length of the plot
+      to be the same as the length of the graph.
+
+=item zplot  -float       
+
+      [.75]
+
+=item transp  - char     
+
+      [1] whether or not to transpose output (standard vplot)
+
+=item xreverse,yreverse -char 
+
+      standard vplot definitions for output file
+
+=item screenht-float     
+
+      [10.24] height of output medium
+
+=item screenwd-float     
+
+      [13.75] width of output medium
+
+=item screeratio-float   
+
+      [.75] ratio of screen height to width
+
+=item  xll,yll,xur,yur - float
+
+          set B<l>ower B<l>eft and B<u>pper B<r>ight coordinates
+
+
+
+=item xinch - float      
+
+      [10.24] standard vplot definition
+
+=item yinch - float      
+
+      [7.5] standard vplot definition
+
+=item crowd,crowd1,crowd2 - float 
+
+      [.75]  crowd1=crowd  crowd2=crowd 
+      (.75< crowd < 1.) crowd labels off the 
+      screen by expanding data on 1 or 2 axis.
+
+=item wantframe,wantframenum - char 
+
+      standard vplot definitions (0,1, n,y)
+
+=item wantaxis,wantaxis1,wantaxis2 - char
+
+      [1] standard vplot definition (0,1 n,y)
+
+=item min1,min2,max1,max - float 
+
+      standard vplot definitions
+
+=item axisor1,axisor2  - float [min1],[min2] 
+
+      standard vplot definition
+
+=item o1num,o2num,d1num,d2num - float
+
+      standard vplot definition
+
+=item n1tic,n2tic - int
+
+      [1] number of tics
+
+=item wheretics - char 
+
+      [f] (f,a) where to put tics (frame, axes)
+
+=item wheretitle -char 
+
+      [t] (t,b,l,r) where to put title
+
+=item wherexlabel - char 
+
+      [b] (t,b) where to put x label
+
+=item whereylabel - char 
+
+      [l] (l,r) where to put y label
+
+=item titlefat,labelfat - int 
+
+      [1] makes title and label fat
+
+=back
+
+=head1 SEE ALSO
+
+
+L<Graph>,L<Grey>,L<xtpen>,L<Thplot>,L<Cubeplot>
+
+=head1 CATEGORY
+
+
+B<sep_graphics>
+
+=head1 COMPILE LEVEL
+
+
+DISTR
+
+=cut
+

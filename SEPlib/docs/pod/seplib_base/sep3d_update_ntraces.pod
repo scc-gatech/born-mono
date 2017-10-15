@@ -1,0 +1,40 @@
+=head1 NAME
+
+
+sep3d_update_ntraces - Update the traces of a dataset
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3d_update_ntraces(struct)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure
+
+=back
+
+=head1 DESCRIPTION
+
+
+ All write statements count the number of traces written out. This routine will
+ transfer that count to the ntraces of the dataset
+
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

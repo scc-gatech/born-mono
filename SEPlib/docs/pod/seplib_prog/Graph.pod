@@ -1,0 +1,288 @@
+=head1 NAME
+
+
+Graph - line plot
+
+=head1 SYNOPSIS
+
+
+Graph [par=] [<in.H] | Tube
+
+=head1 DESCRIPTION
+
+
+Line plot of a seplib file
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item n1 - int 
+
+      REQUIRED
+
+=item n2,n3 - int 
+
+      defaults to the number of different values of n1
+
+=item d1,d2,d3 - float 
+
+      [1.],[1.],[1.] float standard seplib
+
+=item o1,o2,o3 - float 
+
+      [0.],[0.],[0.] float standard seplib
+
+=item esize    - int   
+
+      [4]  (4,8)
+
+=item pad       -char  
+
+      [1] (0,1 n,y)  (If user specifies mins or maxes then 
+      padding is turned off unless pad is specified. 
+      pad is useful if you want the length of the plot 
+      to be the same as the length of the graph.  
+
+=item transp    -char  
+
+      [0] =1 flips the first and second axes 
+
+=item xreverse  -char  
+
+      [0] =1 reverses the x axis
+
+=item yreverse  -char  
+
+      [0]   (0,1 n.y) =1 reverses the y axis
+
+=item screenht  -float 
+
+      [10.24] sets screen height
+
+=item screenwd  -float 
+
+      [13.75] sets screen width
+
+=item screenratio -float 
+
+      [.75] sets height vs. width ratio
+
+=item xinch,yinch -float 
+
+      [10.24],[7.5]
+
+=item crowd,crowd1,crowd2 -float 
+
+      [.75] [crowd1=crowd][crowd2=crowd] 
+      (.75< crowd < 1.) crowd labels off the 
+      screen by expanding data on 1 or 2 axis.
+
+=item xll,yll,xur,yur - float 
+
+      set Lower Left and Upper Right coordinates
+
+=item wantframe - char 
+
+      [1] makes a box around the graph
+
+=item wantframenum -char 
+
+      [1] (0,1, n,y) gives number of the current frame in a movie
+
+=item wantaxis,wantaxis1,wantaxis2 - char 
+
+      [1] turns on axes
+
+=item min1, min2, max1, max2- float
+
+      sets minimum and maximum values for the graph
+
+=item axisor1, axisor2 - float 
+
+      [min1],[min2] sets the minimum value on the axes
+
+=item o1num, o2num, d1num, d2num- float
+
+      set tic spacing on axes
+
+=item n1tic,n2tic - int 
+
+      [1] set number of tics
+
+=item wheretics - char 
+
+      [f] (f,a) where to put tics (frame, axes)
+
+=item wheretitle -char 
+
+      [t] (t,b,l,r) where to put title (top,bottom,left,right)
+
+=item wherexlabel - char 
+
+      [b] (t,b) where to put x axis label (top,bottom)
+
+=item whereylabel - char 
+
+      [l] (l,r) where to put y axis label (left, right)
+
+=item titlefat,labelfat - int 
+
+      [1] makes the text fat
+
+=item label1,label2 - char* 
+
+      label for axes
+
+=item title - char* 
+
+      title for plot
+
+=item titles - char* 
+
+      title for different planes separated by colons 
+      first:second:third
+
+=item labelsz - int 
+
+      [8] font size for labels
+
+=item titlesz - int 
+
+      [10] font size for titles
+
+=item labelrot - char 
+
+      [y] (0,1 n,y) rotate labels 90 degrees
+
+=item grid,grid1,grid2 - char 
+
+      [0]   (0,1 n,y) turns on grid
+
+=item g1num,g2num - float 
+
+      [d1num],[d2num] grid spacing
+
+=item gridcol - int 
+
+      [axiscol] color of grid 
+
+=item backcol  - float* 
+
+      [0,0,0] background color (R,G,B) between 0 and 1
+
+=item fillcol  - float* 
+
+      [backcol(0,0,0)] fill color (R,G,B) between 0 and 1
+
+=item plotcol  - int*  
+
+      [6,5,4,3,2,1,...] color for each line plotted
+
+=item axiscol  - int*  
+
+      [7,7,7,7,...] color for each axis
+
+=item plotfat  - int*  
+
+      [0,0,0,...] makes plotted line fat
+
+=item axisfat  - int*  
+
+      [0,0,0,...] makes axes fat
+
+=item legend   - char  
+
+      [n] whether or not you want a legend
+
+=item legendtitle-char* 
+
+      ['Legend'] Title for legend
+
+=item legendloc -char*  
+
+      [br, bottom right] Location for legend
+
+=item legendpos -float[2]
+
+      Legend location.  Specifiy screen coordinates (e.g 10.2,6.1)
+
+=item legendsz  -int  
+
+      [7] Legend text size
+
+=item curvelabel-char*  
+
+      [curve number] : list of curve labels
+
+=item legendfat -int   
+
+      [0] makes legend fat
+
+=item plot_amp -  sepfile
+
+     [none]   file containg amplitudes to use instead of base color
+
+=item color -  char*
+
+     [I]    colortable when using plotamp
+
+
+
+=item arrow    -  char  
+
+      [0] (0,1 n,y) for complex data, makes arrows rather than lines
+
+=item dash     -  int*  [0]
+
+      0 default is continuous.
+      1 fine dash
+      2 fine dot
+      3 dash
+      4 large dash
+      5 dot dash
+      6 large dash smalldash
+      7 double dot
+      8 double dash
+      9 loose dash  The  part  after  the decimal point
+        determines the pattern repetition interval
+
+=back
+
+
+
+=head1 EXAMPLES
+
+
+   Graph n1=50,100,20 d1=2.5,1,0.33 in=datafile | Tube
+     plots three curves  in  one  plot  frame  on  the  screen  horiz
+     coordinates are t(i)  =  o1+i*d1  for  i=0  to  n1-1  (o1=0  by  default)
+     vert coordinates are read sequentially from datafile--50 vert-coordinates
+     for  the  1st plot, 100 for the 2nd, 20 for the 3rd.
+
+     Graph n1=100 esize=8 n2=4 n3=10 symbol='*x%$'<datafile >Hplotfile 
+     This reads n1=100 x,y pairs sequentially from datafile for each of  
+     n2=4 plots, All on the same Graph.  This is repeated for each of the 
+     10 Movie frames; The plot axes, etc, are determined for each frame. 
+     Hplotfile will be a SEPLIB header file pointing to a file containing 
+     vplot commands to plot the character '*' at each of the 1st 100 points, 
+      'x'  at each of the 2nd 100 points, etc, for each Movie frame.
+
+=head1 SEE ALSO
+
+
+L<Dots>,L<Histogram>,L<xtpen>
+
+=head1 CATEGORY
+
+
+B<sep_graphics>
+
+=head1 COMPILE LEVEL
+
+
+DISTR
+
+=cut
+

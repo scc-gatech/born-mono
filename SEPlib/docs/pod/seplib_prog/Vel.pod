@@ -1,0 +1,153 @@
+=head1 NAME
+
+
+Vel - Make velocity model
+
+=head1 SYNOPSIS
+
+
+	Vel  >out.H pars
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item    n1,n2,n3,o1,o2,o3
+
+         Standard SEPlib
+
+=item vc -       real
+
+      [2000.] Background velocity
+
+=item  hgrad-     real
+
+       [0.] Horizontal velocity gradient
+
+=item slow -  integer
+
+      [0] velocity, 1-slowness
+
+=item transp-    integer
+
+      [0] regular, 1-transpose axis 1 and 2
+
+=item  xa_   -    real
+
+      [o2] left edge of plane reflector
+
+=item xb_   -    real
+
+      [o2+(n2-1)*d2] left edge of plane reflector
+
+=item alfa_ -    real
+
+      [0.] dip in degress
+
+=item z_    -    real
+
+      [o1+(n1-1)*d1] depth at xa
+
+=item vr_   -    real
+
+      velocity below reflector
+
+=item const_-    integer
+
+      [0] grad, 1= velocity is constant below reflector
+
+=item smooth-    real
+
+      linear velocity under reflector from vr_ to smooth_
+
+=item  sin_period-real
+
+       [10*d2] period of sinusoid
+
+=item sin_amp-   real
+
+      amplitude of sinusoid
+
+=item sin_vel_up-real
+
+      [0.] velocity perturbation above reflector
+
+=item sin_vel_down-real
+
+      [0.] velocity perturbation below reflectr
+
+=item sin_z_x0-   real
+
+      [o2] zero crossing of sine
+
+=item sinz  -    real
+
+      [-o1] depth at sin_z_x0
+
+=item xan   -    real
+
+      [0.] coordinate center of anomaly
+
+=item  zan   -    real
+
+       [0.] coordinate center of anomaly
+
+=item ranx  -    real
+
+      [-1.] coordinate center of anomaly
+
+=item  ranz  -    real
+
+       [-1.] coordinate center of anomaly
+
+=item exan  -    real
+
+      [1] sharpness of anomaly
+
+=item  rankx -    real
+
+       [-1.]  differential sharpness of in x
+
+=item rankz -    real
+
+     [-1.]  differential sharpness of in z
+
+=item  exank -    real
+
+       [exan] differential sharpness of anomaly
+
+=item widthan-   real
+
+      [1] scale width of anomaly
+
+=item dvan   -   real
+
+      [0] Maximum value of anomaly at (xan,zan)
+
+=item  dvank  -   real
+
+      [dvan] For flat-topped anomalies
+
+=back
+
+
+
+=head1 DESCRIPTION
+
+
+	Makes velocity models in  2-D and 2.5-D
+ (i.e. 2-D models replicated alonb the 3rd axis)
+
+=head1 SEE ALSO
+
+
+L<Gauss>, L<Spike>
+
+=head1 CATEGORY
+
+
+B<seis/model>
+
+=cut
+

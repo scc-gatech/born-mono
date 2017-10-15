@@ -1,0 +1,97 @@
+!!$=head1 NAME
+!!$
+!!$Kolmogorov - Minimum phase rearrangement of input filter (N-dimensional!)
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Kolmogorov < infilt.H  > outfilt.H all_lags=n
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Applies Kolomgorov spectral factorization to generate minimum phase
+!!$equivalent to the input filter.  If all_lags=n output is same size
+!!$as input. If all_lags=y output is filled in to the furthest input lag.
+!!$
+!!$=head1 MODULES
+!!$
+!!$F<kolomgorov.lop>
+!!$
+!!$=cut
+!%
+
+program Kolmogo
+	use sep
+	use pvi
+
+	implicit none
+
+	integer                             :: ia, na, nx, stat, dim,icenter,i
+	real                                :: a0
+	logical                             :: adj, add = .false., div
+	logical                             :: myregrid,mybound
+	real, dimension (:), allocatable    :: pp
+	complex, dimension (:), allocatable :: cpp
+	integer, dimension (:), allocatable :: lag
+        logical                             :: all_lags
+
+        call SEP_ADD_DOC()
+	call sep_init ('')
+        call sep_begin_prog()
+	call from_history ("n1",na)
+        if(0 == getch("all_lags","1",all_lags)) then
+            all_lags = .false.
+        endif
+
+        allocate (lag(na))
+
+	! get parameters
+	call from_history ("a0", a0, 1.)
+	call from_history ("lag", lag, (/ (ia, ia = 1, na) /))
+
+	! allocate space for data
+	nx = 1 + lag(na)
+	allocate (pp (na))
+	allocate (cpp (nx))
+
+        cpp = CMPLX(0.0,0.0)
+	! read in data
+	call sep_read (pp)
+        do i = 1,na
+           cpp(1+lag(i)) = cmplx(pp(i),0.0)
+        enddo
+        cpp(1) = a0
+        call ftu(1.,nx,cpp)
+        do i = 1,nx
+           cpp(i) = cpp(i)*conjg(cpp(i))
+        enddo
+        call kolmogoroff(nx,cpp)
+        a0 = a0/REAL(cpp(1))
+        if (all_lags) then
+           deallocate(lag)
+           deallocate(pp)
+           allocate (lag (nx-1))
+           allocate (pp (nx-1))
+           do i = 1,nx-1
+              lag(i) = i
+           enddo
+           call to_history("na",nx-1)
+           call to_history("n1",nx-1)
+           call to_history("lag",lag)
+           do i = 1,nx-1
+              pp(i) = a0*REAL(cpp(1+i))
+           enddo
+        else
+           do i = 1,na
+              pp(i) = a0*REAL(cpp(1+lag(i)))
+           enddo
+        endif
+
+	call hclose ()
+
+	call sep_write (pp)
+
+	! clean up 
+	deallocate (pp, cpp)
+	call sep_end_prog()
+
+end program Kolmogo

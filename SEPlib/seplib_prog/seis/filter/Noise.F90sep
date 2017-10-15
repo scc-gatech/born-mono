@@ -1,0 +1,255 @@
+!!$=head1 NAME
+!!$
+!!$Noise - Add or create noise
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Noise < in.H > out.H
+!!$
+!!$Noise file=file.H
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item in.H,file.H - sepfile
+!!$
+!!$      Input dataset to add noise to
+!!$
+!!$=item type - integer
+!!$
+!!$      [0]: uniform, 1: normal, 2: gamma, 3: chisq, 4: exponential
+!!$      5: weibul, 6: poisson, 7: binomial
+!!$
+!!$=item rep  - integer
+!!$
+!!$      [0]: replace traces with noise trace. 1 to output noise only
+!!$
+!!$=item seed - integer
+!!$
+!!$      [date]: random number initializer
+!!$
+!!$=item maxsize- integer
+!!$
+!!$      [500000]: maximum memory allocated in bytes
+!!$
+!!$=item max_size- integer
+!!$
+!!$      [5]: maximum memory allocated in megabytes
+!!$
+!!$=item mean - real
+!!$
+!!$      [0.]: mean of noise
+!!$
+!!$=item var  - real
+!!$
+!!$      [.3]: variance of noise (normal distribution)
+!!$
+!!$=item shape  - real
+!!$
+!!$      [1.]: shape for gamma distribution
+!!$
+!!$=item ndf    - integer
+!!$
+!!$      [1]: number of degrees of freedom, chisq
+!!$
+!!$=item weib   - real
+!!$
+!!$      [1.]: weibul distribution parameter
+!!$
+!!$=item trials - integer
+!!$
+!!$      [1]:  number of trials [binomial]
+!!$
+!!$=item prob   - real
+!!$
+!!$      [.5]: probability of success for binomial trial
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Add noise to traces
+!!$
+!!$=head1 EXAMPLE
+!!$
+!!$		Noise < in.H > out.H
+!!$			XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/filter>
+!!$
+!!$=cut
+!
+! COMPILE LEVEL
+! DISTR
+!
+!
+!>
+!-------------------------------------------------
+!
+!Author: Robert Clapp, ESMB 463, 7230253
+!
+!Date Created:Wed Oct  1 19:44:56 1997
+!
+!Purpose:
+!
+program Noisey  
+  use sep
+  use sep_3d_mod
+  use random
+  implicit none
+  integer :: i1,n1,n,i3,ndim,ierr,maxsize,mem,read,remaining
+  integer :: esize,type,rep,seed,ndf,trials
+  integer, pointer :: seed_it(:)
+  real :: o,d,mean,var,shape,weib,prob
+  character(len=128) :: label,file
+  real,dimension(:), allocatable :: array,noise
+  logical :: one_file,first
+  call SEP_ADD_DOC()
+  call sep_init('')
+  call sep_begin_prog()
+  call from_param("file",file,"in")
+  if (file(1:2).ne."in") then
+    file="                                   "
+    file="in"
+    one_file=.true.
+    first=.true.
+    call set_no_putch()
+    call auxinout(file)
+  else
+    one_file=.false.
+  end if 
+! get parameters
+  call from_aux(file,"n1",n1)
+  call from_aux(file,"esize",esize,4)
+  call from_param("max_size",maxsize,5)
+  call from_param("maxsize",maxsize,maxsize*1000*1000)
+  call from_param("seed",seed,-1)
+  call from_param("ndf",ndf,1)
+  call from_param("type",type,1)
+  call from_param("rep",rep,0)
+  call from_param("trials",trials,1)
+  call from_param("mean",mean,0.)
+  call from_param("shape",shape,1.)
+  call from_param("weib",weib,1.)
+  call from_param("prob",prob,.5)
+  ierr= sep_get_number_data_axes(trim(file)//C_NULL_CHAR,ndim)
+  var=.3
+  call from_param("var",var,var)
+  mem=maxsize
+  if (mem <1) then
+    call erexit("can not read in a single point increase maxsize")
+  end if
+  call from_param("var",var,.3)
+  n1=1
+  if (ndim>0) then
+    do i3=1,ndim 
+      if(0.ne. sep_get_data_axis_par(file,i3,n,o,d,label))&
+       call seperr("trouble getting data axis par")
+      n1=n1*n
+    end do
+  end if
+! allocate working space
+  allocate(array(mem),noise(mem),stat=ierr)
+  if (ierr.ne.0) then
+    call erexit("trouble allocating memory, try reducing maxsize")
+  end if
+  array=0.
+!INITIALIZE RANDOM GENERATOR
+call random_seed(size=i1)
+allocate(seed_it(i1))
+  if (seed.ne.-1) then
+    seed_it=seed
+    if (seed_it(1).eq.0) then
+      seed_it=2000
+    end if
+    call random_seed(put=seed_it)
+  end if
+!INITIALIZE SPECIFIC GENERATOR WHEN NECESSARY
+  select case(type)
+    case (0) 
+    call from_param("mean",mean,0.)
+    call from_param("var",var,.3)
+    write(0,*) mean,"=mean uniform distribution var=",var
+    case(1)
+    write(0,*) mean,"=mean normal distribution var=",var
+    case (2)
+    write(0,*) "gamma distribution shape=",shape
+    noise(1)=random_gamma(shape,.true.)
+    case(3)
+    write(0,*) "chisqr distribution shape=",ndf
+    noise(1)=random_chisq(ndf,.true.)
+    case(4)
+    write(0,*) "exponential distribution"
+    case(5)
+    write(0,*) "weibul distribution weibul parameter=",weib
+    case(6)
+    write(0,*) "Poisson distribution mean=",mean
+    noise(1)=random_poisson(mean,.true.)
+    case(7)
+    write(0,*)prob,"=probability Binomial distribution number of trials="&
+      &,trials
+    noise(1)=random_binomial1(trials,prob,.true.)
+    case default
+    call erexit("Unrecognized distribution")
+  end select 
+!LOOP OVER DATA
+  remaining=n1*esize/4
+  do while (remaining>0)
+    read=min(remaining,mem)
+!UNIFORM DISTRIBUTION
+    select case(type)
+      case(0) !UNIFORM
+      call random_number(noise)
+!FOR UNIFORM DISTRIBUTION [0,1] VARIANCE IS 1/3 MEAN .5 SO CORRECT
+!FOR INPUT PARAMETERS
+      noise=(noise-.5)*(var*6.)+mean
+      case(1) !NORMAL
+      do i1=1,read
+        noise(i1)=random_normal()
+      end do 
+!FOR NORMAL  MEAN + VARIANCE * NOISE
+      noise=mean+sqrt(var)*noise
+      case(2) !GAMMA
+      do i1=1,read
+        noise(i1)=random_gamma(shape,.false.)
+      end do 
+      case(3) !CHI SQ
+      do i1=1,read
+        noise(i1)=random_chisq(ndf,.false.)
+      end do 
+      case(4) !EXPONENTIAL
+      do i1=1,read
+        noise(i1)=random_exponential()
+      end do 
+      case(5) !WEIBUL
+      do i1=1,read
+        noise(i1)=random_Weibull(weib)
+      end do 
+      case(6) !CHI SQ
+      do i1=1,read
+        noise(i1)=random_Poisson(mean,.false.)
+      end do 
+      case(7) !BINOMIAL
+      do i1=1,read
+        noise(i1)=random_binomial1(trials,prob,.false.)
+      end do
+    end select 
+    if (rep.eq.0) then
+      ierr= sreed(file,array,read*4)
+      array=array+noise
+    else
+      array=noise
+    end if 
+    if (one_file) then
+      ierr= sseek(file,-read*4,1)
+      ierr= srite(file,array,read*4)
+    else
+      ierr= srite("out",array,read*4)
+    end if 
+    remaining=		remaining-read
+  end do 
+  call sep_end_prog()
+end program  

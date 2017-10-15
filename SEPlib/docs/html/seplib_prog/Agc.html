@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Agc - Automatic gain control with first arrival detection</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT  PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#example">EXAMPLE</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Agc - Automatic gain control with first arrival detection</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Agc window=200 detect=0 dwind=10 thresh=25. &lt; in.H &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT  PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_window__2d_integer">window   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [200]: length of the window in number of samples</pre>
+</dd>
+<dt><strong><a name="item_dwind__2d_integer">dwind    - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [10]: length of the detection window in number of samples</pre>
+</dd>
+<dt><strong><a name="item_detect__2d_integer">detect   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]:  detection off (Default value)    1:  detection on</pre>
+</dd>
+<dt><strong><a name="item_thresh__2d_real">thresh   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [25.]: threshold (see comments below)</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3__2d_integer">n1,n2,n3 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard seplib parameters</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Gain program with first arrival detection</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+        Agc gains seismic traces by normalizing each sample by the
+        power of a window of samples surrounding that point.</pre>
+<pre>
+        When the detect= is set to 1, agc is not applied on a trace
+        until a first arrival is detected. The first arrival is  
+        detected when a moving dwind exceeds an initial dwind by a 
+        threshold factor.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="example">EXAMPLE</a></h1>
+<pre>
+        Agc &lt; in.H window=200 detect=1 dwind=10 thresh=25. &gt; out.H</pre>
+<pre>
+        Applies agc on a trace based on a trace window of 200 samples. 
+        Agc is only applied after the first arrival has been detected 
+        using a detection window of 10 samples. The detection of the 
+        first arrival is based on an amplitude change between consecutive 
+        detection windows of 25%.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

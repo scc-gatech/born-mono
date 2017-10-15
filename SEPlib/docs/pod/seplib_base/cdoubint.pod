@@ -1,0 +1,44 @@
+=head1 NAME
+
+
+cdoubint - Double causal integration
+
+=head1 SYNOPSIS
+
+
+C<call cdoubint_init(nx)>
+
+C<ierr=cdoubint_lop(adj,add,x,y)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item nx - integer
+
+      number of data points
+
+=item adj,add,x,y  -
+
+      standard operator interface
+
+=back
+
+=head1 DESCRIPTION
+
+
+Double causal integration
+
+=head1 SEE ALSO
+
+
+L<causint>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

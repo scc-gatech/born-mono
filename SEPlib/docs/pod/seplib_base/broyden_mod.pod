@@ -1,0 +1,46 @@
+=head1 NAME
+
+
+broyden_mod - on step of broyden_method
+
+=head1 SYNOPSIS
+
+
+INIT:  C<call broyden_init()>
+
+OPERATOR:C<ierr= brodyen(forget,x,g)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item forget - logical
+
+      Wheter or not to forget previous step
+
+=item x      - C<real(:)>
+
+      Model
+
+=item g      - C<real(:)>
+
+      Gradient
+
+back
+
+=head1 DESCRIPTION
+
+
+One step of brodyen method
+
+=head1 head1 SEE ALSO
+
+
+L<nonlin_solver>, L<cgstep>
+
+!!=head1 $head1 LIBRARY
+
+B<geef90>
+=cut
+

@@ -1,0 +1,238 @@
+!!$=head1 NAME
+!!$
+!!$Gauss - Make gaussian anomalies
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Gauss.x   >out.H pars
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item velback - real
+!!$
+!!$     [0.] background velocity
+!!$
+!!$=item n1 - integer
+!!$
+!!$     [1]  first axis dimension
+!!$
+!!$=item n2 - integer
+!!$
+!!$      [1]  second axis dimension
+!!$
+!!$=item n3- integer
+!!$
+!!$     [1]  third axis dimension
+!!$
+!!$=item o1- real
+!!$
+!!$      [0.]  first axis origin
+!!$
+!!$=item o2- real
+!!$
+!!$      [0.]  second axis origin
+!!$
+!!$=item o3- real
+!!$
+!!$      [0.]  third axis origin
+!!$
+!!$=item d1      - real
+!!$
+!!$      [1.]  first axis sampling
+!!$
+!!$=item d2      - real
+!!$
+!!$      [1.]  second axis sampling
+!!$
+!!$=item d3      - real
+!!$
+!!$      [1.]  third axis sampling
+!!$
+!!$=item ngauss  - integer
+!!$
+!!$      [1]  number of gaussian anomalies
+!!$
+!!$=item maxvel  - real
+!!$
+!!$      [1.]  maximum deviation from background
+!!$
+!!$=item var     - real
+!!$
+!!$      [1.]  variance  of gaussian anomalies
+!!$
+!!$=item max1    - real
+!!$
+!!$      [center of axis 1]location of maximum along 1 dimension
+!!$
+!!$=item max2    - real
+!!$
+!!$      [center of axis 2]location of maximum along 2 dimension
+!!$
+!!$=item max3    - real
+!!$
+!!$      [center of axis 3]location of maximum along 3 dimension
+!!$
+!!$=item zero_at -real
+!!$
+!!$      distance to zero anomaly
+!!$
+!!$=back
+!!$
+!!$=head1 OUTPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item out.H - sepfile
+!!$
+!!$      SEPlib file with gaussian model
+!!$
+!!$=back
+!!$
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$Makes simple Gaussian anomailes
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/model>
+!!$
+!!$=cut
+!>
+!-------------------------------------------------
+!
+!Author: Robert Clapp, ESMB 463, 7230253
+!
+!Date Created:Wed Oct  1 22:55:02 1997
+!
+!Purpose:
+!
+program Gauss 
+  use sep
+  use sep_3d_mod
+  implicit none
+  integer n1,n2,n3
+  real o1,o2,o3,d1,d2,d3,velback,dist1,dist2,dist3,distance,zero_at
+  integer i1,i2,i3,ngauss,ierr,igauss
+  real,dimension(:,:), allocatable :: array
+  real,allocatable :: max1(:),max2(:),max3(:),maxvel(:),var(:)
+  call SEP_ADD_DOC()
+  call sep_init('')
+  call sep_begin_prog()
+!READ IN THE PARAMETERS
+  call from_param("n1",n1)
+  call from_param("n2",n2,1)
+  call from_param("n3",n3,1)
+  call from_param("ngauss",ngauss,1)
+  call from_param("velback",velback,0.) 
+  call from_param("o1",o1,0.)
+  call from_param("o2",o2,0.)
+  call from_param("o3",o3,0.)
+  call from_param("d1",d1,1.)
+  call from_param("d2",d2,1.)
+  call from_param("d3",d3,1.)
+  if(0.ne. sep_put_data_axis_par("out",1,n1,o1,d1," "))&
+    call seperr("trouble put data axis par")
+  if(0.ne.  sep_put_data_axis_par("out",2,n2,o2,d2," "))&
+    call seperr("trouble put data axis par")
+  if(0.ne.  sep_put_data_axis_par("out",3,n3,o3,d3," "))&
+    call seperr("trouble put data axis par")
+  allocate(maxvel(ngauss),max1(ngauss),max2(ngauss),max3(ngauss),var&
+    &(ngauss))
+  ierr=getch("maxvel","f",maxvel)
+  if (ierr.eq.0) then
+    maxvel=1.
+  else if (ierr.ne.ngauss) then
+    call erexit("number of maxvel not equal to ngauss")
+  end if
+  ierr=getch("max1","f",max1)
+  if (ierr.eq.0) then
+    max1=.5*(2*o1+d1*(n1-1))
+  else if (ierr.ne.ngauss) then
+    call erexit("number of max1 not equal to ngauss")
+  end if
+  ierr=getch("max2","f",max2)
+  if (ierr.eq.0) then
+    max2=.5*(2*o2+d2*(n2-1))
+  else if (ierr.ne.ngauss) then
+    call erexit("number of max2 not equal to ngauss")
+  end if
+  ierr=getch("max3","f",max3)
+  if (ierr.eq.0) then
+    max3=.5*(2*o3+d3*(n3-1))
+  else if (ierr.ne.ngauss) then
+    call erexit("number of max3 not equal to ngauss")
+  end if
+  ierr=getch("var","f",var)
+  if (ierr.eq.0) then
+    var=1.
+  else if (ierr.ne.ngauss) then
+    call erexit("number of var not equal to ngauss")
+  end if
+    if (0>= getch('zero_at','f',zero_at )) then
+      zero_at = 100000000000000000.
+    end if
+    if (0.ne.putch('Read  from param: #zero_at ','f',zero_at)) then
+      call erexit('Trouble writing zero_at to history')
+    end if
+!CHECK TO MAKE SURE ANOMALY CENTERS INSIDE MODEL
+  if (minval(max1) < o1 .and. n1>1) then
+    write(0,*) minval(max1) 
+    call erexit("max1 value less than o1")
+  end if
+  if (maxval(max1) > o1 + d1 * (n1-1) .and. n1>1) then
+    write(0,*) maxval(max1) 
+    call erexit("max1 value more than o1 + d1 * (n1-1)")
+  end if
+  if (minval(max2) < o2 .and. n2>1) then
+    write(0,*) minval(max2) 
+    call erexit("max2 value less than o2")
+  end if
+  if (maxval(max2) > o2 + d2 * (n2-1) .and. n2.eq.1) then
+    write(0,*) maxval(max2) 
+    call erexit("max2 value more than o2 + d2 * (n2-1)")
+  end if
+  if (minval(max3) < o3 .and. n3>1) then
+    write(0,*) minval(max3) ,o3
+    call erexit("max1 value less than o3")
+  end if
+  if (maxval(max3) > o3 + d3 * (n3-1) .and. n3>1) then
+    write(0,*) maxval(max3) ,o3+d3*(n3-1)
+    call erexit("max3 value more than o3 + d3 * (n3-1)") 
+  end if
+  allocate(array(n1,n2),stat=ierr)
+  if (ierr.ne.0) then
+    call erexit("trouble allocating 2-D array")
+  end if
+!WRITE OUT PARAMETERS
+!	to history: integer n1:n1,n2:n2,n3:n3,esize:4
+!	to history: real o1:o1,d1:d1,d2:d2,o2:o2,o3:o3,d3:d3
+  if(0.ne. sep_put_data_axis_par("out",1,n1,o1,d1," "))&
+    call seperr("trouble put data axis par")
+  if(0.ne. sep_put_data_axis_par("out",2,n2,o2,d2," "))&
+    call seperr("trouble put data axis par")
+  if(0.ne. sep_put_data_axis_par("out",3,n3,o3,d3," "))&
+    call seperr("trouble put data axis par")
+  do i3=1,n3 
+    array=velback
+    do igauss=1,ngauss 
+      dist3=max3(igauss)-(o3+d3*(i3-1))
+      do i2=1,n2 
+        dist2=max2(igauss)-(o2+d2*(i2-1))
+        do i1=1,n1 
+          dist1=max1(igauss)-(o1+d1*(i1-1))
+          distance=sqrt(dist1**2 + dist2**2 + dist3**2)
+!					write(0,*) "distance",distance
+          if (distance< zero_at) then
+            array(i1,i2)=						array(i1,i2)+ maxvel(igauss) * exp(-.5*&
+              & distance/sqrt(var(igauss)))
+          end if
+        end do
+      end do
+    end do 
+    ierr= srite("out",array,n1*n2*4)
+  end do 
+  call sep_end_prog()
+end program  

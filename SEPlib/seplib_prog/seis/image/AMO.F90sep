@@ -1,0 +1,169 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$AMO - performs Azimuth moveout
+!!$
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$AMO par=parametersfile <in.H >out.H
+!!$
+!!$=head1 INPUT DATA
+!!$
+!!$  [in.H] regularly sampled, common azimuth and offset data cube.
+!!$
+!!$  Axes: (cmp_x, cmp_y, time). Offset vector specified by H1x, H1y
+!!$
+!!$=head1 OUTPUT DATA
+!!$
+!!$  [out.H] regularly sampled, common azimuth and offset data cube.
+!!$
+!!$  Axes: (cmp_x, cmp_y, time). Offset vector specified by H2x, H2y
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item  H1x- float
+!!$
+!!$    [1.96961558] component of the HALF-offset vector for in.H
+!!$
+!!$=item  H1y- float
+!!$
+!!$    [0.347296387] the other component of HALF-offset for in.H
+!!$
+!!$=item  H2x- float;
+!!$
+!!$    [1.55884564] component of the HALF-offset vector for out.H
+!!$
+!!$=item  H2y- float
+!!$
+!!$    [0.899999976] the other component of HALF-offset for out.H
+!!$
+!!$=item  t_min_log- float
+!!$
+!!$   [0.04] minimum cutoff time for logstretch. Must be >0 !
+!!$
+!!$=item  fk_filter- logical
+!!$
+!!$    [y] indicates whether fk filtering is desired
+!!$
+!!$=item  v_min- float
+!!$
+!!$    [2.] minimum apparent velocity of events (for the fk filter)
+!!$
+!!$    Units should correspond to the distance units in in.H
+!!$
+!!$=item  f_max- float
+!!$
+!!$    [100.] maximum frequency (Hz) present in the data (for logstretch
+!!$     antialiasing)
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Transform data from one offset and azimuth to another.
+!!$
+!!$=head1 COMMENTS
+!!$
+!!$=over 4
+!!$
+!!$=item  NOTE: This AMO implementation is discussed in detail in 'Effective
+!!$
+!!$              AMO implementation in the log-stretch, frequency-wavenumber
+!!$
+!!$             domain', by Ioan Vlad and Biondo Biondi, Report SEP-110,
+!!$
+!!$              Aug. 2001, pp. 63-71
+!!$
+!!$=item  NOTE: The code uses OpenMP parallelization, it detects the number
+!!$
+!!$        of threads itself.
+!!$
+!!$=item  NOTE: The program has been tried with 0<t_min_log<o1, but it should
+!!$
+!!$              work for any t_min_log>0, and any o1>=0 for in.H
+!!$
+!!$=back
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/image>
+!!$
+!!$=cut
+program Amo
+! Ioan Vlad, Biondo Biondi, August 2001
+  use sep
+  use amo_logstretch_mod
+  use amo_types_mod
+
+  implicit none
+  type(amo_param_type)                   :: p
+  real,    allocatable, dimension(:,:,:) :: realcube
+  complex, allocatable, dimension(:,:,:) :: cmpxcube
+  integer                                :: n1_cmpxcube
+
+  call sep_init('')
+  call SEP_ADD_DOC()
+
+  call from_history("n1",p%n(1))
+  call from_history("n2",p%n(2))
+  call from_history("n3",p%n(3))
+
+  call from_history("o1",p%o(1))
+  call from_history("o2",p%o(2))
+  call from_history("o3",p%o(3))
+ 
+  call from_history("d1",p%d(1))
+  call from_history("d2",p%d(2))
+  call from_history("d3",p%d(3))
+
+  call to_history("n1",p%n(1))
+  call to_history("n2",p%n(2))
+  call to_history("n3",p%n(3))
+
+  call to_history("o1",p%o(1))
+  call to_history("o2",p%o(2))
+  call to_history("o3",p%o(3))
+
+  call to_history("d1",p%d(1))
+  call to_history("d2",p%d(2))
+  call to_history("d3",p%d(3))
+
+  call from_param("H1x"        ,p%hx_inp     )
+  call from_param("H1y"        ,p%hy_inp     )
+  call from_param("H2x"        ,p%hx_out     )
+  call from_param("H2y"        ,p%hy_out     )
+
+  call from_param("t_min_log"  ,p%t_min_log  )
+  call from_param("fk_filter"  ,p%fk_filter  )
+  call from_param("v_min"      ,p%v_min      )
+  call from_param("f_max"      ,p%f_max      )
+
+  call sep_close()
+
+  allocate(realcube(p%n(1),p%n(2),p%n(3))) 
+     call sep_read(realcube)
+     call init_amo_logstretch(p)
+     allocate(cmpxcube(p%n1_cmpxcube,p%n(2),p%n(3)))
+        p%fft_xy_forw=.true.; p%amo=.true.; p%fft_xy_back=.true.
+        call amo_logstretch(p,realcube,cmpxcube)
+!       If you want to do other things in the log-stretch, FFT domain
+!       Replace the two lines above by something like that:
+!          ! Apply log-stretch and 3D FFT to realcube => compute cmpxcube:
+!          p%fft_xy_forw=1; p%amo=0; p%fft_xy_back=0
+!          call amo_logstretch(p,realcube,cmpxcube)
+!          Do something here to cmpxcube
+!          ! If you want, do AMO too: 
+!          p%fft_xy_forw=0; p%amo=1; p%fft_xy_back=0
+!          call amo_logstretch(p,realcube,cmpxcube)
+!          ! Go back to the (cmp_x,cmp_y,time) domain:
+!          p%fft_xy_forw=0; p%amo=0; p%fft_xy_back=1
+!          call amo_logstretch(p,realcube,cmpxcube)
+     deallocate(cmpxcube)
+     call clean_amo_logstretch
+     call sep_write(realcube)
+  deallocate(realcube)
+
+end program Amo

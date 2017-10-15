@@ -1,0 +1,29 @@
+
+
+=head1 NAME
+
+converters - Programs that convert to and from seplib types
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Programs that convert to and from seplib types
+
+=head1 PROGRAMS
+
+
+L<Segy2sep> - Programs that convert to and from seplib types
+
+
+
+L<Sep2segy> - Convert from SEPlib3d to  segy
+
+L<Sep2su> - convert from sep3d to su
+
+L<Su2sep> - convert from su to sep3d
+
+
+=cut 

@@ -1,0 +1,50 @@
+=head1 NAME
+
+
+sep3d_with_drn - sets
+
+
+=head1 SYNOPSIS
+
+
+C<ndim= sep3d_with_drn(without,with)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item without  -  sep3d
+
+      structure  without drn
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item with  -  sep3d
+
+      structure  without drn included
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Returns the sep3d structure with the drn record number included in the
+  correct key position
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

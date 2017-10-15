@@ -1,0 +1,65 @@
+=head1 NAME
+
+
+Fold3d - Calculate fold maps of a SEP3d dataset
+
+=head1 SYNOPSIS
+
+
+Fold3d  <in.H >out.H
+
+=head1 INPUT PARMAETERS
+
+
+=over 4
+
+=item max_size-
+
+      integer [10] maximum memory in megabytes
+
+=item compress-
+
+      integer(:) [none] which axes to compress (see examples below)
+
+=item verb- logical
+
+      [n]   whether or not to be verbose
+
+=back
+
+=head1 DESCRIPTION
+
+
+Calculate fold maps of SEP3d datasets. These maps may be of any number
+		of dimensions (see examples below).
+
+=head1 Examples
+
+
+Given a dataset with grid axes
+
+axis2=trace_in_bin; axis3=aoffset; axis4=cmp_x; axis5=cmp_y
+
+
+ Fold3d < sep3d.H compress=2 > new.H
+  will create a fold map of dimensions (aoffset,cmp_x,cmp_y)
+
+ Fold3d < sep3d.H compress=2,3 >new.H
+  will create a fold map of dimensions (cmp_x,cmp_y)
+
+ Fold3d < sep3d.H compress=2,3,5 >new.H
+  will create a fold map of dimensions (cmp_x)
+
+
+=head1 SEE ALSO
+
+
+L<Sort3d>
+
+=head1 CATEGORY
+
+
+B<util/cube>
+
+=cut
+

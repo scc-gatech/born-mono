@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>weicam - one depth step of common azimuth migration</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<pre>
+  integer function weicam_init() result(st)
+    integer :: er
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weicam_init'
+    if(run%debug) call in(unit)
+#endif</pre>
+<pre>
+    !! init SSR
+    call from_param(&quot;nkxko&quot;,nkxko,2001)
+    call from_param( &quot;kxko&quot;, kxko,2.)
+    call dsr_init(kxko,nkxko,kzko,tkzko,exp_kzko,ikzko,dkxko,nkxko,idkzko,rdkzko)
+    call  comaz_init(kxko,nkxko)</pre>
+<p>#ifdef DEBUG
+    <code>if(run%debug)</code> call <code>out(unit)</code>
+#endif
+    st=OK
+  end function weicam_init</p>
+<p>
+</p>
+<hr />
+<h1><a name="name">NAME</a></h1>
+<p>weicam - one depth step of common azimuth migration</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+ ierr=weicam(iws,izs,ifk,ith,wfld)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_iws__2d_integer">iws - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  current frequency slice</pre>
+</dd>
+<dt><strong><a name="item_izs__2d_integer">izs - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  current depth slice</pre>
+</dd>
+<dt><strong><a name="item_ifk__2d_integer">ifk - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  current fk operation</pre>
+</dd>
+<dt><strong><a name="item_ith__2d_integer">ith - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  current thread</pre>
+</dd>
+<dt><strong><a name="item_complex">wfld - <code>complex(:,:,:,:,:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+  wavefield</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Common Azimuth Migration  operator</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p>sepweif90</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<pre>
+ L&lt;wei_caminit&gt; L&lt;weiwem&gt;</pre>
+
+</body>
+
+</html>

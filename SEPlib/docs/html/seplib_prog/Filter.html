@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Filter - filter a dataset</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Filter - filter a dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Filter &lt;in.H filter=filter.H pad=zero &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_n1_2cn2_2cn3__2d_integer">n1,n2,n3 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       cube dimensions (n1&lt;4096)</pre>
+</dd>
+<dt><strong><a name="item_n1__2d_integer">n1       - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       length of the filter(from auxilary file)</pre>
+</dd>
+<dt><strong><a name="item_pad__2d_string">pad      - string</a></strong><br />
+</dt>
+<dd>
+<pre>
+       zero: pad data with zeros 
+       duplicate: pad with samples at ends of data</pre>
+</dd>
+<dt><strong><a name="item_filter__2d_char_2a">filter       - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       name of the auxiliary history file containing the filter coefficients</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+  Filtering over 1 dimension performed in the frequency domain
+        The filter is input as the history file</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+        The length of the data when performing the filtering is zero padded 
+        to be the next power of 2 greater than or equal to 
+        max(5/4*n1,n1wavelet).  This avoids wraparound artifacts.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

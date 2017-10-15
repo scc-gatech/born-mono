@@ -1,0 +1,27 @@
+
+
+=head1 NAME
+
+septravel - Functions that calculate traveltimes
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+Functions that calculate traveltimes
+
+=head1 FUNCTIONS
+
+
+
+L<fastmarch> -  travel times using eikonal solver
+
+
+
+L<hwt_trace_rays> - trace rays
+
+L<hwt_travel_cube> - get travel times
+
+=cut 

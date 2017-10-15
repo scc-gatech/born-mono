@@ -1,0 +1,68 @@
+Vplot filter for X11R4, written using the X toolkit (Xt)
+
+
+Author - Steve Cole
+
+The Xtpen source has a long history. The starting point was the code
+for Sunpen, the Sunview vplot filter. I converted this code to XView using
+a sun-supplied conversion script. Then I supplemented that with original
+XView code, especially for colormap handling. Then I removed the dependance
+on pixrect and pixwin graphics, adding some Xlib graphics calls from 
+X11pen, another X11 vplot filter, and by adding new Xlib calls, particularly
+for raster. Then I changed from using XView to Xt.
+
+I would like to acknowledge the people who have worked on the vplot
+filters on which xtpen is based:
+
+sunpen:	Joe Dellinger, Jean-Luc Guiziou, Clement Kostov, Rick Ottolini,
+	Steve Cole
+x11pen:	Stew Levin, Dave Nichols, Rick Ottolini
+xvpen: Dave Nichols, Steve Cole
+
+Rewritten - Dave Nichols
+
+I modified the filter to keep a copy of all images plotted, you can then run
+them in a movie loop. This involved rewriting the file and frame handling
+routines but keeping the basic vplot plotting routines.
+
+Lots of new options, should run movie pretty fast now.
+Added a message window.
+Interact should work.
+
+Look at XTpen.keypad for an example of binding the keypad to skip to a 
+particular frame instantly. Look at XTpen for an example of using xtpen
+to draw full-screen images useful for shooting slides off the workstation
+screen, or for demo purposes.
+
+--------------------------------------------------------------------------
+
+The latest version of xtpen allows you to set its default behaviour using
+the X-resource mechanism. Here is the correspondence between command line
+parameters and resource names as given in the self doc.
+
+Many parameters may have their defaults set in the Xresource database;
+
+here are the equivalent names:
+
+  option name          X-Resource name         Type
+  ===========          ===============         ====
+  stretchy              XTpen.stretchy         Boolean
+  images                XTpen.useImages        Boolean
+  pixmaps               XTpen.usePixmaps       Boolean
+  buttons               XTpen.showButtons      Boolean
+  labels                XTpen.showLabels       Boolean
+  want_text             XTpen.showText         Boolean
+  numcol                XTpen.numCol           int
+  pause                 XTpen.pause            int
+ 
+ 
+At SEP, to set personal defaults you should put resource definitions in your
+~/Setup/Xdefaults file. Here are some lines from my file.
+ 
+XTpen.stretchy:  True
+XTpen.showText:  False
+XTpen.pause:     1
+ 
+These lines make xtpen start up in "stretchy" mode, remove the text
+window (messages go to your terminal), and have a pause of 1 second between
+frames (a value of -1 means stop between frames.)

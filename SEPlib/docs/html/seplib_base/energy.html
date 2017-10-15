@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>energy - calculate energy</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>energy - calculate energy</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>ierr= energy (intag,outtag,data,data2,n1,n2,n3,lwind,j1,n1new,norm,ave)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_intag_2d_char_2a">intag- char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Input tag</pre>
+</dd>
+<dt><strong><a name="item_outtag__2d_char_2a">outtag - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Output tag</pre>
+</dd>
+<dt><strong><a name="item_real">data - <code>real(n1,n2)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Input offset-time gather</pre>
+</dd>
+<dt><strong>data2 - <code>real(n1new,n2)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Output velocity-time gather</pre>
+</dd>
+<dt><strong><a name="item_n1_2d_integer">n1- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Input length1</pre>
+</dd>
+<dt><strong><a name="item_n2__2d_integer">n2 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Length axis2</pre>
+</dd>
+<dt><strong><a name="item_n3__2d_integer">n3 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Length axis3</pre>
+</dd>
+<dt><strong><a name="item_lwind__2d_integer">lwind - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Length of energy window</pre>
+</dd>
+<dt><strong><a name="item_j1_2d_integer">j1- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Spacing betweew centers of energy windows</pre>
+</dd>
+<dt><strong><a name="item_n1new__2d_integer">n1new - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Output fast axis length</pre>
+</dd>
+<dt><strong><a name="item_norm__2d_integer">norm - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Flag for normalizing energy (0,1)</pre>
+</dd>
+<dt><strong><a name="item_ave__2d_integer">ave - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Flag for normalizing window length</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+  Subroutine to calculate energy in running windows along fast data axis</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><strong>Energy</strong></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepfilter</strong></p>
+
+</body>
+
+</html>

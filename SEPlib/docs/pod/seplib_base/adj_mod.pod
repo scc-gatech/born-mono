@@ -1,0 +1,33 @@
+=head1 NAME
+
+
+adj_mod - Simple adjnull function
+
+=head1 SYNOPSIS
+
+
+C<call adjnull(adj,add,x,y)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item adj,add,model,data -
+
+      Standard operator parameters
+
+=back
+
+=head1 DESCRIPTION
+
+
+Erases output if add=.false.
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

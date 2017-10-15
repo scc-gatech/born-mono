@@ -1,0 +1,66 @@
+=head1 NAME
+
+
+Hwt3d - 2-D ray tracing
+
+=head1 SYNOPSIS
+
+
+< velocity.H Hwt2d par= > rays.H
+
+=head1 DESCRIPTION
+
+
+Does Huygens wavefront tracing.  
+Produces a ray database.
+
+=head1 INPUT PARAMETERS
+
+
+=head2 SHOT LOCATION
+
+=over 4
+
+=item xsou - float
+
+=item zsou - float
+
+=back
+
+=head2 RAY PARAMETERS
+
+=item oT    - float
+
+      [0.]
+
+=item nT    - int
+
+      [100] number of traveltime steps
+
+=item dT    - float
+
+      [0.01] traveltime sampling
+
+=item oG    - float
+
+      [0.]
+
+=item nG    - int
+
+      [90] number of shooting directions
+
+=item dG    - float
+
+      [1.0] shooting-angle sampling
+
+=head1 SEE ALSO
+
+
+L<Hwt3d>, L<FMeikonal>, L<hwt_travel_cube>, L<hwt_trace_rays> <Hwt3d>
+
+=head1 CATEGORY
+
+B<seis/travel>
+
+=cut
+

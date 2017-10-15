@@ -1,0 +1,114 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$Halfint - half order integeral filter
+!!$
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Halfint conj=0 inv=0 < in.H > out.H
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item inv - integer
+!!$
+!!$	[0]: half-order integrator .
+!!$	  1: half-order differentiator .
+!!$
+!!$=item conj- integer
+!!$
+!!$	[0]: causal .
+!!$	  1: anticausal .
+!!$
+!!$=item   rho - real
+!!$
+!!$	[1-2/n1]: constant for leaky integration .
+!!$
+!!$=item   n1,n2,n3- integer
+!!$
+!!$        cube dimensions
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$  half-order integral filter on 1-axis with conjugate and inverse.
+!!$  computation in the Fourier domain.
+!!$
+!!$=head1 EXAMPLE
+!!$
+!!$		Halfint < in.H conj=0 inv=1 > out.H
+!!$		computes the causal half-order derivative of the input data
+!!$
+!!$=head1 REFERENCE
+!!$
+!!$		GEE page xxx and PVI page xxxx
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/filter>
+!!$
+!!$=cut
+!>
+! keyword     half-order integrate differentiate canon
+! 4-21-87   jon  coded and installed in canon library.
+program halfint_it  
+  use sep
+  implicit none
+  real,allocatable :: pp(:), qq(:)
+  integer conj,inv, n1,n2,n3
+  call SEP_ADD_DOC()
+  call sep_init('')
+  call sep_begin_prog()
+! read input parameter and allocate working space
+  call from_history("n1",n1)
+  allocate(  pp(n1), qq(n1))
+! call subroutine to do the actual job
+  call setup( n1, pp, qq)
+  call sep_end_prog()
+end program 
+subroutine setup(n1, pp, qq)
+   use sep
+  implicit none
+  integer conj, inv, i1, i2, i3, n1, n2, n3
+  integer :: ierr
+  real  pp(n1), qq(n1), rho
+! get processing flags
+  call from_history("n2",n2)
+  call from_history("n3",n3)
+  call from_param("conj",conj,0)
+  call from_param("inv",inv,0)
+  call from_param("rho",rho,(1.-1./real(n1)))
+! output processing information according to input flags
+  if (conj .eq. 0 .and. inv .eq. 0) then
+    call putlin('Operation is causal half-order integration.')
+  else if (conj .eq. 1 .and. inv .eq. 0) then
+    call putlin('Operation is anticausal half-order integration.')
+  else if (conj .eq. 0 .and. inv .eq. 1) then
+    call putlin('Operation is causal half-order differentiation.')
+  else if (conj .eq. 1 .and. inv .eq. 1) then
+    call putlin('Operation is anticausal half-order differentiation.')
+  end if
+  call hclose()
+  do i3=1,n3  
+    do i2=1,n2  
+! read trace in
+      if ( conj .eq. inv) then
+        ierr= sreed('in', pp, n1*4)
+      else
+        ierr= sreed('in', qq, n1*4)
+      end if 
+!    if( i2==1 && i3==1 ) call hclose() changed by Biondo 2/99
+! compute half derivative
+      call halfint (conj, inv, n1, rho, pp, qq)
+! write trace out
+      if ( conj .eq. inv ) then
+        ierr= srite('out', qq, n1*4)
+      else
+        ierr= srite('out', pp, n1*4)
+      end if
+    end do
+  end do 
+end subroutine  

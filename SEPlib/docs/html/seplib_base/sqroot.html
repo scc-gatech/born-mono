@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sqroot - square root</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#return_value">RETURN VALUE</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sqroot - square root</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>val=sqrt(r,t0,epsilon)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_r__2d_real">r - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number squared</pre>
+</dd>
+<dt><strong><a name="item_t0__2d_real">t0 - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      initial value</pre>
+</dd>
+<dt><strong><a name="item_epsilon__2d_real">epsilon - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      desired precision</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_value">RETURN VALUE</a></h1>
+<dl>
+<dt><strong><a name="item_val__2d_real">val - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      square root</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>Finds the square root of r, starting from t0.</p>
+<p>A simple Newton algorithm.
+The hope is that with a proper choice of t0, 
+it makes less iterations than the system sqrt.</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>``Fast'' square root</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepmath</strong></p>
+
+</body>
+
+</html>

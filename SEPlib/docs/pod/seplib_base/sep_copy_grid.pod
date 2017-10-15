@@ -1,0 +1,46 @@
+=head1 NAME
+
+
+sep_copy_grid - copy a grid  from one tag to another
+
+=head1 SYNOPSIS
+
+
+C<ierr=sep_copy_grid( intag, outtag)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item intag - char* 
+
+      input tag
+
+=item outtag - char* 
+
+      output tag
+
+=back
+
+=head1 RETURN VALUES
+
+
+ 0= if sucessfully copies the grid
+
+ 1= if the grid doesn't exist in the intag
+
+ -1= fails for some other reason
+
+=head1 DESCRIPTION
+
+
+When the grid exists, copies contents from intag to outtag
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

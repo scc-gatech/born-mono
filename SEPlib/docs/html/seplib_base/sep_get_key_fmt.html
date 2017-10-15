@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sep_get_key_fmt - get the format of a key</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameter">INPUT PARAMETER</a></li>
+	<li><a href="#output_parameter">OUTPUT PARAMETER</a></li>
+	<li><a href="#return_value">RETURN VALUE</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sep_get_key_fmt - get the format of a key</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>int sep_get_key_fmt(tag_history,key_index,key_fmt)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameter">INPUT PARAMETER</a></h1>
+<dl>
+<dt><strong><a name="item_char_2a_2dtag_history">char*-tag_history</a></strong><br />
+</dt>
+<dd>
+<pre>
+        tag of History File</pre>
+</dd>
+<dt><strong><a name="item_int_2a__2dkey_index">int* -key_index</a></strong><br />
+</dt>
+<dd>
+<pre>
+        Key Index of Header Key</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameter">OUTPUT PARAMETER</a></h1>
+<dl>
+<dt><strong><a name="item_char_2a__2d_key_fmt">char* - key_fmt</a></strong><br />
+</dt>
+<dd>
+<pre>
+        Key Name of Header Key</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_value">RETURN VALUE</a></h1>
+<pre>
+ -1= if fails for other reasons</pre>
+<pre>
+ 0= if successful</pre>
+<pre>
+ +1= if tag_history is an Sep77 History File</pre>
+<pre>
+ +2= if tag_history is a Sep3d History File but
+      no matching Key Index is in Header Format File</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+   auxpar from the Header Format File for the parameter hdrfmt&quot;#&quot;
+   for a given key_index</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/sep_get_key_index.html">the sep_get_key_index manpage</a>, <a href="./../seplib_base/sep_put_key.html">the sep_put_key manpage</a>, <a href="./../seplib_base/sep_get_key_name.html">the sep_get_key_name manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep3d</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Balance - Perform trace balancing</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Balance - Perform trace balancing</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Balance &lt; in.H bal= oper=0 rms=2000 &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_oper__2d_integer">oper -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]:  compute balance factors from input data, and apply them 
+                to create output.
+          1:  compute balance factors from input data, and output the 
+                balance factors.
+          2:  read in balance factors from auxiliary dataset (bal=), 
+                apply them to main input, and output the trace-balanced data.</pre>
+</dd>
+<dt><strong><a name="item_rms__2d_real">rms  -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [2000]: desired output rms level. If rms=0, balance factors will 
+                be computed to match the rms level of the first live trace.</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3_2dinteger">n1,n2,n3-integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      input cube dimensions</pre>
+</dd>
+<dt><strong><a name="item_bal__2d_char_2a">bal - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      name of auxiliary file containing balance factors (if oper==2)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+   Trace balancing of an entire trace (no windowing).</pre>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<pre>
+        Balance &lt; in.H bal=mybal.txt oper=2 &gt; out.H 
+        Apply balance factors contained in file mybal.txt</pre>
+<pre>
+        Balance &lt; in.H oper=0 rms=2000&gt; out.H 
+        Compute balance factors in a 2000 ms window and 
+        apply to the data.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

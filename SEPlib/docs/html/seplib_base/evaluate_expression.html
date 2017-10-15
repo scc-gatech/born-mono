@@ -1,0 +1,98 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>evaluate_expression - evaluate a mathematical expression</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>evaluate_expression - evaluate a mathematical expression</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>int evaluate_expression(exp,get_val,nvals,result)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_exp__2d_char_2a">exp  - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      mathematical expression</pre>
+</dd>
+<dt><strong><a name="item_get_val__2d_func">get_val - func</a></strong><br />
+</dt>
+<dd>
+<pre>
+      (get_val(char*,double*)) given a name function should
+      return values</pre>
+</dd>
+<dt><strong><a name="item_nvals__2d_int">nvals  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of values to calculate</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_result__2d_double_2a">result  - double*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      expression result</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>User provides a routine (get_val) that is able to return double values
+when given a string, evaluate_expression will evaluate a complicated
+expression.</p>
+<p>Supported Functions (specified by @ at begining):</p>
+<p><table cellspacing="0" cellpadding="0"><tr><td>COS<td>SIN<td>TAN
+<tr><td>ACOS<td>ASIN<td>ATAN
+<tr><td>COSH<td>SINH<td>INT
+<tr><td>EXP<td>LOG<td>SQRT
+<tr><td>ABS SGN</table></p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Math.html">the Math manpage</a>, <a href="./../seplib_prog/Headermath.html">the Headermath manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,17 @@
+# signal advance:    y(iy) = x(iy+jump)
+#
+subroutine advance( adj, add, jump, nx, xx, ny, yy)
+use classutil
+integer ix, iy,     adj, add, jump, nx,     ny
+real                                    xx(nx), yy(ny)
+call adjnull( adj, add,                 xx,nx,  yy,ny)
+do iy= 1, ny {
+        ix = iy + jump
+        if(         ix >= 1 )
+                if( ix <= nx )
+                        if( adj == 0 )
+                                yy( iy) = yy( iy) + xx( ix)
+                        else
+                                xx( ix) = xx( ix) + yy( iy)
+        }
+return; end

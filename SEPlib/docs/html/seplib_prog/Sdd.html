@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Sdd - Convert between formats</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Sdd - Convert between formats</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Sdd esize= ein= real=yes line=8 format=  allpos=n/y &lt; in.H &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_esize__2d_int">esize      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      element size on output file.</pre>
+</dd>
+<dt><strong><a name="item_ein__2d_int">ein       - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      element size on input file.
+      ( if esize is not found in input heade file ).</pre>
+</dd>
+<dt><strong><a name="item_real__2d_int">real      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [yes]  for conversions to or from esize=8. 
+      the imaginary part of the complex numbers is assumed zero
+      no- the real part is assumed zero.</pre>
+</dd>
+<dt><strong><a name="item_line__2d_int">line      - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [8] for conversion to ascii default is to 
+      print 8 numbers per line.</pre>
+</dd>
+<dt><strong><a name="item_format__2d_char_2a">format    - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      format to use in printf for ascii output.
+      [-8.3g]  for float.
+      [-6d]   for bytes and shorts.</pre>
+</dd>
+<dt><strong><a name="item_allpos__2d_char">allpos    - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [n]  y  maps only positive numbers in 0-255</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3__2d_int">n1,n2,n3  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      cube dimensions. (from history)</pre>
+</dd>
+<dt><strong>esize     - int</strong><br />
+</dt>
+<dd>
+<pre>
+      (from history) 0 -ascii float,integer or complex 
+      (complex format i=(0.,1.))
+      1 -movie format (only input)
+      2 -short integer
+      3 -floating point with least significant byte truncated.
+      4 -floating point
+      8 -complex</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Convert from input esize=0,1,2,3,4,8 to output esize=0,1,2,3,4,8</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/info</strong></p>
+
+</body>
+
+</html>

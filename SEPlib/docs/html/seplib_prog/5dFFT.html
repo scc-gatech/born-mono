@@ -1,0 +1,98 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>5dFFT - 5-D in core FFT</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#input">INPUT</a></li>
+	<li><a href="#run_time_parameters">RUN TIME PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>5dFFT - 5-D in core FFT</p>
+<p>
+</p>
+<hr />
+<h1><a name="input">INPUT</a></h1>
+<dl>
+<dt><strong><a name="item_axis1">axis1</a></strong><br />
+</dt>
+<dd>
+Depth/kz
+</dd>
+<p></p>
+<dt><strong><a name="item_axis2">axis2</a></strong><br />
+</dt>
+<dd>
+hx/khx
+</dd>
+<p></p>
+<dt><strong><a name="item_axis3">axis3</a></strong><br />
+</dt>
+<dd>
+hy/khy
+</dd>
+<p></p>
+<dt><strong><a name="item_axis4">axis4</a></strong><br />
+</dt>
+<dd>
+mx/kmx
+</dd>
+<p></p>
+<dt><strong><a name="item_axis5">axis5</a></strong><br />
+</dt>
+<dd>
+my/kmy
+</dd>
+<p></p>
+<dt><strong><a name="item_axis6">axis6</a></strong><br />
+</dt>
+<dd>
+Loop over
+</dd>
+<p></p></dl>
+<p>
+</p>
+<hr />
+<h1><a name="run_time_parameters">RUN TIME PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_verb__2d_logical">verb - logical</a></strong><br />
+</dt>
+<dd>
+[.false.] verbosity level
+</dd>
+<p></p>
+<dt><strong><a name="item_adj__2d_logical">adj - logical</a></strong><br />
+</dt>
+<dd>
+[.false.] forward or reverse
+</dd>
+<p></p></dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ 5 Dimensional in core FFT.  Used to transform to</pre>
+<pre>
+ and from fourier space for Stolt migration.</pre>
+<pre>
+ Forward - z,hx,hy,mx,my -&gt; kz,khx,khy,kmx,kmy</pre>
+
+</body>
+
+</html>

@@ -1,0 +1,45 @@
+=head1 NAME
+
+
+conjg - complex conjugate
+
+=head1 SYNOPSIS
+
+
+C<val= conjg(a)>
+
+=head1 DESCRIPTION
+
+
+Conjg returns (re a, -im a).
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item a - complex 
+
+      input complex number
+
+=back
+
+=head1 RETURN VALUES
+
+
+=over 4
+
+=item val - complex 
+
+       conjugate of number
+
+=back
+
+
+=head1 LIBRARY
+
+
+B<sepmath>
+
+=cut
+

@@ -1,0 +1,31 @@
+#!/bin/csh
+
+#GENERIC COMPILE SCRIPT WITH MOST OPTIONS YOU MIGHT NEED
+
+rm */config.cache config.cache     #clean up previous runs
+setenv FC "pgf90 -Bstatic"        #f90 compiler
+setenv PERL "/usr/bin/perl"        #perl location
+setenv CC "/usr/bin/cc"            #c compiler to
+setenv FFTW_FCLD "-L/net/koko/bob/FFTW/lib/ -lfftw -lrfftw"  #FFTW location
+setenv OMP_FCFLAGS -mp  #OMP F90 COMPILER FLAGS
+setenv OMP_FCLD -mp  #OMP F90 LD FLAGS
+setenv MPI_FCLD "-L/usr/pgi/linux86/lib -lmpichf90  -lfmpich  -lmpich"  #MPI F90LINK FLAGS
+setenv MPI_LD "-L/usr/local/MPI/MPI-1.2.5_C/lib   -lmpich"
+setenv MPI_FLAGS "-I/usr/pgi/linux86/include"  #MPI COMPILE FLAGS
+setenv MOTIF_LD "-L/usr/X11R6/LessTif/Motif1.2/lib/" #MOTIF LIBRARY LOCATION
+setenv MOTIF_FLAGS "-I/usr/X11R6/LessTif/Motif1.2/include"  #MOTIF INCLUDE LOCATION
+
+
+./configure --with-local --with-su=/usr/local/SU -prefix=/usr/local/SEP6.1/  --with-fftw --with-omp  --with-fftw  
+#gmake reconfig  #TO reconfigure
+gmake  #compile everything
+gmake install #install it
+
+############################
+# configure options used
+# --with-local   compile local version of software
+# --with-su      compile with the SU support, specify location
+# -prefix        location to put libraries, binaries, etc
+# --with-fftw    compile with fftw support
+# --with-omp     compile with OMP support
+# --with-mpi     compile with mpi support

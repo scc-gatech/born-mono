@@ -1,0 +1,84 @@
+
+
+=head1 NAME
+
+SEPlib - SEP programs and libraries
+
+
+
+=head1  SYNOPSIS
+
+SEPlib utilities and libaries
+
+=head1 DESCRIPTION
+
+If your wanting to know more about SEPlib programs or
+library functions follow the following links/ view
+the following man pages
+
+=head1 PROGRAMS
+
+
+L<seis_filter> - Filtering programs 
+
+
+L<seis_dip> - UNDEFINED
+
+L<seis_velan> - Programs that deal with velocity 
+
+
+L<seis_image> - Imaging programs 
+
+
+L<seis_model> - Modeling programs 
+
+
+L<seis_travel> - Travel time and rays programs 
+
+
+L<util_cube> - Programs that take advantage of the SEP hypercube
+
+L<util_headers> - Programs that work on SEP3d headers
+
+L<util_info> - Programs that provide info about SEP datasets
+
+L<util_vector> - Programs that do vector operations on SEP datasets
+
+L<util_unix> - Programs that perform unix-like operations
+
+L<sep_graphics> - SEPlib Plotting programs
+
+L<graphics_vplot> - Generic Vplot
+
+L<interact> - Interactive SEPlib programs 
+
+
+
+
+
+=head1 LIBRARIES
+
+
+L<sepfilter> - Functions that deal with filtering 
+
+L<septravel> - Functions that calculate traveltimes 
+
+L<sepaux> - Useful functions that don't fit anywher else 
+
+L<sepfft> - Functions that do FFTs 
+
+L<sepmath> - Math functions (especially Complex C) 
+
+L<sep> - SEPlib Base Library 
+
+L<sep3d> - Seplib base libary 
+
+L<superset> - UNDEFINED 
+
+L<sepsu> - Functions that allow Seplib and Su to interface 
+
+
+
+
+=cut
+

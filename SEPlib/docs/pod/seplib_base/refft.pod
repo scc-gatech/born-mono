@@ -1,0 +1,63 @@
+=head1 NAME
+
+
+refft - real fft
+
+
+=head1 SYNOPSIS
+
+
+ void refft (x,lx,isign,scale,mode)
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item    x   -complex*     
+
+         input/output array
+
+=item    lx  -int          
+
+         length of real array; must be a power of 2
+
+=item    isign-int         
+
+         sign of sqrt(-1)
+
+=item    scale-float       
+
+         scale factor; sqrt(2./lx) conserves energy
+
+=item    mode -int         
+
+         1 for lx real to lx/2 complex
+         2 for lx real to lx/2+1 complex
+         -1 for lx/2 complex to lx real
+         -2 for lx/2+1 complex to lx real
+
+=back
+
+=head1 DESCRIPTION
+
+
+
+     Real fast Fourier transform along one trace.  
+     C language subroutine for a one-dimensional real to complex or
+     viceversa fast Fourier transform. refft performs transforms
+     between elements of a vector. The arguments are as follows:
+
+
+=head1 SEE ALSO
+
+
+L<refft>,L<rvfft>,L<cvfft>
+
+=head1 LIBRARY
+
+
+B<sepfft>
+
+=cut
+

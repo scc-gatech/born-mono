@@ -1,0 +1,138 @@
+/*$
+
+=head1 NAME
+
+  Interleave - Interleave 2 seplib datasets
+ 
+=head1 SYNOPSIS
+
+
+  Interleave < in.H other=other.H  > out.H
+ 
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item  other - sepfile 
+
+       second file to interleave with stdin, must be of same dimension.
+
+=item  axis  - integer 
+
+       [2] Axis to interleave on 
+
+=back
+ 
+=head1 DESCRIPTION
+
+Merge two SEP history files along specified axis by interleaving 
+(alternating) traces.
+
+=head1 EXAMPLE
+
+	Given equally-dimensioned input files 'file1.H' and 'file2.H'
+
+	Interleave <file1.H other=file2.H > out.H
+
+	creates out.H, which contains all traces from each input file 
+	in alternating sequence (trace 1 from file1.H, then trace 1 from file2.H
+	then trace 2 from file1.H, etc).
+
+=head1 CATEGORY
+
+B<util/cube>
+
+=cut 
+*/
+
+/*
+  keyword: interleave
+  JFC
+ 
+  Modified: Yalei Sun, July 22, 1998, Give n3 and esize default values
+	Modified: Bob Clapp 7-99 Coverted to C, add n+ axis support,
+                           add interleave axis support
+ 
+
+
+>*/ 
+/*
+-------------------------------------------------
+
+Author: Robert Clapp, ESMB 463, 7230253
+
+Date Created:Fri Jul 30 12:29:18 PDT 1999
+
+Purpose: 
+
+*/	 
+
+ADD_DEF_SEP_DOC
+#include <stdlib.h>
+#include <sep3d.h>
+#include <sep.main> 
+
+
+int MAIN(void)
+{
+	int *n_1,*n_2,nd1,nd2,esize1,esize2,axis,b1,e,ib,ie,i,big;
+	char *array;
+	char temp_ch[10];
+
+        sep_begin_prog();
+	if( auxin("other")==0 )
+		seperr("You must provide other file\n");
+	if(0==hetch("esize","d",&esize1)) esize1=4;
+	if(0==auxpar("esize","d",&esize2,"other")) esize2=4;
+	if(esize1!=esize2) seperr("esizes don't match\n");
+	if(0!=sep_get_number_data_axes("in",&nd1)) 
+		seperr("trouble getting number data axes from in");
+	if(0!=sep_get_number_data_axes("other",&nd2)) 
+		seperr("trouble getting number data axes from other");
+	if(nd1!=nd2) seperr("number of dimension not equal\n");
+
+	if(0==getch("axis","d",&axis)) axis=2;
+	if(axis<2) seperr("Invalid axis parameter\n");
+
+	n_1=(int *) malloc(sizeof(int)*nd1);
+	n_2=(int *) malloc(sizeof(int)*nd2);
+	b1=1;e=1;
+	for(i=1; i <= nd1;i++){
+		sprintf(temp_ch,"n%d",i);
+		hetch(temp_ch,"d",&n_1[i-1]);
+		auxpar(temp_ch,"d",&n_2[i-1],"other");
+		if(n_1[i-1]!=n_2[i-1]) {
+			seperr("axis dimension not equal in[%d]=%d other[%d]=%d \n",
+				i,n_1[i-1],i,n_2[i-1]);
+		}
+		if(i>1 && i < axis) {
+			b1=b1*n_1[i-1];
+		} else if(i==axis){
+			 big=n_1[i-1]*2;
+			 putch(temp_ch,"d",&big);
+		} else if(i!=1) {
+			e=e*n_1[i-1];
+		}
+	}
+	hclose();
+
+	array=(char *) malloc(sizeof(char)*n_1[0]*esize1);
+
+	/*loop over outer dimension */
+	for(ie=0; ie<e*big/2; ie++){ 
+		for (ib=0; ib < b1; ib++){ /*loop over inner dimensions*/
+			if(n_1[0]*esize1!=sreed("in",array,n_1[0]*esize1))
+				seperr("trouble reading from in \n");
+			if(n_1[0]*esize1!=srite("out",array,n_1[0]*esize1))
+				seperr("trouble writing data\n");
+		}
+		for (ib=0; ib < b1; ib++){
+			if(n_1[0]*esize1!=sreed("other",array,n_1[0]*esize1))
+				seperr("trouble reding from other \n");
+			if(n_1[0]*esize1!=srite("out",array,n_1[0]*esize1))
+				seperr("trouble writing data\n");
+		}
+	}
+        sep_end_prog();
+	return(EXIT_SUCCESS);
+} 

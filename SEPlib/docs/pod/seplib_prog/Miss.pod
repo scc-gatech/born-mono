@@ -1,0 +1,59 @@
+=head1 NAME
+
+
+Miss - Missing data interpolation with a prescribed helix filter
+
+=head1 SYNOPSIS
+
+
+Miss < in.H prec=1 niter=100 padin=0 padout=0 filt= [mask=] > interp.H
+
+=head1 DESCRIPTION
+
+
+Fills missing data by mimimizing the data power after convolution. 
+Works in any number of dimensions!
+
+=head1 PARAMETERS
+
+
+=over 3
+
+=item from history
+
+B<integer> I<n1, n2, n3> 
+
+=item from par
+
+B<integer> I<prec>=2 - use preconditioning for missing data interpolation 
+
+B<integer> I<niter>=100 - number of iterations
+
+B<integer> I<padin>=0 - pad data beginning
+
+B<integer> I<padout>=0 - pad data end
+
+B<filename> I<filt> - helix filter
+
+B<filename> I<mask> (optional) - selector for known data
+
+=back
+
+=head1 EXAMPLES
+
+
+F<gee/lal/lace90/>, F<gee/mda/hole90/>, F<gee/mda/seab90/>, 
+F<gee/prc/galilee90>, F<gee/prc/sep95/>
+
+=head1 MODULES
+
+
+F<mis2.r90>, F<bound.r90>, F<helix.r90>
+
+=head1 SEA ALSO
+
+
+L<Helicon>, L<Pef>
+
+=cut
+

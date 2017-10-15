@@ -1,0 +1,146 @@
+module wei_fk_share_mod
+use wei_kmap_mod
+use wei_slow_mod
+implicit none
+
+
+
+
+contains
+
+
+
+
+
+
+ subroutine dsr_init(max,n,kzko,tkzko,exp_kzko,ikzko,dkxko,nkxko,idkzko,rdkzko)
+    real,    intent(in) :: max
+    integer, intent(in) :: n
+    integer             :: er
+    integer             :: i,m,nkxko
+    real                :: kxko,kz,dkxko,rdkzko,idkzko
+    real, pointer       :: exp_kzko(:),ikzko(:)
+    complex, pointer   :: kzko(:),tkzko(:)
+#ifdef DEBUG
+  if(my_debug) write(0,*) "in dsr_init"
+#endif
+
+    allocate( kzko(n),stat=er)
+    if(er/=0) call seperr('cant allocate  kzko')
+    allocate(tkzko(n),stat=er)
+    if(er/=0) call seperr('cant allocate tkzko')
+    allocate(exp_kzko(n),ikzko(n))
+    call add_mem(n*2)
+
+    dkxko = max/(n-1)
+    nkxko = n
+    m=n/max
+
+    !!                    ____________
+    !!   kz         1    /     | kx |2          kx
+    !! i -- dz = -i -   /  1 - | -- |  dz   0 < -- < 1
+    !!   ko         2 \/       | ko |           ko
+    !!
+    do i=1,m
+       kxko    = 0. +     1.0 * (i  -1)/(  m-1) !! kx/ko=0...1
+       kzko(i) = - (0,+1) * sqrt(1-kxko**2)
+    end do
+
+    !!                    ____________
+    !!   kz         1    / | kx |2              kx
+    !! i -- dz = -  -   /  | -- | - 1  dz   1 < -- < max
+    !!   ko         2 \/   | ko |               ko
+    !!
+    do i=m+1,n
+       kxko    = 1. + (max-1) * (i-m-1)/(n-m-1) !! kx/ko=1...max
+       kzko(i) = - (+1,0) * sqrt(kxko**2-1)
+    end do
+
+    idkzko=1./(n-1)
+    do i=1,n
+       kxko    = 0. +     1.0 * (i  -1)/(  n-1) !! kx/ko=0...1
+       kz= sqrt(1.-kxko)
+       ikzko(i)=kz
+    end do
+
+    rdkzko=(max-1.)/(n-1)
+    do i=1,n
+       kxko    = 1. +     (max-1.) * (i  -1)/(  n-1) !! kx/ko=0...1
+       kz= sqrt(kxko-1.)
+       exp_kzko(i)=kz
+    end do
+
+
+
+    kzko = .5 * kzko
+#ifdef DEBUG
+  if(my_debug) write(0,*) "out dsr_init"
+#endif
+  end subroutine dsr_init
+
+
+
+ subroutine calc_comp_depend_vars(w,slow_0,ko,kx,ky,sign,izs,ifk)
+  real :: ko,w,slow_0
+  real, pointer :: kx(:,:),ky(:,:)
+  integer :: sign ,izs,ifk
+  logical :: source
+#ifdef DEBUG
+  if(my_debug) write(0,*) "out calc_comp_depend_vars"
+#endif
+
+  call grab_current_s_r(source)
+  call grab_current_slow0(slow_0)
+!write(0,*) "GRABBED CURRENT SLOW0",source,slow_0
+
+  if(source) then
+    kx=>kmap%ksx
+    ky=>kmap%ksy
+    sign=1
+  else
+    kx=>kmap%krx
+    ky=>kmap%kry
+    sign=-1
+  end if
+    ko = 2* slow_0 * w
+
+
+#ifdef DEBUG
+  if(my_debug) write(0,*) "out calc_comp_depend_vars"
+#endif
+
+ end subroutine
+
+
+
+
+ subroutine calc_sign_depend_vars(fract,tkzko,dz,kzko,ko)
+  real :: fract,dz,ko
+  complex :: tkzko(:),kzko(:)
+  integer :: opsign
+#ifdef DEBUG
+  if(my_debug) write(0,*) "in calc_sign_depend_vars"
+#endif
+
+    call grab_current_opsign(opsign)
+    if(opsign==goB2T) then
+       tkzko=conjg(kzko)
+       fract=.5*dz*ko
+    else
+       tkzko=kzko
+       fract=-.5*dz*ko
+    end if
+#ifdef DEBUG
+  if(my_debug) write(0,*) "out calc_sign_depend_vars"
+#endif
+
+end subroutine
+
+
+
+
+
+
+
+
+end module

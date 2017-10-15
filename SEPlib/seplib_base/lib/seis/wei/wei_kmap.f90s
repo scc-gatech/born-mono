@@ -1,0 +1,190 @@
+module wei_kmap_mod
+  use wei_basics_mod
+  !! K-domain mapping
+  !---------------
+  implicit none
+  integer, private, save :: nhx_use,nhy_use
+
+  type wekmap
+     real,    dimension(:),         pointer :: kmx,kmy,khx,khy
+     real,    dimension(:,:),       pointer :: ksx,ksy,krx,kry !! f(m,h)
+  end type wekmap
+
+
+  !! !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  type(wekmap), public :: kmap
+  !! !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+contains
+  !----------------------------------------------------------------
+  subroutine weikmap_init(wsep)
+    integer :: imx,ihx, imy,ihy
+    integer :: er
+    type(sep3d) :: wsep
+
+#ifdef DEBUG
+    character(len=128), parameter :: unit='weikmap_init'
+    if(my_debug()) call in(unit)
+#endif
+
+    allocate(kmap%kmx(wsep%n(1)),stat=er)
+     call add_mem(size(kmap%kmx))
+    if(er/=0) call seperr('cant allocate kmx')
+    call klinemap(kmap%kmx,wsep%n(1),wsep%d(1),0)
+
+    allocate(kmap%kmy(wsep%n(2)),stat=er)
+     call add_mem(size(kmap%kmy))
+    if(er/=0) call seperr('cant allocate kmy')
+    call klinemap(kmap%kmy,wsep%n(2),wsep%d(2),0)
+
+    allocate(kmap%khx(wsep%n(3)),stat=er)
+     call add_mem(size(kmap%khx))
+    if(er/=0) call seperr('cant allocate khx')
+    call klinemap(kmap%khx,wsep%n(3),wsep%d(3),0)
+
+    allocate(kmap%khy(wsep%n(4)),stat=er)
+    if(er/=0) call seperr('cant allocate khy')
+    call klinemap(kmap%khy,wsep%n(4),wsep%d(4),0)
+     call add_mem(size(kmap%khy))
+
+    nhx_use=wsep%n(3)
+    nhy_use=wsep%n(4)
+
+    !! ksx(amx,ahx), krx(amx,ahx)
+    allocate(kmap%ksx(wsep%n(1), wsep%n(3)),stat=er)
+     call add_mem(size(kmap%ksx))
+    if(er/=0) call seperr('cant allocate ksx')
+    allocate(kmap%krx(wsep%n(1), wsep%n(3)),stat=er)
+     call add_mem(size(kmap%krx))
+    if(er/=0) call seperr('cant allocate krx')
+
+    !! ksy(amy,ahy), kry(amy,ahy)
+    allocate(kmap%ksy(wsep%n(2), wsep%n(4)),stat=er)
+     call add_mem(size(kmap%ksy))
+    if(er/=0) call seperr('cant allocate ksy')
+    allocate(kmap%kry(wsep%n(2), wsep%n(4)),stat=er)
+     call add_mem(size(kmap%kry))
+    if(er/=0) call seperr('cant allocate kry')
+
+    call form_ksx_kry(wsep)
+
+#ifdef DEBUG
+    if(my_debug()) call out(unit)
+#endif
+  end subroutine weikmap_init
+
+  subroutine form_ksx_kry(wsep)
+  type(sep3d) :: wsep
+  integer :: ihx,ihy,imx,imy
+#ifdef DEBUG
+    if(my_debug()) call in("form_ksx_krx")
+#endif
+    !! ksx = kmx - khx
+    !! krx = kmx + khx
+    do ihx=1,wsep%n(3)
+       do imx=1,wsep%n(1)
+          kmap%ksx(imx,ihx) = kmap%kmx(imx)-kmap%khx(ihx)
+          kmap%krx(imx,ihx) = kmap%kmx(imx)+kmap%khx(ihx)
+       end do
+    end do
+
+    !! ksy = kmy - khy
+    !! kry = kmy + khy
+    do ihy=1,wsep%n(4)
+       do imy=1,wsep%n(2)
+          kmap%ksy(imy,ihy) = kmap%kmy(imy)-kmap%khy(ihy)
+          kmap%kry(imy,ihy) = kmap%kmy(imy)+kmap%khy(ihy)
+       end do
+    end do
+#ifdef DEBUG
+    if(my_debug()) call out("form_ksx_krx")
+#endif
+
+  end subroutine
+
+
+  !----------------------------------------------------------------
+  subroutine weikmap_report(wsep)
+  type(sep3d) :: wsep
+#ifdef DEBUG
+    if(my_debug()) call in("weikmap_report")
+#endif
+
+    write(0,*)'        ************************************************'
+    if(associated(kmap%kmx)) then
+       write(0,*)"        *    size(kmx)",size(kmap%kmx),"/",wsep%n(1)
+    end if
+    if(associated(kmap%kmy)) then
+       write(0,*)"        *    size(kmy)",size(kmap%kmy),"/",wsep%n(2)
+    end if
+    if(associated(kmap%khx)) then
+       write(0,*)"        *    size(khx)",size(kmap%khx),"/",wsep%n(3)
+    end if
+    if(associated(kmap%khy)) then
+       write(0,*)"        *    size(khy)",size(kmap%khy),"/",wsep%n(4)
+    end if
+    if(associated(kmap%ksx)) then
+       write(0,*)"        *    size(ksx)",size(kmap%ksx),"/",wsep%n(1)*wsep%n(3)
+    end if
+    if(associated(kmap%krx)) then
+       write(0,*)"        *    size(krx)",size(kmap%krx),"/",wsep%n(1)*wsep%n(3)
+    end if
+    if(associated(kmap%ksy)) then
+       write(0,*)"        *    size(ksy)",size(kmap%ksy),"/",wsep%n(2)*wsep%n(4)
+    end if
+    if(associated(kmap%kry)) then
+       write(0,*)"        *    size(kry)",size(kmap%kry),"/",wsep%n(2)*wsep%n(4)
+    end if
+    write(0,*)'        ************************************************'
+
+#ifdef DEBUG
+    if(my_debug()) call out("kmap_report")
+#endif
+  end subroutine weikmap_report
+  !----------------------------------------------------------------
+  subroutine klinemap(k,n,d,shift)
+    real, dimension(:), pointer :: k
+    integer, intent(in) :: n,shift
+    real,    intent(in) :: d
+    integer             :: i,m
+#ifdef DEBUG
+    if(my_debug()) call in("klinemap")
+#endif
+
+k=0.
+    if(n/=1) then
+       m = n/2
+       
+!       do i=1,n
+!          if(i <= m) then
+!          k(i+shift) = i -1
+!          else
+!          k(i+shift) = i - n -1
+!          end if
+!       end do
+        
+       
+       do i=1,m
+          k(i+shift  ) =    i-1
+          k(i+m+shift) = -m+i-1
+       end do
+       
+    else
+       k=0. !! make sure k=0 if n=1
+    end if
+
+    k = k / (n*d)      !! 1/length
+    k = 2 * pi * k !! radians
+#ifdef DEBUG
+    if(my_debug()) call out("klinemap")
+#endif
+  end subroutine klinemap
+  !----------------------------------------------------------------
+end module 
+
+
+
+
+
+
+

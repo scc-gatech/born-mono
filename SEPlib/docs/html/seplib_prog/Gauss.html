@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Gauss - Make gaussian anomalies</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Gauss - Make gaussian anomalies</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Gauss.x   &gt;out.H pars</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_velback__2d_real">velback - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+     [0.] background velocity</pre>
+</dd>
+<dt><strong><a name="item_n1__2d_integer">n1 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+     [1]  first axis dimension</pre>
+</dd>
+<dt><strong><a name="item_n2__2d_integer">n2 - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]  second axis dimension</pre>
+</dd>
+<dt><strong><a name="item_n3_2d_integer">n3- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+     [1]  third axis dimension</pre>
+</dd>
+<dt><strong><a name="item_o1_2d_real">o1- real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.]  first axis origin</pre>
+</dd>
+<dt><strong><a name="item_o2_2d_real">o2- real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.]  second axis origin</pre>
+</dd>
+<dt><strong><a name="item_o3_2d_real">o3- real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0.]  third axis origin</pre>
+</dd>
+<dt><strong><a name="item_d1__2d_real">d1      - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.]  first axis sampling</pre>
+</dd>
+<dt><strong><a name="item_d2__2d_real">d2      - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.]  second axis sampling</pre>
+</dd>
+<dt><strong><a name="item_d3__2d_real">d3      - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.]  third axis sampling</pre>
+</dd>
+<dt><strong><a name="item_ngauss__2d_integer">ngauss  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]  number of gaussian anomalies</pre>
+</dd>
+<dt><strong><a name="item_maxvel__2d_real">maxvel  - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.]  maximum deviation from background</pre>
+</dd>
+<dt><strong><a name="item_var__2d_real">var     - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.]  variance  of gaussian anomalies</pre>
+</dd>
+<dt><strong><a name="item_max1__2d_real">max1    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [center of axis 1]location of maximum along 1 dimension</pre>
+</dd>
+<dt><strong><a name="item_max2__2d_real">max2    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [center of axis 2]location of maximum along 2 dimension</pre>
+</dd>
+<dt><strong><a name="item_max3__2d_real">max3    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [center of axis 3]location of maximum along 3 dimension</pre>
+</dd>
+<dt><strong><a name="item_zero_at__2dreal">zero_at -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      distance to zero anomaly</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_out_2eh__2d_sepfile">out.H - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+      SEPlib file with gaussian model</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Makes simple Gaussian anomailes</p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/model</strong></p>
+
+</body>
+
+</html>

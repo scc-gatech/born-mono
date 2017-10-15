@@ -1,0 +1,53 @@
+=head1 NAME
+
+
+sep_reorder_data_fast - reoder SEPlib dataset
+
+=head1 SYNOPSIS
+
+
+C<int sep_reorder_data_fast(char *tagin , char *tagout, int n2h, int tsize, int *order,int megabytes)>
+
+=head1 DESCRIPTION
+
+reorder traces (allocates something n2h*tsize  so be careful)
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item tagin - char*  
+
+      tag of input
+
+=item tagout- char*  
+
+      tag of output
+
+=item n2h   - int    
+
+      number of traces
+
+=item tsize  - int    
+
+      length of traces
+
+=item order - int*   
+
+      order of traces
+
+=item megabyte - int
+
+      maximum number of megabytes to use
+
+=back
+
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

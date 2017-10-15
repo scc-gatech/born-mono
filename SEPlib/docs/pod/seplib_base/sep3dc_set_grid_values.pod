@@ -1,0 +1,46 @@
+=head1 NAME
+
+
+sep3dc_set_grid_values - Set grid values
+
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3dc_grab_grid_values(sep3dc *space1, int *grid)>
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  space1  -  sep3d
+
+     structure 
+
+=item  grid  -  int*
+
+     Grid values
+
+=back
+
+=head1 DESCRIPTION
+
+
+
+Set grid values of the window currently in memory
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

@@ -1,0 +1,66 @@
+=head1 NAME
+
+
+sepwarn - print a string and return a specified value
+
+=head1 SYNOPSIS
+
+
+C<int sepwarn(warn,format,value1,value2,...)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item	warn -   int    
+
+      return value to issue
+
+=item	format - string  
+
+      format statement
+
+=item	value* - void    
+
+      additional return values
+
+=back
+
+
+=head1 DESCRIPTION
+
+
+This function issues a warning message  and returns (warn) to the calling 
+program
+
+From fortran you can only specify a string to print, no format control
+is available.
+
+=head1 COMMENTS
+
+From C:
+
+C<sepwarn(format, value1, value2, ...)>
+or 
+C<return(sepwarn,format, value1, value2)>
+char *format
+
+From Fortran:
+
+C<call sepwarn('warning message')>
+or
+C<stat=sepwarn('warning message')>
+
+=head1 SEE ALSO
+
+
+L<seperr>
+
+=head1 LIBRARY
+
+
+B<sep>
+
+=cut
+

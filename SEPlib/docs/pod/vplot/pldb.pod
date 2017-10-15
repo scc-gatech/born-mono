@@ -1,0 +1,55 @@
+=head1 NAME
+
+
+pldb - - (PLot DeBugger)
+
+=head1 SYNOPSIS
+
+               pldb < binaryfile > asciifile
+
+
+=head1 DESCRIPTION
+
+
+        Reads the standard input stream, writes standard out
+
+        Input:  vplot metafile format (mixed ASCII and binary)
+        Output: Human-readable representations of vplot vector plot
+                commands
+
+        plas returns pldb output to vplot format.
+        Useful with pen output filters.
+
+=head1 OPTIONS
+
+
+=over 4
+
+
+=item      C<-v>: use vplot units (default)
+
+=item      C<-i>: use inches
+
+=item      C<-c>: use centimeters
+
+=back
+
+=head1 COMMENTS
+
+
+  Note that these options apply to ALL geometric attributes,
+  including line width and character height.
+
+=head1 SEE ALSO
+
+
+
+L<vplot>,L<pen>,L<plas>
+
+=head1 CATEGORY
+
+
+B<graphics/vplot>
+
+=cut
+

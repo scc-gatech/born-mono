@@ -1,0 +1,59 @@
+=head1 NAME
+
+
+autocorr - compute a filter auto-correlation
+
+=head1 SYNOPSIS
+
+
+C<filter=autocorr1(aa,s0,a0)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item aa - C<type(filter)>
+
+      filter to compute auto-correlation of
+
+=item a0 - real
+
+      zero lag value of input
+
+=item s0  - real
+
+      zero lag of output filter
+
+=back
+
+=head1 RETURN VALUE
+
+
+=over 4
+
+=item filter  -
+
+      autocorrelation of helix filter
+
+=back
+
+=head1 DESCRIPTION
+
+
+Compute the autocorrealtion of filter. Useful for input into
+wilson.
+
+=head1 SEE ALSO
+
+
+L<helix>,L<compress>,L<wilson>
+
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

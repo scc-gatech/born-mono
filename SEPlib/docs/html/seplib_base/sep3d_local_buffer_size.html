@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sep3d_local_buffer_size - Get the size of the data associated with a given window</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sep3d_local_buffer_size - Get the size of the data associated with a given window</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>ndim= sep3d_local_buffer_size(struct,n,nwind,fwind,jwind)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_struct__2d_sep3d">struct  -  sep3d</a></strong><br />
+</dt>
+<dd>
+<pre>
+      structure</pre>
+</dd>
+<dt><strong><a name="item_int">n  -  int (2)</a></strong><br />
+</dt>
+<dd>
+<pre>
+      the output window size</pre>
+</dd>
+<dt><strong><a name="item_nwind__2d_int_2a">nwind  -  int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [nwind in memory, optional] the number of samples in a window</pre>
+</dd>
+<dt><strong><a name="item_fwind__2d_int_2a">fwind  -  int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [fwind in memory, optional] the first sample in a window</pre>
+</dd>
+<dt><strong><a name="item_jwind__2d_int_2a">jwind  -  int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [jwind in memory, optional] the sampling of the window</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Get the size associated with a given window (defaults to the window
+ described by the last read_headers call or the entire dataset)
+ Useful for sectioned tags.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>supersetf90</strong></p>
+
+</body>
+
+</html>

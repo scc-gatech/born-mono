@@ -1,0 +1,1679 @@
+/*$  
+
+=head1 NAME
+
+ Cubeplot - plot seismic data cube
+
+=head1 SYNOPSIS
+
+Cubeplot movie=0 frame1=0 frame2=0 frame3=0 point1=0.5 point2=0.5                        wantcoordlabel=1 wantaxes=y popup=n < in.T > out.V
+
+=head1 DESCRIPTION
+
+Cubeplot - 3D raster plot of seismic data cube
+
+=head1 INPUT PARAMETERS 
+
+=over 4
+
+=item movie	 - int    
+
+      0 output is single cube plot
+      1 output is movie over 1 axis
+      2 output is movie over 2 axis
+      3 output is movie over 3 axis
+
+=item nframe-  int    
+
+      number of frames in movie
+
+=item dframe-  float  
+
+      increment between input frames for movie (must be positive)
+
+=item frame1-	 int    
+
+      frame numbers for cube faces that display
+
+=item frame2-  int    
+
+      a single frame. For faces that display a movie,
+
+=item frame3-  int    
+
+      this is the starting frame number.
+
+=item center- int
+
+      [0] default the frames to the center of the cube
+
+=item point1- float   
+
+      front face of cube takes up this fraction of 1 axis
+
+=item point2- float   
+
+      front face of cube takes up this fraction of 2 axis
+
+=item flat	- char    
+
+      if flat=y, the three faces are displayed flat rather
+      that in a perspective view.
+
+=item wantcoordlabel- int 	
+
+      By default (wantcoordlabel=1), lines are drawn to 
+      indicate where in the cube the three slices are taken 
+      from, and the coordinate values of the three cube
+      slices shown are plotted. If you want the frame numbers
+      instead of the coordinates, specify wantcoordlabel=0.
+      If you want lines to be drawn with no labeling,
+      specify -1. For no lines to be drawn specify -2. 
+
+=item wantaxes	- char 
+
+      Axes are drawn by default. Specify wantaxes=n to skip them.
+
+=item wantoutline	- char
+
+      By default, lines are drawn to outline each face of the
+      cube. Specify wantoutline=n to override.
+
+=item n1pix	 - int     
+
+      number of pixels on 1 axis of vplot raster
+      default is 2*n1. Using fewer reduces memory requirements,
+      but makes a coarser image.
+
+=item n2pix	-  int     
+
+      number of pixels on 2 axis of vplot raster
+      default is 2*n2.
+
+=item popup -  char    
+
+      Specifying popup=y brings up an xtpanel 
+      (if you have xtpanel
+      installed) with three sliders. Moving these sliders changes
+      the frames plotted on the three cube faces. If you pipe
+      the output of Cubeplot to 'Xtpen cachepipe=n' you will see
+      the display update as the sliders are moved.
+      You can specify your own xtpanel script file by doing
+      popup_file=filename.
+
+
+=item  wantscalebar - char
+
+       [0] (0,1,n,y) turns on scale bar
+
+=item  bartype      - char
+
+       [h]  (v)   horizontaly or verticaly aligned bar
+
+=item  barwidth     - float
+
+       [.4]     (inches)
+
+=item  barreverse   - int
+
+       [0]   (0,1,n,y)  reverse the scale
+
+=item  barlabel     - char
+
+       label for the scale bar
+
+
+=item screenht - float  
+
+      [10.24] sets screen height
+
+=item screenwd - float  
+
+      [13.75] sets screen width
+
+=item screenratio-float 
+
+      [.75] sets screen height to width ratio
+
+=item xinch,yinch  -    float 
+
+      [10.24],[7.5] 
+
+=item crowd,crowd1,crowd2  - float 
+
+      [.75][crowd1=crowd][crowd2=crowd] 
+      (.75< crowd < 1.) crowds labels off the screen 
+      by expanding data on 1 or 2 axis.
+
+=item xll,yll,xur,yur - int 
+
+      sets Lower Left and Upper Right coordinates
+
+=item wheretitle- char 
+
+      [t] (t,b,l,r) where to put title (top, bottom, left, right)
+
+=item titlefat -int   
+
+      [0] makes the title fat
+
+=item title - char* 
+
+      title for plot 
+
+=item titlesz - int   
+
+      [10] font size for title  
+
+=item backcol - float*  
+
+      [0,0,0] background color (R,G,B) between 0 and 1
+
+=item fillcol - float*  
+
+      [backcol] fill color (R,G,B) between 0 and 1
+
+=item color  - char*   
+
+      [I] (esize=1) or  color=332(esize=3)(triplets) color table
+
+=item polarity- int    
+
+      [1] white is high by default
+
+=item nreserve - int
+
+      [8] number of colors to reserve
+
+=item movish - char    
+
+      [n] if y,halves the color table like movie does (0,1 n,y)
+
+=item hurry - char     
+
+      [1]   (0,1 n,y) 
+
+=back
+
+ 
+
+=head1 COMMENTS
+
+    color= one of {I,i,F,R,W,G,T} just like in Movie. You may also append
+    a 'C' to make clipped values show up Red (ie color=IC is like color=I
+    but with clipped values flagged). You will need to have nreserve at least
+    3 for this option to work, since you have to leave the normal vplot 'Red'
+    (vplot default color 2) as a possibility.
+    If color=T, colfile= should give the name of a color-table file (just
+    like Movie).  Optionally, you may also specify a color of the format RGB,
+    (ie color=332) where each of R,G, and B is the integer number of bits
+    to allot to that primary. This is meant for esize=3, but it also makes
+    funky color tables when esize=1.
+
+=head1 SEE ALSO
+
+L<Grey>,L<Rickmovie>,L<xtpen>
+
+=head1 COMPILE LEVEL
+
+ DISTR
+
+=head1 CATEGORY 
+
+B<sep_graphics>
+
+=cut
+
+*/
+
+/*
+
+ Keywords: vplot plot movie raster hardcopy rgb color cube 3D
+ */
+/*
+ * EDIT HISTORY:
+ * Author Steve Cole, February 1992. Started from Ta2vplot.
+ * Martin + Steve, Dec 1994,  fill unused corners with background color
+ * Steve, Sep 1998
+ * -Added wantoutline parameter to draw outlines around all faces.
+ * -Fixed sampling problem on side face.
+ * -Fixed problem with row of blank pixels between top and side faces.
+ * -Fixed error in positioning of yellow indicator line on n1 axis.
+ * -Increased default size of raster image to at least 500x500.
+ * -Added checks on frame1,2,3 to avoid going outside cube.
+ *
+
+   Bob Sep2000
+   -Added scalebar
+ */
+#include <sepConfig.h>
+#include <stdlib.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#include <stdio.h>
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+ADD_DEF_SEP_DOC
+
+#include <sep.main>
+#include "glplot.h"
+#define SQUARE(A) ((A)*(A))
+
+extern void set_output_data_format(const char *);
+
+
+
+struct datainfo datap;
+struct coordinfo coordinate;
+struct coordinfo coordinatec;
+struct titleinfo title;
+struct gridinfo grid;
+struct plotposition position;
+struct plotposition new;
+struct axisinfo axis1;
+struct axisinfo axis2;
+struct colorinfo colorin;
+int             wantframe, wantframenum, fastplt, counter;
+int		wantaxes;
+int		wantcoordlabel;
+int		wantoutline;
+int		n1pix, n2pix;
+float		point1, point2, op1, op2;
+int		movie,flat,oflat;
+
+float           tempminmax;
+int             i3, i4, incr, ii, jj, kk, esize, numorient, numinvert;
+float           pos1, pos2;
+float           xscl, yscl;
+float           xx, yy;
+char            string[80], colfile[80];
+float           d1num, d2num;
+float           o1num, o2num;
+int             offset, xpix, ypix, bit, blast, orient, invert;
+float           ppi;
+int             nreserve;
+int             polarity, coltab;
+unsigned char  *data;
+unsigned char  *rast;
+int	       *rowoff;
+char            color[10];
+char		label1[80],label2[80],label3[80];
+
+char *pop_script[] = {
+        "button={ label=Quit action=\"PRINTQUIT\" action=QUIT }",
+        "vbox={",
+        "hbox={ name=noborder width=400",
+        "message={ value=axis-1 }",
+        "scrollbar={ label=\"axis 1\" name=pan1 min=0 max=N1 format=\"%.0f\"",
+        "width=300 value=FRAME1",
+        "action=\"ASSIGN val1 $val\"",
+        "action=\"PRINT frame1=$(pan1) frame2=$(pan2) frame3=$(pan3)\\n\"",
+        "}",
+        "message={ name=val1 value=FRAME1  }",
+        "}",
+        "hbox={ name=noborder width=400",
+        "message={ value=axis-2 }",
+        "scrollbar={ label=\"axis 2\" name=pan2 min=0 max=N2 format=\"%.0f\"",
+        "width=300 value=FRAME2",
+        "action=\"ASSIGN val2 $val\"",
+        "action=\"PRINT frame1=$(pan1) frame2=$(pan2) frame3=$(pan3)\\n\"",
+        "}",
+        "message={ name=val2 value=FRAME2  }",
+        "}",
+        "hbox={ name=noborder width=400",
+        "message={ value=axis-3 }",
+        "scrollbar={ label=\"axis 3\" name=pan3 min=0 max=N3 format=\"%.0f\"",
+        "width=300 value=FRAME3",
+        "action=\"ASSIGN val3 $val\"",
+        "action=\"PRINT frame1=$(pan1) frame2=$(pan2) frame3=$(pan3)\\n\"",
+        "}",
+        "message={ name=val3 value=FRAME3  }",
+        "} } "
+};
+int scriptlen = sizeof(pop_script)/sizeof(pop_script[0]);
+
+
+/*extern float    rd_color (), gr_color (), bl_color ();*/
+float           back = 0;
+int             movish;
+int             map[256];
+int             smap[256];
+float           red[256], green[256], blue[256];
+float           red_lev, green_lev, blue_lev, error, error_win;
+int             ired_lev, igreen_lev, iblue_lev;
+int             win, redbit, greenbit, bluebit;
+int             redbit2, greenbit2, bluebit2;
+int             redoff, greenoff, blueoff;
+int		kkin,iiout,jjout,kkout;
+int		iframe,jframe;
+int		frame1,frame2,frame3,nframe,dframe;
+int		n1front,n1top,n1side,n2front,n2top,n2side;
+float		top1samp,top2samp,front1samp,front2samp,side1samp,side2samp;
+float		topoff,sideoff;
+int		i1,i2,i1in,i2in,i3in,i1out,i2out;
+extern FILE *popup_start();
+FILE *popfile;
+int	popup;
+unsigned char  *outp;
+int		planeoff;
+unsigned char  *rowstart;
+int		ioff;
+float		x1,yy1,x2,y2;
+float		fact1,fact2,fact3;
+float		onemp1,onemp2;
+float		xll,yll,xur,yur;
+float		xinch,yinch;
+int		jframe1,jframe2,jframe3;
+float		framenum;
+float 		xtriangle[4],ytriangle[4];
+
+/* Scale bar definitions */
+struct axisinfo     baraxis;
+struct plotposition barposit;
+int wantscalebar;
+unsigned char      *bdata;
+unsigned char       barmx, barmn;
+char                bartype[2];
+int                 numbcol, barorient, barreverse;
+float               minval[NPMAX + 1], maxval[NPMAX + 1];
+
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int setorient (int *orient, int *invert, struct coordinfo coordinate);
+int setcoordinate (int orient, int invert, struct coordinfo *coordinate);
+int calminmax (void)		;
+int initial (void);
+int initialcolor (void);
+int graphinitial (void);
+int plotnum(float x,float y,float num,int size,int ix, int iy);
+int popup_check( FILE *popfile );
+int popup_peek( FILE *popfile );
+FILE* popup_start( char *pop_comm );
+_XFUNCPROTOEND
+#else
+int setorient ();
+int setcoordinate ();
+int calminmax ();
+int initial ();
+int initialcolor ();
+int graphinitial ();
+int plotnum();
+int popup_check();
+int popup_peek();
+FILE* popup_start();
+#endif
+int MAIN (void)
+{
+char pop_file[1024];
+char pop_com[1024];
+int  center;
+int labelfat;
+int labelsz;
+int  geo;
+int nnum1,nnum2,nnum3;
+float dnum1,dnum2,dnum3;
+float onum1,onum2,onum3;
+
+
+  vp_filep(outstream); /* tell plotting routines where to stick it */
+
+    initial ();
+    initialcolor ();
+    graphinitial ();
+
+    numorient = getch ("orient", "d", &orient);
+    numinvert = getch ("invert", "1", &invert);
+    if (numorient || numinvert)
+	setcoordinate (orient, invert, &coordinate);
+    else
+	setorient (&orient, &invert, coordinate);
+    blast = 1;
+    getch ("hurry", "1", &blast);
+    wantframenum = 1;
+    getch ("wantframenum", "1", &wantframenum);
+    wantaxes = 1;
+    getch ("wantaxes", "1", &wantaxes);
+    wantcoordlabel = 1;
+    getch ("wantcoordlabel", "d", &wantcoordlabel);
+    wantoutline = 1;
+    getch ("wantoutline", "1", &wantoutline);
+    n1pix = 2 * datap.n1[0];
+    if (n1pix < 500) n1pix = 500; 
+    getch ("n1pix", "d", &n1pix);
+    n2pix = 2 * datap.n2;
+    if (n2pix < 500) n2pix = 500; 
+    getch ("n2pix", "d", &n2pix);
+    point1 = 0.5;
+    getch ("point1", "f", &point1);
+    op1 = point1;
+    point2 = 0.5;
+    getch ("point2", "f", &point2);
+    op2 = point2;
+    flat = 1;
+    getch ("flat", "1", &flat);
+    oflat = flat;
+    movie = 0;
+    getch ("movie", "d", &movie);
+    getch ("center", "d", &center);
+    if(center){
+    frame1 = datap.n1[0]/2;
+    frame2 = datap.n2/2;
+    frame3 = datap.n3/2;
+    }
+    else{
+    frame1 = 0;
+    frame2 = datap.n2 - 1;
+    frame3 = 0;
+    }
+    getch ("frame1", "d", &frame1);
+    if (movie == 2) frame2 = 0;
+    getch ("frame2", "d", &frame2);
+    getch ("frame3", "d", &frame3);
+    nframe = 1;
+    if (movie == 1) nframe = datap.n1[0];
+    if (movie == 2) nframe = datap.n2;
+    if (movie == 3) nframe = datap.n3;
+    getch ("nframe", "d", &nframe);
+    if (movie == 1 && nframe > datap.n1[0]) nframe = datap.n1[0];
+    if (movie == 2 && nframe > datap.n2) nframe = datap.n2;
+    if (movie == 3 && nframe > datap.n3) nframe = datap.n3;
+    dframe = 1;
+    getch ("dframe", "d", &dframe);
+		wantscalebar=0;
+    getch ("wantscalebar", "l", &wantscalebar);
+		*minval=0;*maxval=0;
+    fetch ("minval", "f", minval);
+    fetch ("maxval", "f", maxval);
+
+    /* check to avoid running out of frames */
+    if (frame1 < 0) frame1 = 0;
+    if (frame2 < 0) frame2 = 0;
+    if (frame3 < 0) frame3 = 0;
+    if (frame1 > datap.n1[0]-1) frame1 = datap.n1[0]-1;
+    if (frame2 > datap.n2-1) frame2 = datap.n2-1;
+    if (frame3 > datap.n3-1) frame3 = datap.n3-1;
+/*    if ((dframe > 1 || frame1 > 0) && movie == 1) nframe = datap.n1[0]/dframe;*/
+/*    if ((dframe > 1 || frame2 > 0) && movie == 2) nframe = datap.n2/dframe;*/
+/*    if ((dframe > 1 || frame3 > 0) && movie == 3) nframe = datap.n3/dframe;*/
+
+	   if (movie == 1) nframe =MIN(nframe, (datap.n1[0]-frame1)/dframe);
+ 	   if (movie == 2) nframe =MIN(nframe, (datap.n2-frame2)/dframe);
+ 	   if (movie == 3) nframe =MIN(nframe, (datap.n3-frame3)/dframe);
+
+    fetch ("label1", "s", label1);
+    fetch ("label2", "s", label2);
+    fetch ("label3", "s", label3);
+
+
+    /* interactive popup */
+    if( !getch( "popup", "1", &popup ) ) popup = 0;
+
+    if( popup ){
+        char pop_file[1024]; char pop_com[1024];
+        FILE* tmp=0;
+        int i, rc;
+
+        if( !getch( "popup_file", "s", pop_file ) ) {
+          /* make a temporary popup file */
+          sprintf( pop_file, "/tmp/popXXXXXX" ); rc = mkstemp(pop_file);
+          if(rc == -1) {
+              perror("Cubeplot: temporary popup file create failed");
+              seperr("unable to create temp file %s\n",pop_file);
+          }
+          if( (tmp = fopen( pop_file, "w" ) ) == 0 )
+              seperr("unable to create temp file %s\n",pop_file);
+          close(rc);
+          for( i=0; i<scriptlen; i++ ){ fprintf( tmp,"%s\n",pop_script[i]); }
+          fclose( tmp );
+        }
+        sprintf( pop_com,"/usr/local/bin/X11/xtpanel </dev/null -cpp -file %s -DN1=%d -DN2=%d -DN3=%d -DFRAME1=%d -DFRAME2=%d -DFRAME3=%d -DPOINT1=%.2f -DPOINT2=%.2f -DMOVIE=%d -DFLAT=%d -DDFRAME=%d",
+        pop_file, datap.n1[0], datap.n2, datap.n3 , frame1, frame2, frame3, point1, point2, movie, flat, dframe);
+        popfile = popup_start(pop_com);
+    }
+
+
+    set_output_data_format("vplot");
+    hclose ();
+
+    data = (unsigned char *) alloc (datap.n1[0] * datap.n2 * datap.n3 * esize);
+    rast = (unsigned char *) alloc (n1pix * n2pix * esize);
+    rowoff = (int *) alloc((n1pix > n2pix ? n1pix : n2pix)*sizeof(int));
+
+    /* 
+     * clear the raster 
+     */
+    for (i1=0; i1<n1pix*n2pix; i1++) {
+	rast[i1] = 0;
+    }
+
+    gl_erase ();
+    gl_color (axis1.col[0]);
+
+    if (coltab)
+    {
+
+	if (color[0] >= '0' && color[0] <= '9')
+	{
+	    redbit = color[0] - '0';
+	    greenbit = color[1] - '0';
+	    bluebit = color[2] - '0';
+	    if (redbit + greenbit + bluebit != 8)
+		seperr ("You must use exactly 8 bits!\n");
+
+	    redoff = 0;
+	    greenoff = redbit;
+	    blueoff = redbit + greenbit;
+
+	    for (i3 = 0; i3 < 256; i3++)
+	    {
+		ii = ~(~0 << redbit);
+		if (ii > 0)
+		    red[i3] = (float) ((i3 >> redoff) & ii) / (float) (ii);
+		else
+		    red[i3] = 0.;
+
+		ii = ~(~0 << greenbit);
+		if (ii > 0)
+		    green[i3] = (float) ((i3 >> greenoff) & ii) / (float) (ii);
+		else
+		    green[i3] = 0.;
+
+		ii = ~(~0 << bluebit);
+		if (ii > 0)
+		    blue[i3] = (float) ((i3 >> blueoff) & ii) / (float) (ii);
+		else
+		    blue[i3] = 0.;
+	    }
+
+
+	    for (jj = 0; jj < 256; jj++)
+	    {
+		ii = 0;
+		greenbit2 = greenbit;
+		bluebit2 = bluebit;
+		redbit2 = redbit;
+		kk = 0;
+		while (kk < 8)
+		{
+		    greenbit2--;
+		    if (greenbit2 >= 0)
+		    {
+			if (jj & (1 << (greenbit2 + greenoff)))
+			    ii |= 1 << kk;
+			kk++;
+		    }
+
+		    redbit2--;
+		    if (redbit2 >= 0)
+		    {
+			if (jj & (1 << (redbit2 + redoff)))
+			    ii |= 1 << kk;
+			kk++;
+		    }
+
+		    bluebit2--;
+		    if (bluebit2 >= 0)
+		    {
+			if (jj & (1 << (bluebit2 + blueoff)))
+			    ii |= 1 << kk;
+			kk++;
+		    }
+		}
+		map[ii] = jj;
+	    }
+
+	    for (i3 = nreserve; i3 < 256; i3++)
+	    {
+		jj = i3 - nreserve;
+
+		vp_coltab (i3, red[map[jj]],
+			   green[map[jj]],
+			   blue[map[jj]]);
+	    }
+	}
+	else
+	{
+	    vp_rascoltab (nreserve, color);
+	}
+    }
+    /* Set the coordinate transformation */
+    gl_vplotint (&position, &coordinate, &axis1, &axis2);
+    gl_plotpram (&colorin, &coordinate);
+
+/* 
+ * read and convert data
+ */
+	sreed("in", data, datap.n1[0] * datap.n2 * datap.n3 * esize);
+	if (polarity < 0)
+	    for (ii = 0; ii < datap.n1[0] * datap.n2 * datap.n3 * esize; ii++)
+	    {
+		data[ii] = (unsigned char) 255 - data[ii];
+	    }
+/*
+ * If esize=3, then map the RGB triples onto the closest available
+ * color.
+ */
+	if (esize == 3)
+	{
+	    if (color[0] >= '0' && color[0] <= '9')
+	    {
+		for (ii = 0; ii < datap.n1[0] * datap.n2 * datap.n3; ii++)
+		{
+		    ired_lev = data[esize * ii];
+		    igreen_lev = data[esize * ii + 1];
+		    iblue_lev = data[esize * ii + 2];
+
+		    win = 0;
+		    win |= ((ired_lev >> (8 - redbit)) & ~(~0 << redbit)) << redoff;
+		    win |= ((igreen_lev >> (8 - greenbit)) & ~(~0 << greenbit)) << greenoff;
+		    win |= ((iblue_lev >> (8 - bluebit)) & ~(~0 << bluebit)) << blueoff;
+		    data[ii] = win;
+		}
+	    }
+	    else
+	    {
+		for (ii = 0; ii < datap.n1[0] * datap.n2 * datap.n3; ii++)
+		{
+		    red_lev = data[esize * ii] / 255.;
+		    green_lev = data[esize * ii + 1] / 255.;
+		    blue_lev = data[esize * ii + 2] / 255.;
+		    error_win = 8.;
+		    for (jj = 0; jj < 256; jj++)
+		    {
+			error = 2. * SQUARE (red_lev - red[jj]) + 4. * SQUARE (green_lev - green[jj]) + SQUARE (blue_lev - blue[jj]);
+			if (error < error_win)
+			{
+			    error_win = error;
+			    win = jj;
+			    if (error == 0.)
+				break;
+			}
+		    }
+		    data[ii] = win;
+		}
+	    }
+	}
+    do{
+
+
+       if( popup ){
+/*       if (popup_peek(popfile)) popup_check(popfile);*/
+          getch ("frame1", "d", &frame1);
+          getch ("frame2", "d", &frame2);
+          getch ("frame3", "d", &frame3);
+          getch ("point1", "f", &point1);
+          getch ("point2", "f", &point2);
+    	  getch ("movie", "d", &movie);
+    	  getch ("flat", "1", &flat);
+    if (movie == 0) nframe = 1;
+    if (movie == 1) nframe = datap.n1[0];
+    if (movie == 2) nframe = datap.n2;
+    if (movie == 3) nframe = datap.n3;
+    if (movie == 1 && nframe > datap.n1[0]) nframe = datap.n1[0];
+    if (movie == 2 && nframe > datap.n2) nframe = datap.n2;
+    if (movie == 3 && nframe > datap.n3) nframe = datap.n3;
+    dframe = 1;
+    getch ("dframe", "d", &dframe);
+
+    /* check to avoid running out of frames */
+/*    if ((dframe > 1 || frame1 > 0) && movie == 1) nframe = datap.n1[0]/dframe;*/
+/*    if ((dframe > 1 || frame2 > 0) && movie == 2) nframe = datap.n2/dframe;*/
+/*    if ((dframe > 1 || frame3 > 0) && movie == 3) nframe = datap.n3/dframe;*/
+    if (movie == 1) nframe = (datap.n1[0]-frame1)/dframe;
+    if (movie == 2) nframe = (datap.n2-frame2)/dframe;
+    if (movie == 3) nframe = (datap.n3-frame3)/dframe;
+       }
+
+    /*
+     * compute cutoff points and scale factors
+     *
+     * these are the #of pixels devoted to front, side, top faces
+     */
+    n1front = n1pix*point1;
+    n2front = n2pix*point2;
+    n1top   = n1pix - n1front;
+    n2top   = n2front;
+    n1side  = n1front;
+    n2side  = n2pix - n2front;
+
+    /*
+     * these are the scale factors for sampling the input 
+     */
+    front1samp = datap.n1[0]; front1samp /= n1front;
+    front2samp = datap.n2;    front2samp /= n2front;
+    top1samp   = datap.n3;    top1samp   /= n1top;
+    top2samp   = datap.n2;    top2samp   /= n2top;
+    side1samp  = datap.n1[0]; side1samp  /= n1side;
+    side2samp  = datap.n3;    side2samp  /= n2side;
+    /*
+     * these are scale factors for determining offset of top and side
+     * panels in output image
+     */
+    topoff  = n2side;  topoff  /= n1top;
+    sideoff = n1top;   sideoff /= n2side;
+
+    /* if flat=y, we don't use the offsets */
+    if (flat) {
+	topoff = 0.;
+	sideoff = 0.;
+    }
+
+    /* 
+     * clear the raster if the viewing angle has changed
+     */
+    if (point1 != op1 || point2 != op2 || flat != oflat) {
+	for (i1=0; i1<n1pix*n2pix; i1++) {
+		rast[i1] = 0;
+	}
+    }
+
+
+
+		 if(wantscalebar) bdata = (unsigned char *) malloc ( 256);
+		if(wantscalebar){ 
+			gl_barint (&position, &axis1, &barposit, &baraxis, minval,
+    maxval, bartype, &barreverse, nframe,1);
+
+
+
+
+
+		
+
+		    if (bartype[0] == 'h') {      if (barreverse == 0) {
+        barorient = 0;        if (polarity < 0) barorient = 2;
+       }      else {
+        barorient = 2;        if (polarity < 0) barorient = 0;      }    }
+    else {
+      if (barreverse == 0) {        barorient = 3;
+        if (polarity < 0) barorient = 1;      }
+      else {
+        barorient = 1;
+        if (polarity < 0) barorient = 3;
+      }
+    }
+		}
+
+
+    op1 = point1;
+    op2 = point2;
+    oflat = flat;
+
+    /*
+     * Do the plots 
+     */
+    for (iframe = 0; iframe < nframe; iframe++)
+    {
+
+
+
+
+
+	if (iframe != 0)
+	{
+            gl_purge();
+	    gl_erase ();
+	    gl_color (axis1.col[iframe]);
+	}
+
+	/*
+	 * fit the data into the cube
+	 */
+
+	/* front face; done one column at a time */
+	if (iframe == 0 || movie == 3)
+	{
+	jframe = frame3+(iframe*dframe);
+	if (movie == 3) counter = jframe;
+	jframe3 = jframe;
+	/* planeoff is input location of the first sample in this plane */
+	planeoff = jframe*datap.n2*datap.n1[0];
+	/* compute map of input offsets for each sample in column */
+	for (i1 = 0; i1 < n1front; i1++)
+	{
+		rowoff[i1] = datap.n1[0] - ((int) (i1 * front1samp)) - 1;
+	}
+	/* loop over columns */
+	for (i2 = 0; i2 < n2front; i2++)
+	{
+		/* outp is output location of first sample in column */
+		i2out = i2;
+		outp = rast + i2out*n1pix;
+		/* rowstart is input location of first sample in column */
+		i2in = i2 * front2samp;
+		rowstart = data + i2in*datap.n1[0] + planeoff;
+		/* loop over samples in each column */
+		for (i1 = 0; i1 < n1front; i1++, outp++)
+		{
+			*outp = *(rowstart + rowoff[i1]);
+		}
+	}
+	}
+
+	/* top face; done one row at a time */
+	if (iframe == 0 || movie == 1)
+	{
+	jframe = frame1+(iframe*dframe);
+	if (movie == 1) counter = jframe;
+	jframe1 = jframe;
+	/* planeoff is input location of the first sample in this plane */
+	planeoff = jframe;
+	/* compute map of input offsets for each sample in row */
+	for (i2 = 0; i2 < n2top; i2++)
+	{
+		rowoff[i2] = ((int) (i2 * top2samp)) * datap.n1[0];
+	}
+	/* loop over rows */
+	for (i1 = 0; i1 < n1top; i1++)
+	{
+		/* outp is output location of first sample in row */
+		i1out = i1 + n1front;
+		ioff = i1 * topoff;
+		outp = rast + i1out + ioff*n1pix;
+		/* rowstart is input location of first sample in row */
+		i3in = i1 * top1samp;
+		rowstart = data + i3in*datap.n2*datap.n1[0] + planeoff;
+		/* loop over samples in each row */
+		for (i2 = 0; i2 < n2top; i2++, outp+=n1pix)
+		{
+			*outp = *(rowstart + rowoff[i2]);
+		}
+	}
+	}
+
+	/* side face */
+	if (iframe == 0 || movie == 2)
+	{
+	jframe = frame2+(iframe*dframe);
+	if (movie == 2) counter = jframe;
+	jframe2 = jframe;
+	planeoff = jframe*datap.n1[0];
+	for (i1 = 0; i1 < n1side; i1++)
+	{
+		rowoff[i1] = datap.n1[0] - ((int) (i1 * side1samp)) - 1;
+	}
+	for (i2 = 0; i2 < n2side; i2++)
+	{
+		/*i2out = i2 + n2front;
+		 *ioff = i2 * sideoff;
+		 *outp = rast + i2out*n1pix + ioff;
+		 *i3in = i2 * side2samp;
+		 *rowstart = data + i3in*datap.n2*datap.n1[0] + planeoff;
+		 */
+		i2out = i2 + n2front;
+		ioff = i2 * sideoff;
+		outp = rast + i2out*n1pix + ioff;
+		i3in = i2 * side2samp;
+		rowstart = data + i3in*datap.n2*datap.n1[0] + planeoff;
+		for (i1 = 0; i1 < n1side; i1++, outp++)
+		{
+			*outp = *(rowstart + rowoff[i1]);
+		}
+		/* do one extra pixel, this eliminates the blank
+		 * row of pixels between the top and side faces.
+		 * not the best solution but it works. better
+		 * would be to average edge values from top and side.
+		 */
+		outp = rast + i2out*n1pix + ioff + n1side;
+		*outp = *(rowstart + rowoff[n1side-1]);
+	}
+	}
+
+	/*
+	 * Only offset the colors if we have defined a color table.
+	 * Otherwise, leave them alone. 
+	 */
+	if (coltab)
+	    offset = 256;
+	else
+	    offset = 0;
+
+	xpix = datap.n1[0];
+	ypix = datap.n2;
+	bit = 0;
+	ppi = 0;
+
+	if (coordinate.yreverse)
+	{
+	    new.yll = position.yll + (coordinate.max2 - coordinatec.max2) * (position.yur - position.yll) / (coordinate.max2 - coordinate.min2);
+	    new.yur = position.yur + (coordinate.min2 - coordinatec.min2) * (position.yur - position.yll) / (coordinate.max2 - coordinate.min2);
+	}
+	else
+	{
+	    new.yll = position.yll - (coordinate.min2 - coordinatec.min2) * (position.yur - position.yll) / (coordinate.max2 - coordinate.min2);
+	    new.yur = position.yur - (coordinate.max2 - coordinatec.max2) * (position.yur - position.yll) / (coordinate.max2 - coordinate.min2);
+	}
+	if (coordinate.xreverse)
+	{
+	    new.xll = position.xll + (coordinate.max1 - coordinatec.max1) * (position.xur - position.xll) / (coordinate.max1 - coordinate.min1);
+	    new.xur = position.xur + (coordinate.min1 - coordinatec.min1) * (position.xur - position.xll) / (coordinate.max1 - coordinate.min1);
+	}
+	else
+	{
+	    new.xll = position.xll - (coordinate.min1 - coordinatec.min1) * (position.xur - position.xll) / (coordinate.max1 - coordinate.min1);
+	    new.xur = position.xur - (coordinate.max1 - coordinatec.max1) * (position.xur - position.xll) / (coordinate.max1 - coordinate.min1);
+	}
+	orient = 3;
+	invert = 0;
+	vp_raster (rast, blast, bit, offset, n1pix, n2pix, new.xll, new.yll, ppi, &new.xur, &new.yur, orient, invert);
+	if (coordinate.yreverse)
+	{
+	    position.yll = new.yll - (coordinate.max2 - coordinatec.max2) * (position.yur - position.yll) / (coordinate.max2 - coordinate.min2);
+	    position.yur = new.yur - (coordinate.min2 - coordinatec.min2) * (position.yur - position.yll) / (coordinate.max2 - coordinate.min2);
+	}
+	else
+	{
+	    position.yll = new.yll + (coordinate.min2 - coordinatec.min2) * (position.yur - position.yll) / (coordinate.max2 - coordinate.min2);
+	    position.yur = new.yur + (coordinate.max2 - coordinatec.max2) * (position.yur - position.yll) / (coordinate.max2 - coordinate.min2);
+	}
+	if (coordinate.xreverse)
+	{
+	    position.xll = new.xll - (coordinate.max1 - coordinatec.max1) * (position.xur - position.xll) / (coordinate.max1 - coordinate.min1);
+	    position.xur = new.xur - (coordinate.min1 - coordinatec.min1) * (position.xur - position.xll) / (coordinate.max1 - coordinate.min1);
+	}
+	else
+	{
+	    position.xll = new.xll + (coordinate.min1 - coordinatec.min1) * (position.xur - position.xll) / (coordinate.max1 - coordinate.min1);
+	    position.xur = new.xur + (coordinate.max1 - coordinatec.max1) * (position.xur - position.xll) / (coordinate.max1 - coordinate.min1);
+	}
+	fastplt =0;
+/*	counter = i3;*/
+        
+	/* draw triangles/quadrant in background color to hide empty corners */
+
+
+        fact1 = (datap.n1[0]-jframe1-1); fact1 /= datap.n1[0];
+        fact2 = jframe2; fact2 /= datap.n2;
+        fact3 = jframe3; fact3 /= datap.n3;
+        xll = position.xll;
+        yll = position.yll;
+        xur = position.xur;
+        yur = position.yur;
+        xinch = xur - xll;
+        yinch = yur - yll;
+
+	gl_color(0);  /* set to background color   */
+
+	if (flat) { /* the upper quadrant */
+	xtriangle[0]= xll +         point2 * xinch; 
+/*	ytriangle[0]= yll + fact1 * point1 * yinch;*/
+	ytriangle[0]= yll +         point1 * yinch;
+	xtriangle[1]= xur;
+/*	ytriangle[1]= yll + fact1 * point1 * yinch;*/
+	ytriangle[1]= yll +         point1 * yinch;
+	xtriangle[2]= xur;
+	ytriangle[2]= yur;
+	xtriangle[3]= xll +         point2 * xinch;
+	ytriangle[3]= yur;
+	vp_fill(xtriangle,ytriangle,4);
+
+	} else { /* lower triangle */
+
+	xtriangle[0]= xll + point2 *xinch; ytriangle[0]= yll;
+	xtriangle[1]= xur; ytriangle[1]= yll;
+	xtriangle[2]= xur; ytriangle[2]= yll + (1.-point1) *yinch;
+	vp_fill(xtriangle,ytriangle,3);
+
+	/* upper triangle */
+
+	xtriangle[0]= xll; ytriangle[0]= yll + point1 *yinch;
+	xtriangle[1]= xll; ytriangle[1]= yur;
+	xtriangle[2]= xll + (1.-point2) *xinch; ytriangle[2]= yur ;
+	vp_fill(xtriangle,ytriangle,3);
+
+	/*   triangles are now filled with backcol  */
+	}
+
+        gl_vplotint (&position, &coordinate, &axis1, &axis2);
+
+    if (fastplt < 20)
+    {
+
+        /* initialization for plotting axes */
+
+        gl_clip( -VP_MAX, -VP_MAX, VP_MAX, VP_MAX);
+        gl_color (axis1.col[counter]);
+        gl_fat (axis1.fat[counter]);
+
+	/* label title */
+	    if ( title.wanttitle  && (fastplt < 3))
+        {
+	if (*title.wheretitle == 't' || *title.wheretitle == 'b')
+	    gl_plottitle (&coordinate, &title, &axis1, counter);
+	if (*title.wheretitle == 'l' || *title.wheretitle == 'r')
+	    gl_plottitle (&coordinate, &title, &axis2, counter);
+        }
+
+        /* axes - flat affects axis 3 only */
+	if (wantaxes) {
+        if(0==getch("labelfat","d",&labelfat)) labelfat=0;
+        if(0==getch("labelsz","d",&labelsz)) labelsz=5;
+        if(0==getch("nnum1","d",&nnum1))nnum1=-1;
+        if(0==getch("nnum2","d",&nnum2))nnum2=-1;
+        if(0==getch("nnum3","d",&nnum3))nnum3=-1;
+        if(0==getch("dnum1","f",&dnum1))dnum1=-1;
+        if(0==getch("dnum2","f",&dnum2))dnum2=-1;
+        if(0==getch("dnum3","f",&dnum3))dnum3=-1;
+        if(0==getch("onum1","f",&onum1))onum1=-1;
+        if(0==getch("onum2","f",&onum2))onum2=-1;
+        if(0==getch("onum3","f",&onum3))onum3=-1;
+
+	gl_simpleaxis(xll,yll,xll+point2*xinch,yll,datap.o2,datap.o2+datap.n2*datap.d2,datap.d2,0.,0.25,label2,labelsz,labelfat,0,nnum2,onum2,dnum2);
+
+	gl_simpleaxis(xll,yll+point1*yinch,xll,yll,datap.o1[0],datap.o1[0]+datap.n1[0]*datap.d1[0],datap.d1[0],0.,0.25,label1,labelsz,labelfat,coordinate.labelrot,nnum1,onum1,dnum1);
+
+	if (flat) {
+	gl_simpleaxis(xll,yll+yinch,xll,yll+point1*yinch,datap.o3+datap.n3*datap.d3,datap.o3,-datap.d3,0.,0.25,label3,labelsz,labelfat,coordinate.labelrot,nnum3,onum3,dnum3);
+	} else {
+	gl_simpleaxis(xll+(1-point2)*xinch,yll+yinch,xll,yll+point1*yinch,datap.o3+datap.n3*datap.d3,datap.o3,-datap.d3,0.,0.25,label3,labelsz,labelfat,0,nnum3,onum3,dnum3);
+	}
+	}
+     if(0==getch("geophysics","d",&geo)) geo=0;
+     if(geo==1){
+/*	gl_simpleaxis(xll,yll+point1*yinch+AAAA,xll,yll+point1*yinch,datap.o3,datap.o3+datap.n3*datap.d3,datap.d3,0.,0.25,label1,labelsz,labelfat,coordinate.labelrot);*/
+	gl_simpleaxis(xll+point2*xinch,yll,xur,yll,datap.o3,datap.o3+datap.n3*datap.d3,-datap.d3,0.,0.25,label3,labelsz,labelfat,0,nnum3,onum3,dnum3);
+     }
+
+	/* outline cube faces if desired */
+	if (wantoutline) {
+		/* front face */
+		gl_move(xll,yll);
+		gl_draw(xll+point2*xinch,yll);
+		gl_draw(xll+point2*xinch,yll+point1*yinch);
+		gl_draw(xll,yll+point1*yinch);
+		gl_draw(xll,yll);
+		/* top face */
+		gl_move(xll,yll+point1*yinch);
+		gl_draw(xll+point2*xinch,yll+point1*yinch);
+		if (flat) {
+		   gl_draw(xll+point2*xinch,yur);
+		   gl_draw(xll,yur);
+		} else {
+		   gl_draw(xur,yur);
+		   gl_draw(xll+(1-point2)*xinch,yur);
+		}
+		gl_draw(xll,yll+point1*yinch);
+		/* side face */
+		gl_move(xll+point2*xinch,yll);
+		if (flat) {
+		   gl_draw(xur,yll);
+		   gl_draw(xur,yll+point1*yinch);
+		} else {
+		   gl_draw(xur,yll+(1-point1)*yinch);
+		   gl_draw(xur,yur);
+		}
+		gl_draw(xll+point2*xinch,yll+point1*yinch);
+		gl_draw(xll+point2*xinch,yll);
+	}
+
+	/* draw colored lines to indicate which slices are shown */
+        gl_color (6);
+	if (wantcoordlabel > -2) {
+	onemp1 = 1. - point1;
+	onemp2 = 1. - point2;
+	fact1 = (datap.n1[0]-jframe1); fact1 /= datap.n1[0];
+	fact2 = jframe2; fact2 /= datap.n2;
+	fact3 = jframe3; fact3 /= datap.n3;
+	xll = position.xll;
+	yll = position.yll;
+	xur = position.xur;
+	yur = position.yur;
+	xinch = xur - xll;
+	yinch = yur - yll;
+
+	/* front face, axis 1 */
+	x1 = xll;
+	yy1 = yll + fact1 * point1 * yinch;
+	x2 = xll + point2 * xinch;
+	gl_move(x1,yy1);
+	gl_draw(x2,yy1);
+	/* front face, axis 2 */
+	yy1 = yll;
+	x1 = xll + fact2 * point2 * xinch;
+	y2 = yll + point1 * yinch;
+	gl_move(x1,yy1);
+	gl_draw(x1,y2);
+
+	/* top face, axis 3 */
+	x1 = xll + fact3 * onemp2 * xinch;
+	if (flat) x1 = xll;
+	yy1 = yll + point1 * yinch + fact3 * onemp1 * yinch;
+	x2 = x1 + point2 * xinch;
+	gl_move(x1,yy1);
+	gl_draw(x2,yy1);
+	/* top face, axis 2 */
+	x1 = xll + fact2 * point2 * xinch;
+	yy1 = yll + point1 * yinch;
+	x2 = x1 + onemp2 * xinch;
+	if (flat) x2 = x1;
+	y2 = yur;
+	gl_move(x1,yy1);
+	gl_draw(x2,y2);
+
+	/* annotate with axis 2 frame number */
+	framenum = jframe2;
+	if (wantcoordlabel > 0) {
+		plotnum(x2,y2,datap.o2+jframe2*datap.d2,8,0,1);
+	} else if (wantcoordlabel == 0) {
+		 plotnum(x2,y2,framenum,8,0,1);
+	}
+ 
+	/* side face, axis 3 */
+	yy1 = yll + fact3 * onemp1 * yinch;
+	if (flat) yy1 = yll;
+	x1 = xll + point2 * xinch + fact3 * onemp2 * xinch;
+	y2 = yy1 + point1 * yinch;
+	gl_move(x1,yy1);
+	gl_draw(x1,y2);
+
+	/* annotate with axis 3 frame number */
+	framenum = jframe3;
+	if (wantcoordlabel > 0) {
+if(geo==1)		plotnum(x1,y2,datap.o3+jframe3*datap.d3,8,0,1);
+else		plotnum(x1,yy1,datap.o3+jframe3*datap.d3,8,0,-1);
+	} else if (wantcoordlabel == 0) { 
+		plotnum(x1,yy1,framenum,8,0,-1);
+	}
+
+	/* side face, axis 1 */
+	x1 = xll + point2 * xinch;
+	yy1 = yll + fact1 * point1 * yinch;
+	x2 = xur;
+	y2 = yy1 + onemp1 * yinch;
+	if (flat) y2 = yy1;
+	gl_move(x1,yy1);
+	gl_draw(x2,y2);
+
+	/* annotate with axis 1 frame number */
+	framenum = jframe1;
+	if (wantcoordlabel > 0) {
+		plotnum(x2,y2,datap.o1[0]+jframe1*datap.d1[0],8,1,0);
+	} else if (wantcoordlabel == 0) {
+		plotnum(x2,y2,framenum,8,1,0);
+	}
+	}
+
+      }				/* end of fastplot 20 */
+
+		if(wantscalebar){
+		barmx=rast[0];
+		barmn=rast[0];
+		for (i1=0; i1<n1pix*n2pix; i1++) {
+				barmx=MAX(rast[i1],barmx);
+				barmn=MIN(rast[i1],barmx);
+		}
+		numbcol=MAX(1,barmx-barmn);	
+	  for (ii = 0; ii < numbcol; ii++)  bdata[ii] = barmn + ii;
+
+		 vp_raster(bdata,blast,bit,offset,numbcol,1,barposit.xll,barposit.yll,ppi,
+      &barposit.xur,&barposit.yur,barorient,1);
+		 gl_barplot(&barposit, &baraxis, minval, maxval, bartype, barreverse,
+      counter);
+		}
+    /* check for interaction; if any break out of frame loop */
+    if ( iframe != 0 && popup && popup_peek(popfile)) break;
+	
+    /* end of loop over frames */
+    }
+
+    if( popup ){    
+     gl_purge();
+     gl_erase ();
+     movie = 0;
+    }
+
+    /* interact */
+/*    }{ while( (popup && ((!popup_peek(popfile) && movie) || popup_check(popfile))));*/
+    } while( (popup && popup_check(popfile)));
+	return(EXIT_SUCCESS);
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int setorient (int *orient, int *invert, struct coordinfo coordinate)
+_XFUNCPROTOEND
+#else
+int setorient (orient, invert, coordinate)
+    int            *orient;
+    int            *invert;
+    struct coordinfo coordinate;
+#endif
+{
+    if (coordinate.transp == 0 && coordinate.yreverse == 0 & coordinate.xreverse == 0)
+    {
+	*orient = 0;
+	*invert = 1;
+    }
+    if (coordinate.transp && coordinate.yreverse && coordinate.xreverse == 0)
+    {
+	*orient = 1;
+	*invert = 1;
+    }
+    if (coordinate.transp == 0 && coordinate.yreverse && coordinate.xreverse)
+    {
+	*orient = 2;
+	*invert = 1;
+    }
+    if (coordinate.transp && coordinate.yreverse == 0 && coordinate.xreverse)
+    {
+	*orient = 3;
+	*invert = 1;
+    }
+    if (coordinate.transp == 0 && coordinate.xreverse == 0 && coordinate.yreverse)
+    {
+	*orient = 0;
+	*invert = 0;
+    }
+    if (coordinate.transp && coordinate.yreverse && coordinate.xreverse)
+    {
+	*orient = 1;
+	*invert = 0;
+    }
+    if (coordinate.transp == 0 && coordinate.xreverse && coordinate.yreverse == 0)
+    {
+	*orient = 2;
+	*invert = 0;
+    }
+    if (coordinate.transp && coordinate.yreverse == 0 && coordinate.xreverse == 0)
+    {
+	*orient = 3;
+	*invert = 0;
+    }
+
+	return(0);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int setcoordinate (int orient, int invert, struct coordinfo *coordinate)
+_XFUNCPROTOEND
+#else
+int setcoordinate (orient, invert, coordinate)
+    int             orient;
+    int             invert;
+    struct coordinfo *coordinate;
+#endif
+{
+    if (orient == 0 && invert == 1)
+    {
+	coordinate->transp = 0;
+	coordinate->yreverse = 0;
+	coordinate->xreverse = 0;
+    }
+    if (orient == 1 && invert == 1)
+    {
+	coordinate->transp = 1;
+	coordinate->yreverse = 1;
+	coordinate->xreverse = 0;
+    }
+    if (orient == 2 && invert == 1)
+    {
+	coordinate->transp = 0;
+	coordinate->yreverse = 1;
+	coordinate->xreverse = 1;
+    }
+    if (orient == 3 && invert == 1)
+    {
+	coordinate->transp = 1;
+	coordinate->yreverse = 0;
+	coordinate->xreverse = 1;
+    }
+    if (orient == 0 && invert == 0)
+    {
+	coordinate->transp = 0;
+	coordinate->yreverse = 1;
+	coordinate->xreverse = 0;
+    }
+    if (orient == 1 && invert == 0)
+    {
+	coordinate->transp = 1;
+	coordinate->yreverse = 1;
+	coordinate->xreverse = 1;
+    }
+    if (orient == 2 && invert == 0)
+    {
+	coordinate->transp = 0;
+	coordinate->yreverse = 0;
+	coordinate->xreverse = 1;
+    }
+    if (orient == 3 && invert == 0)
+    {
+	coordinate->transp = 1;
+	coordinate->yreverse = 0;
+	coordinate->xreverse = 0;
+    }
+
+	return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int calminmax (void)		
+_XFUNCPROTOEND
+#else
+int calminmax ()		
+#endif
+{
+    if (coordinate.transp)
+    {
+	new.xur = (coordinate.max2 - position.xll) / datap.d1[0];
+	new.yur = (coordinate.max1 - position.yll) / datap.d2;
+	new.xll = new.xur - ((coordinate.max2 - coordinate.min2) / datap.d1[0]);
+	new.yll = new.yll - ((coordinate.max1 - coordinate.min1) / datap.d2);
+    }
+    else
+    {
+	new.xur = (coordinate.max1 - position.xll) / datap.d1[0];
+	new.yur = (coordinate.max2 - position.yll) / datap.d2;
+	new.xll = new.xur - ((coordinate.max1 - coordinate.min1) / datap.d1[0]);
+	new.yll = new.yur - ((coordinate.max2 - coordinate.min2) / datap.d2);
+    }
+	return(0);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int initial (void)
+_XFUNCPROTOEND
+#else
+int initial ()
+#endif
+{
+ int geo,junk;
+    if(1==getch("geophysics","d",&geo)){
+       if(geo==1 && 0==getch("labelrot","d",&junk))  getch_add_string("labelrot=0");
+       if(geo==1 && 0==getch("wantcoordlabel","d",&junk)) getch_add_string("wantcoordlabel=-1");
+    }
+    if (!fetch ("n1", "d", datap.n1))
+	seperr ("n1 not given\n");
+    if (!fetch ("n2", "d", &datap.n2))
+	seperr ("n2 not given\n");
+    if (!fetch ("n3", "d", &datap.n3))
+	datap.n3 = 1;
+    if (!fetch ("esize", "d", &esize))
+	seperr ("esize not given\n");
+
+    if (esize != 1 && esize != 3)
+	seperr ("esize must be 1 or 3\n");
+
+	return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int initialcolor (void)
+_XFUNCPROTOEND
+#else
+int initialcolor ()
+#endif
+{
+    coltab = 1;
+    getch ("coltab", "1", &coltab);
+    if (!coltab && esize == 3)
+	seperr ("esize must be 1 if coltab=no\n");
+
+    if (esize == 1)
+	strcpy (color, "I");
+    else
+	strcpy (color, "332");
+    getch ("color", "s", color);
+
+
+    if (!getch ("nreserve", "d", &nreserve))
+	nreserve = 8;
+    if (!getch ("movish", "1", &movish))
+	movish = 0;
+
+/*    putch_ ("movish", "d", &movish);*/
+
+    puthead ("\tn1=-1\n");
+
+    /* Polarity stuff */
+    polarity = 1;
+    getch ("polarity", "d", &polarity);
+    putch ("polarity", "d", &polarity);
+	return(0);
+}
+
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int graphinitial (void)
+_XFUNCPROTOEND
+#else
+int graphinitial ()
+#endif
+{
+    /* Axis and labelling parameters */
+    datap.o1[0] = 0.;
+    datap.o2 = 0.;
+    datap.o3 = 0.;
+    datap.d1[0] = 1.;
+    datap.d2 = 1.;
+    datap.d3 = 1.;
+    fetch ("o1", "f", datap.o1);
+    fetch ("o2", "f", &datap.o2);
+    fetch ("o3", "f", &datap.o3);
+    fetch ("d1", "f", datap.d1);
+    fetch ("d2", "f", &datap.d2);
+    fetch ("d3", "f", &datap.d3);
+    o1num = datap.o1[0];
+    o2num = datap.o2;
+    strcpy (axis1.wherelabel, "t");
+    strcpy (axis2.wherelabel, "l");
+    strcpy (title.wheretitle, "t");
+    wantframe = 1;
+    getch("wantframe", "1", &wantframe);
+    coordinate.transp = 1;
+    coordinate.yreverse = 1;
+    coordinate.xreverse = 0;
+    invert = 1;
+    orient = 1;
+    coordinatec.min1 = datap.o1[0];
+    coordinatec.min2 = datap.o2;
+    coordinatec.max1 = datap.o1[0] + datap.d1[0] * (datap.n1[0] - 1);
+    coordinatec.max2 = datap.o2 + datap.d2 * (datap.n2 - 1);
+    if (!getch ("min1", "f", &coordinate.min1))
+	coordinate.min1 = datap.o1[0];
+    if (!getch ("min2", "f", &coordinate.min2))
+	coordinate.min2 = datap.o2;
+    if (!getch ("max1", "f", &coordinate.max1))
+	coordinate.max1 = datap.o1[0] + datap.d1[0] * (datap.n1[0] - 1);
+    if (!getch ("max2", "f", &coordinate.max2))
+	coordinate.max2 = datap.o2 + datap.d2 * (datap.n2 - 1);
+    gl_coordint (&position, &coordinate, &axis1, &axis2);
+    if (coordinate.transp)
+    {
+	tempminmax = coordinatec.min1;
+	coordinatec.min1 = coordinatec.min2;
+	coordinatec.min2 = tempminmax;
+	tempminmax = coordinatec.max1;
+	coordinatec.max1 = coordinatec.max2;
+	coordinatec.max2 = tempminmax;
+    }
+    if (coordinate.transp)
+    {
+	tempminmax = coordinate.min1;
+	coordinate.min1 = coordinate.min2;
+	coordinate.min2 = tempminmax;
+	tempminmax = coordinate.max1;
+	coordinate.max1 = coordinate.max2;
+	coordinate.max2 = tempminmax;
+    }
+    gl_axisint (&axis1, &axis2, &coordinate, &position);
+    gl_gridint (&grid, 	&coordinate, &axis1, &axis2);
+    gl_titleint (&title);
+    gl_colorint (&colorin);
+	return(0);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int plotnum(float x,float y,float num,int size,int ix, int iy)
+_XFUNCPROTOEND
+#else
+int plotnum(x,y,num,size,ix,iy)
+float x,y,num;
+int size,ix,iy;
+#endif
+{
+    char string[10];
+    float ch,vs,xpath,ypath,xup,yup;
+    int len;
+
+    if ((num-((int) num)) == 0.) sprintf(string,"%.0f",num);
+    else sprintf(string,"%.3f",num);
+    len = strlen(string);
+    ch = size / 33.;
+    vs = ch * 5. / 10.;
+    if (ix == 1) {
+	x += ch;
+    	vp_tjust(TH_LEFT,TV_HALF);
+    }
+    if (ix == -1) {
+    	x -= ch;
+    	vp_tjust(TH_RIGHT,TV_HALF);
+    }
+    if (iy == -1) {
+	y -= ch;
+    	vp_tjust(TH_CENTER,TV_TOP);
+    }
+    if (iy == 1) {
+	y += ch;
+    	vp_tjust(TH_CENTER,TV_BOTTOM);
+    }
+    xpath = ch;
+    ypath = 0.;
+    xup = 0.;
+    yup = ch;
+    vp_gtext(x,y,xpath,ypath,xup,yup,string);
+		return(0);
+}
+#include <string.h>
+#include <stdio.h>
+
+#include <sys/ioctl.h>
+
+#if defined(SOLARIS)
+#include <termios.h>
+#include <sys/stream.h>
+#include <sys/stropts.h>
+#include <sys/ttold.h>
+#include <sys/ttcompat.h>
+#include <sys/filio.h>
+#endif /*SOLARIS*/
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+FILE* popup_start( char *pop_comm )
+_XFUNCPROTOEND
+#else
+FILE* popup_start( pop_comm )
+char *pop_comm;
+#endif
+{
+FILE* ret;
+
+if( (ret = popen( pop_comm, "r" )) == 0 ){
+	seperr("unabe to execute popup command %s",pop_comm);
+}
+#if defined(SOLARIS)
+ioctl(fileno(ret),I_PUSH,"ttcompat");
+#endif
+#if defined(CYGWIN)
+#include<asm/socket.h>
+#endif
+
+if( setvbuf( ret, 0, _IONBF, 0 ) != 0 ){
+   seperr("setvbuf failed in popup_start");
+} 
+
+return ret;
+}
+
+typedef struct hash_dummy {
+        struct hash_dummy *next;
+        char *tag; int tlen;
+        char *val; int vlen;
+        int timestamp;
+        } hash_item;
+
+#define GETCH_QUEUE_SIZE 127
+
+extern hash_item *getch_queue[GETCH_QUEUE_SIZE];
+
+extern void getpar_push_input(char *, int);
+extern void getpar_scan(hash_item **, int);
+
+#define READLEN 2048
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int popup_peek( FILE *popfile )
+_XFUNCPROTOEND
+#else
+int popup_peek( popfile )
+FILE* popfile;
+#endif
+{
+long more;
+     more=0;
+     if( ioctl( fileno(popfile), FIONREAD, &more ) == -1 ){
+        perror("FIONREAD in popup");
+        seperr("fatal error reading data from popup");
+     }
+return( more != 0 );
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int popup_check( FILE *popfile )
+_XFUNCPROTOEND
+#else
+int popup_check( popfile )
+FILE* popfile;
+#endif
+{
+long more;
+char readbuf[READLEN+1];
+
+
+   if( feof( popfile ) ) return 0;
+
+   do{
+	if(NULL == fgets( readbuf, READLEN, popfile )) {
+           perror("popup_check: fgets failed ");
+           return 0;
+        }
+
+         if( !strcmp( readbuf, "QUIT" ) ) return 0;
+
+         getpar_push_input( readbuf, 0 );
+         getpar_scan( getch_queue, GETCH_QUEUE_SIZE);
+
+	 more=0;
+	 if( ioctl( fileno(popfile), FIONREAD, &more ) == -1 ){
+	    perror("FIONREAD in popup");
+	    seperr("fatal error reading data from popup");
+	 }
+
+    }while( more > 0  && !feof(popfile) );
+
+    return 1;
+
+}

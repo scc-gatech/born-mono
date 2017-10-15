@@ -1,0 +1,299 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$ Velan3d - Perform velocity analysis
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Velan3d  <in.H >out.H
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item v0 - float
+!!$
+!!$      first velocity
+!!$
+!!$=item dv - float
+!!$
+!!$      velocity sampling
+!!$
+!!$=item nv - integer
+!!$
+!!$      number of velocities
+!!$
+!!$=item ntout - integer
+!!$
+!!$      [ntin/5] number of samples in output
+!!$
+!!$=item smooth - integer
+!!$
+!!$      [ntin/ntout*2] smoothing window
+!!$
+!!$=item mute  - real
+!!$
+!!$      [1.8] muting parameter
+!!$
+!!$=item off_keys - integer(:)
+!!$
+!!$      keys which contain offset information
+!!$
+!!$=item offset_axes - integer(:)
+!!$
+!!$      axes which describe the offset and/or
+!!$      the axes which to perform velocity on
+!!$
+!!$=item verb    - integer
+!!$
+!!$      [0] wheter or not to be verbose
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Performs Velocity Analysis on sep3d datasets
+!!$
+!!$
+!!$=head1 COMMENTS
+!!$
+!!$ off_keys and off_axes, are somewhat optional
+!!$ If none of these are suplied checks keys and then axes for
+!!$ offset, offset_x, and offset_y.
+!!$
+!!$=head1 SEE ALSO
+!!$
+!!$L<Velan>,L<Nmo3d>
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/velan>
+!!$
+!!$=cut
+!>
+!Author: Robert Clapp, ESMB 463, 7230253
+!
+!Date Created:Mon Jul 29 10:50:21 1996
+!Feb. 1997 fixxed, changed, updated, etc. (Bob)
+!March 1997 Added sel-doc, modified parameter grabbing (Bob)
+!Purpose:
+!
+!
+program Velan3d 
+  use sep
+  use velan_subs_mod
+  use sep3d_struct_mod
+  use helixcartmod
+  implicit none
+  type(sep3d) :: in,out
+  integer nv,off_axes(9),n_off_axes
+  integer,allocatable,dimension(:) :: n,fwind,nwind,n_out,fwind_out&
+    &,nwind_out,ngrid,ngrid_out
+  real,allocatable,dimension(:) :: o,d,o_out,d_out,offsq,tempo
+  real,allocatable,dimension(:,:) :: input,output
+  character(len=128),pointer,dimension(:) :: label,label_out,unit
+  character(len=128) :: type_data
+  integer :: nloop(9),compress_axes(9),n_compress_axes
+  integer :: it(9),off_keys(9),n_off_keys
+  integer :: i1,i2,i3,i4,i5,i6,i7,i8,i9,ndim,map_out(9),out_map(9)
+  integer :: ndim_out,ntout,ic,nh,nsz
+  logical :: logicit,verbose
+  integer :: smooth,esize,nd_out,tempi,ierr
+  real    :: mute,dv,v0
+  call SEP_ADD_DOC()
+  call SEP_INIT('')
+  call sep_begin_prog()
+  call init_3d()
+  call init_sepf90()
+  call init_sep3d("in",in,"INPUT")
+  if (in%data_format.ne."FLOAT") then
+    call erexit("only know how to handle float data")
+  end if
+  ndim=in%ndims
+    if (0>= getch('verb','d',tempi )) then
+      tempi = 0
+    end if
+    if (0.ne.putch('Read  from param: #verb ','d',tempi)) then
+      call erexit('Trouble writing tempi to history')
+    end if
+  if (tempi.ne.0) then
+    verbose=.true.
+  else
+    verbose=.false.
+  end if
+    if (0>= getch('v0','f',v0 )) then
+      call erexit('Trouble reading  v0 from param  ')
+    end if
+    if (0.ne.putch('Read  from param: #v0 ','f',v0)) then
+      call erexit('Trouble writing v0 to history')
+    end if
+    if (0>= getch('dv','f',dv )) then
+      call erexit('Trouble reading  dv from param  ')
+    end if
+    if (0.ne.putch('Read  from param: #dv ','f',dv)) then
+      call erexit('Trouble writing dv to history')
+    end if
+    if (0>= getch('nv','d',nv )) then
+      call erexit('Trouble reading  nv from param  ')
+    end if
+    if (0.ne.putch('Read  from param: #nv ','d',nv)) then
+      call erexit('Trouble writing nv to history')
+    end if
+    if (0>= getch('ntout','d',ntout )) then
+      ntout = in%n(1)/5
+    end if
+    if (0.ne.putch('Read  from param: #ntout ','d',ntout)) then
+      call erexit('Trouble writing ntout to history')
+    end if
+    if (0>= getch('smooth','d',smooth )) then
+      smooth = (in%n(1)/ntout)*2
+    end if
+    if (0.ne.putch('Read  from param: #smooth ','d',smooth)) then
+      call erexit('Trouble writing smooth to history')
+    end if
+    if (0>= getch('mute','f',mute )) then
+      mute = 1.8
+    end if
+    if (0.ne.putch('Read  from param: #mute ','f',mute)) then
+      call erexit('Trouble writing mute to history')
+    end if
+!FIRST FIGURE OUT THE SIZE OF THE OUTPUT
+  n_off_axes=getch("offset_axes","d",off_axes)
+  if (n_off_axes.eq.0) then
+!the off axes is not supplied by the user
+    nd_out=2
+    do i1=2,ndim 
+      if (in%label(i1)(1:6).eq."offset" .or. in%label(i1)(1:6).eq."OFFSET"&
+        & .or.   in%label(i1)(1:6).eq."Offset" ) then
+        n_off_axes=					n_off_axes+1
+        off_axes(n_off_axes)=i1
+      else
+        nd_out=  nd_out+1
+      end if
+    end do 
+    if (n_off_axes.eq.0) then
+      call erexit("i can not figure out the offset axes and you did not&
+        & supply offset_axes")
+    end if
+  else
+    nd_out=ndim-n_off_axes+1
+  end if 
+!NOW FIGURE OUT THE OFFSET KEY(s)
+  n_off_keys=getch("off_keys","d",off_keys)
+  if (n_off_keys.eq.0) then
+    if (in%nkeys>0) then
+      do i1=1,in%nkeys 
+        if ((in%keyname(i1)(1:6).eq."offset" .or. in%keyname(i1)(1:6&
+          &).eq."OFFSET" .or.   in%keyname(i1)(1:6).eq."Offset") .and.&
+          & in%keytype(i1).eq."scalar_float" ) then
+          n_off_keys=						n_off_keys+1
+          off_keys(n_off_keys)=i1
+        end if
+      end do
+    end if
+  end if
+  if (n_off_keys.eq.0 .and. in%file_format.ne."REGULAR") then
+    call erexit("must have an offset key if not a regular dataset ")
+  end if
+!NOW LETS SET UP THE OUTPUT
+  allocate(n(nd_out),o(nd_out),d(nd_out),label(nd_out),unit(nd_out))
+  unit=" "
+  n(1:2)=(/ntout,nv/)
+  o(1:2)=(/in%o(1),v0/)
+  d(1:2)=(/in%d(1)*in%n(1)/ntout,dv/)
+  label(1)=in%label(1)
+  label(2)="Velocity"
+  unit(1)=in%unit(1)
+  allocate(nwind(ndim),fwind(ndim),ngrid(ndim))
+  allocate(nwind_out(nd_out),fwind_out(nd_out),ngrid_out(ndim))
+  ngrid=1
+  ngrid_out=1
+  nwind=1
+  nwind_out=1
+  fwind=0
+  fwind_out=0
+  ic=3
+  nh=1
+  nwind_out=1
+  do i2=2,ndim 
+    if (all(off_axes(1:n_off_axes).ne.i2)) then
+      n(ic)=in%n(i2)
+      o(ic)=in%o(i2)
+      d(ic)=in%d(i2)
+      label(ic)=in%label(i2)
+      unit(ic)=in%unit(i2)
+      ngrid(i2)=in%n(i2)
+      nh=nh*ngrid(i2)
+      ngrid_out(ic)=in%n(i2)
+      nwind(i2)=1
+      ic=			ic+1
+    else
+      ngrid(i2)=1
+      nwind(i2)=in%n(i2)
+    end if
+  end do 
+  call par_init(out,"OUTPUT","FLOAT","REGULAR")
+  call axis_allocate(out,size(n))
+  out%n=n
+  out%o=o
+  out%d=d
+  out%label=label
+  out%unit=unit
+  out%ntraces=product(n(2:))
+  call sep3d_set_sep3d(out)
+!	call par_init(out,"OUTPUT","FLOAT","REGULAR",n=n,o=o,d=d,label=label,
+!		unit=unit,ntraces=product(n(2:)))
+  allocate(output(out%n(1),out%n(2)))
+  output=0.
+  fwind(1)=0
+  fwind_out(1:2)=0
+  nwind(1)=in%n(1) 
+  nwind_out(1:2)=out%n(1:2)
+  call sep3d_write_description("out",out)
+  call init_velan(v0,dv,nv,in%o(1),in%d(1),out%d(1),smooth,mute)
+  if (verbose) then
+    write(0,*)  "about to begin, output size=",n
+  end if
+  tempi=0
+  do i2=1,nh 
+!convert window
+    call helix2cart(ngrid(2:),i2,fwind(2:))
+    fwind(2:)= fwind(2:)-1
+    call helix2cart(ngrid_out(3:),i2,fwind_out(3:))
+    fwind_out(2:)=fwind_out(2:)-1
+    call sep3d_grab_headers("in",in,nsz,fwind=fwind(2:),nwind=nwind(2:&
+      &))
+    tempi=		tempi+nsz
+    if (verbose) then
+      write(0,*)  "working on ", i2," of ",nh," found ",nsz ," traces&
+        & tot=",tempi
+    end if
+    output=0.
+    if (nsz>0) then
+      allocate(tempo(nsz),offsq(nsz),input(in%n(1),nsz))
+      input=0.
+      if (.not. sep3d_read_data("in",in,input)) then
+        call erexit("trouble reading data ")
+      end if
+      if (n_off_keys>0) then
+        offsq=0
+        do i1=1,n_off_keys 
+          call sep3d_grab_key_vals(in,off_keys(i1),tempo)
+          offsq=					offsq+tempo**2
+        end do
+      else
+        offsq=0
+        do i1=1,n_off_axes 
+          do i3=1,in%n(off_axes(i1))
+            offsq(i3)=						offsq(i3)+(in%o(off_axes(i1))+in%d(off_axes&
+              &(i1))*(i3-1))**2
+          end do
+        end do
+      end if 
+      call velan_exe(input,output,offsq)
+      deallocate(tempo,offsq,input)
+    end if
+    ierr= srite("out",output,size(output)*4)
+  end do 
+  call sep_end_prog()
+end program  

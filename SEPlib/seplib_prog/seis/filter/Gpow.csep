@@ -1,0 +1,129 @@
+/*$
+
+=head1 NAME
+
+Gpow  -  aply a given gainpow to data
+
+=head1 SYNOPSIS
+
+Gpow gpow=1 < in.H > out.H
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item gpow - integer 
+
+	[1]: power to apply to the data (data=data**gpow)
+
+=item n1,n2,n3-integer 
+
+      standars seplib parameters
+
+=item esize - integer 
+
+      number of bytes per word (defaults to the size of floats in your computer)
+
+=back
+
+=head1 DESCRIPTION
+
+ Apply a given gpow to data = data ** gpow 
+
+
+=head1 COMMENTS
+
+	This is a very dumb gpow program which will apply a given gpow,
+        but doesn't know how to estimate a best gpow to use, so you have
+        to supply it.
+
+=head1 SEE ALSO
+
+L<Clip>, L<Tpow>
+
+=head1 CATEGORY
+
+=head1 EXAMPLE
+
+		Gpow < in.H gpow=2 > out.H
+			squares the input data
+
+B<seis/filter>
+
+=cut
+
+>*/
+/*
+
+ KEYWORDS    gain gpow 
+
+ SEE ALSO
+	Tpow
+
+ WHERE
+	./cube/seis/Gpow.c
+
+*/
+/*
+ * Keyword: gain gpow : Tpow
+ */
+/*
+Martin Karrenbach 11-3-92  changed alloc(sizeof()) and sreed/srite sizeof(xdr)
+*/
+
+
+ADD_DEF_SEP_DOC
+#include <sep.main>
+int MAIN(void)
+{
+	int nt, nx, np, it, ix, esize;
+	int nrdwr;
+	float *data, gpow;
+	double dgpow;
+        sep_begin_prog();
+
+	/* get standard SEP parameters and set defaults */
+	if(!fetch("n1","d",&nt))
+		{
+		 if(!fetch("nt","d",&nt))  seperr("Can't find n1=%d\n",nt);
+		} 
+	nx = 1;
+	if(!fetch("n2","d",&nx))
+		{
+		 (void) fetch("nx","d",&nx);
+		} 
+	np=1;
+	if(!fetch("n3","d",&np))
+		{
+		 (void) fetch("np","d",&np);
+		} 
+	if(!fetch("esize","d",&esize)) esize=sizeof(float);
+
+	/* put standard SEP parameters out */
+	putch("n1","d",&nt);
+	putch("n2","d",&nx);
+	putch("n3","d",&np);
+
+	nx = nx*np;
+
+	gpow=1.;	(void) getch("gpow","f",&gpow);
+	dgpow = gpow-1.;
+
+	nrdwr = nt*esize;
+	data = (float *) alloc( nt*sizeof(float) ); /* allocate array */
+	putch("gpow value applied to data ","f",&gpow);
+	puthead("\t\tFor plotting: gpow=1.0\n");
+	hclose();
+
+	/* apply the power gain */
+	for(ix=0; ix<nx ; ix++ ) {
+		if(nrdwr != sreed("in",(char *)data,nrdwr)) /* read trace in */
+			seperr("unexpected EOF on input\n");
+		for(it=0; it<nt ; it++ ) {
+			data[it] *=  pow(fabs((double) data[it]),dgpow);
+		}
+		(void) srite("out",(char *)data,nrdwr);		/* write trace out */
+	}
+    sep_end_prog();
+    return EXIT_SUCCESS;
+}

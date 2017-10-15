@@ -1,0 +1,58 @@
+=head1 NAME
+
+
+c2h - convert from cartesian
+
+=head1 SYNOPSIS
+
+
+C<ierr=c2h(int *hindex, int *n, int ndim, int *cindex)>
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item n -   int*     
+
+      dimension of dataset
+
+=item ndim -   int*     
+
+      skip between elements to copy
+
+=item cindex-   int*     
+
+      location in multi-d mesh
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item hindex -   int*     
+
+      helix location index
+
+=back
+
+=head1 DESCRIPTION
+
+
+Translate from multi-dimenion system to  helix coordinate
+
+=head1 SEE ALSO
+
+
+L<h2c>
+
+=head1 LIBRARY
+
+
+B<sep>
+
+=cut
+

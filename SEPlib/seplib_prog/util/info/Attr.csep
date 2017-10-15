@@ -1,0 +1,554 @@
+
+ /*$
+
+=head1 NAME
+
+Attr - display attributes of a dataset
+
+=head1 SYNOPSIS
+
+Attr <in want=all
+
+=head1 INPUT PARAMETERS 
+
+=over 4
+
+=item   want  -  char* 
+
+       {all,min,max,mean,rms,norm}
+       want=all, prints a summary of all info
+       want=min, prints just the minimum value
+       want=max, prints just the maximum value
+       want=mean, prints just the mean value
+       want=rms, prints just the rms value
+       want=norm, prints just the L2 norm value
+       want=short, prints ratio of 0 samples,minimum,maximum
+
+=item   maxsize - integer 
+
+       [100] maximum memory that will be used (in megabytes).
+       Blocks of maxsize/esize elements read and analyzed
+       sequentially.
+
+=item   param - integer 
+
+       [0] Output style. Default (param=0) is 'verbose' style 
+       (see below).  param=1 formats output in SEP history
+       file parameter style.  Useful for grabbing the data
+       statistics for batch processing (see example below).
+
+=back
+
+=head1 DESCRIPTION
+
+ Displays various attributes of a dataset
+ 
+
+=head1 COMMENTS 
+
+  sample output for want=all, param=0 is
+ 
+    ******************************************* 
+    mean value = 0.010000 
+    rms = 0.100000 
+    norm = 7.07106
+    maximum value = 1.000000 at 10 1 1 
+    minimum value = 0.000000 at 1 1 1 
+    number of nonzero samples = 50 
+    total number of samples = 5000 
+    *******************************************
+
+  and for want=all, param=1:
+
+    meanval=0.010000 
+    rms=0.100000 
+    norm=7.07106
+    maxval=1.000000
+    minval=0.000000
+    nonzero=50 
+    totsamp=5000 
+
+  Say that we wanted to use the maximum value in one dataset
+  as a clip value for displaying another dataset.  We could
+  use Attr and Get as follows.
+
+	< data2.H  Grey clip=`Attr < data1.H | Get parform=n maxval` | Tube
+
+
+=head1 SEE ALSO
+
+L<Attr3dhead>, L<In>
+
+=head1 CATEGORY
+
+B<util/info>
+
+=cut
+
+>*/
+
+/* 
+ KEYWORDS   mean rms maximum minimum norm attribute 
+
+ WHERE
+  ./cube/util/Attr.c
+
+*/
+/*
+ Modified: Dave Nichols, SEP 3/10/94
+      Added alternative outputs
+
+ Modified: Curt Holden, SEP 8/20/96
+      Changed label from "l2norm" to "norm"
+
+ Modified: Yalei Sun, SEP 9/11/96
+      Took n4-n9 axes into account
+
+ Modified: Hector Urdaneta, SEP 11/1/96
+      Fixed maxv and minv to be initialized correctly
+
+ Modified: Biondo Biondi , SEP 12/15/96
+      Reverted to setting minv maxv to avoid eseking file
+
+ Modified: Robert Clapp , SEP 6/27/97
+      Added short option to make testing program easier to debug
+ Modified: Robert Clapp. SEP 10/97
+      Added complex and byte support, made N dimensional, added
+      maxsize parameters
+ Modified: Morgan Brown, SEP 9/May/2002
+      Added "param" option to produce history file-like output 
+      values.
+ Modified: Stewart A. Levin, SEP 24 July, 2014
+      Made it work for files greater than 2Gb.
+      Handle Ctrl-C interrupt by terminating gracefully with
+      printout of statistics for what had been read by that point.
+ Modified: Stewart A. Levin, SEP  27 July, 2014
+      Double buffer using a separate thread to process current
+      buffer while next is being read.
+ */
+
+#define         HEAD    "/dev/null"
+#define         OUT    "/dev/null"
+#include <sep3d.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <pthread.h>
+#ifdef __APPLE__
+#include <mach/mach_init.h>
+#include <mach/task.h>
+#include <mach/semaphore.h>
+#define sem_t semaphore_t
+#else
+#include <semaphore.h>
+#endif
+#include <math.h>
+#include <signal.h>
+#include <inttypes.h>
+#include<complex.h>
+
+#if defined(__STDC__) || defined(__stdc__)
+void uncode_location(uint64_t loc, uint64_t *block, int *loc_a, int ndim);
+#else
+void uncode_location();
+#endif
+
+ADD_DEF_SEP_DOC
+
+/* allow for keyboard interrupt and printout of partial results */
+volatile int iminterrupted = 0;
+void catchem(int sig){
+   iminterrupted = 1;
+/* protect against excess impatience */
+   signal(SIGINT, SIG_IGN);
+} 
+
+#include <sep.main>
+
+typedef struct {
+      int esize;
+      int ndim,maxsize,param;
+      float* f_databuf[2];
+      float f_maxv,f_minv,co_maxv,co_minv;
+      float complex *co_databuf[2];
+      float complex co_minv_r,co_minv_i,co_maxv_r,co_maxv_i;
+      double sqrs,f_mean;
+      char want[256];
+      unsigned char *ch_databuf[2];
+      int *n,*maxloc,*minloc,*cmaxloc,*cminloc;
+      uint64_t nzero, count, countsav[2];
+      uint64_t *block;
+      size_t read_in;
+      sem_t ok_to_process;
+      sem_t done_processing;
+  } params;
+
+static
+void *scanbuf(void *arg) {
+    params *par = (params *) arg;
+    double amplitude;
+    int i1; 
+    int rc;
+    int ibuf = 0;
+    sigset_t setnew, setold;
+
+    sigfillset(&setnew);
+    (void) pthread_sigmask(SIG_BLOCK, &setnew, &setold);
+    
+    (void) pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,&rc);
+
+    while(1) {
+
+        /*update running totals and check min max stuff */  
+#ifdef __APPLE__
+        rc = semaphore_wait(par->ok_to_process);
+        if(rc != 0) perror("semaphore_wait scanbuf\n");
+#else   
+        rc = sem_wait(&par->ok_to_process);
+        if(rc != 0) perror("sem_wait scanbuf\n");
+#endif
+    
+        if(par->esize==4){
+    
+          for(i1=0; i1 < par->read_in/par->esize; i1++){
+            par->f_mean = par->f_mean + par->f_databuf[ibuf][i1];
+            par->sqrs = par->sqrs + par->f_databuf[ibuf][i1]*par->f_databuf[ibuf][i1];
+    
+            if(par->f_databuf[ibuf][i1] > par->f_maxv){
+              par->f_maxv=par->f_databuf[ibuf][i1];
+              uncode_location(i1+par->countsav[ibuf],par->block,par->maxloc,par->ndim);
+            }
+            if(par->f_databuf[ibuf][i1] < par->f_minv){
+              par->f_minv=par->f_databuf[ibuf][i1];
+              uncode_location(i1+par->countsav[ibuf],par->block,par->minloc,par->ndim);
+            }
+            if(par->f_databuf[ibuf][i1] != 0) par->nzero=par->nzero+1;
+          }
+    
+        } else if(par->esize==8){
+    
+          for(i1=0; i1 < par->read_in/par->esize; i1++){
+            double co_re = __real__ par->co_databuf[ibuf][i1];
+            double co_im = __imag__ par->co_databuf[ibuf][i1];
+            amplitude=hypot(co_re,co_im);
+    
+            par->f_mean=par->f_mean+ amplitude;
+            par->sqrs=par->sqrs+amplitude * amplitude;
+    
+            if(__real__ par->co_databuf[ibuf][i1]> par->f_maxv){
+              __real__ par->f_maxv=par->co_databuf[ibuf][i1];
+              par->co_maxv_r=par->co_databuf[ibuf][i1];
+              uncode_location(i1+par->countsav[ibuf],par->block,par->maxloc,par->ndim);
+            }
+            if(__imag__ par->co_databuf[ibuf][i1] > par->co_maxv){
+              par->co_maxv=__imag__ par->co_databuf[ibuf][i1];
+              par->co_maxv_i=par->co_databuf[ibuf][i1];
+              uncode_location(i1+par->countsav[ibuf],par->block,par->cmaxloc,par->ndim);
+            }
+            if(__real__ par->co_databuf[ibuf][i1] < par->f_minv){
+              par->f_minv=__real__ par->co_databuf[ibuf][i1];
+              par->co_minv_r=par->co_databuf[ibuf][i1];
+              uncode_location(i1+par->countsav[ibuf],par->block,par->minloc,par->ndim);
+            }
+            if(__imag__ par->co_databuf[ibuf][i1] < par->co_minv){
+              par->co_minv=__imag__ par->co_databuf[ibuf][i1];
+              par->co_minv_i=par->co_databuf[ibuf][i1];
+              uncode_location(i1+par->countsav[ibuf],par->block,par->cminloc,par->ndim);
+            }
+            if(amplitude != 0) par->nzero=par->nzero+1;
+          }
+
+        } else{
+          for(i1=0; i1 < par->read_in/par->esize; i1++){
+            amplitude=par->ch_databuf[ibuf][i1];
+            par->f_mean=par->f_mean+ amplitude;
+            par->sqrs=par->sqrs+amplitude*amplitude;
+    
+            if(amplitude > par->f_maxv){
+              par->f_maxv=amplitude;
+              uncode_location(i1+par->countsav[ibuf],par->block,par->maxloc,par->ndim);
+            }
+            if(amplitude < par->f_minv){
+              par->f_minv=amplitude;
+              uncode_location(i1+par->countsav[ibuf],par->block,par->minloc,par->ndim);
+            }
+            if(amplitude != 0) par->nzero=par->nzero+1;
+          } 
+        }
+#ifdef __APPLE__
+        rc = semaphore_signal(par->done_processing);
+        if(rc != 0) perror("semaphore_signal scanbuf\n");
+#else
+        rc = sem_post(&par->done_processing);
+        if(rc != 0) perror("sem_post scanbuf\n");
+#endif
+
+        /* switch buffers */
+        ibuf = (ibuf+1)%2;
+      }
+  return arg;
+}
+
+int MAIN(void){
+
+  int i1;
+  uint64_t tot;
+  int mem;
+  size_t read;
+  double meansngl;
+  double sqrsngl;
+  double norm;
+  char temp_ch[256];
+  params *par;
+  int ibuf = 0;
+  int first = 1;
+  int rc;
+  pthread_t tid;
+
+  doc(SOURCE);
+
+  par=(params *) malloc(sizeof(params));
+
+  /* fetch in parameters  */
+  if( getch("want",   "s", par->want)     == 0 ) strcpy( par->want, "all" );
+  if( fetch("esize",  "d", &par->esize)   == 0 ) par->esize=4;
+  if( getch("maxsize","d", &par->maxsize) == 0 ) par->maxsize=100;
+  if( getch("param",  "d", &par->param)   == 0 ) par->param=0;
+
+  par->maxsize=par->maxsize*500000; /* split across two buffers */
+
+
+  if( getch("n1","d",&par->ndim) == 0 ){ 
+    if( 0!=sep_get_number_data_axes("in",&par->ndim) ) seperr("trouble getting ndim");
+  } else {
+    par->ndim=10;  /*We have n on the command line so set an arbitrary maximum dimensions to 10*/
+  }
+
+  par->n       = (int *)malloc( sizeof(int)*par->ndim );
+  par->block   = (uint64_t *)malloc( sizeof(uint64_t)*(par->ndim+1) );
+  par->minloc  = (int *)malloc( sizeof(int)*(par->ndim+1));
+  par->maxloc  = (int *)malloc( sizeof(int)*(par->ndim+1));
+  par->cminloc = (int *)malloc( sizeof(int)*(par->ndim+1));
+  par->cmaxloc = (int *)malloc( sizeof(int)*(par->ndim+1));
+
+  tot=1;
+  par->block[0]=1;
+  for( i1=1; i1<=par->ndim; i1++ ) {     /* Fetch n1,n2,...ndim from history */
+    sprintf( temp_ch, "%s%d", "n", i1);
+    if( 0==fetch( temp_ch, "d", &par->n[i1-1] ))  par->n[i1-1]=1;
+    par->minloc[i1]=1; par->maxloc[i1]=1; tot=tot*par->n[i1-1];
+    par->cminloc[i1]=1; par->cmaxloc[i1]=1; 
+    par->block[i1]=par->block[i1-1]*par->n[i1-1];
+  }
+
+  /*calculate the amount we can hold in at one time */
+  mem=par->maxsize/par->esize;
+  if( mem>tot ) mem=tot;
+
+  /*initialize for three cases float (esize=4), 
+    complex (esize=8), byte (esize=1)    */
+
+  if(par->esize==4){
+    par->f_mean = 0.; par->count = 0; par->nzero = 0;
+    par->f_maxv = -SEP_MAXFLOAT; par->f_minv = SEP_MAXFLOAT; par->sqrs = 0.0;
+    par->f_databuf[0] = (float*)alloc((int)( mem*sizeof(float) ));
+    par->f_databuf[1] = (float*)alloc((int)( mem*sizeof(float) ));
+  } else if(par->esize==8) {
+    par->f_mean = 0.; par->count = 0; par->nzero = 0; 
+    par->f_maxv = -SEP_MAXFLOAT; par->f_minv = SEP_MAXFLOAT; par->sqrs = 0.0;
+    par->co_maxv=-SEP_MAXFLOAT; par->co_minv=SEP_MAXFLOAT;
+    par->co_databuf[0] = (float complex*)alloc((int)( mem*sizeof(float complex) ));
+    par->co_databuf[1] = (float complex*)alloc((int)( mem*sizeof(float complex) ));
+  } else if(par->esize==1) {
+    par->f_mean = 0.; par->count = 0; par->nzero = 0; 
+    par->f_maxv = -SEP_MAXFLOAT; par->f_minv = SEP_MAXFLOAT; par->sqrs = 0.0;
+    par->ch_databuf[0] = (unsigned char*)alloc( (int)(mem*sizeof(char) ));
+    par->ch_databuf[1] = (unsigned char*)alloc( (int)(mem*sizeof(char) ));
+  } else {
+    seperr("unrecognized esize, only handle esize=1,4,8\n");
+  }
+
+  hclose();
+  iminterrupted = 0;
+  signal(SIGINT, catchem);
+
+  par->countsav[0] = par->count;
+  par->countsav[1] = par->count;
+
+  /* set up double buffering */
+#ifdef __APPLE__
+  rc = semaphore_create(mach_task_self(), &(par->ok_to_process), SYNC_POLICY_FIFO,0);
+  if(rc != 0) perror("semaphore_create ok_to_process\n");
+  rc = semaphore_create(mach_task_self(), &(par->done_processing), SYNC_POLICY_FIFO,0);
+  if(rc != 0) perror("semaphore_create done_processing\n");
+#else
+  rc = sem_init(&par->ok_to_process,0,0);
+  if(rc != 0) perror("sem_init ok_to_process\n");
+  rc = sem_init(&par->done_processing,0,0);
+  if(rc != 0) perror("sem_init done_processing\n");
+#endif
+
+  /* start processing thread */
+  rc = pthread_create(&tid,NULL,scanbuf,par);
+  if(rc != 0) perror("pthread_create processing thread\n");
+
+  while( par->count < tot) {                   /* read in the data */
+#ifdef __APPLE__
+    if(!first) rc = semaphore_wait(par->done_processing);
+    if(rc != 0) perror("semaphore_wait done_processing\n");
+#else
+    if(!first) rc = sem_wait(&par->done_processing);
+    if(rc != 0) perror("sem_wait done_processing\n");
+#endif
+    first = !1;
+    read=mem;
+    if(read > (tot-par->count)) read=tot-par->count;
+    if(     par->esize==4) par->read_in=sreed_big( "in", par->f_databuf[ibuf],  par->esize*read);
+    else if(par->esize==8) par->read_in=sreed_big( "in", par->co_databuf[ibuf], par->esize*read);
+    else if(par->esize==1) par->read_in=sreed_big( "in", par->ch_databuf[ibuf], par->esize*read);
+
+    if(par->read_in!=read*par->esize || iminterrupted) {
+      fprintf(stderr,
+         "unexpected end of data after %ld elements i am interrupted= %d \n",(long) (par->read_in/par->esize+par->count), iminterrupted);
+      tot=par->count+par->read_in/par->esize;
+    }
+
+#ifdef __APPLE__
+    rc = semaphore_signal(par->ok_to_process);
+    if(rc != 0) perror("semaphore_signal ok_to_process\n");
+#else
+    rc = sem_post(&par->ok_to_process);
+    if(rc != 0) perror("sem_wait ok_to_process\n");
+#endif
+
+    par->countsav[ibuf] = par->count;
+    ibuf = (ibuf+1)%2;
+    par->count=par->count+par->read_in/par->esize;
+    par->countsav[ibuf] = par->count;
+  }
+
+#ifdef __APPLE__
+  rc = semaphore_wait(par->done_processing);
+  if(rc != 0) perror("semaphore_wait ok_to_process\n");
+#else
+  rc = sem_wait(&par->done_processing);
+  if(rc != 0) perror("sem_wait ok_to_process\n");
+#endif
+
+  rc = pthread_cancel(tid);
+  if(rc != 0) perror("pthread_cancel processing thread\n");
+
+  meansngl = par->f_mean/par->count;
+  sqrsngl = sqrt(par->sqrs/par->count);
+  norm = sqrt(par->sqrs);
+
+  if( 0==strcmp( par->want, "all" ) ) {
+      printf("******************************************* \n");
+      if(par->esize==8) 
+      printf("   rms, mean and norm refer to amplitude    \n\n");
+  }
+  if(0==strcmp(par->want,"all") || 0==strcmp(par->want,"rms")) {
+    if( par->param==0 ) printf("rms = %g \n",sqrsngl);
+    else           printf("rms=%g \n",sqrsngl);
+  }
+  if(0==strcmp(par->want,"mean") || 0==strcmp(par->want,"all")) {
+    if( par->param==0 ) printf("mean value = %g \n",meansngl);
+    else           printf("meanval=%g \n",meansngl);
+  }
+  if(0==strcmp(par->want,"norm") || 0==strcmp(par->want,"all"))
+    if( par->param==0 ) printf("norm value = %g \n",norm);
+    else           printf("norm=%g \n",norm);
+    if(par->esize==8){
+    if(0==strcmp(par->want,"max") || 0==strcmp(par->want,"all")){
+      if( par->param==0 ) printf("maximum real value = (%g,%g) at ",__real__ par->co_maxv_r,__imag__ par->co_maxv_r);
+      else           printf("maxval_real=(%g,%g)",__real__ par->co_maxv_r,__imag__ par->co_maxv_r);
+      if( par->param==0 ) { for(i1=0; i1<par->ndim; i1++) printf("%d ",par->maxloc[i1]); }
+      printf("\n");
+
+      if( par->param==0 ) printf("maximum imaginary value = (%g,%g) at ",__real__ par->co_maxv_i,__imag__ par->co_maxv_i);
+      else           printf("maxval_imag=(%g,%g)",__imag__ par->co_maxv_i,__imag__ par->co_maxv_i);
+      if( par->param==0 ) { for(i1=0; i1<par->ndim; i1++) printf("%d ",par->cmaxloc[i1]); }
+      printf("\n");
+    }
+    if(0==strcmp(par->want,"min") || 0==strcmp(par->want,"all")){
+/*
+      printf("minimum imaginary value = (%g,%g) at ",__real__ par->co_minv_i,__imag__ par->co_minv_i);
+      for(i1=0; i1<par->ndim; i1++) printf("%d ",par->cminloc[i1]);
+      printf("\n");
+      printf("minimum real value = (%g,%g) at ",__real__ par->co_minv_r,__imag__ par->co_minv_r);
+      for(i1=0; i1<par->ndim; i1++) printf("%d ",par->minloc[i1]);
+      printf("\n"); */
+
+      if( par->param==0 ) printf("minimum imaginary value = (%g,%g) at ",__real__ par->co_minv_i,__imag__ par->co_minv_i);
+      else           printf("minval_imag=(%g,%g)",__real__ par->co_minv_i,__imag__ par->co_maxv_i);
+      if( par->param==0 ) { for(i1=0; i1<par->ndim; i1++) printf("%d ",par->cminloc[i1]); }
+      printf("\n");
+
+      if( par->param==0 ) printf("minimum real value = (%g,%g) at ",__real__ par->co_minv_r,__imag__ par->co_minv_r);
+      else           printf("maxval_imag=(%g,%g)",__real__ par->co_minv_r,__imag__ par->co_minv_r);
+      if( par->param==0 ) { for(i1=0; i1<par->ndim; i1++) printf("%d ",par->minloc[i1]); }
+      printf("\n");
+    }
+    }
+    else{
+
+    if(0==strcmp(par->want,"max") || 0==strcmp(par->want,"all")){
+      if( par->param==0 ) printf("maximum value = %g at ",par->f_maxv);
+      else           printf("maxval=%g",par->f_maxv);
+      if( par->param==0 ) { for(i1=0; i1<par->ndim; i1++) printf("%d ",par->maxloc[i1]); }
+      printf("\n");
+    }
+    if(0==strcmp(par->want,"min") || 0==strcmp(par->want,"all")){
+      if( par->param==0 ) printf("minimum value = %g at ",par->f_minv);
+      else           printf("minval=%g",par->f_minv);
+      if( par->param==0 ) { for(i1=0; i1<par->ndim; i1++) printf("%d ",par->minloc[i1]); }
+      printf("\n");}
+  }
+
+  if(0==strcmp(par->want,"all")){
+    if( par->param==0 ) printf("number of nonzero samples = %" PRIu64 "\n",par->nzero);
+    else           printf("nonzero=%" PRIu64 "\n",par->nzero);
+    if( par->param==0 ) printf("total number of samples = %" PRIu64 "\n",par->count);
+    else           printf("totsamp=%" PRIu64 "\n",par->count);
+    printf("******************************************* \n");
+  }
+
+  if(!strcmp( par->want, "short")){
+      printf("%6.2f  pct. zeros %g-min max-%g \n",100.*((double)(par->count-par->nzero))/((double)par->count),par->f_minv,par->f_maxv);  
+  }
+#ifdef __APPLE__
+  rc = semaphore_destroy(mach_task_self(),par->ok_to_process);
+  if(rc != 0) perror("semaphore_destroy ok_to_process");
+  rc = semaphore_destroy(mach_task_self(),par->done_processing);
+  if(rc != 0) perror("semaphore_destroy done_processing");
+#else
+  rc = sem_destroy(&par->ok_to_process);
+  if(rc != 0) perror("sem_destroy ok_to_process");
+  rc = sem_destroy(&par->done_processing);
+  if(rc != 0) perror("sem_destroy done_processing");
+#endif
+
+  return EXIT_SUCCESS;
+}
+
+#if defined(__STDC__) || defined(__stdc__)
+void  uncode_location(uint64_t loc,uint64_t *block,int *loc_a,int ndim)
+#else
+void  uncode_location(loc,block,loc_a,ndim)
+uint64_t loc;
+uint64_t *block;
+int *loc_a,ndim;
+#endif
+{
+int i1;
+uint64_t current;
+
+current=loc;
+if(loc/block[ndim-1] >= block[ndim]) 
+  seperr("%" PRIu64 " location outside dataset\n", loc);
+for(i1=ndim-1; i1>=0; i1--){
+  loc_a[i1]=current/block[i1];
+  current=current-loc_a[i1]*block[i1];
+}
+for(i1=0; i1<ndim; i1++)  loc_a[i1]=loc_a[i1]+1;
+
+}

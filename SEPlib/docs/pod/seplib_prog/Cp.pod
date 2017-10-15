@@ -1,0 +1,27 @@
+=head1 NAME
+
+
+Cp - Copy a sep77 dataset
+
+=head1 DESCRIPTION
+
+
+ Copy seplib header and data file
+
+=head1 SYNOPSIS
+
+
+ Cp Header1 Header2 [ out= datapath= ]
+
+=head1 SEE ALSO
+
+
+L<Mv>,L<Rm>,L<Cp3d>
+
+=head1 CATEGORY
+
+
+B<util/unix>
+
+=cut
+

@@ -1,0 +1,84 @@
+=head1 NAME
+
+
+Noise - Add or create noise
+
+=head1 SYNOPSIS
+
+
+Noise < in.H > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item in.H - sepfile
+
+      Input dataset to add noise to
+
+=item type - integer
+
+      [0]: uniform, 1: normal, 2: gamma, 3: chisq, 4: exponential
+      5: weibul, 6: poisson, 7: binomial
+
+=item rep  - integer
+
+      [0]: replace traces with noise trace. 1 to output noise only
+
+=item seed - integer
+
+      [date]: random number initializer
+
+=item maxsize- integer
+
+      [500000]: maximum memory allocated in bytes
+
+=item mean - real
+
+      [0.]: mean of noise
+
+=item var  - real
+
+      [1.]: variance of noise (normal distribution)
+
+=item shape  - real
+
+      [1.]: shape for gamma distribution
+
+=item ndf    - integer
+
+      [1]: number of degrees of freedom, chisq
+
+=item weib   - real
+
+      [1.]: weibul distribution parameter
+
+=item trials - integer
+
+      [1]:  number of trials [binomial]
+
+=item prob   - real
+
+      [.5]: probability of success for binomial trial
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Add noise to traces
+
+=head1 EXAMPLE
+
+
+		Noise < in.H > out.H
+			XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

@@ -1,0 +1,139 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Smooth - 2-D smoothing</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Smooth - 2-D smoothing</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+        Smooth &lt; in.h [options] &gt; out.H</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<pre>
+   Halfwidth is the width in sample points of a rectangle which 
+             when convolved with itself gives a triangle:</pre>
+<dl>
+<dt><strong><a name="item_rect1_2crect2_2crect3__2d_integer">rect1,rect2,rect3     - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [1]: halfwidth on 1- 2- and 3-axis respectively (=1 means no smoothing)</pre>
+</dd>
+<dd>
+<pre>
+        NOTE: 3-axis smoothing is done by direct
+         convolution, not by integration - so
+         may be slower for large rect3. If in 
+          doubt, Transp and Smooth with rect2.</pre>
+</dd>
+<dt><strong><a name="item_tridiag__2d_integer">tridiag  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [1]: =1 to smooth with tridiagonal solver. (NOT 3-axis)</pre>
+</dd>
+<dt><strong><a name="item_repeat_2d_integer">repeat- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [1]: number of times to repeat filtering, good for 
+       Gaussian smoothing. (NOT 3-axis)</pre>
+</dd>
+<dt><strong><a name="item_sum3__2d_integer">sum3  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: =0  to repeat over n3 axis.
+                 =1  to sum over n3 axis</pre>
+</dd>
+<dt><strong><a name="item_agc__2d_integer">agc - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: =1 to use smoothed data as divisor gain for data.</pre>
+</dd>
+<dt><strong><a name="item_absval__2d_integer">absval    - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: =1 means smooth absolute values of input.</pre>
+</dd>
+<dt><strong><a name="item_scaleup__2d_integer">scaleup   - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: =1 means scale up to compensate for bandwidth reduction.
+         =0 to preserve scale of zero frequency component.</pre>
+</dd>
+<dt><strong><a name="item_difference_stencils_applied_after_smoothing_3a">Difference stencils applied after smoothing:</a></strong><br />
+</dt>
+<dt><strong><a name="item_diff1__2d_integer">diff1  - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]:  =1  apply 2-pt difference stencil on 1-axis:
+        data(i1+1,i2)=data(i1+1,i2)-data(i1,i2)</pre>
+</dd>
+<dt><strong><a name="item_diff2_2d_integer">diff2- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]:  =1  apply 2-pt difference stencil on 2-axis:
+        data(i1,i2+1)=data(i1,i2+1)-data(i1,i2)</pre>
+</dd>
+<dt><strong><a name="item_maxmem__2d_integer">maxmem - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [100000000]: Maximum memory to allocate.</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Smooth 2-D with triangle or 1/(Dxx - const), and/or SUM_n3, or AGC</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+       Dip enhancement: use options='rect1=100 tridiag=1 diff1=1 diff2=1'
+       To reduce memory usage: Try smaller data/filter, repeat&gt;1, tridiag=1.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

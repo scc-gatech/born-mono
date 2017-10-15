@@ -1,0 +1,119 @@
+=head1 NAME
+
+
+Seis_vel - Display Seismic and velocity simutaneously
+
+=head1 USAGE
+
+
+ Seis_vel vel=vel.H data=data.H fn_color=color.file  >out.H bg_min= bg_max
+
+=head1 PARAMETERS
+
+
+=item vel - sepfile
+
+ Velocity file
+
+=item  data - sepfile
+
+ Data file
+
+=item  data2 - sepfile
+
+ Second data file (optional)
+
+=item  stdout - sepfile
+
+  Datafile to use with Grey
+
+=item  color - sepcolor
+
+  Color file to use with Grey
+
+=item  fg_linear_or_log - integer
+
+  [1]   forground color display mode
+
+=item  fg_clip_linear- real
+
+  [.5] (0.-1., percentage of max value of each snapshot 
+
+         above which data will be clipped dfor linear mode
+
+=item  fg_modulate_log- integer
+
+  [10000]  modulate data for log mode, a large integer > 100
+
+=item  bg_min,bg_max - real
+
+ clip bacground values
+
+=item  fg_nhue - integer
+
+ [18]  number of hues
+
+=item  fg_nlightness - integer
+
+ [12]  number of lightness regions
+
+=item  fg_min_lightness,fg_max_lightness - real
+
+ [.3,.8]  range of lightness 
+
+=item  fg_saturation - real
+
+ [1.]  foreground saturation
+
+=item  bg_nhue - integer
+
+ [20]  number of background hues
+
+=item  bg_lightness - real
+
+ [.3]  bacground lightness
+
+=item  bg_saturation - real
+
+ [.3]  bacground saturation
+
+
+=head1 DESCRIPTION
+
+
+     Composing two components (x and y, e.g., p wave and s wave) as 
+
+      the foreground with a velocity model as the background
+
+
+=head1 COMMENTS
+
+
+ COLOR SCHEME:
+      Forground   H: atan2(y,x) (i.e. 360 degree)
+                  L: sqrt(x^2+y^2)*clip (range e.g. 0.8-0.3)
+                  S: constant (e.g. 1.0)
+                  Number of fg colors = fg_nhue * fg_nlightness
+      Background  H: blue -> magenta (i.e. slow to fast)
+                  L: constant (e.g. 0.3)
+                  S: constant (e.g. 0.3)
+                  Number of bg colors = bg_nhue
+      Total colors = fg_nhue * fg_nlightness + bg_nhue (default 18*12+20=236)
+
+ NOTE: The log mode displays more data using higher lightness colors.
+
+=head1 AUTHOR
+
+
+          Lin, I-Ching 'Michael'     
+         Allied Geophysics Laboratories
+         Department of Computer Science
+         University of Houston
+
+=head1 CATEGORY
+
+
+B<sep_graphics>
+
+=cut
+

@@ -1,0 +1,160 @@
+=head1 NAME
+
+
+MTTmaps - Band-limited maximum-energey Green's function maps
+
+=head1 SYNOPSIS
+
+
+MTTmaps <slowmodel.H x_shot= mode=0 >maps.H
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+
+=item  stdin  - sepfile
+
+       slow(nz,nx) = slowness model
+
+=item  z_shot - real
+
+        [0.] shot Z coordinate
+
+=item  x_shot -real
+
+       [0.] first shot X coordinate
+
+=item  dx_shot-real
+
+       [dxo] increment in shot X coordinate
+
+=item  n_shot -integer
+
+       [1] number of shots
+
+=item  mode   -integer
+
+       [0]  grid is stationary the shot moves across the grid
+       the second output axis coordinates are absolute.
+       1=grid moves with the shot, the second output axis
+       coordinates are relative to the shot location.
+
+=item  oxo    -real
+
+       [o2] initial surface coordinate (mode=0)
+
+=item  dxo    -real
+
+       [d2] increment in surface coordinate (mode=0)
+
+=item  nxo    -integer
+
+       [n2] number of surface coordinates (mode=0)
+
+=item  ozo    -real
+
+       [o1] first depth level  (mode=0)
+
+=item  dzo    -real
+
+       [d1] depth increments (mode=0)
+
+=item  nzo    -integer
+
+       [n1] number of depth levels on the grid  (mode=0)
+
+=item  oxo    -real
+
+       [(o2-x_shot)] first offset from shot coordinate  (mode=1)
+
+=item  dxo    -real
+
+       [d2] increment in offset (mode=1)
+
+=item  nxo    -integer
+
+       [n2] number of offsets (mode=1)
+
+=item  ozo    -real
+
+       [o1] first depth level  (mode=1)
+
+=item  dzo    -real
+
+       [d1] depth increments (mode=1)
+
+=item  nzo    -integer
+
+       [n1] number of depth levels on the grid
+
+=item  n_theta-integer
+
+       [nxo]  number of angles for the polar grid
+
+=item  nr     -integer
+
+       [nzo] number of radius increments for the polar grid
+
+=item  fmin   -real
+
+       [10] minimum frequency in estimation band
+
+=item  fmax   -real
+
+       [60] maximum frequency in estimation band
+
+=item  nf     -integer
+
+       [16] number of frequencies to use in estimation.
+
+=item  dt     -real
+
+       [.008] sampling to use for initial traveltime estimation
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item stdout - sepfile
+
+      maps(nzo,nxo,3,n_shot) = output
+      Green's function maps, tt/amp/phase
+
+=back
+
+=head1 DESCRIPTION
+
+
+  Band-limited maximum-energy Green's function maps
+
+=head1 COMMENTS
+
+
+ Default parameters calculate one shot at user specified output location.
+ x_shot must be specified! The output grid will be the same as the input grid.
+
+ When calculating multiple maps you may want to specify the other
+ parameters that control the output grid relative to each shot.
+ There are two modes, if mode=0 the output grid is absolute.
+ If mode=1 the output grid is relative to the shot location.
+
+
+=head1 SEE ALSO
+
+
+L<Hwt3d>, L<FMeikonal>, L<Gfgradz>, L<Hwt3d>;
+
+
+=head1 CATEGORY
+
+
+B<seis/travel>
+
+=cut
+

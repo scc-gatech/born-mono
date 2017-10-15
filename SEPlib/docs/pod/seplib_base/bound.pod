@@ -1,0 +1,51 @@
+=head1 NAME
+
+
+bound - find the boundaries of a filter on given map
+
+=head1 SYNOPSIS
+
+
+C<call boundn(nold,nd,na,aa)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item nold  - C<int(:)>
+
+      ?????
+
+=item nd    - C<int(:)>
+
+      Size of data
+
+=item na    - int(:)
+
+      Size of box surrounding filter
+
+=item aa    - C<type(filter)>
+
+      Filter to calculate boundaries for
+
+
+=back
+
+=head1 DESCRIPTION
+
+
+mark helix filter outputs where input is off data
+
+=head1 SEE ALSO
+
+
+L<cartesian>,L<nbound>,L<helicon>,L<regrid>,L<helix>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

@@ -1,0 +1,222 @@
+=head1 NAME
+
+
+Phase - Phaseshift migration (possibly split-step)
+
+=head1 SYNOPSIS
+
+
+Phase par=parfile.P D=input.H  R=output.H S=slow.H
+
+=head1 COORDINATE SYSTEM FOR DOWNWARD CONTINUATION DESCRIPTION PARAMETERS
+
+
+=over 4
+
+
+=item amx_n (integer)
+
+  Number of CMP in X (axis 1 of D,R and S)
+
+=item amx_d (integer) 
+
+  Sampling of CMP in X
+
+=item amx_o (integer)
+
+  First CMP  X location 
+
+=item amy__n (integer)
+
+  Number of CMP in X (axis 2 of D,R and S)
+
+=item amy_d (integer) 
+
+  Sampling of CMP in Y
+
+=item amy_o (integer)
+
+  First CMP  Y location 
+
+=item ahx__n (integer)
+
+  Number of half offsets in X (axis 3 of D and possibly R  )
+
+=item ahx_d (integer) 
+
+  Sampling of half offsets in X
+
+=item ahx_o (integer)
+
+  First half offset  X location 
+
+=item ahy__n (integer)
+
+  Number of half offsets in Y (axis 4 of D and possibly R)
+
+=item ahy_d (integer) 
+
+  Sampling of half offset in Y
+
+=item ahy_o (integer)
+
+  First CMP  Y location 
+
+
+=back
+
+
+=head1 R/S  DESCRIPTION PARAMETERS
+
+
+=over 4
+
+
+=item az__n (integer) (axis 3 of S, axis 5 of R)
+
+  Number of depth steps
+
+=item az__d (integer)
+
+  Sampling of depths
+
+=item az__o (integer)
+
+  First depth of model
+
+=item image_real (logcal)
+
+  Whether or not make the image real
+
+=back
+
+
+=head1 DATA DESCRIPTION PARAMETERS
+
+
+=over 4
+
+=item aw__n (integer) (axis 5 of D)
+
+  Number of frequencies
+
+=item aw__d (integer)
+
+  Sampling of frequencies
+
+=item aw__o (integer)
+
+  First frequency of data
+
+=back
+
+=head1 SLOWNESS PARAMETERS
+
+
+=over 4
+
+=item  velocity  (logical)
+
+ [.false.] whether or not S is velocity
+
+=item  nref  (integer)
+
+ [1] number of velocities for each depth step 
+
+=back
+
+=head1 PH GATHERS
+
+
+=over 4
+
+=item pCIG (logical)
+
+ [.false.] whether (.true.) or not (.false.) to create PH gathers
+
+=item apx__n (integer) 
+
+  Number of PH in X (axis 3 of R)
+
+=item apx_d (integer) 
+
+  Sampling of PH in X
+
+=item apx_o (integer)
+
+  First PH X location 
+
+=item apy__n (integer)
+
+  Number of PH in Y (axis 4 of R)
+
+=item apy_d (integer) 
+
+  Sampling of PH in Y
+
+=item apy_o (integer)
+
+  First PH  Y location 
+
+=item pcigeps (float)
+
+  [.1] Epsilon parameter for Phgather construction
+
+
+=back
+
+=head1 MEMORY MANAGEMET
+
+
+=over 4
+
+=item nzs (integer)
+
+Number of Z steps to do in memory
+
+=item nws (integer)
+
+Number of W to hold in memory
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Perform split step phase shift migration/modeling
+
+
+
+
+=head1 COMMENTS
+
+
+=over 4
+
+=item  anx_n,ahx_d,ahx_o and axis 1 of D and R  must be the same
+
+=item  any_n,ahy_d,ahy_o and axis 2 of D and R  must be the same
+
+=item Slowness must contain entire  span of X and Y
+
+=item  az__n,az__d,az__o , axis 3 of S and axis 5 of R  must be the same
+
+=item When doing ph gathers apx_n = ahx_n = n3 of D
+
+=item When doing ph gathers apy_n = ahy_n = n4 of D
+
+=item When doing offset gathers  ahx_n,ahx_d,ahx_o = axis 3 of D and R
+
+=item When doing offset gathers  ahy_n,ahy_d,ahy_o = axis 4 of D and R
+
+=item nzs must be a multiple of az__n
+
+=item nws*nmpi_threads*nomp_threads must be a multiple of aw__n 
+
+=head1 CATEGORY
+
+
+B<seis/image>
+
+=cut
+

@@ -1,0 +1,39 @@
+=head1 NAME
+
+
+getch_add_string - add parameters to the command line
+
+=head1 SYNOPSIS
+
+
+getch_add_string(par)
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item char* - par   
+
+      string to add to the command line
+
+=back
+
+
+=head1 DESCRIPTION
+
+
+Add a string to the database of command line arguments.  Useful
+if you want to tell SEPlib behave in a certain manner (e.g. don't
+output a history file.)
+
+getpar, seplib, fetch, hetch, putch, auxpar getch_add_string
+
+=head1 LIBRARY
+
+
+B<sep>
+
+=cut
+

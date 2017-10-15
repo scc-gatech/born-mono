@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>steering - 2-D steering filters</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>steering - 2-D steering filters</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call steer_init(hwidth,amp,n1)</code></p>
+<p><code>call steering2(slope,aa)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_hwidth__2d_real">hwidth - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      half-width of triangle</pre>
+</dd>
+<dt><strong><a name="item_amp__2d_real">amp    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      amplitude that all coefs sum to</pre>
+</dd>
+<dt><strong><a name="item_n1__2d_integer">n1     - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Axis 1 length</pre>
+</dd>
+<dt><strong><a name="item_slope__2d_real">slope  - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      slope to make filter destroy</pre>
+</dd>
+<dt><strong><a name="item_type">aa     - <code>type(filter)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Helix filter</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Create a single steering filter</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

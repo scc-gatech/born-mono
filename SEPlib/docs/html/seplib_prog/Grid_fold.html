@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Grid_fold - Sort, transpose, or test gridding parameters</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Sort3d, Grid_fold - Sort, transpose, or test gridding parameters</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Sort3d,Grid_fold  &lt;in.H &gt;out.H pars</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_nkeys_2d_integer">nkeys-  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       number of sort keys</pre>
+</dd>
+<dt><strong><a name="item_key__2d_character">key_-  character</a></strong><br />
+</dt>
+<dd>
+<pre>
+       name of key to sort in ascending order</pre>
+</dd>
+<dt><strong><a name="item_ng__2d_integer">ng_-  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       number of grid cells for key_</pre>
+</dd>
+<dt><strong><a name="item_dg__2d_real">dg_-  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       sampling of grid cells for key_</pre>
+</dd>
+<dt><strong><a name="item_og__2d_real">og_-  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       first location of grid cell for key_</pre>
+</dd>
+<dt><strong><a name="item_plane_2d_char_2a">plane- char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       plane to transpose (eg) '34'</pre>
+</dd>
+<dt><strong><a name="item_verb_2d_integer">verb-  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] amount of progress info to print out</pre>
+</dd>
+<dt><strong><a name="item_synch_2d_integer">synch-  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] whether [1] or not [0] to synch traces</pre>
+</dd>
+<dt><strong><a name="item_compress_tr_2d_integer">compress_tr-  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1] whether (1) or not(0) to compress the
+       trace in bin axis if it equal 1</pre>
+</dd>
+<dt><strong><a name="item_preserve_nd__2d_integer">preserve_nd - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]  wheter (1) or not(0) to preserver the input n2,n3,n4,n... values</pre>
+</dd>
+<dt><strong><a name="item_max_memory_2cmax_size_2d_integer">max_memory,max_size-  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [20] maximum amount of memory in   megabytes
+       to use. This is only somewhat accurate because
+       it will always hold (n_sort_keys +1 * n2).
+       Memory consumed will be approximately
+       max(max_memory,100000+(n_sort_keys+1)*n2</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Sort3d serves three purposes: Sorting, tranposing or testing binning params</pre>
+<pre>
+ To sort a SEP3d dataset use nkeys key1, og1, etc Sort3d &lt; in.H &gt;out.H [pars]</pre>
+<pre>
+ To transpose a dataset provide : Sort3d  plane=23 &lt; in.H &gt;out.H</pre>
+<pre>
+ To test a gridding pattern use sort pars  Grid_fold  &lt; in.H &gt;out.H [pars]</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Fold3d.html">the Fold3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/cube</strong></p>
+
+</body>
+
+</html>

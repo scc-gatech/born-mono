@@ -1,0 +1,102 @@
+/*$
+
+=head1 NAME
+
+Get - Simple operations on parameters
+
+=head1 SYNOPSIS
+
+Get par=parfile parform=y < Input.h parameter1 parameter2 parameter3 ...
+   
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item  parform  -   char 
+
+       [y]-Returns 'parameter1=whatever 
+       parameter2=whatever' etc
+       according to their values in the input header / parfiles.
+       n-Returns the values of the parameters separated by spaces.
+ 
+=back
+
+
+=head1 DESCRIPTION
+
+Simple operations on parameters
+
+
+=head1  COMMENTS 
+
+   Example:  Here is a shell to make   n1 = n1 / 2
+  		 #/bin/csh -f
+  		 set n1 = `Get <junk.H parform=n n1`
+  		 @ nh = $n1 / 2
+  		 echo n1=$nh
+
+=head1 SEE ALSO
+
+L<Headermath>
+
+
+=head1 CATEGORY
+
+B<util/info>
+
+=cut
+  
+ >*/
+#include <stdlib.h>
+#include <seplib.h>
+#include <string.h>
+
+/*
+extern int             sepxargc;
+extern char          **sepxargv;
+*/
+
+int main (int argc, char **argv, char **envp)
+{
+char            string[120];
+int             ii;
+int             notfirst;
+int             parform;
+
+/*
+    sepxargc = argc;
+    sepxargv = argv;
+*/
+
+   initpar(argc,argv);
+
+   ADD_SEP_DOC
+
+    doc (SOURCE);
+
+    getch_add_string("head=/dev/null");
+
+    if( !getch("parform","1",&parform) ) parform=1;
+
+    notfirst = 0;
+
+    for (ii = 1; ii < argc; ii++)
+    {
+	if (notfirst)
+	    printf (" ");
+
+	if (NULL == strchr (argv[ii], '='))
+	{
+	    if( parform ){
+	       printf ("%s=", argv[ii]);
+            }
+	    strcpy (string, "");
+	    fetch (argv[ii], "s", string);
+	    printf ("%s", string);
+	    notfirst = 1;
+	}
+    }
+    printf ("\n");
+    return EXIT_SUCCESS;
+}

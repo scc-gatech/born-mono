@@ -1,0 +1,63 @@
+=head1 NAME
+
+
+Transf - Transposes and FFTs a dataset
+
+!#$=head1 SYNOPSIS
+
+Transf  <in.H >out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+!#$=item f_min - float
+
+	[0]: Minimum frequency (only needed for forward op)
+
+=item f_min1 - float
+
+	[f_min]: Minimum frequency with 100% pass (only needed for forward op)
+
+=item f_max - float
+
+	[.5/d1]: Maximum frequency  (only needed for forward op)
+
+=item f_max1 - float
+
+	[f_max]: Maximum frequency with 100% pass (only needed for forward op)
+
+=item shift2 - integer
+
+	[0]: How many n=1 axes to introduce or remove after the frequency axis
+
+=item maxsize - integer
+
+	[50]: Maximum megabytes to use
+
+=item verb  - logical
+
+	[n]: Whether or not to be verbose
+
+=item  wei  - logical
+
+	[false]: Do WEI style transforms
+
+=back
+
+
+=head1 DESCRIPTION
+
+
+Transforms a dataset (and its inverse) from (nt,nx,...) to (nx ...,nt)
+
+=head1 NOTES
+
+
+ Forward/Inverse determined from esize (4-forward, 8-inverse)
+
+ WARNING WARNING WARNING: Unpipable
+
+=cut
+

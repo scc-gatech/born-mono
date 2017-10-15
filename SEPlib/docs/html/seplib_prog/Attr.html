@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Attr - display attributes of a dataset</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Attr - display attributes of a dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Attr &lt;in want=all</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_want__2d_char_2a">want  -  char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       {all,min,max,mean,rms,norm}
+       want=all, prints a summary of all info
+       want=min, prints just the minimum value
+       want=max, prints just the maximum value
+       want=mean, prints just the mean value
+       want=rms, prints just the rms value
+       want=norm, prints just the L2 norm value
+       want=short, prints ratio of 0 samples,minimum,maximum</pre>
+</dd>
+<dt><strong><a name="item_maxsize__2d_integer">maxsize - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [50] maximum memory that will be used (in megabytes).
+       Blocks of maxsize/esize elements read and analyzed
+       sequentially.</pre>
+</dd>
+<dt><strong><a name="item_param__2d_integer">param - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] Output style. Default (param=0) is 'verbose' style 
+       (see below).  param=1 formats output in SEP history
+       file parameter style.  Useful for grabbing the data
+       statistics for batch processing (see example below).</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Displays various attributes of a dataset</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+  sample output for want=all, param=0 is</pre>
+<pre>
+    ******************************************* 
+    mean value = 0.010000 
+    rms = 0.100000 
+    norm = 7.07106
+    maximum value = 1.000000 at 10 1 1 
+    minimum value = 0.000000 at 1 1 1 
+    number of nonzero samples = 50 
+    total number of samples = 5000 
+    *******************************************</pre>
+<pre>
+  and for want=all, param=1:</pre>
+<pre>
+    meanval=0.010000 
+    rms=0.100000 
+    norm=7.07106
+    maxval=1.000000
+    minval=0.000000
+    nonzero=50 
+    totsamp=5000</pre>
+<pre>
+  Say that we wanted to use the maximum value in one dataset
+  as a clip value for displaying another dataset.  We could
+  use Attr and Get as follows.</pre>
+<pre>
+        &lt; data2.H  Grey clip=`Attr &lt; data1.H | Get parform=n maxval` | Tube</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Attr3dhead.html">the Attr3dhead manpage</a>, <em>In</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/info</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,53 @@
+=head1 NAME
+
+
+cgmeth - conjugate gradient method
+
+=head1 SYNOPSIS
+
+
+C<call cgtest( x, yy, rr, fff, niter)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item yy   - C<real(:)>
+
+=item rr   - C<real(:)>
+
+=item fff  - C<real(:)>
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item x  - C<real(:)>
+
+=back
+
+=head1 DESCRIPTION
+
+
+ setup of conjugate gradient descent, minimize  SUM rr(i)**2
+             nx
+ rr(i)  =   sum fff(i,j) * x(j)  -  yy(i)
+            j=1
+
+
+=head1 SEE ALSO
+
+
+L<matmult>, L<cgstep>,L<solver>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

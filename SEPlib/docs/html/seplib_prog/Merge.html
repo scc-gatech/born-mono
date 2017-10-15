@@ -1,0 +1,98 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Scat3d,Cat3d,Scat,Cat,Merge - Concatenate seplib datasets, 5 names for the same exact code.</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Scat3d,Cat3d,Scat,Cat,Merge - Concatenate seplib datasets, 5 names for the same exact code.</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Cat3d header.H [header2.H .....] [pars]</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_axis__2d_int">axis - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [3] which axis to concatenate along</pre>
+</dd>
+<dt><strong><a name="item_max_memory__2d_int">max_memory - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [5] maximum memory in words</pre>
+</dd>
+<dt><strong><a name="item_virtual__2d_int">virtual    - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]  (1 if you don't wish to concatenate data just
+        make a multi-file seplib file</pre>
+</dd>
+<dt><strong><a name="item_space__2d_char">space    - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [n] leave space between merged data to make it easy to tell
+            where one file ends and the next begins in merged movies
+            default: space=y for Merge, space=n for Cat, Cat3d</pre>
+</dd>
+<dt><strong><a name="item_nspace__2d_int">nspace   - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        number of traces in the space
+        (defaults to something reasonable).</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Concatenate datasets.  Scat3d and Cat3d are two names for the same code.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>Grid files are destroyed</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>Cat</em> <a href="./../seplib_prog/Merge.html">the Merge manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/cube</strong></p>
+
+</body>
+
+</html>

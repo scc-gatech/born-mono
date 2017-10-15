@@ -1,0 +1,65 @@
+=head1 NAME
+
+
+rvfft - real vector fft
+
+=head1 SYNOPSIS
+
+
+     void rvfft (x,lx,nx,isign,scale,mode)
+
+=head1 PARAMETERS
+
+
+=over 4
+
+
+=item  x      -complex   
+
+       input/output array
+
+=item  lx     -int       
+
+       length of real vectors
+
+=item  nx     -int       
+
+       number of vectors; must be a power of 2
+
+=item  isign  -int       
+
+       sign of sqrt(-1)
+
+=item  scale  -double    
+
+       scale factor; sqrt(2./lx) conserves energy
+
+=item  mode   -int       
+
+       1 for nx real to nx/2 complex
+       2 for nx real to nx/2+1 complex
+       -1 for nx/2 complex to nx real
+       -2 for nx/2+1 complex to nx real
+
+=back
+
+=head1 DESCRIPTION
+
+
+     Real fast Fourier transform between vectors of an array.  
+     Rvfft takes a 2D panel and does a real to complex or 
+     viceversa fast fourier transform across the second dimension, 
+     of all the time samples. The arguments are as follows:
+
+=head1 SEE ALSO
+
+
+L<refft>,L<rvfft>,L<cvfft>
+
+=head1 LIBRARY
+
+
+B<sepfft>
+
+=cut
+

@@ -1,0 +1,160 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>velan_subs_mod - Do semblance analsysis</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#initializer_init_velan">INITIALIZER init_velan</a></li>
+	<ul>
+
+		<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	</ul>
+
+	<li><a href="#operator">OPERATOR</a></li>
+	<ul>
+
+		<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+		<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	</ul>
+
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>velan_subs_mod - Do semblance analsysis</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call init_velan(vel0,delv,numv,o_1,d_1,d_tout,sm,mu)</code></p>
+<p><code>call velan_exe(input,output,offsq)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="initializer_init_velan">INITIALIZER init_velan</a></h1>
+<p>
+</p>
+<h2><a name="input_parameters">INPUT PARAMETERS</a></h2>
+<dl>
+<dt><strong><a name="item_vel0__2d_real">vel0 -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        initial velocity</pre>
+</dd>
+<dt><strong><a name="item_delv__2d_real">delv -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        sampling in velocity</pre>
+</dd>
+<dt><strong><a name="item_numv__2d_integer">numv -  integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        number of velocities</pre>
+</dd>
+<dt><strong><a name="item_o_1__2d_real">o_1  -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        first time</pre>
+</dd>
+<dt><strong><a name="item_d_1__2d_real">d_1  -  real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        sampling in time</pre>
+</dd>
+<dt><strong><a name="item_d_tout__2dreal">d_tout -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        sampling of output times</pre>
+</dd>
+<dt><strong><a name="item_sm__2d_real">sm    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        smoothing window</pre>
+</dd>
+<dt><strong><a name="item_mu__2d_real">mu    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        muting parameter to apply</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="operator">OPERATOR</a></h1>
+<p>
+</p>
+<h2><a name="input_parameters">INPUT PARAMETERS</a></h2>
+<dl>
+<dt><strong><a name="item_real">input - <code> real(:,:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+        input  traces</pre>
+</dd>
+<dt><strong>offsq - <code> real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+        Offset for traces</pre>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="output_parameters">OUTPUT PARAMETERS</a></h2>
+<dl>
+<dt><strong>output - <code>real(:,:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+         output velocity</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Module to make semblance panels given irregular traces</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>Used by Velan90</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/nmo_mod.html">the nmo_mod manpage</a>,<a href="./../seplib_prog/Nmo3d.html">the Nmo3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepvelanf90</strong></p>
+
+</body>
+
+</html>

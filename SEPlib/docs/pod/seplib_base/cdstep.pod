@@ -1,0 +1,54 @@
+=head1 NAME
+
+
+cdstep - on step of conjugate direction
+
+=head1 SYNOPSIS
+
+
+OPEN:  C<call cdstep_init()>
+
+OPERATOR:C<ierr= cdstep(forget,x,g,rr,gg)>
+
+CLOSE:  C<call cdstep_close()>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item forget - logical
+
+  Wheter or not to forget previous step
+
+=item x      - C<real(:)>
+
+      Model
+
+=item g      - C<real(:)>
+
+      Gradient
+
+=item rr      - C<real(:)>
+
+=item gg      - C<real(:)>
+
+=back
+
+=head1 DESCRIPTION
+
+
+One step of conjugate direction method
+
+=head1 SEE ALSO
+
+
+L<cgmeth>, L<cgstep>,L<solver_reg>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

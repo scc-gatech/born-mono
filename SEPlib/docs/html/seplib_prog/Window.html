@@ -1,0 +1,221 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Window - Window a dataset by cutting or decimation</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT  PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Window - Window a dataset by cutting or decimation</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Window par= &lt; in.H &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT  PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_min1_2d_float">min1-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o1] minimum value of the 1-axis to be copied</pre>
+</dd>
+<dt><strong><a name="item_max1_2d_float">max1-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o1+(n1-1)*d1]  maximum value of the 1-axis to be copied</pre>
+</dd>
+<dt><strong><a name="item_min2_2d_float">min2-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o2] minimum value of the 2-axis to be copied</pre>
+</dd>
+<dt><strong><a name="item_max2_2d_float">max2-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o2+(n2-1)*d2]  maximum value of the 1-axis to be copied</pre>
+</dd>
+<dt><strong><a name="item_min3_2d_float">min3-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o3] minimum value of the 3-axis to be copied</pre>
+</dd>
+<dt><strong><a name="item_max3_2d_float">max3-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o3+(n3-1)*d3]  maximum value of the 1-axis to be copied</pre>
+</dd>
+<dt><strong><a name="item_min4_2d_float">min4-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o4] minimum value of the 4-axis to be copied</pre>
+</dd>
+<dt><strong><a name="item_max4_2d_float">max4-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [o4+(n4-1)*d4]  maximum value of the 1-axis to be copied</pre>
+</dd>
+<dt><strong><a name="item_n1_2d_int">n1-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1+((len-1-f1)/j1)]   number of elements to copy from 
+       each vector</pre>
+</dd>
+<dt><strong><a name="item_n2_2d_int">n2-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1+((vecs-1-f2)/j2)]  the number of vectors to be copied</pre>
+</dd>
+<dt><strong><a name="item_n3_2d_int">n3-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1+((planes-1-f3)/j3)] the number of planes to be copied</pre>
+</dd>
+<dt><strong><a name="item_n4_2d_int">n4-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1+((cubes-1-f4)/j4)]  the number of cubes to be copied</pre>
+</dd>
+<dt><strong><a name="item_j1_2d_int">j1-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1]  increment (in samples) between input elements</pre>
+</dd>
+<dt><strong><a name="item_j2_2d_int">j2-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1]    increment between input vectors</pre>
+</dd>
+<dt><strong><a name="item_j3_2d_int">j3-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1]    increment between input planes</pre>
+</dd>
+<dt><strong><a name="item_j4_2d_int">j4-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1]    increment between input cubes</pre>
+</dd>
+<dt><strong><a name="item_d1_2d_float">d1-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [input d1] increment (physical) between input elements</pre>
+</dd>
+<dt><strong><a name="item_d2_2d_float">d2-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [input d2] increment (physical) between input vectors</pre>
+</dd>
+<dt><strong><a name="item_d3_2d_float">d3-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [input d3] increment (physical) between input planes</pre>
+</dd>
+<dt><strong><a name="item_d4_2d_float">d4-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [input d4] increment (physical) between input cubes</pre>
+</dd>
+<dt><strong><a name="item_f1_2d_int">f1-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] the first element of each vector to be copied</pre>
+</dd>
+<dt><strong><a name="item_f2_2d_int">f2-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] the first vector of each plane to be copied</pre>
+</dd>
+<dt><strong><a name="item_f3_2d_int">f3-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] the first plane of each cube to be copied</pre>
+</dd>
+<dt><strong><a name="item_f4_2d_int">f4-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] the first cube to be copied</pre>
+</dd>
+<dt><strong><a name="item_squeeze_2d_char">squeeze- char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [y]  By default Window moves dimensions with size 1
+      to the end. If this special-case behavior is
+      not desired, set squeeze=n.</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Window portion of dataset data can be 1-D, 2-D, 3-D, or 4-D.  Can cut out
+ a block of samples and/or decimate (subsample) along any axis.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+ KEYWORDS subsample  window  data-shuffle
+        Anachronisms no longer recognized it0,dt,dx,nc,dv,it0,ix0......</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Window3d.html">the Window3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/cube</strong></p>
+
+</body>
+
+</html>

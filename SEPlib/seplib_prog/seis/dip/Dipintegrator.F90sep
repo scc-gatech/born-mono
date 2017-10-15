@@ -1,0 +1,810 @@
+!!$=head1 NAME
+!!$
+!!$Dipintegrator - Dip integration for flattening
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Dipintegrator <dip.H > out.H pars
+!!$
+!!$
+!!$=head1 PARAMETERS
+!!$
+!!$=over 3
+!!$
+!!$=item verb
+!!$
+!!$ [0]  Verbosity
+!!$
+!!$=item eps_t
+!!$
+!!$ [1.] Regularization in time
+!!$
+!!$=item method
+!!$
+!!$ [0]  - 3D  Grad(Tau)= P(Tau)  
+!!$
+!!$  1 - 3D  W[Grad(K Tau)= P(Tau)]
+!!$
+!!$  2 - 2D  Grad(Tau)= Px(Tau)
+!!$
+!!$  3 - 3D  W[Grad(K Tau)= Px(Tau)]
+!!$
+!!$=item max_niter
+!!$
+!!$  [1] Maximum non-linear iteratins
+!!$
+!!$=item linear_niter
+!!$
+!!$  [10] Linear iterations
+!!$
+!!$=item inner_linear_niter
+!!$
+!!$  [10] Innter linear iterations
+!!$
+!!$=item nonlinear_stop_tol
+!!$
+!!$  [.0001] Non-linear stopping criteria (equation 2.2 from SEP126)
+!!$
+!!$=item linear_stop_tol
+!!$
+!!$  [.0001] Linear stopping criteria (equation 2.2 from SEP126)
+!!$
+!!$=item irls
+!!$
+!!$  [0] Whether (1) or not (0) to do IRLS
+!!$
+!!$=item irls_niter
+!!$
+!!$  [10] IRLS  iterations
+!!$
+!!$
+!!$=item min_niter
+!!$
+!!$  [1] Minimum non-linear iteratins (valid for nolinear_stop_tol)
+!!$
+!!$=item ref_2
+!!$
+!!$  [1] Reference trace position axis 2
+!!$
+!!$=item ref_3
+!!$
+!!$  [1] Reference trace position axis 3
+!!$
+!!$=item model_mask
+!!$
+!!$  [none] Mask for model (where model is allow to change)
+!!$
+!!$=item initial_model
+!!$
+!!$  [none] Initial model
+!!$
+!!$=item in_wt
+!!$
+!!$  [none] Weighting function for inversion
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Flatening (Lomask). 
+!!$
+!!$
+!!$=head1 CATEGORY
+!!$ 
+!!$B<seis/dip>
+!!$
+!!$=cut
+program Dipintegrator
+  !
+  !  3/06/06 DIP INTEGRATOR   JESSE LOMASK SEP
+  !
+  use sep
+  use sep_3d_mod
+  use super_chain_mod
+  use ztrans_mod
+  use dipinteg_effic
+  use igrad2_2d_reg
+  use dottest
+  use igrad3_epst
+  use solver_smp_mod
+  use solver_prc_mod 
+  use model_mask
+  use helicon
+  use chain0_mod
+  use fftw_flags_mod
+  use dipinteg_3Dcos
+
+  implicit none
+integer :: ierr
+  integer 	                             :: n1, n2, n3, iter,prec,bounds,slice,esize,stat1,iv,ik
+  integer                                    ::padlength,it,ix,iy,ir,dist,taper_len,niter,ip,irls_index,i3,liter,index,ct,cx,cy
+  integer                                    ::linear_niter,movie_index,use_wt,na,k
+  integer                                    ::ref_2,ref_3,irls,slice_width,inner_linear_niter
+  integer                                    ::i1,ext_indicator,iteration_counter
+  integer                                    ::max_index,tau_cnt,change_cnt,method,i2,max_niter
+  integer                                    :: min_niter,max_liter,min_liter,irls_niter
+  real                                       :: q,eps_t,eps_h,pi_var,eps_r,wt_iter
+  real                                       ::d1,d2,d3,o1,o2,o3,previous_dtau
+  real                                       ::res_scale,res_val,last_res,res_val_diff
+  real                                       ::prev_tau_val,epsi,rk,rk_1,r_0,niter_counter
+  logical :: verb
+  type(filter)                                :: aa
+  complex, dimension (:,:,:),   allocatable  :: data_in
+  complex, dimension (:,:,:),   allocatable    ::ztrans,ztrans2
+  real,    dimension (:),     allocatable    :: cos_wt,resid,rand_vec,rt_full,ww_bounds,ww_bounds_temp,max_array
+  real,    dimension (:),     allocatable    ::corr_prev_tau,isotau, abs_tau
+  real,    dimension(:),pointer              ::rt,hh,dtau,tau,tau_1st,tau_2nd,rt_new,rt_temp,init_rt,grad_tau,r0,r1,resid_weight
+  real,    dimension (:,:),     allocatable  ::hh_2D,tau_slice,ref_array,tau_array,resid_weight_2D
+  real,    dimension (:,:),     allocatable  ::tau_2D,ww_2D_bounds,tau2D
+  real,    dimension (:,:,:),   allocatable  :: data_amp,data_phz,data_real
+  real,    dimension (:,:,:),   allocatable  :: data_imag,px,py,px_mirr,px_new,px_dat
+  real,    dimension (:,:,:),   allocatable  :: py_mirr,hh_3D
+  real,    dimension (:,:,:),   allocatable  :: hh_3D_trun,tau_3D,res_3D,rt_3D
+  real,    dimension (:,:,:,:),   allocatable  ::ww_3D,ww_3D_bounds
+  !TEMPORY PTERM STUFF
+  real,    dimension (:,:), allocatable      ::p_sqr,p_sqr_dtau,p_sqr_dtau_sm,pterm_cor
+  real,    dimension(:),pointer              ::rt_adj,pterm_cor_1D,filt,ww,res_div,res_rev,rt_adj2
+  real,    dimension(:),allocatable           ::ww_slice
+  integer, dimension (2)                :: n, rect
+  real,    dimension  (2)   :: dot1,dot2
+  real                                 ::upwt,downwt,p_tau_x,p_tau_y,linear_stop_tol,nonlinear_stop_tol
+  integer                                ::tau_1,tau_2
+  real                                 ::dtau_dx,dtau_dy,shift_var
+  real,    dimension (:,:), allocatable      ::px_2D_new,py_2D_new
+  real,    dimension (:,:,:),   allocatable  ::px_3D,py_3D,initial_model_3d,model_mask_3d
+  real,    dimension (:,:,:),   allocatable  ::p_sqr2,thrd_trm
+  real,    dimension (:),   allocatable  ::p_sqr2_1D,thrd_trm_1D,thrd_trm_int
+  real,    dimension(:), allocatable         ::tau_sample
+  real,    dimension(:,:,:), allocatable         ::tau_sample_3D
+  ! TEMPORARY VARIABLES
+  real,    dimension (:), allocatable        ::dip_diff,dip_integ,px_1D
+  real,    dimension (:,:), allocatable      ::dip_integ2D,dip_correction,initial_model_2d
+  real,    dimension (:,:), allocatable      ::tau_grad,model_mask_2d
+  real,    dimension (:), pointer        ::model_mask_1d,initial_model,initial_poly,model_poly,inv_model_mask_1d
+  integer                                    ::iz,i,j
+
+  real,    dimension (:,:), allocatable      ::d,x,r,z
+  real,    dimension (:), pointer           ::r_in,z_in
+  real,    dimension (:), allocatable        ::Ad,ref_temp,ww_in
+  double precision                           ::alpha,beta
+  real,  allocatable     :: OutY(:,:),rt_adj_cmp2D_out(:,:), test_1d_1axis(:),test_1d_1axis_out(:)
+  real, allocatable::  test_1d_2axis(:),test_1d_2axis_out(:),rt_adj_2D_out(:,:)
+  real, allocatable :: test_1d_3axis(:),test_1d_3axis_out(:)
+  real, dimension (:,:,:),   allocatable    ::cos_trans,cos_trans1
+  integer*8                :: plan
+  character(len=128)  :: label
+  logical :: resid_write
+
+  call SEP_ADD_DOC()
+  call sep_init('')
+  call sep_begin_prog()
+  call from_param("verb",verb,.false.)
+
+  call from_param("eps_t",eps_t,1.)
+  call from_param("eps_h",eps_h,1.)
+  call from_param("eps_r",eps_r,1.)
+  call from_param("method",method,0) ! 1 2D, 0 3D
+  call from_param("ref_2",ref_2,1)
+  call from_param("ref_3",ref_3,1)
+  call from_history (n1,n2,n3,esize=4)
+  if(0.ne. sep_get_data_axis_par('in',1,n1,o1,d1,label))&
+    call seperr("trouble get data axis par")
+  if(0.ne. sep_get_data_axis_par('in',2,n2,o2,d2,label))&
+    call seperr("trouble get data axis par")
+  if(0.ne. sep_get_data_axis_par('in',3,n3,o3,d3,label))&
+    call seperr("trouble get data axis par")
+  call from_param("max_niter",max_niter,1)
+  call from_param("min_niter",min_niter,1)
+  call from_param("max_liter",max_liter,1)
+  call from_param("min_liter",min_liter,1)
+
+  call from_param("linear_niter",linear_niter,10)
+  call from_param("inner_linear_niter",inner_linear_niter,10)
+  call from_param("irls_niter",irls_niter,1)
+  call from_param("irls",irls,0)
+  !  call from_param("stop_tol",stop_tol,.0001)
+  call from_param("linear_stop_tol",linear_stop_tol,.0001)
+  call from_param("nonlinear_stop_tol",nonlinear_stop_tol,.0001)
+  call to_history("n4",1)
+
+
+
+  select case(method) 
+     !
+     !  0 - 3D  Grad(Tau)= P(Tau)   
+     !  1 - 3D  W[Grad(K Tau)= P(Tau)]
+     !  2 - 2D  Grad(Tau)= Px(Tau)
+     !  3 - 3D  W[Grad(K Tau)= Px(Tau)]
+     !
+     !
+     !
+     !
+     !
+  case(0) ! 3D GRAD(TAU)=P(TAU)
+
+
+     if(verb) write(0,*) " 3D GRAD(TAU)=P(TAU)"
+     ! PRECOMPUTE COSINE TRANSFORM OF FINITE DIFFERENCE LAPLACIAN
+     allocate(cos_trans1(2*n1,2*n2,2*n3))
+     call costrans(n1*2,n2*2,n3*2,eps_t**2,1.,cos_trans1)
+     allocate(cos_trans(n1,n2,n3))
+     cos_trans(1:n1,1:n2,1:n3)=cos_trans1(1:n1,1:n2,1:n3)
+!ierr= srite("dd.H",cos_trans,size(cos_trans)*4)
+     deallocate(cos_trans1)
+
+     ! READ IN DATA
+     allocate(px(n1,n2,n3),py(n1,n2,n3))
+     call sep_read(px)
+     call sep_read(py)
+     allocate( rt( n1*n2*n3*3),rt_new(n1*n2*n3*3))
+     rt=0.
+     rt(n1*n2*n3+1:n1*n2*n3*2)=reshape(px,(/size(px)/))
+     deallocate(px)
+     rt(n1*n2*n3*2+1:3*n1*n2*n3)=reshape(py,(/size(py)/))
+     deallocate(py)
+
+     ! ALLOCATE
+     allocate(tau(n1*n2*n3))
+     allocate(rt_3D(n1,n2,n3))
+
+     tau=0.
+     rt_new=rt
+     r_0=(sum(dprod(rt_new,rt_new)))**.5 ! CALCULATE ||r0|| FOR STOPPING CRITERION
+     rk_1=r_0
+
+     ! INITIALIZE OPERATORS
+     call igrad3_epst_init(n1,n2,n3,eps_t)
+     call dipinteg_3Dcos_init(n1,n2,n3)
+
+     ! MORE ALLOCATIONS
+     allocate(rt_adj(n1*n2*n3)) 
+
+
+     nonlinear1: do iter=1,max_niter
+        if(verb) write(0,*) 'iteration',iter,'of',max_niter
+
+        !  P(TAU)
+        call p_at_tau (tau,rt,rt_new,n1,n2,n3,ref_2,ref_3)  
+
+        !  P(TAU) - GRAD(TAU)
+        stat1=igrad3_epst_lop(.false.,.true.,-tau,rt_new)  
+
+
+        ! GRAD' R
+        stat1= igrad3_epst_lop(.true.,.false.,rt_adj,rt_new)
+
+        rt_3D=reshape(rt_adj(1:n1*n2*n3),(/n1,n2,n3/))          
+
+        ! ([GRAD'GRAD]^-1)GRAD'R
+!        ierr= srite("cc.H",rt_new,size(rt_new)*4);
+!        ierr= srite("cc.H",rt_3D,size(rt_adj)*4);
+        call dipinteg_3Dcos_exec(rt_3D,cos_trans)
+!        ierr= srite("cc.H",rt_3D,size(rt_3d)*4);
+
+!!        ierr= srite("mm.H",rt_3D,size(rt_3D)*4)
+        tau=tau+reshape(rt_3D,(/n1*n2*n3/))   
+!        ierr= srite("cc.H",tau,size(rt_3d)*4);
+
+        ! NONLINEAR STOP TOLERANCE
+        rk=(sum(dprod(rt_new,rt_new)))**.5 ! CALCULATE ||rk|| FOR STOPPING CRITERION
+        if(verb) write(0,*) 'stop',(((rk_1-rk)/r_0)**2.)**.5,nonlinear_stop_tol,max_niter
+        if ((((rk_1-rk)/r_0)**2.)**.5 <nonlinear_stop_tol.and.iter>min_niter) exit nonlinear1
+        rk_1=rk ! SET ||r_k-1|| FOR STOPPING CRITERION
+
+     end do nonlinear1
+
+
+
+     call sep_write (tau) 
+
+     call to_history ("n1",   n1,"resid")
+     call to_history ("n2",   n2,"resid")
+     call to_history ("n3",   n3*3,"resid")    
+     call to_history ("esize",4,"resid")
+     call sep_write (rt_new,"resid") 
+
+     call dipinteg_3Dcos_close()
+
+
+     !
+     call sep_close()
+     call exit (0)
+
+
+
+  case(1) ! 3D W[GRAD(K TAU) = P(TAU)]
+
+     if(verb) write(0,*) "3D W[GRAD(K TAU) = P(TAU)]"
+     ! PRECOMPUTE COSINE TRANSFORM OF FINITE DIFFERENCE LAPLACIAN
+     allocate(cos_trans1(2*n1,2*n2,2*n3))
+     call costrans(n1*2,n2*2,n3*2,eps_t**2,1.,cos_trans1)
+     allocate(cos_trans(n1,n2,n3))
+     cos_trans(1:n1,1:n2,1:n3)=cos_trans1(1:n1,1:n2,1:n3)
+     deallocate(cos_trans1)
+
+     ! READ IN DATA
+     allocate(px(n1,n2,n3),py(n1,n2,n3))
+     call sep_read(px)
+     call sep_read(py)
+     allocate( rt( n1*n2*n3*3),rt_new(n1*n2*n3*3))
+     rt=0.
+     rt(n1*n2*n3+1:n1*n2*n3*2)=reshape(px,(/size(px)/))
+     deallocate(px)
+     rt(n1*n2*n3*2+1:3*n1*n2*n3)=reshape(py,(/size(py)/))
+     deallocate(py)
+
+     ! ALLOCATE
+     allocate(tau(n1*n2*n3))
+     allocate(model_mask_3d(n1,n2,n3),model_mask_1d(n1*n2*n3),initial_model(n1*n2*n3))
+     allocate(initial_model_3d(n1,n2,n3),inv_model_mask_1d(n1*n2*n3))
+     allocate( r0(n1*n2*n3*3),rt_3D(n1,n2,n3))
+     allocate(ww(n1*n2*n3*3))
+
+     tau=0.
+
+     initial_model=0.
+     model_mask_3d=1.
+
+     ! READ IN MODEL_MASK
+     if (exist_file("model_mask")) ierr= sreed("model_mask", model_mask_3d,4*n1*n2*n3)
+
+     !! for elf_pck3 with initial model
+     model_mask_3d(1:,ref_2,ref_3)=0.
+
+     model_mask_1d=reshape(model_mask_3d,(/n1*n2*n3/))
+     deallocate(model_mask_3d)
+
+     inv_model_mask_1d=1.-model_mask_1d
+
+     if (exist_file("initial_model")) ierr= sreed("initial_model", initial_model,4*n1*n2*n3)
+     initial_model_3d=reshape(initial_model,(/n1,n2,n3/))  
+     do i2=1,n2
+        do i3=1,n3
+           initial_model_3d(1:,i2,i3)=initial_model_3d(1:,i2,i3)-initial_model_3d(1:,ref_2,ref_3)  ! SUBTRACT OFF REFERENCE TRACE
+        enddo
+     enddo
+     initial_model=reshape(initial_model_3D,(/n1*n2*n3/))  
+
+     initial_model=initial_model*inv_model_mask_1d ! Zero out known values
+
+     deallocate(initial_model_3d,inv_model_mask_1d)
+     dtau=0.
+
+     rt_new=rt
+
+     ! INITIALIZE OPERATORS
+     call igrad3_epst_init(n1,n2,n3,eps_t)
+     call flat3_chain_init(n1*n2*n3)
+     call model_mask_init(model_mask_1d)
+     call flat3_chain_adj_init(n1*n2*n3)
+     call super3_chain_init(n1*n2*n3*3)
+     call dipinteg_3Dcos_init(n1,n2,n3)
+
+     ! MORE ALLOCATIONS
+     allocate(x(n1*n2*n3,2),z(n1*n2*n3,2),d(n1*n2*n3,2),Ad(n1*n2*n3))
+     allocate(ref_temp(n1))
+     allocate(rt_adj(n1*n2*n3)) 
+
+
+
+     ! READ IN WEIGHT
+     ww=1. !INITIALIZE WT WITH 1'S
+     if (exist_file("in_wt")) then
+        if(verb) write(0,*) 'reading in weight'
+        allocate(ww_in(n1*n2*n3))
+        ierr= sreed("in_wt", ww_in,4*n1*n2*n3)
+        ww(1:n1*n2*n3)=ww_in
+        ww(n1*n2*n3+1:n1*n2*n3*2)=ww_in
+        ww(n1*n2*n3*2+1:)=ww_in
+        !deallocate(ww_in)
+     end if
+     if(verb) write(0,*) 'max/min ww',maxval(ww),minval(ww)
+     call wt_init(ww)
+     ! rt=rt*ww ! possibly delete
+     stat1=igrad3_epst_lop(.false.,.false.,initial_model,r0)
+     ! r0=r0*ww ! W[Grad[I-K]Tau0}
+     niter_counter=0
+
+     nonlinear: do iter=1,max_niter 
+
+
+        if(verb) write(0,*) 'starting nonlinear loop number:',iter
+        if(verb) write(0,*) 'min dip',minval(rt_new)
+
+        ! CALCULATE RESIDUAL
+        call p_at_tau (tau,rt,rt_new,n1,n2,n3,ref_2,ref_3)    !  P(TAU)
+        stat1=flat3_chain_exec(.false.,.true.,-tau,rt_new) !   P(TAU)] - GRAD(TAU)
+        rt_new=rt_new-r0                                !  P(TAU) - GRAD(TAU) -R0
+
+        ! IRLS
+        if (iter>1.and.irls==1.and.real(iter)/real(irls_niter)-floor(real(iter)/real(irls_niter))<.00001) then
+           irls_index=irls_index+1
+           if(verb) write(0,*) 'REWEIGHTING',irls_index,'iter',iter 
+ 
+           !if (real(iter)/200-floor(real(iter)/200)<.00001) eps_r=eps_r*.8
+           ! STANDARD WEIGHT
+           !   ww=1./(1.+rt_new**2./eps_r**2.)**2. ! geman-mcclure  see http://www-sop.inria.fr/robotvis/personnel/zzhang/Publis/Tutorial-Estim/node24.html
+           !       ww=1./((1.+rt_new**2./2.)**.5)         !  l1-l2
+           ! ww=1./((rt_new**2.)**.5)               !  l1
+           !ww=1./(1.+((rt_new**2.)**.5)/eps_r)     !  fair
+           !            ww=1./((1.+rt_new**2./eps_r**2.)**.5)         !  cauchy
+           ww=1./((1.+rt_new**2./eps_r**2.)**1.)         !  cauchy
+           ! ww=ww*ww_bounds
+           ! rt_new=1/(1.+rt_new**2./eps_r**2.)**2.
+           call wt_close()
+           call wt_init(ww)
+           !       rt_new=rt_new*ww
+        endif
+
+        ! CALCULATE WEIGHTED RESIDUAL
+        rt_new=rt_new*(ww**2) !   W^2[ P(TAU)]-W^2[GRAD(TAU)]-W^2[R0]
+
+        !  r0=r0*ww ! W[Grad[I-K]Tau0}
+        !  rt_new=rt_new*ww ! NEW  W [P(TAU)]
+        !  stat1=flat3_chain_exec(.false.,.true.,-tau,rt_new) !   W[ P(TAU)] - W[GRAD(TAU)]
+        !  rt_new=rt_new-r0                                !  P(TAU) - GRAD(TAU) -R0
+
+        ! K' GRAD' W' R
+        !        rt_new=rt_new*ww
+        stat1=flat3_chain_exec(.true.,.false.,rt_adj,rt_new)
+
+!!!!!!NOTE:  perhaps the original rt_adj that is passed to the COS transform method should be  Grad'r  instead of  K'Grad'r   7/24/06 jml
+!!!!!BUT the rt_adj used else where should definitely be K'Grad'r  
+
+        res_scale=sum(dprod(rt_adj,rt_adj))
+
+        ! Classic conjagate gradients
+        x=0. ; rt_new=0.; d=0.;z=0.
+        !   r(1:,1)=rt_adj
+        rt_new(1:n1*n2*n3)=rt_adj
+        linear:       do j=2,max_liter+1
+
+           if (j==2) then     
+              rt_3D=reshape(rt_new(1:n1*n2*n3),(/n1,n2,n3/))          
+              rt_new(n1*n2*n3+1:2*n1*n2*n3)=rt_new(1:n1*n2*n3)
+           else 
+!!$                rt_new(n1*n2*n3+1:2*n1*n2*n3)=rt_new(n1*n2*n3+1:2*n1*n2*n3)*ww_in  ! DELETE!!!!!
+              rt_3D=reshape(rt_new(n1*n2*n3+1:2*n1*n2*n3),(/n1,n2,n3/))     
+           end if
+
+           ! REWEIGHT, THIS SHOULD NOT BE NECESSARY
+           !rt_3D=rt_3D*reshape(ww(1:n1*n2*n3),(/n1,n2,n3/))
+
+           call dipinteg_3Dcos_exec(rt_3D,cos_trans)
+
+           ref_temp=rt_3D(1:,ref_2,ref_3)  ! subtract off reference trace
+           do it=1,n1
+              do ix=1,n2
+                 do iy=1,n3
+                    rt_3D(it,ix,iy)=rt_3D(it,ix,iy)-ref_temp(it)
+                 end do
+              end do
+           end do
+
+           ! REWEIGHT, THIS MAYBE NECESSARY BECAUSE SUBTRACTING THE REFERENCE TRACE CAN CREATE NON-ZERO VALUES AT THE FAULTS
+           !rt_3D=rt_3D*reshape(ww(1:n1*n2*n3),(/n1,n2,n3/))
+
+           z(:,2)=reshape(rt_3D,(/n1*n2*n3/))
+           !z(:,2)=z(:,2)*ww_in  ! DELETE ME !!!!!!!!!!!!!!!!!!!!111
+           if (j==2) then  
+              beta=0.
+              d(:,j)=rt_adj
+              d(:,2)=z(:,2) 
+           else   
+     
+              ! CONTRAINED BETA TO BE +-10. THIS IS A BANDAID AND SHOULD BE PROPERLY REVISITIED TO PREVENT IT FROM BLOWING UP.  usually blows up when using alot of constraints and a large eps_t
+              beta = max(-10.,min(10.,sum( dprod( rt_new(n1*n2*n3+1:2*n1*n2*n3), z(:,2))) / &
+               max(sum( dprod(rt_new(1:n1*n2*n3), z(:,1))),1.d-12)))
+
+              ! beta = sum( dprod( rt_new(n1*n2*n3+1:2*n1*n2*n3), z(:,2))) / max(sum( dprod(rt_new(1:n1*n2*n3), z(:,1))),1.d-6)
+              d(:,2)= z(:,2) + beta*d(:,1)
+           end if
+           stat1=super3_chain_exec(.false.,.false.,d(:,2),Ad)
+           alpha= sum( dprod(rt_new(n1*n2*n3+1:2*n1*n2*n3) , z(:,2))) / max(sum(dprod(d(:,2),Ad)),1.d-12)
+
+           x(:,1)=x(:,1)+alpha*d(:,2)
+           rt_new(1:n1*n2*n3)= rt_new(n1*n2*n3+1:2*n1*n2*n3)
+           last_res=sum(dprod(rt_new(n1*n2*n3+1:2*n1*n2*n3),rt_new(n1*n2*n3+1:2*n1*n2*n3)))
+           rt_new(n1*n2*n3+1:2*n1*n2*n3)=rt_new(n1*n2*n3+1:2*n1*n2*n3)-alpha*Ad
+
+           d(:,1)=d(:,2)
+           z(:,1)=z(:,2)
+           !          write(0,*) 'iter',j,'res', sum(dprod(rt_new(n1*n2*n3+1:2*n1*n2*n3),rt_new(n1*n2*n3+1:2*n1*n2*n3))),'a',alpha,'b',beta
+           res_val=sum(dprod(rt_new(n1*n2*n3+1:2*n1*n2*n3),rt_new(n1*n2*n3+1:2*n1*n2*n3)))
+           if(verb) write(0,*) 'iter/res/a/b/d',j, abs(res_val)/(n1*n2*n3),alpha,&
+              beta,sum(d(:,2)),sum( dprod(rt_new(1:n1*n2*n3), z(:,1)))
+           if (abs(res_val)/(n1*n2*n3)<linear_stop_tol.and.j>min_liter) exit linear
+        end do linear
+        ! END Classic conjagate gradients
+
+
+        if(verb) write(0,*) 'maximum dtau',maxval(x(:,1))
+        if(verb) write(0,*) 'minimum dtau',minval(x(:,1))
+
+        rt_3D=reshape(x(:,1),(/n1,n2,n3/))    
+        do it=1,n1
+           do ix=1,n2
+              do iy=1,n3
+
+                 !rt_3D(it,ix,iy)=rt_3D(it,ix,iy)-rt_3D(it,ref_2,ref_3)
+              end do
+           end do
+        end do
+        x(:,1)=reshape(rt_3D,(/n1*n2*n3/))    
+        niter_counter=niter_counter+1
+        tau=tau+x(:,1)
+        tau=tau*model_mask_1d+initial_model  !*inv_model_mask_1d
+!!$  end do
+  if (exist_file("mod_movie")) call sep_write (tau,"mod_movie") 
+
+        rt_3D=reshape(tau,(/n1,n2,n3/))  
+        ref_temp=rt_3D(1:,ref_2,ref_3)
+        do it=1,n1
+           do ix=1,n2
+              do iy=1,n3
+                 !            rt_3D(it,ix,iy)=rt_3D(it,ix,iy)-ref_temp(it)
+              end do
+           end do
+        end do
+        tau=reshape(rt_3D,(/n1*n2*n3/))
+        rt_3D=0.
+
+     end do nonlinear
+
+     if(verb) write(0,*) 'EPS_H OUT',eps_h
+
+     call to_history ("n1",   n1)
+     call to_history ("n2",   n2)
+     call to_history ("n3",   n3)    
+     call to_history ("esize",4)
+     call sep_write (tau) 
+
+     if (exist_file("mod_movie")) then
+        call to_history ("n1",   n1,"mod_movie")
+        call to_history ("n2",   n2,"mod_movie")
+        call to_history ("n3",   n3,"mod_movie")
+      call to_history ("n4",   niter_counter,"mod_movie")
+        call to_history ("esize",4,"mod_movie")
+     end if
+
+     call to_history ("n1",   n1,"resid")
+     call to_history ("n2",   n2,"resid")
+     call to_history ("n3",   n3*3,"resid")    
+     call to_history ("esize",4,"resid")
+     call sep_write (rt_new,"resid") 
+
+     call to_history ("n1",   n1,"wt_out")
+     call to_history ("n2",   n2,"wt_out")
+     call to_history ("n3",   n3*3,"wt_out")    
+     call to_history ("esize",4,"wt_out")
+     call sep_write (ww,"wt_out") 
+
+     call dipinteg_3Dcos_close()
+     call super3_chain_close()
+
+     !
+     call sep_close()
+     call exit (0)
+
+  case(2) ! 2D GRAD(TAU)=P(TAU)
+
+     n2=n2*2
+     if(verb) write(0,*) "2D GRAD(TAU)=P(TAU)"
+     ! PRECOMPUTE COSINE TRANSFORM OF FINITE DIFFERENCE LAPLACIAN
+
+     allocate(cos_trans1(2*n1,2*n2,1))
+     call costrans(n1*2,n2*2,1,eps_t**2,1.,cos_trans1)
+     allocate(cos_trans(n1,n2,1))
+     cos_trans(1:n1,1:n2,1)=cos_trans1(1:n1,1:n2,1)
+     deallocate(cos_trans1)
+
+     ! ALLOCATE
+     allocate(tau(n1*n2))
+     allocate(rt_3D(n1,n2,1))
+     allocate(rt_adj(n1*n2))
+     allocate(px(n1,n2,1))
+     allocate( rt( n1*n2*2),rt_new(n1*n2*2))
+
+
+
+     ! INITIALIZE OPERATORS
+     call igrad2_2d_reg_init(n1,n2,eps_t)
+     call dipinteg_2Dcos_init(n1,n2)
+
+     do it=1,n3
+        ! READ IN DATA
+!        call sep_read(px)
+        ierr= sreed("in",px,size(px)*2)
+        px(:,n2/2+1:,1)=-1.*px(:,n2/2:1:-1,1)
+
+        if(verb)write(0,*) 'FLATTENING SECTION',it,'OF',n3
+
+
+        rt=0.
+        rt(n1*n2+1:n1*n2*2)=reshape(px,(/size(px)/))
+        dtau=0.
+        tau=0.
+        rt_new=rt
+
+        resid_write=.true.
+        do iter=1,max_niter
+
+           !  P(TAU)
+           call p_at_tau2D (tau,rt,rt_new,n1,n2,ref_2)  
+ !         if(resid_write .and. iter==1)  then
+            ierr= srite("resid",rt_new,size(rt_new)*4)
+!          end if
+
+           !  P(TAU) - GRAD(TAU)
+           stat1=igrad2_2d_reg_lop(.false.,.true.,-tau,rt_new)  
+
+           ! GRAD' R
+           stat1=igrad2_2d_reg_lop(.true.,.false.,rt_adj,rt_new)
+
+           rt_3D=reshape(rt_adj(1:n1*n2),(/n1,n2,1/))          
+
+           ! ([GRAD'GRAD]^-1)GRAD'R
+           !         call dipinteg_3Dcos_exec(rt_3D,cos_trans)
+!           call dipinteg_2Dcos_exec(rt_3D(:,:,1),cos_trans(:,:,1),eps_t)
+           call dipinteg_2Dcos_exec(rt_3D(:,:,1),cos_trans(:,:,1))
+
+           tau=tau+reshape(rt_3d,(/n1*n2/))    ;
+        end do
+        ierr= srite ("out",tau,size(tau)*2) 
+        if(resid_write) then
+          if(it==1) then
+          call to_history ("n1",   n1,"resid")
+          call to_history ("n2",   n2/2,"resid")
+          call to_history ("n4",   2,"resid")    
+          call to_history ("n3",   n3,"resid")    
+          call to_history ("o1",   o1,"resid")    
+          call to_history ("o2",   o2,"resid")    
+          call to_history ("o3",   o3,"resid")    
+          call to_history ("d1",   d1,"resid")    
+          call to_history ("d2",   d2,"resid")    
+          call to_history ("d3",   d3,"resid")    
+          end if
+          call p_at_tau2D (tau,rt,rt_new,n1,n2,ref_2)  
+!          ierr= srite("resid",rt_new(n1*n2+1:),size(rt_new)*1)
+        end if
+
+     end do
+
+     call to_history ("n1",   n1)
+     call to_history ("n2",   n2/2)
+     call to_history ("n3",   n3)    
+     call to_history ("esize",4)
+
+
+     call sep_close()
+     call exit (0)
+
+  case(3) ! 3D W[GRAD(TAU)=P(TAU)]
+
+     if(verb) write(0,*) "3D W[GRAD(TAU)=P(TAU)]"
+     ! PRECOMPUTE COSINE TRANSFORM OF FINITE DIFFERENCE LAPLACIAN
+     allocate(cos_trans1(2*n1,2*n2,2*n3))
+     call costrans(n1*2,n2*2,n3*2,eps_t**2,1.,cos_trans1)
+     allocate(cos_trans(n1,n2,n3))
+     cos_trans(1:n1,1:n2,1:n3)=cos_trans1(1:n1,1:n2,1:n3)
+     deallocate(cos_trans1)
+
+     ! READ IN DATA
+     allocate(px(n1,n2,n3),py(n1,n2,n3))
+     call sep_read(px)
+     call sep_read(py)
+     allocate( rt( n1*n2*n3*3),rt_new(n1*n2*n3*3))
+     rt=0.
+     rt(n1*n2*n3+1:n1*n2*n3*2)=reshape(px,(/size(px)/))
+     deallocate(px)
+     rt(n1*n2*n3*2+1:3*n1*n2*n3)=reshape(py,(/size(py)/))
+     deallocate(py)
+
+     ! ALLOCATE
+     allocate(tau(n1*n2*n3))
+     allocate(rt_3D(n1,n2,n3))
+     allocate(ww(n1*n2*n3*3))
+     tau=0.
+     rt_new=rt
+     r_0=(sum(dprod(rt_new,rt_new)))**.5 ! CALCULATE ||r0|| FOR STOPPING CRITERION
+     rk_1=r_0
+
+     ! READ IN WEIGHT
+     ww=1. !INITIALIZE WT WITH 1'S
+     if (exist_file("in_wt")) then
+        if(verb) write(0,*) 'reading in weight'
+        allocate(ww_in(n1*n2*n3))
+        ierr= sreed("in_wt", ww_in,4*n1*n2*n3)
+        ww(1:n1*n2*n3)=ww_in
+        ww(n1*n2*n3+1:n1*n2*n3*2)=ww_in
+        ww(n1*n2*n3*2+1:)=ww_in
+        !deallocate(ww_in)
+     end if
+     if(verb) write(0,*) 'max/min ww',maxval(ww),minval(ww)
+     !  call wt_init(ww)
+
+     ! INITIALIZE OPERATORS
+     call igrad3_epst_init(n1,n2,n3,eps_t)
+     call dipinteg_3Dcos_init(n1,n2,n3)
+
+     ! MORE ALLOCATIONS
+     allocate(rt_adj(n1*n2*n3)) 
+
+
+     nonlinear3: do iter=1,max_niter
+        if(verb) write(0,*) 'iteration',iter,'of',max_niter
+
+        !  P(TAU)
+        call p_at_tau (tau,rt,rt_new,n1,n2,n3,ref_2,ref_3)  
+
+        !  P(TAU) - GRAD(TAU)
+        stat1=igrad3_epst_lop(.false.,.true.,-tau,rt_new)  
+
+        ! IRLS
+        if (iter>1.and.irls==1) then
+           irls_index=irls_index+1
+           if(verb) write(0,*) 'REWEIGHTING',irls_index
+           ! STANDARD WEIGHT
+           !          ww=1./(1.+rt_new**2./eps_r**2.)**2. ! geman-mcclure  see http://www-sop.inria.fr/robotvis/personnel/zzhang/Publis/Tutorial-Estim/node24.html
+           !  ww=1./((1.+rt_new**2./eps_r**2.)**.5)         !  cauchy
+           ww=1./((1.+rt_new**2./eps_r**2.))         !  cauchy
+
+           ! call wt_close()
+           ! call wt_init(ww)
+           !       rt_new=rt_new*ww
+        endif
+
+
+        rt_new=rt_new*(ww**2)
+
+        ! GRAD' R
+        stat1= igrad3_epst_lop(.true.,.false.,rt_adj,rt_new)
+
+        rt_3D=reshape(rt_adj(1:n1*n2*n3),(/n1,n2,n3/))          
+
+        ! ([GRAD'GRAD]^-1)GRAD'R
+        call dipinteg_3Dcos_exec(rt_3D,cos_trans)
+
+        tau=tau+reshape(rt_3D,(/n1*n2*n3/))   
+
+        ! NONLINEAR STOP TOLERANCE
+        rk=(sum(dprod(rt_new,rt_new)))**.5 ! CALCULATE ||rk|| FOR STOPPING CRITERION
+        if(verb) write(0,*) 'stop',(((rk_1-rk)/r_0)**2.)**.5,nonlinear_stop_tol,max_niter
+        if ((((rk_1-rk)/r_0)**2.)**.5 <nonlinear_stop_tol.and.iter>min_niter) exit nonlinear3
+        rk_1=rk ! SET ||r_k-1|| FOR STOPPING CRITERION
+
+     end do nonlinear3
+
+
+
+     call to_history ("n4",   1)    
+     call sep_write (tau) 
+
+!     call to_history ("n1",   n1,"resid")
+!     call to_history ("n2",   n2,"resid")
+!     call to_history ("n3",   n3*3,"resid")    
+!     call to_history ("esize",4,"resid")
+!     call sep_write (rt_new,"resid") 
+
+     call to_history ("n1",   n1,"wt_out")
+     call to_history ("n2",   n2,"wt_out")
+     call to_history ("n3",   n3*3,"wt_out")    
+     call to_history ("esize",4,"wt_out")
+     call sep_write (ww,"wt_out") 
+
+     call dipinteg_3Dcos_close()
+
+
+     !
+     call sep_close()
+     call exit (0)
+
+
+
+  end select
+
+  call sep_end_prog()
+
+
+end program Dipintegrator
+

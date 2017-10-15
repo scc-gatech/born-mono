@@ -1,0 +1,16 @@
+Generic Byte-Deep or Byte-triple Raster Device
+
+This Vplot filter outputs a byte-deep or byte-triple binary raster image,
+with whatever dimensions you request. There is one 2-D image produced for
+each frame in the Vplot input. (Break commands will also cause the image
+to be written.) If esize=1, the "colfile" gives the (red,green,blue) color
+value associated with each byte value in the raster image. Only byte values
+that are multiples of "colormult" will be used (the Movie program here at
+Stanford only wants even-valued bytes, since it uses odd-valued ones for
+its own purposes).
+
+Raspen will create a file to put the raster image in FOR YOU if you
+don't redirect it yourself, since you probably don't want to experience
+what happens when you dump a huge binary raster file to your terminal.
+
+Author - Joe Dellinger and Jeff Thorson

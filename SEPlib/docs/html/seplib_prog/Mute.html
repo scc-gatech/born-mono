@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Mute - Mute a SEP77 dataset</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Mute - Mute a SEP77 dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Mute par=  &lt; in.H &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_vmute__2d_real">vmute    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [1.45]: outer mute velocity.
+        0.0: Special case - Flat mute.</pre>
+</dd>
+<dt><strong><a name="item_vfile__2d_file">vfile    - file</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [vmute]: vmute as a function of space.</pre>
+</dd>
+<dt><strong><a name="item_tmute__2d_real">tmute    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0.0]:  start time of (hyperbolic) outer mute</pre>
+</dd>
+<dt><strong><a name="item_tfile__2d_file">tfile    - file</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [tmute]: tmute as a function of space.</pre>
+</dd>
+<dt><strong><a name="item_tramp__2d_real">tramp    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0.25]: linear mute time ramp in seconds.</pre>
+</dd>
+<dt><strong><a name="item_scale">Scale(t&lt;Tmute)- real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0.0]: Scale(t&gt;Tmute+tramp) = 1.</pre>
+</dd>
+<dt><strong><a name="item_tpow__2d_real">tpow   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: gain trace data by  t**tpow</pre>
+</dd>
+<dt><strong><a name="item_xpow__2d_real">xpow   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: scale offset (x) traces by (x/xmin)**xpow</pre>
+</dd>
+<dt><strong><a name="item_trcbal__2d_integer">trcbal - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: no trace balancing
+    1: trace balance by sum of absolute values
+          2: trace balance by rms amplitude value
+          3: trace balance by trace energy (sum of squared values)</pre>
+</dd>
+<dt><strong><a name="item_weight__2d_real">weight - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: no weighting
+          1: Jon's weight by 1/(t+xmax/vmute),
+                        like dividing by the number of traces:
+                        radial weight by r / ( 1. + (r*r)**2 )
+                        r = r0 * x / (t * vmute)
+                        r0 = sqrt( sqrt( drop - 1. ) )</pre>
+</dd>
+<dt><strong><a name="item_drop__2d_real">drop   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [10.]: good till</pre>
+</dd>
+<dt><strong><a name="item_tape__2d_real">tape   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: no taper
+          N: linear taper on the last N traces at either end of gather.</pre>
+</dd>
+<dt><strong><a name="item_kill__2d_integer_5b_5d">kill   - integer[]</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [list]: list of trace numbers to kill
+       (first trace no. is 1)</pre>
+</dd>
+<dt><strong><a name="item_emute__2d_real">emute  - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       end of trace  ; start time for end of data mute</pre>
+</dd>
+<dt><strong><a name="item_eramp__2d_real">eramp  - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0.25]: ramp length at end of trace</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+   Apply linear outer mute to gather + preprocess for velocity analysis</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,50 @@
+=head1 NAME
+
+
+sep3d_collect_data - collect a dataset
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3d_collect_data(struct_in,struct_out,data_in,data_out)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct_in  -  sep3d
+
+      structure
+
+=item struct_out  -  sep3d
+
+      structure
+
+=item data_in  -  void (:,:)
+
+      input dataset
+
+=item data_out  -  void (:,:)
+
+      output dataset
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Collect a dataset from its various sections
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

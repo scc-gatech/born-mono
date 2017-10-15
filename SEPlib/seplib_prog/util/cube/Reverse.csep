@@ -1,0 +1,298 @@
+/*$
+
+=head1 NAME
+
+Reverse - reverse (switch direction of) axes
+
+=head1 SYNOPSIS
+
+Reverse which=number opt=option < in.H > out.H
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item  which    -   int   
+
+      [-1]  reverse slowest dimension
+      to reverse a given axis, start with 0,
+      add 1 to number to reverse n1 dimension,
+      add 2 to number to reverse n2 dimension,
+      add 4 to number to reverse n3 dimension.
+      which=7 would reverse all dimensions,
+      which=5 just n1 and n3, etc...
+      which=0 will just pass the input on through unchanged.
+
+=item  core - int     
+
+      default .
+      1- forces in core.
+      0- forces not in core.    
+
+=item  opt - char   
+
+      yes- changes d and o on each reversed axis.  
+      so that a given piece of 
+      data still has the correct physical coordinates. 
+      no- sets d and o as above except with opposite sign.
+      ignore - just forgets about fiddling with d and o.
+
+=item n1,n2,n3 -  int  
+
+      standard seplib parameters (see e.g. Window documentation)
+
+=item o1,o2,o3 -  float 
+
+      standard seplib parameters (see e.g. Window documentation)
+
+=item d1,d2,d3 -  float  
+
+      standard seplib parameters (see e.g. Window documentation)
+
+=item esize    -  int     
+
+      [4] -element size.
+
+=back
+
+=head1  DESCRIPTION
+
+  Reverse - reverse the direction of one or more axes (dimensions) of an array. 
+  (Not to be confused with Transpose!)
+  The array can be 1, 2, or 3 dimensional, and can be of any data type.
+
+=head1 COMMENTS
+
+  n1 is always reversed in core, n3 never in core, n2 can go either way,
+   depending on the size of esize * n1 * n2 .
+  
+  It tries to be so general, so it is slower than it should be.
+
+=head1 CATEGORY
+
+B<util/cube>
+
+=cut
+
+
+>*/
+/*
+ * Keyword: reverse  sort  reorder  data-shuffle
+ */
+
+ADD_DEF_SEP_DOC
+#include <stdlib.h>
+#include <sep.main>
+#define MEMSIZE  20000000  /* Cut off point for core usage, bytes */
+
+int MAIN(void)
+{
+	char *trace, *trace2;
+
+	/* Want them to be arbitrary, neither float nor complex */
+	/* Just pretend they are character pointers so we multiply offsets ourselves.*/
+	int n1, n2, n3, which;
+	int esize;
+	int f1, f2, f3; /* Flags; 0=leave alone, 1=reverse this dimension */
+	float on,dn;
+	int point;
+	int icount1,icount2,icount3;
+	int p1,p2,p3;
+	int i4,n4,n5;
+	int byte; /*For looping over the bytes in a data value. Lets esize be arbitrary*/
+	static char opt[12] = "y";
+	int core;
+
+	/* Get all needed parameters, with defaults */
+	n1=1;  fetch("n1","d",&n1);
+	n2=1;  fetch("n2","d",&n2);
+	n3=1;  fetch("n3","d",&n3);
+	n4=1;  fetch("n4","d",&n4);
+	n5=1;  fetch("n5","d",&n5); n4=n4*n5;
+	n5=1;  fetch("n6","d",&n5); n4=n4*n5;
+	n5=1;  fetch("n7","d",&n5); n4=n4*n5;
+	esize=0; fetch("esize","d",&esize);
+	which = -1; getch("which","d",&which);
+	getch("opt","s",opt);
+	core = 2; getch("core","d",&core);
+
+	if (esize == 0)    esize = 4;
+	if (*opt != 'y' && *opt != 'n' && *opt != 'i') {
+		/* invalid value for opt */
+		seperr(" opt must be yes, no, or ignore. (or at least start like that)\n");
+	}
+
+	if (core != 0 && core != 1)
+		core = 2; /* If they don't tell us, we'll decide ourselves */
+
+	if (which == -1) {
+		/* Figure out which dimension is the slowest */
+		which = 1;
+		if (n2 > 1) which = 2;
+		if (n3 > 1) which = 4;
+	}
+
+	which -= 4 * (f3 = (which >= 4)); f3 = ( f3 && (n3 > 1));
+	which -= 2 * (f2 = (which >= 2)); f2 = ( f2 && (n2 > 1));
+	which -= 1 * (f1 = (which >= 1)); f1 = ( f1 && (n1 > 1));
+
+	/* Reverse is smart enough to not bother reversing dimensions 1 long */
+	if (which != 0) {
+		/* Big trouble, they specified an invalid value for which! */
+		seperr(" which must have a value between 0 and 7\n");
+	}
+
+	/* f1 through f3 tell me which dimensions to Reverse... */
+	if (!f1 && !f2 && !f3) {
+		/* They don't want anything done! */
+		puthead ("\tReverse called, but asked to do nothing.\n");
+		/*Could happen if they only asked for dimensions of length 1 to be flipped*/
+	} else {
+		/* See which dimension(s) they want Reversed. */
+		puthead ("\tReverse: reversing over");
+		if (f1 == 1) {
+			puthead (" n1");
+		} 
+		if (f2 == 1) {
+			if (f1 == 1)
+				if (f3 == 0) puthead (" and");
+				else puthead (",");
+			puthead (" n2");
+		}
+		if (f3 == 1) {
+			switch (f1 + f2) {
+				case 2 :
+					puthead (",");
+				case 1 :
+					puthead (" and");
+			}
+			 puthead ("n3");
+		}
+		puthead (".\n"); /* Fancy, just for the heck of it */
+		/* Now update the o's and d's .*/
+		if (*opt != 'i') {
+			if (f1 == 1) {
+				on = 1. ; dn = 1.;
+				fetch("o1","f",&on);
+				fetch("d1","f",&dn);
+				on += ((float)n1-1.)*dn;
+				dn = -dn;
+				if (*opt == 'n') {
+					on = - on;
+					dn = - dn;
+				}
+				putch ("o1","f",&on);
+				putch ("d1","f",&dn);
+			}
+			if (f2 == 1) {
+				on = 1. ; dn = 1.;
+				fetch("o2","f",&on);
+				fetch("d2","f",&dn);
+				on += ((float)n2-1.) * dn;
+				dn = -dn;
+				if (*opt == 'n') {
+					on = - on;
+					dn = - dn;
+				}
+				putch ("o2","f",&on);
+				putch ("d2","f",&dn);
+			}
+			if (f3 == 1) {
+				on = 1. ; dn = 1.;
+				fetch("o3","f",&on);
+				fetch("d3","f",&dn);
+				on += ((float)n3-1.) * dn;
+				dn = -dn;
+				if (*opt == 'n') {
+					on = - on;
+					dn = - dn;
+				}
+				putch ("o3","f",&on);
+				putch ("d3","f",&dn);
+			}
+		}
+	}
+	make_unpipe("in");
+
+	/* Done with header now */
+	hclose();
+  
+	 /* See whether we do it in core or not. */
+	if (((core == 2) && (n2 * n1 * esize > MEMSIZE)) || (core == 0) || n4>1) {
+
+		/* Can't do it in core */
+
+		/* Declare some memory for a single trace */
+		if (f1 == 1) trace2 =(char *) malloc(esize * n1);
+		trace =  (char *) malloc(esize * n1);
+		p3 = f3 * (n3 - 1);
+		for(i4=0; i4 < n4; i4++) {
+			sseek_block("in",i4,n1*n2*n3*esize,0);
+			for (icount3=n3; icount3 > 0; p3 -= (f3*2-1), icount3--) {
+				for (p2=f2*(n2-1),icount2=n2;icount2>0;p2 -=(f2*2-1),icount2--) {
+					/*not fast but should work*/
+				    sseek_block("in",i4,n1*n2*n3*esize,0); 
+					/* sseek("in",(int)(esize*n1*p2+esize*n1*n2*p3),1);*/
+/*				    sseek_block("in",esize*n1,(int)(p2+n2*p3),1);*/
+				    sseek_block("in",esize*n1,(int)(p2),1);
+
+					/*********************************************************/
+					/* Read a single trace starting from where we are, flip  */
+					/* it if needed. */
+					if(esize*n1!=sreed_raw ("in",trace,esize * n1))
+                                           seperr("trouble reading data \n");
+					/* Now we have a single trace. Check f1 to see if we need */
+					/* to flip it. */
+					if (f1 == 1)
+						for (point = 0; point < n1; point++)
+							for (byte = 0; byte < esize; byte++)
+								*(trace2+(point*esize)+byte) =
+									*(trace+((n1-1-point)*esize)+byte);
+					else
+						/* No need to copy the array, just move the pointer! */
+						trace2 = trace; 
+						/* We have now read in a single trace */
+						/* Now write it back out. */
+						srite_raw ("out",trace2,esize * n1);
+					/*********************************************************/
+				}
+			}
+		}
+	} else {
+
+		/* Do it in core */
+
+		/* Declare some memory for a single plane */
+		if (f1 == 1 || f2 == 1)
+			trace2=(char *) malloc(esize*n1*n2);
+		trace=(char *) malloc(esize*n1*n2);
+		p3=f3*(n3-1);
+		for (icount3=n3; icount3 > 0; p3 -= (f3*2-1), icount3--) {
+			sseek("in",(int)(esize*n1*n2*p3),0);
+
+			/*****************************************************************/
+			/* Read a single plane starting from where we are, flip it as needed. */
+			sreed_raw ("in",trace,esize * n1 * n2);
+			/* Now we have a single plane. Check to see if we need to flip it. */
+			if (f1 == 0 && f2 == 0) {
+
+				/* Do nothing */
+				trace2 = trace; /* No need to copy the array, just move the pointer*/
+			} else {
+				/* We will need to flip at least one (maybe both) of n1 and n2 */
+				p2=f2*(n2-1);
+				for (icount2=0; icount2 < n2; p2 -= (f2*2-1), icount2++)
+					for (p1=f1*(n1-1),icount1=0;icount1<n1;p1-=(f1*2-1),icount1++)
+						for (byte=0; byte < esize; byte++)
+							*(trace2+(icount1*esize)+(icount2*n1*esize)+byte)= 
+								*(trace+(p1*esize)+(p2*n1*esize)+byte);
+
+			}
+			/* We have now read in a single plane */
+			/* Now write it back out. */
+			srite_raw ("out",trace2,esize*n2*n1);
+			/******************************************************************/
+    	}
+  	}
+	return(EXIT_SUCCESS); /* main (in seplib) calls MAIN as a subroutine. */
+} /* End of MAIN */

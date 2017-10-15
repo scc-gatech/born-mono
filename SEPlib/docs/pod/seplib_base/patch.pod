@@ -1,0 +1,48 @@
+=head1 NAME
+
+
+patch - extract and put back patches
+
+=head1 SYNOPSIS
+
+
+C<call patch_init(npatch,nwall,nwind)>
+
+C<ierr=ptch_lop(adj,add,wall,wind)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item npatches  - C<integer(:)>
+
+      number of patches
+
+=item nwall     - C<integer(:)>
+
+=item nwind     - C<integer(:)>
+
+=item adj,add,wall,wind -
+
+      Standard operator interface
+
+=back
+
+=head1 DESCRIPTION
+
+
+Extract and  put back patches
+
+=head1 SEE ALSO
+
+
+L<misinput>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

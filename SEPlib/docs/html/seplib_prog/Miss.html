@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Miss - Missing data interpolation with a prescribed helix filter</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#parameters">PARAMETERS</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#modules">MODULES</a></li>
+	<li><a href="#sea_also">SEA ALSO</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Miss - Missing data interpolation with a prescribed helix filter</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Miss &lt; in.H prec=1 niter=100 padin=0 padout=0 filt= [mask=] &gt; interp.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Fills missing data by mimimizing the data power after convolution. 
+Works in any number of dimensions!</p>
+<p>
+</p>
+<hr />
+<h1><a name="parameters">PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_from_history">from history</a></strong><br />
+</dt>
+<dd>
+<strong>integer</strong> <em>n1, n2, n3</em>
+</dd>
+<p></p>
+<dt><strong><a name="item_from_par">from par</a></strong><br />
+</dt>
+<dd>
+<strong>integer</strong> <em>prec</em>=2 - use preconditioning for missing data interpolation
+</dd>
+<dd>
+<p><strong>integer</strong> <em>niter</em>=100 - number of iterations</p>
+</dd>
+<dd>
+<p><strong>integer</strong> <em>padin</em>=0 - pad data beginning</p>
+</dd>
+<dd>
+<p><strong>integer</strong> <em>padout</em>=0 - pad data end</p>
+</dd>
+<dd>
+<p><strong>filename</strong> <em>filt</em> - helix filter</p>
+</dd>
+<dd>
+<p><strong>filename</strong> <em>mask</em> (optional) - selector for known data</p>
+</dd>
+<p></p></dl>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<p><em>gee/lal/lace90/</em>, <em>gee/mda/hole90/</em>, <em>gee/mda/seab90/</em>, 
+<em>gee/prc/galilee90</em>, <em>gee/prc/sep95/</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="modules">MODULES</a></h1>
+<p><em>mis2.r90</em>, <em>bound.r90</em>, <em>helix.r90</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="sea_also">SEA ALSO</a></h1>
+<p><a href="./../seplib_prog/Helicon.html">the Helicon manpage</a>, <a href="./../seplib_prog/Pef.html">the Pef manpage</a></p>
+
+</body>
+
+</html>

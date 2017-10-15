@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Reshape - Reshape a SEPlib dataset</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Reshape - Reshape a SEPlib dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Reshape [pars] &lt; in.H &gt;out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_reshape__2d_int_2a">reshape - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Reshape a dataset (e.g. 1,2,4 will combine 3rd and 4th axis of a dataset,see examples)</pre>
+</dd>
+<dt><strong><a name="item_esize__2d_int">esize   - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [esize from history]  Four posibilities:</pre>
+</dd>
+<dd>
+<pre>
+  key1 (make esize=4 from header key1)</pre>
+</dd>
+<dd>
+<pre>
+  grid (make esize=4 from the grid values)</pre>
+</dd>
+<dd>
+<pre>
+  key1,key2 (make esize=8 from header key1 and key2)</pre>
+</dd>
+<dd>
+<pre>
+  x1,x2 (make esize=8 from two array  elements in the first axis of the dataset)</pre>
+</dd>
+<dt><strong><a name="item_axis___2d_int_2a">axis_  - int*</a></strong><br />
+</dt>
+<dd>
+<pre>
+  Window a given axis in the dataset (e.g. axis1=1,3,4)  will change n1=3, and take</pre>
+</dd>
+<dd>
+<pre>
+   the first, third, and fourth values of axis 1</pre>
+</dd>
+<dt><strong><a name="item_n__2co__2cd__2clabel__2cunit_">n_,o_,d_,label_,unit_</a></strong><br />
+</dt>
+<dd>
+<pre>
+   Change description parameters of the output</pre>
+</dd>
+<dt><strong><a name="item_maxsize__2d_int">maxsize - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [20]  Maximum amount of memory to use in megabytes</pre>
+</dd>
+<dt><strong><a name="item_in_2eignore_hff__2d_int">in.ignore_hff - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [0]   Wether (1) or not (0) to ignore header axes</pre>
+</dd>
+<dt><strong><a name="item_in_2eignore_gff__2d_int">in.ignore_gff - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+  [0]   Wether (1) or not (0) to ignore grid axes</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Reshape a SEPlib dataset.  Usually this will involve shifting axes
+for use with other SEPlib programs.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+ Parameters are considered in the following order</pre>
+<pre>
+ 1) reshape commands</pre>
+<pre>
+ 2) esize changes</pre>
+<pre>
+ 3) axis changes</pre>
+<pre>
+ 4) User specified n,o,d</pre>
+<pre>
+ As a result if you specify more than 1 change in a single command</pre>
+<pre>
+ the changes are based on the new data description (e.g</pre>
+<pre>
+ reshape=1,1,2,3 axis3=1,5 will be based on axis 2 of the input not axis3.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<pre>
+  Given a regular dataset  n1=10, n2=10 n3=10
+  Reshape &lt; in.H &gt;out.H  reshape=1,1,3,4
+  Out: n1=10 n2=1 n3=10 n4=10</pre>
+<pre>
+  Given: n1=10 n2=10 n3=10
+  Reshape &lt; in.H &gt;out.H axis3=1,4,7
+  Out: n1=10 n2=10 n3=3 (where the first, third, and seventh slice are copied)</pre>
+<pre>
+ Given: n1=10 n2=10 n3=10 esize=4
+  Reshape &lt; in.H &gt;out.H esize=1,3  
+  Out: esize=8 n1=10 n2=10  (complex from 1,3 samples of axis 1)</pre>
+<pre>
+  Given:  sep3d n1=10 n2=10 n3=10 keys(s_x,s_y,g_x,g_y)
+  Reshape &lt; in.H &gt;out.H esize=s_x,s_y 
+  Out: esize=8 n1=10 n2=10  (header kay values s_x,s_y)</pre>
+<pre>
+  Given:  sep3d dataset with a grid n2=20 n3=20
+  Reshape &lt; in.H &gt;out.H esize=grid
+  Out: esize=4  Grid values changed from integ to real, n1=20 n2=20 n3=1</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/cube</strong></p>
+
+</body>
+
+</html>

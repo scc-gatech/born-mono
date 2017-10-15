@@ -1,0 +1,5 @@
+project(SEPLIB-base)
+cmake_minimum_required(VERSION 2.8)
+add_subdirectory(model)
+add_subdirectory(image)
+add_subdirectory(filter)

@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>veltran - velocity transform with anti-aliasing and sqrt</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>veltran - velocity transform with anti-aliasing and sqrt(  i omega)</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call veltran(adj,add,psun,s02,anti,t0,dt,x0,dx,s0,ds,nt,nx,ns,model,data)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_adj__2d_int">adj   - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      0- (slow-&gt;offset), 1- (offset-&gt;slow)</pre>
+</dd>
+<dt><strong><a name="item_add__2d_int">add   - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      0- erase output, 1 save output</pre>
+</dd>
+<dt><strong><a name="item_psun__2d_int">psun  - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      0-modeling, 1-pseudounitary, 2-vel tran</pre>
+</dd>
+<dt><strong><a name="item_s02__2d_real">s02   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      ????</pre>
+</dd>
+<dt><strong><a name="item_anti__2d_real">anti  - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Triangle size</pre>
+</dd>
+<dt><strong><a name="item_t0__2d_real">t0    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Initial time</pre>
+</dd>
+<dt><strong><a name="item_dt__2d_real">dt    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Sampling in time</pre>
+</dd>
+<dt><strong><a name="item_x0__2d_real">x0    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      First offset</pre>
+</dd>
+<dt><strong><a name="item_dx__2d_real">dx    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Offset sampling</pre>
+</dd>
+<dt><strong><a name="item_s0__2d_real">s0    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      First slowness</pre>
+</dd>
+<dt><strong><a name="item_ds__2d_real">ds    - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Sampling in slowness</pre>
+</dd>
+<dt><strong><a name="item_nt__2d_int">nt    - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of time samples</pre>
+</dd>
+<dt><strong><a name="item_nx__2d_int">nx    - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of offset</pre>
+</dd>
+<dt><strong><a name="item_ns__2d_int">ns    - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Number of slownesses</pre>
+</dd>
+<dt><strong><a name="item_real">modl  - <code>real(nt,ns)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      time,slowness panel</pre>
+</dd>
+<dt><strong>data  - <code>real(nt,nx)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      time,offset panel</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Velocity transform with anti-aliasing</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>Requires trimo, null, adjnull</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepvelanf</strong></p>
+
+</body>
+
+</html>

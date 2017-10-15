@@ -1,0 +1,45 @@
+
+
+=head1 NAME
+
+sepweif90 - A library for performing  wave equation migration
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+A library for performing  wave equation migration
+
+=head1 FUNCTIONS
+
+
+
+L<weisll_init> -  Initialize multiple  slowness  lloyd operator
+
+
+
+L<weisll> - Multiple  slowness operator lloyd vel/find
+
+L<weicam_init> - initialize  common azimuth migration
+
+L<integer> - initialize  common azimuth migration
+
+L<weihcig_init> - initialize offset imaging operator
+
+L<weihcig> - Perform offset domain imaging
+
+L<weipcig_init> - initialize offset ray parameter imaging
+
+L<weipcig> - Perform offset ray parameter imaging
+
+L<weissf_init> - Initialize split step operator
+
+L<weissf> - Split step operator
+
+L<weiwem_init> - initialize  wave equation migration
+
+L<weiwem> - one depth step of  wave equation migration
+
+=cut 

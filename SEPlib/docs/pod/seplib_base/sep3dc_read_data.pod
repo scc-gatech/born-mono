@@ -1,0 +1,60 @@
+=head1 NAME
+
+
+sep3dc_read_data - Read the data assoicated with a given window
+
+
+
+=head1 SYNOPSIS
+
+
+C<logic= sep3dc_read_data(char *tag, sep3d *sep3dc, void *data, int nt, int ft, int jt)>
+
+
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  tag  -  sepfile
+
+     file to read  the data from
+
+=item  sep3dc  -  sep3d
+
+     structure 
+
+=item  data  -  void*
+
+     data 
+
+=item  nt  -  int
+
+     number of samples along axis 1
+
+=item  ft  -  int
+
+     first sample along axis 1
+
+=item  jt  -  int
+
+     sampling along axis 1
+
+=head1 DESCRIPTION
+
+
+
+Read in  a portion of the dataset
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<superset>
+
+=cut
+

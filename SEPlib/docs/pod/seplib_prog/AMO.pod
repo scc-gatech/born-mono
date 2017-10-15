@@ -1,0 +1,102 @@
+=head1 NAME
+
+
+AMO - performs Azimuth moveout
+
+
+=head1 SYNOPSIS
+
+
+AMO par=parametersfile <in.H >out.H
+
+=head1 INPUT DATA
+
+
+  [in.H] regularly sampled, common azimuth and offset data cube.
+
+  Axes: (cmp_x, cmp_y, time). Offset vector specified by H1x, H1y
+
+=head1 OUTPUT DATA
+
+
+  [out.H] regularly sampled, common azimuth and offset data cube.
+
+  Axes: (cmp_x, cmp_y, time). Offset vector specified by H2x, H2y
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  H1x- float
+
+    [1.96961558] component of the HALF-offset vector for in.H
+
+=item  H1y- float
+
+    [0.347296387] the other component of HALF-offset for in.H
+
+=item  H2x- float;
+
+!$    [1.55884564] component of the HALF-offset vector for out.H
+
+=item  H2y- float
+
+    [0.899999976] the other component of HALF-offset for out.H
+
+=item  t_min_log- float
+
+   [0.04] minimum cutoff time for logstretch. Must be >0 !
+
+=item  fk_filter- logical
+
+    [y] indicates whether fk filtering is desired
+
+=item  v_min- float
+
+    [2.] minimum apparent velocity of events (for the fk filter)
+
+    Units should correspond to the distance units in in.H
+
+=item  f_max- float
+
+    [100.] maximum frequency (Hz) present in the data (for logstretch
+     antialiasing)
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Transform data from one offset and azimuth to another.
+
+=head1 COMMENTS
+
+
+=over 4
+
+=item  NOTE: This AMO implementation is discussed in detail in 'Effective
+
+              AMO implementation in the log-stretch, frequency-wavenumber
+
+             domain', by Ioan Vlad and Biondo Biondi, Report SEP-110,
+
+              Aug. 2001, pp. 63-71
+
+=item  NOTE: The code uses OpenMP parallelization, it detects the number
+
+        of threads itself.
+
+=item  NOTE: The program has been tried with 0<t_min_log<o1, but it should
+
+              work for any t_min_log>0, and any o1>=0 for in.H
+
+=back
+
+=head1 CATEGORY
+
+
+B<seis/image>
+
+=cut
+

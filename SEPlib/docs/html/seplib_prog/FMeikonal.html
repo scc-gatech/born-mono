@@ -1,0 +1,111 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>FMeikonal - Fast marching eikonal solver</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT  PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>FMeikonal - Fast marching eikonal solver</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>FMeikonal &lt; VelocityCube.H &gt;TTCube.H  pars</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT  PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_shotfile__2d_sepfile">shotfile          - sepfile</a></strong><br />
+</dt>
+<dd>
+<pre>
+      file with multiple shots (n2 - number of shots, n1=3)</pre>
+</dd>
+<dt><strong><a name="item_zshot_2cyshot_2cxshot__2d_real">zshot,yshot,xshot - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0., o2 + 0.5*(n2-1)*d2, o3 + 0.5*(n3-1)*d3 shot location</pre>
+</dd>
+<dt><strong><a name="item_b1_2cb2_2cb3__2d_integer">b1,b2,b3          - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1,1,1] constant-velocity box around the source</pre>
+</dd>
+<dt><strong><a name="item_br1_2cbr2_2cbr3__2d_real">br1,br2,br3       - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [d1,d2,d3] constant-velocity box around the source</pre>
+</dd>
+<dt><strong><a name="item_vel__2d_integer">vel               - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]  velocity (1) or slowness (0)</pre>
+</dd>
+<dt><strong><a name="item_vel0__2d_real">vel0   - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      velocity (or slowness) at the source [vel[0]]</pre>
+</dd>
+<dt><strong><a name="item_order__2d_integer">order             - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [2]  first (1), second (2) or third (3) order</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Fast marching eikonal solver</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Hwt3d.html">the Hwt3d manpage</a>, <a href="./../seplib_base/fastmarch.html">the fastmarch manpage</a>, <a href="./../seplib_prog/Gfgradz.html">the Gfgradz manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>Be careful with sources outside the domain.
+You should smooth the velocity field if you want high-order accuracy.
+Stability problems *may* occur if traveltime accuracy is beyond 
+    machine precision.
+The program uses constant velocity ray-tracing inside an initial box,
+    and until it detects a velocity variation, whichever is greater.</p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/travel</strong></p>
+
+</body>
+
+</html>

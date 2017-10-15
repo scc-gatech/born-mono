@@ -1,0 +1,86 @@
+=head1 NAME
+
+
+Scat3d - Create a 3-D scatter model for Kirmod3d
+
+=head1 SYNOPSIS
+
+
+ Scat3d [parameters - drho,dlambda,dmu,depth]
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  mode - int
+
+      [1]  Isotropic perturbations (default)
+      2   lambda, mu & rho perturbations for Rayleigh scattering
+
+
+=item  surface locations given by :
+
+    n2,o2,d2-sep_standard model dimension axis 2
+    n3,o3,d3-sep_standard model dimension axis 3
+
+
+=item dip2    -real
+
+      Dip of plane in 2-direction (degrees)
+
+=item dip3    -real
+
+       3-direction
+
+=item depth   -real
+
+      [1.]  Depth at physical origin (x=y=0.)
+
+=item mag     -real
+
+       [1.]  mode=1 Magnitude
+
+=item  drho    -real
+
+       [0.]
+
+=item dlambda -real
+
+      [0.]  mode=2 Strength of perturbations
+
+=item  dmu     -real
+
+      [0.]
+
+=back
+
+=head1 COMMENTS
+
+
+ Asumes a 3-D model with consistant sampling in all 3 directions.
+
+ Output is a n1=4 or 6 seplib array with row 1=n1,
+                                         row 2=n2,
+                                         row 3=n3,
+                              row 4 = mag  or  drho
+                              row 5 =          dlambda
+                              row 6 =          dmu
+
+=head1 DESCRIPTION
+
+
+ Generates a plane of scatters for use with Kirmod3D modelling program
+
+=head1 SEE ALSO
+
+
+L<Marine_geom3d>, L<Scat3d>, L<Gfgradz>
+
+=head1 CATEGORY
+
+
+B<seis/model>
+
+=cut
+

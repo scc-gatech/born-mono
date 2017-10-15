@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Overlay - draws simple overlays</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#box_parameters">Box Parameters</a></li>
+	<li><a href="#oval_parameters">Oval Parameters</a></li>
+	<li><a href="#arrow_and_polyline_parameters">Arrow and Polyline parameters</a></li>
+	<li><a href="#text_parameters">Text parameters</a></li>
+	<li><a href="#compile_level">COMPILE LEVEL</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Overlay - draws simple overlays</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+ Overlay &lt; in.H &gt; out.V [pars]</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+        Draws polylines, text, boxes, and oval overlays</pre>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+ Options let you position objects, control the
+ size of the labeling, etc. 
+ The objects can be overlayed onto vplot
+ graphics files using the 'erase=once' option of pen filters.
+ For example, 'Tube &lt; Wiggleout.H Boxout.H erase=once' The
+ interact option of pen filters can be used to determine the
+ coordinate of the spot the box's pointer is to point at.
+ (Alas, not all pen filters support the 'interact' capability.)
+ The special pen filter Vppen can be used to combine vplot
+ files.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_type__2d_char_2a">type -  char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+        Must be 'box','oval','arrow','polyline', or 'text'</pre>
+</dd>
+<dt><strong><a name="item_fat__2d_int">fat  -  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0] Fatness of object</pre>
+</dd>
+<dt><strong><a name="item_color_2d_int">color-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [7]     Color of object</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="box_parameters">Box Parameters</a></h1>
+<dl>
+<dt><strong><a name="item_x__2d_float">x   -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]  Relative Position of left edge of box</pre>
+</dd>
+<dt><strong><a name="item_y__2d_float">y   -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]  Relative Position of  bottom edge of box</pre>
+</dd>
+<dt><strong><a name="item_width__2d_float">width -   float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [1.]  Width of box</pre>
+</dd>
+<dt><strong><a name="item_height__2d_float">height  -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [1.]  Height of box</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="oval_parameters">Oval Parameters</a></h1>
+<dl>
+<dt><strong><a name="item_x_2cy__2d_float">x,y   - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0,0]   Center of oval x</pre>
+</dd>
+<dt><strong><a name="item_x_oval_2cy_oval__2d_float">x_oval,y_oval -  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1.,1.]  Major axes for oval</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="arrow_and_polyline_parameters">Arrow and Polyline parameters</a></h1>
+<dl>
+<dt><strong><a name="item_x_2cy__2d_float_2a">x,y -  float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0,0][1.,1.]   Array of points to draw lines between (max 50)</pre>
+</dd>
+<dt><strong><a name="item_float">pscale -    float  (arrow only)</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [1.]    scale factor for width of pointer</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="text_parameters">Text parameters</a></h1>
+<dl>
+<dt><strong>x,y - float</strong><br />
+</dt>
+<dd>
+<pre>
+      [0.,0.]   Location of text</pre>
+</dd>
+<dt><strong><a name="item_size__2d_float">size -      float</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [.25]    Height of text, in inches</pre>
+</dd>
+<dt><strong><a name="item_label_2d_char_2a">label-      char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+        ' '   Text string for label</pre>
+</dd>
+<dt><strong><a name="item_angle_2d_int">angle-      int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]     Angle for text</pre>
+</dd>
+<dt><strong><a name="item_boxit_2d_int">boxit-     int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [1] Whether (1) or not (0) to create a box arround text</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="compile_level">COMPILE LEVEL</a></h1>
+<pre>
+ LOCAL</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+
+</body>
+
+</html>

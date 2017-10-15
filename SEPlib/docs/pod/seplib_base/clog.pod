@@ -1,0 +1,55 @@
+=head1 NAME
+
+
+clog - complex log
+
+
+=head1 SYNOPSIS
+
+
+C<val=complex clog(a)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item a - complex 
+
+     number
+
+=back
+
+=head1 RETURN VALUES
+
+
+=over 4
+
+=item val -  complex 
+
+      result of complex log
+
+=back
+
+
+=head1 DESCRIPTION
+
+
+     Clog returns the principal value of log(a) for an arbitrary
+     complex a.  An equivalent formula is
+                cmplx(log(cabs(a)),atan2(a.im,a.re)).
+     The imaginary part is between -J and J.
+
+=head1 DIAGNOSTICS
+
+
+     Clog(0) returns the machine equivalent of minus infinity.
+
+
+=head1 LIBRARY
+
+
+B<sepmath>
+
+=cut
+

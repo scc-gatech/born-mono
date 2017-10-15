@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Stack3d - Stack a SEPlib dataset</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#notes">NOTES</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Stack3d - Stack a SEPlib dataset</p>
+<p>Infill  - Infill  a SEP3D dataset</p>
+<p>Stack - Stack a SEP regular dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Stack3d  &lt;in.H &gt;out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_axes_2d_integer">axes- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [2]  Compress axes 2 through ....</pre>
+</dd>
+<dd>
+<pre>
+       Defaults to 2 for Stack and Stack3d, no compression for infill</pre>
+</dd>
+<dt><strong><a name="item_maxsize_2d_integer">maxsize- integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10] Maximum memory in megabytes</pre>
+</dd>
+<dt><strong><a name="item_verb_2d_logical">verb- logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [n]  Whether (y) or not (n) to be verbose</pre>
+</dd>
+<dt><strong><a name="item_normalize_2d_logical">normalize- logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [y]  Whether (y) or not (n) to normalize by the
+      number of traces in bin</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Stack3d a sep3d dataset producing a normalized sep77 cube compressing grid axes</pre>
+<pre>
+ Infill3d a sep3d dataset producing a normalized sep77 cube</pre>
+<pre>
+ Stack - Compress axis 2 of regular. This is only for backward compatibility</pre>
+<pre>
+     Stack's options are a subset of Stack3d option</pre>
+<p>
+</p>
+<hr />
+<h1><a name="notes">NOTES</a></h1>
+<pre>
+ axes is the last axis that you want to stack over.</pre>
+<pre>
+ axes=2 mean stack over the 2nd axis, axes=3 mean the second and third axis</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/cube</strong></p>
+
+</body>
+
+</html>

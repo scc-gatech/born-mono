@@ -1,0 +1,53 @@
+=head1 NAME
+
+
+pef - find prediction error filter
+
+=head1 SYNOPSIS
+
+
+C<call find_pef(dd,aa,niter)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item dd  -  C<real(:)>
+
+      Input data
+
+=item niter - integer
+
+      Number of itterations
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item  aa - type(filter)
+
+       output filter
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Find prediction-error filter (helix magic)
+
+=head1 SEE ALSO
+
+
+L<npef>,L<hconest>,L<solver>,L<cgstep>,L<pefest>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

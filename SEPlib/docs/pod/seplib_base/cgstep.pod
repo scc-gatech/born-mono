@@ -1,0 +1,56 @@
+=head1 NAME
+
+
+cgstep - one step of conjugate gradient step
+
+=head1 SYNOPSIS
+
+
+OPERATOR:C<ierr= cgstep(forget,x,g,rr,gg)>
+
+C<CLOSE:  call cgstep_close()>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item forget - logical
+
+      Whether or not to forget previous step
+
+=item x      - C<real(:)>
+
+      Model
+
+=item g      - C<real(:)>
+
+      Gradient
+
+=item rr      - C<real(:)>
+
+      residual
+
+=item gg      - C<real(:)>
+
+      gradient mapped into residual space
+
+=back
+
+=head1 DESCRIPTION
+
+
+One step of conjugate gradient method
+
+=head1 SEE ALSO
+
+
+L<cgmeth>, L<cdstep>,L<solver_reg>,L<conjgrad>,L<partan>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

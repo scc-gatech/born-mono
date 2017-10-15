@@ -1,0 +1,27 @@
+=head1 NAME
+
+
+weisll_init - Initialize multiple  slowness  lloyd operator
+
+=head1 SYNOPSIS
+
+
+ ierr=weisll_init()
+
+=head1 DESCRIPTION
+
+
+ Initialize multiple slowness operator lloyd
+
+=head1 SEE ALSO
+
+
+L<weisloN_init> L<weislo1> L<weislsN>
+
+=head1 LIBRARY
+
+
+ sepweif90
+
+=cut
+

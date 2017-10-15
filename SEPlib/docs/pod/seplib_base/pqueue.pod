@@ -1,0 +1,65 @@
+=head1 NAME
+
+
+pqueue - heap priority queue
+
+=head1 SYNOPSIS
+
+
+pqueue_init(n)  - initialize heap
+
+pqueue_insert(v) - insert value
+
+val=pqueue_extract() -extract value
+
+pqueue_close() -close (free memory)
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item n - int  
+
+      number of buckets
+
+=item v - float* 
+
+      value to insert
+
+=back
+
+=head1 RETURN VALUE
+
+
+=over 4
+
+=item val - float* 
+
+      extracted value
+
+=back
+
+
+=head1 DESCRIPTION
+
+
+Simple heap priority queue
+
+=head1 COMMENTS
+
+
+Reference: Sedgewick "Algorithms in C"
+
+=head1 SEE ALSO
+
+
+B<fastmarch>
+
+=head1 LIBRARY
+
+
+B<sepaux>
+
+=cut
+

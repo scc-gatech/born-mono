@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>box - filter to hypercube</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>box - filter to hypercube</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>call boxn (nd,center,na,aa,cube)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_int">nd  - <code>int(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Input data dimension</pre>
+</dd>
+<dt><strong>center - <code>int(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Location of the 1 coeficient in box</pre>
+</dd>
+<dt><strong>na  -  <code>int(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+      Dimensions of the filter</pre>
+</dd>
+<dt><strong><a name="item_aa__2d">aa  -</a></strong><br />
+</dt>
+<dd>
+<pre>
+      C&lt;type(filter)&gt; The filter</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_real">cube  -  <code>real(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      Output filter values</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<pre>
+ Convert helix filter to hypercube: cube(na(1),na(2),...)</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><strong>helix</strong>, <strong>cartesian</strong>, <strong>helixcart</strong></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

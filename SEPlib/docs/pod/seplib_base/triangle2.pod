@@ -1,0 +1,68 @@
+=head1 NAME
+
+
+triangle2 - triangle smoothing
+
+=head1 SYNOPSIS
+
+
+initializer- C<call triangle2_init(b1,b2,n1,n2)>
+
+operator  - C<int=triangle2_lop(adj,add,mod,dat)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item b1 - int
+
+      size of the box (dim1)
+
+=item n1 - int
+
+      number of data points (dim1)
+
+=item b2 - int
+
+      size of the box (dim2)
+
+=item n2 - int
+
+      number of data points (dim2)
+
+=item adj  - logical
+
+      whether or not run adjoint
+
+=item add  - logical
+
+      wherther or not to add output to input
+
+=item mod    - C<real(n1*n1)>
+
+      model
+
+=item dat    - C<real(n1*n2)>
+
+      data
+
+=back
+
+=head1 DESCRIPTION
+
+
+2-D triangle smoothing
+
+=head1 SEE ALSO
+
+
+L<triangle1>,L<polydiv>,L<npolydiv>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

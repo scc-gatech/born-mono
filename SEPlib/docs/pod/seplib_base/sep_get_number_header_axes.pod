@@ -1,0 +1,58 @@
+=head1 NAME
+
+
+sep_get_number_header_axes - get number of header axes
+
+=head1 SYNOPSIS
+
+
+int sep_get_number_header_axes (tag_history,n_axis)
+
+=head1 INPUT PARAMETER
+
+
+=over 4
+
+=item    char*-tag_history     
+
+         tag of History File
+
+=back
+
+=head1 OUTPUT PARAMETER
+
+
+=over 4
+
+=item   int*-n_axis           
+
+         Number of axes 
+
+=back
+
+=head1 RETURN VALUE
+
+
+ -1= if fails for other reasons
+
+ 0= if successful
+
+ +2= if tag_history is an Sep77 History File
+
+=head1 DESCRIPTION
+
+
+	Get number of axes in history file
+
+=head1 SEE ALSO
+
+
+L<sep_get_number_data_axes>, L<sep_get_number_grid_axes>
+
+=head1 LIBRARY
+
+
+B<sep3d>
+
+=cut
+

@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sreed_window - read a window of a seplib dataset</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#return_value">RETURN VALUE</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sreed_window - read a window of a seplib dataset</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>int sreed_window(tag_history,n_dim_cube,n_cube,n_wind,f_wind,j_wind,esize,values)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_char_2a__2d_tag_history">char* - tag_history</a></strong><br />
+</dt>
+<dd>
+<pre>
+        tag of History File</pre>
+</dd>
+<dt><strong><a name="item_int_2a__2d_n_dim_cube">int*  - n_dim_cube</a></strong><br />
+</dt>
+<dd>
+<pre>
+         Number of Dimensions in the cube</pre>
+</dd>
+<dt><strong><a name="item_int_2a__2d_n_cube">int*  - n_cube</a></strong><br />
+</dt>
+<dd>
+<pre>
+         vector of lenght n_dim_cube length of the axes in the cube</pre>
+</dd>
+<dt><strong><a name="item_int_2a__2d_n_wind">int*  - n_wind</a></strong><br />
+</dt>
+<dd>
+<pre>
+         vector of lenght n_dim_cube axes length after windowing</pre>
+</dd>
+<dt><strong><a name="item_int_2a__2d_f_wind">int*  - f_wind</a></strong><br />
+</dt>
+<dd>
+<pre>
+         vector of lenght n_dim_cube index of first elements C&lt;(0&lt;= o &lt; n)&gt;</pre>
+</dd>
+<dt><strong><a name="item_int_2a__2d_j_wind">int*  - j_wind</a></strong><br />
+</dt>
+<dd>
+<pre>
+         vector of lenght n_dim_cube sampling rate along axes C&lt;(1&lt;= j &lt; n)&gt;</pre>
+</dd>
+<dt><strong><a name="item_int__2d_esize">int   - esize</a></strong><br />
+</dt>
+<dd>
+<pre>
+         number of bytes per element</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_void_2a__2d_values">void* - values</a></strong><br />
+</dt>
+<dd>
+<pre>
+        array of values to be read</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_value">RETURN VALUE</a></h1>
+<pre>
+ 0 = if successful</pre>
+<pre>
+ -1 = if fails for other reasons</pre>
+<pre>
+ -2 = if the values in n_wind, f_wind, j_wind are incorrect</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>It reads a subset (window) of a Seplib cube</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/srite_window.html">the srite_window manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,86 @@
+=head1 NAME
+
+
+sep3d_read_data - read in data
+
+=head1 SYNOPSIS
+
+
+C<logic=sep3d_read_data(tag,struct,data,fwind,jwind,nwind)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item tag      -  char*
+
+      name of the tag to read from
+
+=item struct   -  sep3d
+
+      structure to read from
+
+=item fwind    -  int*
+
+      (optional) begining of window to read
+
+=item jwind    -  int*
+
+      (optional) sampling to read
+
+=item nwind    -  int*
+
+      (optional) number of elem to read
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item data     -  float/int/complex
+
+       data to read
+
+=back
+
+=head1 RETURN VALUES
+
+
+=over 4
+
+=item true    -
+
+      if success
+
+=item false   -
+
+      if it fails
+
+=back
+
+=head1 DESCRIPTION
+
+
+Read data
+
+
+=head1 COMMENTS
+
+
+Must read in the headers first
+
+=head1 SEE ALSO
+
+
+L<sep3d_write_data>,L<sep3d_grab_headers>
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

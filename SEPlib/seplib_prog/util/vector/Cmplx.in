@@ -1,0 +1,31 @@
+#!@SH@
+# 
+# front end to Cmplx.c program
+#
+# Stewart A. Levin    3/10/87
+#
+#--------------------------------------------------------------------
+# Keyword: create-header convert conversion : Cmplx Real Imag
+#--------------------------------------------------------------------
+#! /bin/sh
+if { [ \( -t 1 \) ] ; } then \
+{ cat <<DATA ; }
+
+ NAME
+	Cmplx - combine two real data files to form a complex data file
+
+ SYNOPSIS
+	Cmplx real.H image.H > out.H
+
+ PARAMETERS
+    from par:
+	real.H image.H : headers of real data files to combined
+
+KEYWORDS real complex imag rtoc
+
+SEE ALSO
+	Rtoc Real Imag Cabs Conj
+DATA
+else
+Cmplx.exe <$1 real=$1 imag=$2 $*
+fi

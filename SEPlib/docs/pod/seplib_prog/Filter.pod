@@ -1,0 +1,53 @@
+=head1 NAME
+
+
+Filter - filter a dataset
+
+=head1 SYNOPSIS
+
+
+Filter <in.H filter=filter.H pad=zero > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item  n1,n2,n3 - integer   
+
+       cube dimensions (n1<4096)
+
+=item  n1       - integer   
+
+       length of the filter(from auxilary file)
+
+=item  pad      - string    
+
+       zero: pad data with zeros 
+       duplicate: pad with samples at ends of data
+
+=item  filter       - char*   
+
+       name of the auxiliary history file containing the filter coefficients
+
+=back 
+
+=head1 DESCRIPTION
+
+
+  Filtering over 1 dimension performed in the frequency domain
+	The filter is input as the history file
+
+=head1 COMMENTS
+
+        The length of the data when performing the filtering is zero padded 
+        to be the next power of 2 greater than or equal to 
+        max(5/4*n1,n1wavelet).  This avoids wraparound artifacts.
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

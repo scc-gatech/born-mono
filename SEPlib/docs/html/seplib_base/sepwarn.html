@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sepwarn - print a string and return a specified value</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sepwarn - print a string and return a specified value</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>int sepwarn(warn,format,value1,value2,...)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_warn__2d_int">warn -   int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      return value to issue</pre>
+</dd>
+<dt><strong><a name="item_format__2d_string">format - string</a></strong><br />
+</dt>
+<dd>
+<pre>
+      format statement</pre>
+</dd>
+<dt><strong><a name="item_value_2a__2d_void">value* - void</a></strong><br />
+</dt>
+<dd>
+<pre>
+      additional return values</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>This function issues a warning message  and returns (warn) to the calling 
+program</p>
+<p>From fortran you can only specify a string to print, no format control
+is available.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>From C:</p>
+<p><code>sepwarn(format, value1, value2, ...)</code>
+or 
+<code>return(sepwarn,format, value1, value2)</code>
+char *format</p>
+<p>From Fortran:</p>
+<p><code>call sepwarn('warning message')</code>
+or
+<code>stat=sepwarn('warning message')</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/seperr.html">the seperr manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep</strong></p>
+
+</body>
+
+</html>

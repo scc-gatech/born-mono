@@ -1,0 +1,49 @@
+=head1 NAME
+
+
+sep3d_grab_sep3d - synchronize f90 structure with C structure
+
+=head1 SYNOPSIS
+
+
+ call sep3d_grab_sep3d(sep3dc,sep3df)
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item sep3dc  -  char*
+
+      pointer to C sep3d structure
+
+=back
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item sep3df  -  sep3d
+
+      fortran sep3d structure to copy to
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Copies sep3d C structure to its fortran equivilant
+
+=head1 SEE ALSO
+
+
+ sep3d_set_sep3d
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

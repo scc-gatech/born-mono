@@ -1,0 +1,42 @@
+=head1 NAME
+
+
+sep3d_rite_num_traces - write number of traces in a dataset
+
+
+=head1 SYNOPSIS
+
+
+C<sep3d_rite_num_traces(tag,struct)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item tag  -   sepfile
+
+      tag to write to
+
+=item struct  -  sep3d
+
+      structure
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Write  the number of traces in a dataset to a tag
+
+=head1 SEE ALSO
+
+
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

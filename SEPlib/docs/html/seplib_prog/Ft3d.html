@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Ft3d - incore Fourier tranform</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Ft3d - incore Fourier tranform</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Ft3d &lt; in.H sign{1,2,3}=0. center{1,2,3}=0. &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_sign_7b1_2c2_2c3_7d__2dinteger">sign{1,2,3} -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: means omit Fourier transform
+         +1,-1: sign of sqrt(-1) on dimension {1,2,3}</pre>
+</dd>
+<dt><strong><a name="item_center_7b1_2c2_2c3_7d_2dinteger">center{1,2,3}-integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [0]: don't multiply
+         +1: multiply by 1,-1,1,-1,... before transform
+         (centers axis in transform space)
+         -1: multiply by 1,-1,1,-1,... after transform
+        (allows centered transforms to be inverted)</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3__2dinteger">n1,n2,n3 -integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+       standard seplib params
+       dimensions transformed must be of size 2**N
+       scaling is 1/sqrt(n) all direction</pre>
+</dd>
+<dt><strong><a name="item_o1_2co2_2co3__2dreal">o1,o2,o3 -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+        standard seplib params</pre>
+</dd>
+<dt><strong><a name="item_d1_2cd2_2cd3__2dreal">d1,d2,d3 -real</a></strong><br />
+</dt>
+<dd>
+<pre>
+       standard seplib params</pre>
+</dd>
+<dt><strong><a name="item_maxsize__2d_int">maxsize - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [20] Amount of memory to use in megabytes</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Ft3d - in core 1,2, or 3 dimensional Fourier transform</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>Assumes in= contains COMPLEX-VALUED data.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Cfft.html">the Cfft manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/filter</strong></p>
+
+</body>
+
+</html>

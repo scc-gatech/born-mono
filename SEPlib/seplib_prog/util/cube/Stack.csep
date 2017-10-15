@@ -1,0 +1,190 @@
+/*$
+
+=head1 NAME
+
+Stack  - stack a sep77 dataset
+
+=head1 SYNOPSIS
+
+Stack norm=yes < in.H > out.H
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+
+=item	norm - char*  
+
+      yes  normalize stack by number of non-zero samples
+	    no   no normalization
+
+=item	n1 -integer 
+
+      trace length
+
+=item	n2-integer  
+
+      number of offsets
+
+=item  n3- integer  
+
+       number of midpoints
+
+=item  o3,d3- real 
+
+       first midpoint and sampling of midpoints  
+
+=back
+
+=head1 DESCRIPTION
+
+Stack of common-midpoint gathers
+
+=head1 SEE ALSO
+
+L<Stack3d>
+
+=head1 CATEGORY
+
+B<seis/filter>
+
+=cut
+
+>*/
+/*
+ KEYWORDS    stack common-midpoint data
+
+ SEE ALSO
+
+ WHERE
+	./cube/seis/Stack.c
+
+*/
+/*
+ * Keyword: stack common-midpoint data
+ 
+  Modified:
+  Bob -Nov'98  Changed stackf to C
+ */
+
+ADD_DEF_SEP_DOC
+#include <sep.main>
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int  stackf(float*,float*,float*,int*,int,int,int,int,char*,char*);
+_XFUNCPROTOEND
+#else
+int  stackf();
+#endif
+
+char intag[]="in";
+char outtag[]="out";
+
+MAIN()
+  {
+	int one=1,ny,nh,nt,ntbytes,nhbytes,itemp;
+	float *p,*q;
+	float *hnorm;
+	int *d, dlen,ierr;
+	char norm[10];
+	float d3,o3;
+	float o,d_h;
+	int n,ndim,i,j;
+	char label3[256];
+
+	/* obtain parameters and open files */
+	if(!fetch("n1","d",&nt))
+		if(!fetch("nt","d",&nt)) seperr ("Can't find nt or n1\n");
+
+	if(!fetch("n2","d",&nh))
+		if(!fetch("nh","d",&nh)) seperr ("Can't find nh or n2\n");
+
+	if(0!=sep_get_number_data_axes("in",&ndim))
+		seperr("trouble getting number data axes \n");
+
+	ny=1;
+	for(i=ndim; i>2; i--){
+		j=i-1;	
+		sep_get_data_axis_par("in",&i,&n,&o,&d_h,label3);
+		ny=ny*n;
+		sep_put_data_axis_par("out",&j,&n,&o,&d_h,label3);
+	}
+	i=1; o=0.;d_h=1.;
+	sep_put_data_axis_par("out",&ndim,&i,&o,&d_h,label3);
+		
+		
+	strcpy(norm,"yes"); 	getch("norm","s",norm);
+
+	/* output parameters  */
+	putch("#norm","s",norm);
+	hclose();
+
+	/* obtain space for arrays and initialize array pointers */
+	ntbytes = nt*sizeof(float);
+	dlen = nt*sizeof(int);
+	nhbytes = (++nh)*sizeof(float);
+	hnorm = (float *) alloc( dlen + 2*ntbytes + nhbytes);
+	p = hnorm + nh;
+	q = p + nt;
+	d = (int *) (q + nt);
+	itemp = norm[0] == 'y';
+
+        ierr=stackf(p,q,hnorm,d,nh,ny,nt,itemp,intag,outtag);
+	return(0);
+  }
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+int  stackf(float *p, float *q, float *h, int *d, int nhp1, int ny, int nt, int norm, char *intag, char *outtag)
+_XFUNCPROTOEND
+#else
+int  stackf(p,q,h,d,nhp1,ny,nt,norm,intag,outtag)
+float *p, *q, *h; /* p-input, q-output, h     */
+int *d, nhp1,  ny, nt, norm; /*d- , nhp1-noffsets, ny-nmidpts, nt-nt, norm-normalize*/
+char *intag, *outtag; /*input tag,output tag */
+#endif
+
+{
+int  ih,iy,it,ntbyte,count;
+
+  ntbyte=nt*4;
+      if(norm != 0) {
+          h[0] = 1.0;
+					for(ih=1; ih < nhp1; ih++) h[ih] = 1.0/ih;
+					for(iy=0; iy < ny; iy++) {
+						for(it=0; it < nt; it++) {
+							q[it] = 0.;
+							d[it] = 0;
+						}
+						for(ih=1; ih < nhp1; ih++){
+              count=sreed(intag,p,ntbyte);
+      				if(count < ntbyte) seperr("Stack: unexpected end of data\\n");
+							for(it=0; it < nt; it++) {
+              	q[it] = q[it]+p[it];
+                if(p[it] != 0.0) d[it] = d[it]+1;
+              }
+           	}
+						for(it=0; it< nt; it++) q[it]=q[it]*h[d[it]];
+						if(ntbyte!=srite(outtag,q,ntbyte))
+							seperr("trouble writing out \n");
+					}
+				}
+				else{
+					for(iy=0; iy < ny; iy++) {
+          count = sreed(intag,q,ntbyte);
+        	if(count < ntbyte)
+        		seperr("Stack: unexpected end of data\n");
+							for(ih=2; ih < nhp1; ih++){
+                count = sreed(intag,p,ntbyte);
+      					if(count < ntbyte) 
+									seperr("Stack: unexpected end of data\n");
+								for(it=0; it < nt; it++) q[it] = q[it]+p[it];
+              }
+              if(ntbyte!=srite(outtag,q,ntbyte))
+								seperr("trouble writing out data \n");
+          }
+        }
+		}
+
+

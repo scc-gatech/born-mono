@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>autocorr - compute a filter auto-correlation</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#return_value">RETURN VALUE</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>autocorr - compute a filter auto-correlation</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>filter=autocorr1(aa,s0,a0)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_type">aa - <code>type(filter)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+      filter to compute auto-correlation of</pre>
+</dd>
+<dt><strong><a name="item_a0__2d_real">a0 - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      zero lag value of input</pre>
+</dd>
+<dt><strong><a name="item_s0__2d_real">s0  - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      zero lag of output filter</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_value">RETURN VALUE</a></h1>
+<dl>
+<dt><strong><a name="item_filter__2d">filter  -</a></strong><br />
+</dt>
+<dd>
+<pre>
+      autocorrelation of helix filter</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Compute the autocorrealtion of filter. Useful for input into
+wilson.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_base/helix.html">the helix manpage</a>,<a href="./../seplib_base/compress.html">the compress manpage</a>,<a href="./../seplib_base/wilson.html">the wilson manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>geef90</strong></p>
+
+</body>
+
+</html>

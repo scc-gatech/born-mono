@@ -1,0 +1,60 @@
+=head1 NAME
+
+
+Halfint - half order integeral filter
+
+
+=head1 SYNOPSIS
+
+
+Halfint conj=0 inv=0 < in.H > out.H
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item inv - integer
+
+	[0]: half-order integrator .
+	  1: half-order differentiator .
+
+=item conj- integer
+
+	[0]: causal .
+	  1: anticausal .
+
+=item   rho - real
+
+	[1-2/n1]: constant for leaky integration .
+
+=item   n1,n2,n3- integer
+
+        cube dimensions
+
+=back
+
+=head1 DESCRIPTION
+
+
+  half-order integral filter on 1-axis with conjugate and inverse.
+  computation in the Fourier domain.
+
+=head1 EXAMPLE
+
+
+		Halfint < in.H conj=0 inv=1 > out.H
+		computes the causal half-order derivative of the input data
+
+=head1 REFERENCE
+
+
+		GEE page xxx and PVI page xxxx
+
+=head1 CATEGORY
+
+
+B<seis/filter>
+
+=cut
+

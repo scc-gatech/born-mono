@@ -1,0 +1,60 @@
+=head1 NAME
+
+
+In3d - info in seplib datasets
+
+=head1 SYNOPSIS
+
+
+In3d header.H [header2.H .....] [pars]
+
+
+=head1 Input parameters
+
+
+=over 4
+
+
+=item  keys- character  
+
+       [y] print out header keys
+
+=item   maxkeys - integer 
+
+        [number of keys] maximum number of keys to print
+
+=item   grid character 
+
+        [y]  print grid axis if they exist
+
+=item    check character
+
+        [y]  check for zeros in file
+
+=item  dff- character  
+
+       [n] print out dff info
+
+=item   maxkeys - integer 
+
+        [nkeys] Number of keys to print
+
+=back
+
+=head1 DESCRIPTION
+
+
+Provide  useful information about SEP3d datasets
+
+=head1 SEE ALSO
+
+
+L<In>, L<Attr>, L<Attr3dhead>
+
+=head1 CATEGORY
+
+
+B<util/info>
+
+=cut
+

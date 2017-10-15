@@ -1,0 +1,47 @@
+=head1 NAME
+
+
+weipcig - Perform offset ray parameter imaging
+
+=head1 SYNOPSIS
+
+
+ ierr=weipcig(wfld,iws,ith)
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item iws - integer
+
+  current frequency slice
+
+=item ith - integer
+
+  current thread
+
+=item wfld - complex(:,:,:,:,:)
+
+  wavefield
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Imaging operation when in the offset ray parameter (p_h) domain
+
+
+=head1 LIBRARY
+
+
+sepweif90
+
+=head1 SEE ALSO
+
+
+ L<weipcig_init> L<weihcig>
+
+=cut
+

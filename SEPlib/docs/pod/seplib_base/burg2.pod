@@ -1,0 +1,85 @@
+=head1 NAME
+
+
+burg2 - Burg 2D convolution
+
+=head1 SYNOPSIS
+
+
+C<call burg2(adj,add,lag1,lag2,data,n1,n2,aa,a1,a2,residual)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item adj - integer
+
+      adjoint=1, forward=0
+
+=item add  - integer
+
+      add=0 add to current values, 0=erase
+
+=item lag1 - integer
+
+      lag in first dimension
+
+=item lag2 - integer
+
+      lag in second dimension
+
+=item data - real(n1,n2)
+
+      data
+
+=item n1   - integer
+
+      data length along axis=1
+
+=item n2 - integer
+
+      data length along axis=2
+
+=item aa - real(a1,a2)
+
+      filter
+
+=item a1 - integer
+
+      filter length axis=1
+
+=item a2 - integer
+
+      filter length axis=2
+
+=item residual - real(n1,n2*2)
+
+      residual
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Burg 2-D conv with (a1,a2) filter (monoplane annihilator if a2=2)
+
+=head1 COMMENTS
+
+
+       output residual partitioned into normal and backward parts.
+       output adjoint to FILTER.
+       output residual(,) aligns with data(,) at filter coef aa(lag1,lag2)
+
+=head1 SEE ALSO
+
+
+B<burg>
+
+=head1 LIBRARY
+
+
+B<sepfilterf90>
+
+=cut
+

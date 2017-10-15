@@ -1,0 +1,100 @@
+=head1 NAME
+
+
+veltran - velocity transform with anti-aliasing and sqrt(  i omega)
+
+
+=head1 SYNOPSIS
+
+
+C<call veltran(adj,add,psun,s02,anti,t0,dt,x0,dx,s0,ds,nt,nx,ns,model,data)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item adj   - int
+
+      0- (slow->offset), 1- (offset->slow)
+
+=item add   - int
+
+      0- erase output, 1 save output
+
+=item psun  - int
+
+      0-modeling, 1-pseudounitary, 2-vel tran
+
+=item s02   - real
+
+      ????
+
+=item anti  - real
+
+      Triangle size
+
+=item t0    - real
+
+      Initial time
+
+=item dt    - real
+
+      Sampling in time
+
+=item x0    - real
+
+      First offset
+
+=item dx    - real
+
+      Offset sampling
+
+=item s0    - real
+
+      First slowness
+
+=item ds    - real
+
+      Sampling in slowness
+
+=item nt    - int
+
+      Number of time samples
+
+=item nx    - int
+
+      Number of offset
+
+=item ns    - int
+
+      Number of slownesses
+
+=item modl  - real(nt,ns)
+
+      time,slowness panel
+
+=item data  - real(nt,nx)
+
+      time,offset panel
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Velocity transform with anti-aliasing
+
+
+=head1 COMMENTS
+
+
+Requires trimo, null, adjnull
+
+=head1 LIBRARY
+
+
+B<sepvelanf>
+
+=cut
+

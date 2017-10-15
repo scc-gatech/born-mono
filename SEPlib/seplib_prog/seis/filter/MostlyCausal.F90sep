@@ -1,0 +1,288 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$MostlyCausal  -  Mostly causal deconvoluton
+!!$
+!!$=head1  DESCRIPTION
+!!$
+!!$ in.H ond out.H are 2-D SEP cubes
+!!$
+!!$  A common source waveform is estimated and applied.
+!!$  To see the shot waveform initialize by:   Zero source.H
+!!$
+!!$  Number of active pixels before t=0 is roughly kmin=kmax.
+!!$  For a movie of shot waveforms, specify kmin < kmax.
+!!$
+!!$  For antisymmetric wavelet instead of Ricker specify node>0
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$MostlyCausal < in.h > out.h
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item kmin      - integer
+!!$
+!!$      [14]: Begining number of active pixels before 0 
+!!$      
+!!$
+!!$=item kmax      - integer
+!!$
+!!$      [14]: Ending number of active pixels before 0 (kmax-kmin) is n3
+!!$      -
+!!$
+!!$=item node      - integer
+!!$
+!!$      [0]: Ricker wavelet
+!!$      -1 : antisymetric wavelet
+!!$
+!!$
+!!$=back
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<seis/filter>
+!!$
+!!$=cut
+! Mostly causal deconvoluton
+!
+! MostlyCausal < in.H >out.H kmin=14 kmax=14 node=0
+!
+!  in.H ond out.H are 2-D SEP cubes
+!
+!  A common source waveform is estimated and applied.
+!  To see the shot waveform initialize by:   Zero source.H
+!
+!  Number of active pixels before t=0 is roughly kmin=kmax.
+!  For a movie of shot waveforms, specify kmin < kmax.
+!
+!  For antisymmetric wavelet instead of Ricker specify node>0
+program zyxabc
+use sep
+implicit none
+integer n1,n2, m1, kmin, kmax, node,ierr
+real, allocatable, dimension (:,:) :: data
+  call SEP_ADD_DOC()
+  call sep_init('')
+  if (0>= hetch('n1','d',n1 )) then
+    call erexit('Trouble reading  n1 from history  ')
+  end if
+  if (0>= hetch('n2','d',n2 )) then
+    n2 = 1
+  end if
+  if (0>= getch('kmin','d',kmin )) then
+    kmin = 14
+  end if
+  if (0.ne.putch('Read  from par:  kmin ','d',kmin)) then
+    call erexit('Trouble writing kmin to history')
+  end if
+  write(0,*) 'kmin: from par is obsolete, please replace with from&
+    & param'
+  if (0>= getch('kmax','d',kmax )) then
+    kmax = 14
+  end if
+  if (0.ne.putch('Read  from par:  kmax ','d',kmax)) then
+    call erexit('Trouble writing kmax to history')
+  end if
+  write(0,*) 'kmax: from par is obsolete, please replace with from&
+    & param'
+  if (0>= getch('node','d',node )) then
+    node = 0
+  end if
+  if (0.ne.putch('Read  from par:  node ','d',node)) then
+    call erexit('Trouble writing node to history')
+  end if
+  write(0,*) 'node: from par is obsolete, please replace with from&
+    & param'
+allocate (data(n1,n2))
+ ierr= putch("n3","d",kmax-kmin+1)
+call doit ( n1,n2, m1, kmin,kmax,node, data)
+end program zyxabc 
+subroutine doit( n1,n2, m1, kmin,kmax,node, data)
+use sep
+integer          n1,n2
+integer          i1,i2,ierr
+integer		m1,  k, kmin,kmax, node
+real    data(n1,n2), temp(2048)
+complex                cft(2048), cspec(2048), chold(2048)
+m1 =                      2048
+call hclose()
+ierr= sreed( 'in',     data,  4*n1*n2)
+do i1=1,m1
+  cspec(i1) = 0.0
+end do 
+do i2=1,n2  
+  do i1=1,m1
+    cft(i1) = 0.
+  end do 
+  do i1=1,n1
+    cft(i1) = data(i1,i2)
+  end do 
+  call ftux(1., m1, cft)
+  do i1=1,m1
+    cspec(i1) = cspec(i1) + cft(i1) * conjg(cft(i1))
+  end do
+end do 
+do i1=1,m1
+  cspec(i1) = sqrt( real( cspec(i1)))
+end do 
+do i1=1,m1
+  chold(i1) = cspec(i1)
+end do 
+!	Single frame of Causal kr=1  node=0
+!	Single frame of Causal kmin=1  kmax=1  node=0
+!	Single frame of Ricker kmin=15 kmax=15 node=0
+!	Movie of Ricker node=0; do kr=kmin,kmax
+!	Movie of Node   node=1; kn= kr
+do kr = kmin, kmax  
+  if ( node.eq.0) then
+    kn = 0	! Turn off node option
+  else
+    kn = kr	! Make a node movie
+  end if 
+  do i1=1,m1
+    cspec(i1) = chold(i1)
+  end do 
+  call kolmogoroff( m1, cspec, kr,kn)  ! Spectral factorization.
+  do i2=1,n2  
+    do i1=1,m1
+      cft(i1) = 0.
+    end do 
+    do i1=1,n1
+      cft(i1) = data(i1,i2)
+    end do 
+    call ftux(1., m1, cft)
+    do i1=1,m1
+      cft(i1) = cft(i1)/cspec(i1)
+    end do 
+    call ftux(-1., m1, cft)
+    do i1=1,n1  
+      temp(i1) = cft(i1)
+      data(i1,i2) = temp(i1)
+    end do
+  end do 
+!    Make the source wavelet
+  do i1=1,m1
+    cft(i1) = cspec(i1)
+  end do 
+  do i1=2,m1,2
+    cft(i1) = - cft(i1)    ! Shift t=0 to the midpoint.
+  end do 
+  call ftux(-1.,m1, cft)
+  do i1=1,m1
+    temp(i1) = cft(i1)     
+    !real values, big only near middle of vector
+  end do 
+  !call snap('source.H',m1,1,temp)
+  !call snap('datamovie.H', n1,n2,data)
+ierr= srite( 'out',         data,  4*n1*n2)
+
+end do 
+return
+end
+subroutine kolmogoroff( n, cx, kr,kn)  ! Spectral factorization.
+! Adapted from PVI, converted energy-->amplitude
+integer i,              n,     kr,kn   
+! input:  cx = amplitude spectrum
+complex cx(n)                          
+! output: cx = FT of min phase wavelet
+real weight, asym                      ! kr=Ricker anticausal space
+do i= 1, n			       ! kn=Node anticausal space
+  cx(i) = clog( cx(i) )
+end do 
+call ftux( -1., n, cx)
+do i= 2, n/2  
+  cx(i)     = cx(i) * 2.
+  cx(n-i+2) = 0.
+end do
+!do i = 100, kr {	# Temporary to shorten Wz33 wavelet, see if it makes any difference.  Didn't.
+!        cx(i)     =  0.
+!        cx(n-i+2) =  0.
+!	}
+!do i= 2, kr/2 {		# experiment to truncate u instead of tapering it. FAILS.
+!        asym = (cx(i) - cx(n-i+2))/2.
+!        cx(i)     =  cx(i)     -  asym
+!        cx(n-i+2) =  cx(n-i+2) +  asym
+!	}
+! BEGIN stuff to fiddle with inner lags of the asymmetric part.
+do i = 2, kr  
+! Remove inner lag energy of asym part.
+  asym = (cx(i) - cx(n-i+2))/2.
+  weight = cos( .5* 3.14159265 * (i-1.)/(kr-1.))**2
+  cx(i)     =  cx(i)     - weight * asym
+  cx(n-i+2) =  cx(n-i+2) + weight * asym
+end do 
+if ( kn > 0) then
+! Add 90 degree phase shift filter
+  do i = 2, kr, 2  
+    asym = 2./(3.1416 * (i-1) )
+    weight = cos( .5* 3.14159265 * (i-1.)/(kr-1.))**2
+    cx(i)     =  cx(i)     - weight * asym
+    cx(n-i+2) =  cx(n-i+2) + weight * asym
+  end do 
+! END stuff to fiddle with inner lags of the asymmetric part
+end if
+call ftux( +1., n, cx)
+do i= 1, n
+  cx(i) = cexp( cx(i))
+end do 
+return
+end
+subroutine ftux( signi, nx, cx )
+use sep
+!   complex fourier transform with traditional scaling (FGDP)
+!
+!               1         nx          signi*2*pi*i*(j-1)*(k-1)/nx
+!   cx(k)  =  -------- * sum cx(j) * e
+!              scale     j=1             for k=1,2,...,nx=2**integer
+!
+!  scale=1 for forward transform signi=1, otherwise scale=1/nx
+integer nx, i, j, k, m, istep, pad2
+real    signi, arg
+complex cx(nx), cmplx, cw, cdel, ct
+if ( nx .ne. pad2(nx) ) then
+  call erexit('ftux: nx not a power of 2')
+end if
+do i= 1, nx
+  if ( signi<0.) then
+    cx(i) = cx(i) / nx
+  end if
+end do 
+j = 1
+k = 1
+do i= 1, nx  
+  if (i<=j) then
+    ct = cx(j)
+    cx(j) = cx(i)
+    cx(i) = ct
+  end if
+  m = nx/2
+  do while  (j>m .and. m>1)
+    j = j-m
+    m = m/2
+  end do 
+! "&&" means .AND.
+  j = j+m
+end do 
+do   
+  istep = 2*k
+  cw = 1.
+  arg = signi*3.14159265/k
+  cdel = cmplx( cos(arg), sin(arg))
+  do m= 1, k  
+    do i= m, nx, istep
+      ct=cw*cx(i+k)
+      cx(i+k)=cx(i)-ct
+      cx(i)=cx(i)+ct
+    end do 
+    cw = cw * cdel
+  end do 
+  k = istep
+  if (k>=nx) then
+    exit
+  end if
+end do 
+return
+end  

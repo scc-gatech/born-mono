@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>sep_get_grid_axis_par - grab data's n,o,d and label</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT  PARAMETERS</a></li>
+	<li><a href="#output_parameters">OUTPUT PARAMETERS</a></li>
+	<li><a href="#return_values">RETURN VALUES</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>sep_get_grid_axis_par - grab data's n,o,d and label</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>ierr=sep_get_grid_axis_par(tag_history,i_axis,n,o,d,label)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT  PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_char_2a__2d_tag_history">char* - tag_history</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Tag of History File</pre>
+</dd>
+<dt><strong><a name="item_int_2a__2d_i_axis">int*  -  i_axis</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Axis number of the parameters to read</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_parameters">OUTPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_int_2a__2d_n">int* - n</a></strong><br />
+</dt>
+<dd>
+<pre>
+      value of n-i (i = i_axis)</pre>
+</dd>
+<dt><strong><a name="item_float_2a__2d_o">float* - o</a></strong><br />
+</dt>
+<dd>
+<pre>
+      value of o-i (i = i_axis)</pre>
+</dd>
+<dt><strong><a name="item_float_2a__2d_d">float* - d</a></strong><br />
+</dt>
+<dd>
+<pre>
+      value of d-i (i = i_axis)</pre>
+</dd>
+<dt><strong><a name="item_char_2a__2d_label">char* - label</a></strong><br />
+</dt>
+<dd>
+<pre>
+      value of label-i (i = i_axis)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="return_values">RETURN VALUES</a></h1>
+<pre>
+ -1 = if fails for other reasons</pre>
+<pre>
+ 0 = if successful</pre>
+<pre>
+ +1 = if tag_history is not a Sep History File</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Get the values that describe the GRid Axes from the History
+File.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+        Defaults the others (o=0 d=1 label=&quot;label-i axis&quot;).</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p>sep_get_data_axis_par, sep_get_header_axis_par, sep_put_grid_axis_par</p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sep3d</strong></p>
+
+</body>
+
+</html>

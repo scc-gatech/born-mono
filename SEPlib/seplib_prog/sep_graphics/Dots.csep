@@ -1,0 +1,633 @@
+
+ /*$
+
+=head1 NAME
+
+Dots - plots data as 'lollipops'
+
+=head1 SYNOPSIS
+
+<in.H  Dots  [options]  | Tube
+
+=head1 DESCRIPTION
+
+Plots a data plane, like 'Wiggle,' but lollipops on strings.
+Adapts default data format to values of n1,n2.
+Can put a separate label on each trace.  (see labels=)
+Data area fills screen when title= label1= labels= 
+are undefined.
+
+=head1 COMMENTS
+
+A program somewhat like Wiggle, but better in some ways because
+it tries to be smarter. The output style depends on the input
+n1 and n2. For loosely packed traces with only a few data 
+points Dots plots the data as lollipops on strings, showing
+each data point clearly. There are also options for separately
+labeling each trace, omitting dead traces, making bar graphs,
+etc. As n1 and n2 increase Dots by default simplifies the
+output and eventually behaves almost the same as Wiggle.
+Unfortunately Dots does not use the axis drawing and plotting
+routines shared by Wiggle, Contour, Graph and Ta2vplot, and
+so Dots' options and ouput plot size, position, and axes 
+are currently incompatible with those for other plot programs.
+
+=head1 INPUT PARAMETERS
+
+=over 4
+
+=item seemean-int 
+
+      [1] draw axes lines (=0 means don't)
+      0  default not to when n2>30 to avoid clutter
+
+=item strings-int 
+
+      [1]  draw strings from axis to balloons
+      0  default not to when n1>400 since too slow
+
+=item wantaxis-int 
+
+      [1]  draw  bottom axis
+
+=item dots   -int 
+
+      [1] draw the balloons
+      0 default not to when n1>130 since dots are small
+      2 draw dots only where signal is not zero.
+
+=item corners-int 
+
+      [6] corners on area-filled polygon dots.
+
+=item connect-int 
+
+      1 connect the dots on diagonal lines.
+      2 connect the dots as a bar graph.
+      3 bar graph with only horizontal bars.
+      4 connect dots only where signal is not zero.
+      0 don't connect adjacent values in any way.
+
+=item clip  -float 
+
+      your chosen clip value.
+
+=item overlap-float 
+
+      [.90]  trace overlap at clip value
+
+=item gaineach - int 
+
+      1 gain each trace independently (=0 gain all together)
+
+=item constsep - int 
+
+      0 trace separations depend on both max and min.
+      1 trace separation depends on max abs value.
+
+=item seedead -  int 
+
+      0 plot dead traces as zero traces or don't plot them.
+
+=item silk    -  int 
+
+      [0] wiggle traces
+      1 silk screen variable area(see SEP CD-ROM platter plot)
+
+=item title,label1- char*  
+
+      usual meaning
+
+=item labels - char* 
+
+      trace labels, i.e. labels=in:filt:out
+
+=item labelsz -int 
+
+      [8] label size
+
+=item yreverse - int 
+
+      [0] =1, reverse order of channels.
+
+=item transp - int 
+
+      [0] flip axes.   (Buggy for title and label1).
+
+=item xxscale - float 
+
+      [1.] <1. for smaller plots, narrow plots, etc.
+
+=item yyscale - float 
+
+      [1.] <1. for smaller plots, narrow plots, etc.
+
+=item radius  - float  
+
+      radius of the dot to be plotted. Defaults to 
+      some fraction of the screen width.
+
+=back
+
+ 
+=head1 SEE ALSO
+
+L<xtpen>, L<Graph>, L<Histogram>
+
+=head1 BUGS
+
+ Needs pclip, you must preprocess for unusual clip needs.
+
+=head1 COMPILE LEVEL
+
+ DISTR
+
+=head1 CATEGORY
+
+B<sep_graphics>
+
+=cut
+
+
+*/
+/*
+BUGS
+  Needs pclip, you must preprocess for unusual clip needs.
+
+SEE ALSO
+
+
+KEYWORDS   plot balloon balloons lollipop wiggle dot dots
+
+WHERE
+  ./cube/plot/Dots.c
+
+  copyright (c) 1991 Stanford University
+*/
+/*
+ * keyword plot balloon balloons lollipop wiggle dot dots
+ */
+
+/* last edited by: Jon Claerbout
+                   Matthias Schwab       5.7.92       connect=4
+*/
+
+ADD_DEF_SEP_DOC
+
+#include <sep.main>
+#include <stdlib.h>
+#include <vplot.h>
+#include <math.h>
+#include "glplot.h"
+
+extern void set_output_data_format(  char *format );
+
+static  char  labels[10000];
+static  int  i1,n1, i2,n2,nn2;
+static  int  dots, seemean, strings, connected, gaineach, labelsz;
+static  int  seedead, yreverse, constsep, corners, silk, transp;
+static  float  *data, xxscale, yyscale, clip;
+static  char  tosee[100], label1[100], title[256];
+static  float  screenhigh, screenwide, epsilon, dd1, dd2, axis, hi, lo, av;
+static  float  marginl, marginr, margint, marginb, x, y, radius;
+static  float  tracehigh, overlap, zerosignal, xlast, ylast;
+static  float  o1,d1;
+int f2,e2;
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void mycircle( float x, float y, float radius);
+void getvptext(float x, float  y, int  size, int orient,int  i2);
+void strip0( char *label);
+void wiggle(void)  ;
+void silkscreen(void);
+void my_move(float x, float y);
+void my_draw( float x,  float y);
+void my_text(float x, float y, int size, int orient, char *label);
+_XFUNCPROTOEND
+#else
+void mycircle();
+void getvptext();
+void strip0();
+void wiggle();
+void silkscreen();
+void my_move();
+void my_draw();
+void my_text();
+#endif
+
+
+int MAIN(void)
+{
+ int wantaxis;
+ vp_filep(outstream); /* tell plotting routines where to stick it */
+if( hetch("n1","i",&n1) == 0 ) seperr("n1");
+nn2=1;   hetch("n2","i",&nn2);
+o1=0;  hetch("o1","f",&o1);
+d1=1;  hetch("d1","f",&d1);
+float o2=0,d2=1,mn2,mx2;
+hetch("o2","f",&o2);
+hetch("d2","f",&d2);
+
+mn2=o2; mx2=o2+d2*(nn2-1);
+getch("min2","f",&mn2);
+getch("max2","f",&mx2);
+f2=(mn2-o2)/d2;
+e2=(mx2-o2)/d2+1;
+f2=MAX(0,f2);
+e2=MIN(nn2,e2);
+if(e2<f2) seperr("invalid min2,max2 description");
+n2=e2-f2;
+
+
+data = (float *) alloc ( n1*nn2*sizeof (float));
+sreed("in", data, 0);
+dots=1;  seemean=1; strings=1;wantaxis=1;
+if(n1 > 130 )  dots=0;
+if(n1 > 400 )  strings=0;
+if(n2 > 30 )  seemean=0;
+    getch("dots",    "i",&dots);
+    getch("seemean", "i",&seemean);
+    getch("strings" ,"i",&strings);
+    getch("wantaxis" ,"l",&wantaxis);
+connected=1;  getch("connect", "i",&connected);
+corners=6;  getch("corners", "i",&corners);    corners++;
+silk=0;    getch("silk",   "i",&silk);
+gaineach=1;  getch("gaineach","i",&gaineach);
+labelsz=8;  getch("labelsz", "i",&labelsz);
+yreverse=0;  getch("yreverse","i",&yreverse);
+constsep=0;  getch("constsep","i",&constsep);
+seedead=0;  getch("seedead", "i",&seedead);
+transp=0;  getch("transp",  "i",&transp);
+labels[0]='\0'; getch("labels",  "s",labels);
+label1[0]='\0';  fetch("label1",  "s",label1);
+title[0]='\0';  fetch("title",   "s",title);
+xxscale=1.;  getch("xxscale", "f",&xxscale);
+yyscale=1.;  getch("yyscale", "f",&yyscale);
+clip= -1.;  getch("clip",    "f",&clip);
+overlap=.90;  getch("overlap", "f",&overlap);
+{ int n1= -1; putch("n1","i",&n1);}
+set_output_data_format("vplot");
+hclose();
+screenwide =  10.24/.75 * xxscale;
+screenhigh =  10.24  * yyscale;  epsilon = .0002 * screenhigh;
+#define EMPTY(X) ( X[0] == '\0' || ( X[0]==' ' && X[1]=='\0') )
+if( EMPTY(labels))
+  marginl = screenwide * .03;
+else
+  marginl = screenwide * (.12 + .03);
+if( EMPTY(title))
+  margint = screenhigh * .03;
+else
+  margint = screenhigh * (.04 + .03);
+if( EMPTY(label1))
+  marginb = screenhigh * .03;
+else
+/*  marginb = screenhigh * (.05 + .03);*/
+  marginb = screenhigh * (.12 + .03);
+marginr = screenwide * .03;
+dd1 = (screenwide - marginl - marginr) / ( n1             );
+dd2 = (screenhigh - marginb - margint) / ((n2-1) + overlap);
+if( getch("radius","f", &radius) == 0 ) {
+radius = dd1/3;
+if( radius > dd2/15 )
+  radius = dd2/15;
+}
+if( dots > 0 )
+  tracehigh = overlap * (dd2 - 3*radius);
+else
+  tracehigh = overlap * dd2;
+sreed( "in", data, 4*n1*nn2);
+vp_erase();
+if( gaineach == 0 ) {
+  hi = data[ 0+n1*0];
+  lo = data[ 0+n1*0];
+  for( i2=f2; i2<e2; i2++)
+    for( i1=0; i1<n1; i1++) {
+      if( data[i1+n1*i2] > hi)   hi = data[i1+n1*i2];
+      if( data[i1+n1*i2] < lo)   lo = data[i1+n1*i2];
+      }
+  }
+
+for( i2=f2; i2<e2; i2++) {
+  if( yreverse > 0 ) 
+    axis = marginb + (n2-(i2-f2)-1 + .5*overlap)*dd2;
+  else
+    axis = marginb + ((i2-f2)      + .5*overlap)*dd2;
+  if( gaineach > 0 ) {
+    hi = data[ 0+n1*i2];
+    lo = data[ 0+n1*i2];
+    for( i1=0; i1<n1; i1++) {
+      if( data[i1+n1*i2] > hi)   hi = data[i1+n1*i2];
+      if( data[i1+n1*i2] < lo)   lo = data[i1+n1*i2];
+      }
+    }
+  if( constsep != 0 || silk > 0) {
+    float maxab;
+    maxab = hi;
+    if( -lo > maxab)  maxab = -lo;
+    hi =  maxab;
+    lo = -maxab;
+    }
+  if( clip > 0.) {
+    hi =  clip;
+    lo = -clip;
+    }
+  av = (hi + lo) / 2.;
+  zerosignal = axis +  tracehigh * ( 0.        -av)/(hi-lo+1.e-20);
+  if( !EMPTY(labels) ) {
+    vp_color( 5);
+    getvptext( .03*screenwide, zerosignal+.2*dd2, labelsz, 0, i2);
+    }
+
+  if( silk > 0 )
+    silkscreen();
+  else
+    wiggle();
+  }
+
+if( !EMPTY( label1)) {
+  /*
+  int newsize;
+  newsize = .66 *labelsz;
+  sprintf( tosee, " %.3f", o1);
+  strip0( tosee);
+  y = screenhigh * .013;
+  vp_color( 4);
+      my_text ( marginl,        y, newsize, 0, tosee);
+  sprintf( tosee, "%-5.3f", o1+(n1-1)*d1);
+  strip0( tosee);
+      vp_tjust(TH_RIGHT,TV_BASE);
+  x = .99 * screenwide-marginr;
+      my_text ( x,              y, newsize, 0, tosee);
+  x = marginl + .5*(screenwide-marginl-marginr);
+      vp_tjust(TH_CENTER,TV_BASE);
+      my_text (  x,             y, newsize, 0, label1);
+      vp_tjust(TH_NORMAL,TV_NORMAL);
+  my_move( marginl, marginb*.8);
+  my_draw( marginl, 0.);
+  my_move( screenwide-marginr, marginb*.8);
+  my_draw( screenwide-marginr, 0.);
+  */
+  if(wantaxis==1){
+  gl_simpleaxis( marginl, marginb*.8,  screenwide-marginr, marginb*.8,
+    o1, o1+(n1-1)*d1, d1, 0., .25, label1, .66*labelsz ,0,0,-1,-1.,-1.);
+ }
+
+  }
+if( !EMPTY( title)) {
+  int newsize;
+  newsize = 1.2 *labelsz;
+/*  x = marginl + .3*( screenwide-marginl-marginr);*/
+  x = marginl + .5*( screenwide-marginl-marginr);
+  y = screenhigh - margint;
+  vp_color( 5);
+      vp_tjust(TH_CENTER,TV_NORMAL);
+      my_text (  x,             y, newsize, 0, title);
+      vp_tjust(TH_NORMAL,TV_NORMAL);
+  }
+vp_endplot ();
+return(EXIT_SUCCESS);
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void mycircle( float x, float y, float radius)
+_XFUNCPROTOEND
+#else
+void mycircle( x, y, radius)
+float x,y, radius;
+#endif
+{
+float dx,dy, vx[300],vy[300], arg;
+int i;
+for( i=0; i<corners; i++) {
+  arg = (2.*3.14159265*i)/(corners-1);
+  vx[i] = x + radius * sin(arg);
+  vy[i] = y + radius * cos(arg);
+  }
+vp_color( 3);
+vp_area( vx,vy,corners,1,1,1);
+}
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void getvptext(float x, float  y, int  size, int orient,int  i2)
+_XFUNCPROTOEND
+#else
+void getvptext( x, y, size, orient, i2)
+/*  find the i2-th member of labels=first:second:third*/
+float x, y;
+int size, orient, i2;
+#endif
+{
+  char label [100];
+  char *ptr;
+  int i, colon;
+  colon = 0;
+  label[0] = '\0';
+  for( ptr=labels; *ptr!='\0'; ptr++ ) {
+    if(*ptr == ':') {
+      colon++;
+      }
+    else if( colon == i2 ) {
+      for( i=0; *ptr!='\0' && *ptr !=':'; ptr++) {
+        label[i++] = *ptr;
+        }
+      label[i] = '\0';
+      break;
+      }
+    }
+  vp_color( 5);
+  my_text( x, y, size, orient, label);
+  }
+
+
+/* strip excess zeros off end of string */
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void strip0( char *label)
+_XFUNCPROTOEND
+#else
+void strip0( label)
+char *label;
+#endif
+{
+int i;
+for( i=0; label[i] != '\0'; i++)
+  ;
+for( i--; i>0; i-- )
+  if( label[i] == '0' )
+    label[i] = '\0';
+  else
+    break;
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void wiggle(void)  
+_XFUNCPROTOEND
+#else
+void wiggle()
+#endif
+{
+if( seedead )
+  goto doit;
+else {
+  for( i1=0; i1<n1; i1++) {
+    if ( data[i1+n1*i2] != 0.) goto doit;
+    }
+  }
+return;
+doit:
+if( seemean > 0 ) {
+  vp_color( 1);
+  my_move(  marginl      , zerosignal);
+  my_draw( -marginr+screenwide, zerosignal);
+  }
+/*
+Many graphics devices optimize better when connected lines are
+isolated from strings, so I will process the connected lines separately.
+Many graphics devices optimize better when connected lines are
+isolated from strings, so I will process the connected lines separately.
+*/
+if( connected > 0 ) {
+  vp_color( 7);
+  for( i1=0; i1<n1; i1++) {
+    y = axis +  tracehigh * (data[i1+n1*i2]-av)/(hi-lo+1.e-20);
+    if (connected == 4){            /* no segment */
+      x = marginl + dd1/2 + i1*dd1;
+            if( i1 == 0 )
+        my_move( x, y);
+            else if( data[i1+n1*i2] != 0. &  data[i1+n1*i2-1] != 0.)
+        my_draw( x, y);
+      else 
+        my_move( x, y);
+      
+        }
+    else if( connected == 1 ) {    /* diagonal segments */
+      x = marginl + dd1/2 + i1*dd1;
+      if( i1 == 0 )
+        my_move( x, y);
+      else
+        my_draw( x, y);
+      }
+    else if( connected == 2 ) {  /* bar graph */
+      x = marginl + i1*dd1;
+      if( i1 != 0 )  
+        my_draw( x, y); /* vert */
+      if( i1 == 0 )
+        my_move( x, y);
+      my_draw( x + dd1,   y); /* horiz */
+      }
+    else if( connected == 3 ) {  /* horizontal segments */
+      x = marginl + i1*dd1;
+      my_move( x      , y);
+      my_draw( x + dd1, y);
+      }
+
+    }
+  }
+
+for( i1=0; i1<n1; i1++) {
+  float signal, absig;
+  y = axis +  tracehigh * (data[i1+n1*i2]-av)/(hi-lo+1.e-20);
+  x = marginl + dd1/2 + i1*dd1;
+  vp_color( 6);
+  if( strings > 0 ) {
+    signal = y - zerosignal;
+    absig = ( signal > 0) ?  signal : -signal ;
+    if( absig  > epsilon ) {
+      my_move( x, y);
+      my_draw( x, zerosignal);
+      }
+    }
+  if( dots == 1 )
+    mycircle( x, y, radius) ;
+  else if( dots == 2 )
+    if( data[i1+n1*i2] != 0. )
+      mycircle( x, y, radius) ;
+  }
+
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void silkscreen(void)
+_XFUNCPROTOEND
+#else
+void silkscreen()
+#endif
+{
+for( i1=0; i1<n1; i1++) {
+  int i;
+  float vx[5], vy[5];
+  float full;   
+  float d, abs, sgn;
+/*  full = .8 * (data[i1+n1*i2]-lo)/(hi-lo+1.e-20);*/
+  d = 2. * data[i1+n1*i2] / (hi-lo+1.e-20);
+  abs = (d > 0.) ? d  : -d ;
+  sgn = (d > 0.) ? 1. : -1.;
+/*  full = .5 + .28 * sgn * sqrt(abs);*/
+/*  full = .4 + .4 * sgn * sqrt(abs);*/
+  full = .4 + .45 * sgn * sqrt(abs);
+  full = (full > 0) ? full : 0.;
+  y = axis;
+  x = marginl + dd1/2 + i1*dd1;
+  i = 0;
+  vx[i] = x + dd1*full; vy[i] = y           ; i++;
+  vx[i] = x           ; vy[i] = y + dd2*full; i++;
+  vx[i] = x - dd1*full; vy[i] = y           ; i++;
+  vx[i] = x           ; vy[i] = y - dd2*full; i++;
+  vx[i] = x + dd1*full; vy[i] = y           ; i++;
+  vp_area( vx,vy,5,1,1,1);
+  }
+}
+
+/*#define XOF(Y) screenwide * (1. - (Y) / screenhigh)*/
+/*#define YOF(X) screenhigh *       (X) / screenwide*/
+
+#define XOF(Y) screenwide *       (Y) / screenhigh
+#define YOF(X) screenhigh * (1. - (X) / screenwide)
+
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void my_move(float x, float y)
+_XFUNCPROTOEND
+#else
+void my_move( x, y)
+float x, y;
+#endif
+{
+if( ! transp )  vp_move(     x,      y);
+else    vp_move( XOF(y), YOF(x));
+}
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void my_draw( float x,  float y)
+_XFUNCPROTOEND
+#else
+void my_draw( x, y)
+float x, y;
+#endif
+{
+if( ! transp )  vp_draw(     x,      y);
+else    vp_draw( XOF(y), YOF(x));
+}
+
+#if NeedFunctionPrototypes
+_XFUNCPROTOBEGIN
+void my_text(float x, float y, int size, int orient, char *label)
+_XFUNCPROTOEND
+#else
+void my_text( x, y, size, orient, label)
+int size, orient;
+char *label;
+float x, y;
+#endif
+{
+if( ! transp )  vp_text(     x,      y , size, orient, label);
+else    vp_text( XOF(y), YOF(x), size, orient, label);
+}

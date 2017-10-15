@@ -1,0 +1,367 @@
+!!$
+!!$=head1 NAME
+!!$
+!!$Stack3d - Stack a SEPlib dataset
+!!$
+!!$Infill  - Infill  a SEP3D dataset
+!!$
+!!$Stack - Stack a SEP regular dataset
+!!$
+!!$=head1 SYNOPSIS
+!!$
+!!$Stack3d  <in.H >out.H
+!!$
+!!$=head1 INPUT PARAMETERS
+!!$
+!!$=over 4
+!!$
+!!$=item axes- integer
+!!$
+!!$      [2]  Compress axes 2 through ....
+!!$
+!!$       Defaults to 2 for Stack and Stack3d, no compression for infill
+!!$
+!!$
+!!$=item maxsize- integer
+!!$
+!!$      [10] Maximum memory in megabytes
+!!$
+!!$=item verb- logical
+!!$
+!!$      [n]  Whether (y) or not (n) to be verbose
+!!$
+!!$=item normalize- logical
+!!$
+!!$      [n]  Whether (y) or not (n) to normalize by the
+!!$      number of traces in bin
+!!$
+!!$=item keep_headers- logical
+!!$
+!!$      [n]  Whether (y) or not (n) to keep headers
+!!$      only works in Infill3d mode (fills in trid == dummy(3))
+!!$
+!!$=back
+!!$
+!!$=head1 DESCRIPTION
+!!$
+!!$ Stack3d a sep3d dataset producing a normalized sep77 cube compressing grid axes
+!!$
+!!$ Infill3d a sep3d dataset producing a normalized sep77 cube
+!!$
+!!$ Stack - Compress axis 2 of regular. This is only for backward compatibility
+!!$
+!!$     Stack's options are a subset of Stack3d option
+!!$
+!!$=head1 NOTES
+!!$
+!!$ axes is the last axis that you want to stack over.
+!!$
+!!$ axes=2 mean stack over the 2nd axis, axes=3 mean the second and third axis
+!!$
+!!$
+!!$
+!!$=head1 CATEGORY
+!!$
+!!$B<util/cube>
+!!$
+!!$=cut
+!!$
+!
+!
+!>
+!-------------------------------------------------
+!
+!Author: Robert Clapp, ESMB 463, 7230253
+!
+!Date Created:Tue Apr  7  9:11:52 PDT 1998
+!Modified    Bob  Jul 6 Rewrote in sep3d
+!
+!Purpose:
+!
+program Stack3d 
+  use sep3d_struct_mod
+  use sep_3d_mod
+  use sep_mod
+  use helixcartmod
+  use sep
+!DATA VARIABLES
+  implicit none
+  type(sep3d)         ::  in,out
+  real,allocatable    ::  input(:,:),output(:,:)
+  integer,allocatable ::  n(:)
+  real   ,allocatable ::  o(:),d(:)
+  character(len=128),allocatable :: label(:),unit(:)
+  integer             ::  ndim,esize
+!PARAMETERS
+  integer             ::  axes,maxsize
+  logical             ::  verbose,normalize
+!INTERNAL VARIABLES
+  integer             ::  ntr,read,block,nh
+  integer             ::  tempi,temp2i
+  integer, allocatable :: norm(:)
+  integer             ::  i3,i2,   ierr,ipct_print,ipct,tot
+  character(len=128)  ::  progname
+  integer,parameter :: big_int=selected_int_kind(11)
+  integer(kind=big_int) ::  nhelix,ncompress,nbig
+  integer               :: nhelix_s,ncompress_s,nbig_s
+  integer,allocatable   :: coords(:,:),headerin_i(:),headerout_i(:)
+  real,allocatable   :: headerin_r(:),headerout_r(:)
+  logical               :: keep_headers,create_trid
+  integer       :: ndone_big,i1,i
+  integer       :: ndo_big,nblock_big
+!INITIALIZE
+  call SEP_ADD_DOC()
+  call SEP_INIT('')
+  call init_3d()
+  call init_sepf90()
+  call sep_begin_prog()
+!##########################
+!  READ IN THE PARAMETERS #
+!##########################
+  call from_param("maxsize",maxsize,10)
+  call from_param("normalize",normalize,.false.)
+  call from_param("verb",verbose,.false.)
+  call sep_prog(progname)
+  if (progname(1:8).eq."Infill3d") then
+    axes=1
+  else
+    axes=2
+  end if 
+  call from_param("axes",axes,axes)
+  call from_param("keep_headers",keep_headers,.false.)
+!##########################
+!LETS FIGURE OUT THE INPUT#
+!##########################
+  call init_sep3d("in",in,"INPUT")  !Initialize SEP3D structure
+  if (in%data_format(1:5).eq."FLOAT") then
+    esize=4
+  else if (in%data_format(1:5).eq."COMPL") then
+    esize=8
+  else
+    call erexit("only know how to handle float data")
+  end if 
+!###################################
+!CHECK TO SEE IF PARAMETERS LOGICAL#
+!###################################
+!if(axes==1) call erexit("Call Infill3d instead ")
+  if (axes<1 .or. axes > in%ndims) then
+    call erexit("axes out of range")
+  end if
+  if (verbose) then
+    write(0,*) "Compressing through axes:",axes
+  end if
+  if ((maxsize*1000000)/esize/in%n(1)<1) then
+    call erexit("maxsize to small")
+  end if
+  if (keep_headers .and. axes.ne.1) then
+    call seperr("keep_headers only work in Infill3d mode")
+  end if
+  if (keep_headers .and. in%file_format(1:3).eq."REG") then
+    call seperr("keep_headers only works on data with headers")
+  end if
+!####################
+!CREATE OUTPUT SPACE#
+!####################
+  ndim=in%ndims-axes+1
+  allocate(n(ndim),o(ndim),d(ndim),label(ndim),unit(ndim))
+  n(1)=in%n(1)
+  o(1)=in%o(1)
+  d(1)=in%d(1)
+  label(1)=in%label(1)
+  unit(1)=in%unit(1)
+  if (ndim>1) then
+    n(2:)=in%n(axes+1:)
+    o(2:)=in%o(axes+1:)
+    d(2:)=in%d(axes+1:)
+    label(2:)=in%label(axes+1:)
+    unit(2:)=in%unit(axes+1:)
+  end if
+  if (keep_headers) then
+    call init_sep3d(in,out,"OUTPUT")
+    out%file_format="HEADER"
+    call sep3d_set_sep3d(out)
+  else
+    call init_sep3d(out,"OUTPUT",in%data_format,"REGULAR",ctag="out")
+  end if 
+  call axis_allocate(out,size(n))
+  out%n=n
+  out%o=o
+  out%d=d
+  out%unit=unit
+  out%label=label
+  call sep3d_set_sep3d(out)
+  if (keep_headers) then
+    if ( .not. sep3d_key_index(out,"trid",i1)) then
+      call sep3d_add_key(out,"trid","scalar_int","xdr_int")
+      create_trid=.true.
+    else
+      if (out%keytype(i1)(1:8).ne."scalar_i") then
+        call seperr("expecting trid to be an integer")
+      end if
+      create_trid=.false.
+    end if 
+     call sep3d_inorder(out)
+  end if
+  call sep3d_write_description("out",out)
+  if (keep_headers) then
+    do i2=axes,size(n)
+      if(0.ne. sep_put_data_axis_par("out",i2,n(i2),o(i2),d(i2),label(i2)))&
+         call seperr("trouble put_data_axis_par")
+    end do
+  end if
+  if (verbose) then
+    write(0,*) "Output dimensions ",out%n
+  end if
+  deallocate(n,o,d,label,unit)
+  call sep_3d_close()
+!################
+!ALLOCATE MEMORY#
+!################
+  ntr=(maxsize*1000000)/4/out%n(1)
+  if (in%data_format(1:2).eq."CO") then
+    ntr=ntr/2
+  end if
+  nhelix=product(in%n(2:))
+  ncompress=product(in%n(2:axes))
+  nbig=nhelix/ncompress       !total number of output samples
+  nbig_s=nbig
+  ncompress_s=ncompress
+!if(in%file_format(1:3)=="REG") ntr=nbig_s*ncompress_s
+  if (ncompress_s.ne. ncompress .or. nbig.ne.nbig_s) then
+    call seperr("the output data volume/n1 and compressing axes must&
+      & both be less than 2gb")
+  end if
+  nblock_big= ntr / ncompress 
+  !number of output samples we can do at one time
+  if (nblock_big.eq.0) then
+    call seperr("Must be able to hold in memory the entire subcube we&
+      & want to compress")
+  end if
+  ntr=ncompress*nblock_big
+  allocate(norm(nblock_big))
+  if (verbose) then
+    write(0,*) "processing ",nblock_big," output bins at a time"
+  end if
+!#################
+! HELIXIZE INPUT #
+!#################
+  call axis_allocate(in,3)
+  in%n(1:3)=(/out%n(1),ncompress_s,nbig_s/)
+  call axis_allocate(out,2)
+  out%n(1:2)=(/in%n(1),nbig_s/)
+  if (in%data_format(1:2).eq."CO") then
+    in%n(1)=in%n(1)*2
+    out%n(1)=out%n(1)*2
+    out%data_format="FLOAT"
+    in%data_format="FLOAT"
+  end if
+  call sep3d_set_sep3d(out)
+  call sep3d_set_sep3d(in)
+  allocate(input(in%n(1),ntr),output(out%n(1),nblock_big),stat=ierr)
+  if (ierr.ne.0) then
+    call erexit("trouble allocating memory, try reducing maxsize")
+  end if
+  if (verbose) then
+    write(0,*) "I will hold ",ntr," traces in memory"
+  end if
+!#################
+!   LOOP DATA    #
+!#################
+  ipct_print=1
+  tot=0
+  ndone_big=0
+  do while  ( ndone_big < nbig)
+!loop over output space
+    ndo_big=min(nbig_s-ndone_big, nblock_big)
+    read=0
+    norm=0
+    output=0
+    block=ncompress_s
+!READ IN THE DATA
+    call sep3d_grab_headers("in",in,nh,fwind=(/read,ndone_big/),nwind=&
+      &(/block,ndo_big/))
+    norm=0
+    if (nh>0) then
+      allocate(coords(2,nh))
+      if (.not. sep3d_grab_coords(in,coords)) then
+        call seperr("trouble grabbing coordinates for input")
+      end if
+      if (.not. sep3d_read_data("in",in,input(:,:nh))) then
+        call erexit("trouble reading data")
+      end if
+      do i3=1,nh 
+        norm(coords(2,i3)-ndone_big)=            norm(coords(2,i3)&
+          &-ndone_big)+1
+        output(:,coords(2,i3)-ndone_big)=            output(:,coords(2&
+          &,i3)-ndone_big)+input(:,i3) !SUM THE TRACES
+      end do 
+      deallocate(coords)
+    end if
+    if (verbose) then
+      tot=        tot+sum( norm)
+      ipct=100.*real(ndone_big+ndo_big)/real(nbig)
+      if (ipct >ipct_print) then
+        ipct_print=           ipct_print+1
+        write(0,*) "finished grid pct=",ipct,"trace print=",nint(real&
+          &(tot)/real(in%ntraces)*100.)
+      end if
+    end if
+    if (any(norm>0) .and. normalize) then
+      do i3=1,ndo_big 
+        if (norm(i3)>0) then
+          output(:,i3)=output(:,i3)/norm(i3)
+        end if
+      end do
+    end if
+    if (keep_headers) then
+      call sep3d_set_number_headers(out,ndo_big)
+      if (nh>0) then
+        allocate(headerin_i(nh),headerin_r(nh))
+        allocate(headerout_i(ndo_big),headerout_r(ndo_big))
+        do i2=1,in%nkeys 
+          if (in%keytype(i2)(1:8).eq."scalar_f") then
+            i=0
+            headerout_r=0
+            call sep3d_grab_key_vals(in,i2,headerin_r)
+            do i1=1,ndo_big 
+              if (norm(i1)>0) then
+                i=                   i+1
+                headerout_r(i1)=headerin_r(i)
+              end if
+            end do 
+            call sep3d_set_key_vals(out,i2,headerout_r)
+          else
+            call sep3d_grab_key_vals(in,i2,headerin_i)
+            i=0
+            headerout_i=3
+            do i1=1,ndo_big 
+              if (norm(i1)>0) then
+                headerout_i(i1)=headerin_i(i)
+              end if
+            end do 
+            call sep3d_set_key_vals(out,i2,headerout_i)
+          end if
+        end do 
+        if (create_trid) then
+          headerout_i=3
+          do i1=1,ndo_big 
+            if (norm(i1)>0) then
+              headerout_i(i1)=1
+            end if
+          end do 
+          call sep3d_set_key_vals(out,"trid",headerout_i)
+        end if
+        deallocate(headerin_i,headerin_r,headerout_i,headerout_r)
+      else
+        headerout_i=3
+        call sep3d_set_key_vals(out,"trid",headerout_i)
+      end if
+    end if
+    if (.not. sep3d_write_data("out",out,output,fwind=(/0,ndone_big/)&
+      &,nwind=(/out%n(1),ndo_big/))) then
+      call seperr("trouble writing out")
+    end if
+    ndone_big=   ndone_big+ndo_big
+  end do 
+  call sep_end_prog()
+end program  

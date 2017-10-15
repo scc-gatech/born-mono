@@ -1,0 +1,94 @@
+=head1 NAME
+
+
+doc - program self documentation
+
+
+=head1 SYNOPSIS
+
+
+doc(SOURCE)
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item SOURCE - char* 
+
+      Location of source file
+
+=back
+
+=head1 DESCRIPTION
+
+
+SEPlibs documentation mechanism. When a program is called
+with no arguments and no in or out the begining of the file
+is searched for documentation.  For C, the first comment
+
+=head1 COMMENTS
+
+
+Standard practice is to give program usage description in comment
+lines at the beginning of the source file.  Doc reads such comments
+from the file name it is passed and prints them (on the stderr file)
+when the program is invoked without inputs or arguments.  Thus the
+prospective user need only type the program name to obtain a parameter
+description.
+
+If the filename is a relative path the documentation will be searched for
+in the list of directories defined by the compile time 
+variable DEFAULT_DOC_PATH followed by the list of directories in 
+the environment variable "SEP_DOC_PATH". Both of these should be 
+colon separated lists of directories.
+
+Copying is done up to the end of the first comment block or
+preprocessor control symbol (# for C, % for Ratfor).  Output is piped
+through more so that long descriptions can be viewed.
+
+In the interest of increased portability,  provision is made to input the
+comments directly as a (long) character string. (This is fairly messy,
+however, and compiler length limitations may interpose.)
+
+The standard include file <sep.startup> generates the call
+`doc(SOURCE)'. The standard gnu-makefile rules for building seplib
+will automatically define SOURCE.
+
+ If the programmer predefines SOURCE via a #define
+they should only do so if it is not previously defined., e.g.
+
+ #ifndef SOURCE 
+
+ #define SOURCE "./segy/programs/Segy.c"
+
+ #endif
+
+=head1 SEE ALSO
+
+
+ seplib, more
+
+=head1 DIAGNOSTICS
+
+
+If SOURCE has not been defined,  the cc compiler will yell.
+
+=head1 BUGS
+
+
+Unpredictable results if comments don't appear at the beginning of the
+program.  Fortran version needs % to recognize end of comment stream.
+
+=head1 KEYWORDS
+
+
+	self doc documentation manuals
+
+=head1 LIBRARY
+
+
+B<sep>
+
+=cut
+

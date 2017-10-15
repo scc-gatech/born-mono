@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Histogram - Create a histogram</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+	<li><a href="#compile_level">COMPILE LEVEL</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Histogram - Create a histogram</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Data frequency distribution</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Histogram &lt; in.H ninterv=50 | Graph | Tube</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_ninterv__2d_integer">ninterv - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [50,...] :    Number of intervals (default equals 50)</pre>
+</dd>
+<dt><strong><a name="item_dinterv__2d_real">dinterv - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      interval step</pre>
+</dd>
+<dt><strong><a name="item_min__2d_real">min     - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      minimum data value</pre>
+</dd>
+<dt><strong><a name="item_max__2d_real">max     - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      maximum data value</pre>
+</dd>
+<dt><strong><a name="item_dim__2d_integer">dim     - integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] or 2(or 3(...))): computes histogram for every trace
+                            (or plane(or cube(...)))</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+        dinterv = (max - min)/ninterv</pre>
+<pre>
+  Histogram computes automatically the maximum and minimum values
+  of your dataset, but you can choose to overwrite these values,
+        specifying min and max. Cube may be up to 4-dimensions.</pre>
+<pre>
+  The default value for the parameter dim is the highest dimension
+  of your dataset. The parameters ninterv, dinterv, min, and max
+  accept multiple entries separated with commas.</pre>
+<pre>
+  For example, for the dataset in.H with n1=3, n2=4, n3=2 n4=2:</pre>
+<pre>
+  Histogram &lt; in.H ninterv=10,11,12,10 dinterv=20,30,35,40 dim=2 
+  | Graph movie=y | Tube</pre>
+<pre>
+  will display 4 histograms. Each histogram will have a different
+  number of intervals, and a different number of interval step.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Graph.html">the Graph manpage</a>, <em>xtpen</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+<p>
+</p>
+<hr />
+<h1><a name="compile_level">COMPILE LEVEL</a></h1>
+<p>DISTR</p>
+
+</body>
+
+</html>

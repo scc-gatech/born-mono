@@ -1,0 +1,332 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Cubeplot - plot seismic data cube</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#compile_level">COMPILE LEVEL</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Cubeplot - plot seismic data cube</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Cubeplot movie=0 frame1=0 frame2=0 frame3=0 point1=0.5 point2=0.5                        wantcoordlabel=1 wantaxes=y popup=n &lt; in.T &gt; out.V</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Cubeplot - 3D raster plot of seismic data cube</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_movie__2d_int">movie	 - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      0 output is single cube plot
+      1 output is movie over 1 axis
+      2 output is movie over 2 axis
+      3 output is movie over 3 axis</pre>
+</dd>
+<dt><strong><a name="item_nframe_2d_int">nframe-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of frames in movie</pre>
+</dd>
+<dt><strong><a name="item_dframe_2d_float">dframe-  float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      increment between input frames for movie (must be positive)</pre>
+</dd>
+<dt><strong><a name="item_frame1_2d_int">frame1-	 int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      frame numbers for cube faces that display</pre>
+</dd>
+<dt><strong><a name="item_frame2_2d_int">frame2-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      a single frame. For faces that display a movie,</pre>
+</dd>
+<dt><strong><a name="item_frame3_2d_int">frame3-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      this is the starting frame number.</pre>
+</dd>
+<dt><strong><a name="item_center_2d_int">center- int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] default the frames to the center of the cube</pre>
+</dd>
+<dt><strong><a name="item_point1_2d_float">point1- float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      front face of cube takes up this fraction of 1 axis</pre>
+</dd>
+<dt><strong><a name="item_point2_2d_float">point2- float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      front face of cube takes up this fraction of 2 axis</pre>
+</dd>
+<dt><strong><a name="item_flat__2d_char">flat	- char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      if flat=y, the three faces are displayed flat rather
+      that in a perspective view.</pre>
+</dd>
+<dt><strong><a name="item_wantcoordlabel_2d_int">wantcoordlabel- int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      By default (wantcoordlabel=1), lines are drawn to 
+      indicate where in the cube the three slices are taken 
+      from, and the coordinate values of the three cube
+      slices shown are plotted. If you want the frame numbers
+      instead of the coordinates, specify wantcoordlabel=0.
+      If you want lines to be drawn with no labeling,
+      specify -1. For no lines to be drawn specify -2.</pre>
+</dd>
+<dt><strong><a name="item_wantaxes__2d_char">wantaxes	- char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Axes are drawn by default. Specify wantaxes=n to skip them.</pre>
+</dd>
+<dt><strong><a name="item_wantoutline__2d_char">wantoutline	- char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      By default, lines are drawn to outline each face of the
+      cube. Specify wantoutline=n to override.</pre>
+</dd>
+<dt><strong><a name="item_n1pix__2d_int">n1pix	 - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of pixels on 1 axis of vplot raster
+      default is 2*n1. Using fewer reduces memory requirements,
+      but makes a coarser image.</pre>
+</dd>
+<dt><strong><a name="item_n2pix__2d_int">n2pix	-  int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      number of pixels on 2 axis of vplot raster
+      default is 2*n2.</pre>
+</dd>
+<dt><strong><a name="item_popup__2d_char">popup -  char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      Specifying popup=y brings up an xtpanel 
+      (if you have xtpanel
+      installed) with three sliders. Moving these sliders changes
+      the frames plotted on the three cube faces. If you pipe
+      the output of Cubeplot to 'Xtpen cachepipe=n' you will see
+      the display update as the sliders are moved.
+      You can specify your own xtpanel script file by doing
+      popup_file=filename.</pre>
+</dd>
+<dt><strong><a name="item_wantscalebar__2d_char">wantscalebar - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0] (0,1,n,y) turns on scale bar</pre>
+</dd>
+<dt><strong><a name="item_bartype__2d_char">bartype      - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [h]  (v)   horizontaly or verticaly aligned bar</pre>
+</dd>
+<dt><strong><a name="item_barwidth__2d_float">barwidth     - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [.4]     (inches)</pre>
+</dd>
+<dt><strong><a name="item_barreverse__2d_int">barreverse   - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+       [0]   (0,1,n,y)  reverse the scale</pre>
+</dd>
+<dt><strong><a name="item_barlabel__2d_char">barlabel     - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+       label for the scale bar</pre>
+</dd>
+<dt><strong><a name="item_screenht__2d_float">screenht - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10.24] sets screen height</pre>
+</dd>
+<dt><strong><a name="item_screenwd__2d_float">screenwd - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [13.75] sets screen width</pre>
+</dd>
+<dt><strong><a name="item_screenratio_2dfloat">screenratio-float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.75] sets screen height to width ratio</pre>
+</dd>
+<dt><strong><a name="item_xinch_2cyinch__2d_float">xinch,yinch  -    float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10.24],[7.5]</pre>
+</dd>
+<dt><strong><a name="item_crowd_2ccrowd1_2ccrowd2__2d_float">crowd,crowd1,crowd2  - float</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [.75][crowd1=crowd][crowd2=crowd] 
+      (.75&lt; crowd &lt; 1.) crowds labels off the screen 
+      by expanding data on 1 or 2 axis.</pre>
+</dd>
+<dt><strong><a name="item_xll_2cyll_2cxur_2cyur__2d_int">xll,yll,xur,yur - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      sets Lower Left and Upper Right coordinates</pre>
+</dd>
+<dt><strong><a name="item_wheretitle_2d_char">wheretitle- char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [t] (t,b,l,r) where to put title (top, bottom, left, right)</pre>
+</dd>
+<dt><strong><a name="item_titlefat__2dint">titlefat -int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0] makes the title fat</pre>
+</dd>
+<dt><strong><a name="item_title__2d_char_2a">title - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      title for plot</pre>
+</dd>
+<dt><strong><a name="item_titlesz__2d_int">titlesz - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [10] font size for title</pre>
+</dd>
+<dt><strong><a name="item_backcol__2d_float_2a">backcol - float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0,0,0] background color (R,G,B) between 0 and 1</pre>
+</dd>
+<dt><strong><a name="item_fillcol__2d_float_2a">fillcol - float*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [backcol] fill color (R,G,B) between 0 and 1</pre>
+</dd>
+<dt><strong><a name="item_color__2d_char_2a">color  - char*</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [I] (esize=1) or  color=332(esize=3)(triplets) color table</pre>
+</dd>
+<dt><strong><a name="item_polarity_2d_int">polarity- int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1] white is high by default</pre>
+</dd>
+<dt><strong><a name="item_nreserve__2d_int">nreserve - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [8] number of colors to reserve</pre>
+</dd>
+<dt><strong><a name="item_movish__2d_char">movish - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [n] if y,halves the color table like movie does (0,1 n,y)</pre>
+</dd>
+<dt><strong><a name="item_hurry__2d_char">hurry - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1]   (0,1 n,y)</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+    color= one of {I,i,F,R,W,G,T} just like in Movie. You may also append
+    a 'C' to make clipped values show up Red (ie color=IC is like color=I
+    but with clipped values flagged). You will need to have nreserve at least
+    3 for this option to work, since you have to leave the normal vplot 'Red'
+    (vplot default color 2) as a possibility.
+    If color=T, colfile= should give the name of a color-table file (just
+    like Movie).  Optionally, you may also specify a color of the format RGB,
+    (ie color=332) where each of R,G, and B is the integer number of bits
+    to allot to that primary. This is meant for esize=3, but it also makes
+    funky color tables when esize=1.</pre>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Grey.html">the Grey manpage</a>,<a href="./../interact/Rickmovie.html">the Rickmovie manpage</a>,<em>xtpen</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="compile_level">COMPILE LEVEL</a></h1>
+<pre>
+ DISTR</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>sep_graphics</strong></p>
+
+</body>
+
+</html>

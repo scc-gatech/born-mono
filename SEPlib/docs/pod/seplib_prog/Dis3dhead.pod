@@ -1,0 +1,68 @@
+=head1 NAME
+
+
+Dis3dhead - Display headers
+
+=head1 SYNOPSIS
+
+
+Dis3dhead  <in.H pars
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item nkeys -  integer
+
+      [nkeys]number of  keys to calculate
+      parameters on.
+
+=item key_  -  char*
+
+      name of key to calc parameters on (only
+      necessary if nkeys < less than nkeys in dataset
+
+=item key_list -  character
+
+      string containing keys to print (can use
+      instead  of nkeys, keys_). The list should be
+      seperated by :.
+
+=item max_size -  integer
+
+      [1000000] maximum amount of memory for Attr to use.
+
+=item int_format-  char*
+
+      "i7" Format print statement stlye for int
+
+=item float_format - char*
+
+      "f10.4" Format print statement stlye for float
+
+=item guide -  integer
+
+      [50] every 50 given values name of keys are
+      printed. 0 will result in only a single printing
+      of header names
+
+=back
+
+=head1 DESCRIPTION
+
+
+ Displays header values
+
+=head1 SEE ALSO
+
+
+L<Disfil>, L<Attr3dhead>
+
+=head1 CATEGORY
+
+
+B<util/info>
+
+=cut
+

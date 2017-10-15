@@ -1,0 +1,618 @@
+!<
+! Vslan
+!
+! DESCRIPTION
+! Slant stacking
+!
+! USAGE
+!       Vslan < in.H [option=2 transp=0] [trim=1] > out.H
+!
+! INPUT PARAMETERS
+! option - integer 1      |d(p,w)|,  ray-parameter/frequency spectrum
+!                  2      d(p,tau), tau-p transforms   (transp=0,1)
+!                  3      exact least-squares inverses for tau-p  (transp=0,1)
+! window-  characer u,r,s,g,w	  windows to apply during slant stack
+! transp-  integer [0] forward stack
+!                  1   : transpose
+! noalias- character [y]  aliased frequencies are set to zero with noalias='y'
+!                     'n' can be used with option=2 only
+!
+! trim    - integer   1 the output data will be trimmed to the input length
+!                     0 the output data will be the length of the fft.
+!
+! option  - integer 2, and option=3 & (np<=n2) offsets can be read from ofile=#
+! ofile   - file   file containing offset coordinates
+!
+!
+! COMMENTS
+!
+!       For the forward transform (transp=0)
+!               The input (offset) coordinates will be calculated from
+!               o2,d2,n2 or n2 offsets will be read from 'ofile'
+!
+!               The output (slowness) coordinates will be calculated from
+!               p0,dp,np
+!
+!             [p0=0. dp=0.04 np=50 ]     used if transp=0
+!             [x0=0. dx=1. nx=50 ]       used if transp=1
+!             [eps=1.e-06 window='u' noalias='n' ]
+!             [ ofile=Offsets]   >  Hout
+!
+!       For the transpose transform ( transp=1)
+!               The input (slowness) coordinates will be calculated from
+!               o2,d2,n2.
+!
+!               The output (offset) coordinates will be calulated from
+!               x0,dx,nx or nx offsets will be read from 'ofile'.
+!
+!       handles correctly the under/overdetermined cases
+!       solves Toeplitz linear systems
+!       uses radix 2-3-5 fft-transforms from veclib + linpack
+!       n1 needs to be product of powers of 2,3 and 5.
+!
+! CATEGORY
+! seplib seis program
+!>
+!
+! KEYWORDS      slant-stack  linear-systems
+!
+! WHERE
+!        ./cube/seis/Vslan.rs
+!					  Clement Kostov,   August 1989
+!
+!	Revised: Dave Nichols August 1991
+!		Added trim option
+!		changed handling of offsets
+!		Fixed noalias for negative slownesses.
+!		Changed variable names to be less confusing (IMHO)
+!		Tidied up and commented some of the code.
+!
+program Vslan 
+ use sep
+ use ft3d_mod
+  implicit none
+  integer n1,n2,np,nx,option,transp,n2p,pow2,trim,n3,n1o,n2o,lfft
+  real    d1,d1o,x0,dx,p0,dp,d2,d2o,o1o,o2o,o2,o1,eps
+  character*10 window,noalias
+  call SEP_ADD_DOC()
+  call SEP_INIT('')
+  call sep_begin_prog()
+    if (0>= getch('option','d',option )) then
+      option = 2
+    end if
+    if (0.ne.putch('Read  from par:  option ','d',option)) then
+      call erexit('Trouble writing option to history')
+    end if
+    write(0,*) 'option: from par is obsolete, please replace with from&
+      & param'
+    if (0>= hetch('n1','d',n1 )) then
+      call erexit('Trouble reading  n1 from history  ')
+    end if
+    if (0>= hetch('n2','d',n2 )) then
+      call erexit('Trouble reading  n2 from history  ')
+    end if
+    if (0>= hetch('n3','d',n3 )) then
+      call erexit('Trouble reading  n3 from history  ')
+    end if
+    if (0>= hetch('d1','f',d1 )) then
+      call erexit('Trouble reading  d1 from history  ')
+    end if
+    if (0>= hetch('d2','f',d2 )) then
+      call erexit('Trouble reading  d2 from history  ')
+    end if
+    if (0>= hetch('o2','f',o2 )) then
+      call erexit('Trouble reading  o2 from history  ')
+    end if
+    if (0>= hetch('o1','f',o1 )) then
+      call erexit('Trouble reading  o1 from history  ')
+    end if
+    if (0>= getch('eps','f',eps )) then
+      eps = 1.e-06
+    end if
+    if (0.ne.putch('Read  from par:  eps ','f',eps)) then
+      call erexit('Trouble writing eps to history')
+    end if
+    write(0,*) 'eps: from par is obsolete, please replace with from&
+      & param'
+    if (0>= getch('transp','d',transp )) then
+      transp = 0
+    end if
+    if (0.ne.putch('Read  from par:  transp ','d',transp)) then
+      call erexit('Trouble writing transp to history')
+    end if
+    write(0,*) 'transp: from par is obsolete, please replace with from&
+      & param'
+    if (0>= getch('trim','d',trim )) then
+      trim = 1
+    end if
+    if (0.ne.putch('Read  from par:  trim ','d',trim)) then
+      call erexit('Trouble writing trim to history')
+    end if
+    write(0,*) 'trim: from par is obsolete, please replace with from&
+      & param'
+    if (0>= getch('window','s',window )) then
+      window = 'u'//char(0)
+    end if
+    if (0.ne.putch('Read  from par:  window ','s',window)) then
+      call erexit('Trouble writing window to history')
+    end if
+    write(0,*) 'window: from par is obsolete, please replace with from&
+      & param'
+    if (0>= getch('noalias','s',noalias )) then
+      noalias = 'no'//char(0)
+    end if
+    if (0.ne.putch('Read  from par:  noalias ','s',noalias)) then
+      call erexit('Trouble writing noalias to history')
+    end if
+    write(0,*) 'noalias: from par is obsolete, please replace with from&
+      & param'
+  lfft = pow2(n1)		! next largest power of two
+  if (transp .eq. 0) then
+!	forward transform
+      if (0>= getch('np','d',np )) then
+        np = 50
+      end if
+      if (0.ne.putch('Read  from par:  np ','d',np)) then
+        call erexit('Trouble writing np to history')
+      end if
+      write(0,*) 'np: from par is obsolete, please replace with from&
+        & param'
+      if (0>= getch('p0','f',p0 )) then
+        p0 = 0.
+      end if
+      if (0.ne.putch('Read  from par:  p0 ','f',p0)) then
+        call erexit('Trouble writing p0 to history')
+      end if
+      write(0,*) 'p0: from par is obsolete, please replace with from&
+        & param'
+      if (0>= getch('dp','f',dp )) then
+        dp = 0.04
+      end if
+      if (0.ne.putch('Read  from par:  dp ','f',dp)) then
+        call erexit('Trouble writing dp to history')
+      end if
+      write(0,*) 'dp: from par is obsolete, please replace with from&
+        & param'
+    nx=n2
+    dx=d2
+    x0=o2
+    if (option.eq.1) then
+      n1o = lfft/2+1 
+      n2o = np
+      d1o = 1./(d1*lfft)
+      d2o = dp
+      o2o  = p0
+      o1o  = 0.
+    else if (option.eq.2) then
+      if (trim .ne. 0) then
+        n1o=n1
+      else
+        n1o=lfft
+      end if 
+      n2o = np
+      d1o = d1
+      d2o = dp
+      o2o  = p0
+      o1o  = o1
+    else if (option.eq.3) then
+      if (trim  .ne. 0) then
+        n1o=n1
+      else
+        n1o=lfft
+      end if 
+      n2o = np 
+      d1o = d1
+      d2o = dp
+      o2o  = p0 
+      o1o  = o1
+    end if
+  else
+!	reverse transform
+      if (0>= getch('nx','d',nx )) then
+        nx = 50
+      end if
+      if (0.ne.putch('Read  from par:  nx ','d',nx)) then
+        call erexit('Trouble writing nx to history')
+      end if
+      write(0,*) 'nx: from par is obsolete, please replace with from&
+        & param'
+      if (0>= getch('dx','f',dx )) then
+        dx = 1.
+      end if
+      if (0.ne.putch('Read  from par:  dx ','f',dx)) then
+        call erexit('Trouble writing dx to history')
+      end if
+      write(0,*) 'dx: from par is obsolete, please replace with from&
+        & param'
+      if (0>= getch('x0','f',x0 )) then
+        x0 = 0.
+      end if
+      if (0.ne.putch('Read  from par:  x0 ','f',x0)) then
+        call erexit('Trouble writing x0 to history')
+      end if
+      write(0,*) 'x0: from par is obsolete, please replace with from&
+        & param'
+    np=n2
+    dp=d2
+    p0=o2
+    if (option.eq.1) then
+      call erexit("transp=1 is not valid for option 1")
+    else if (option.eq.2) then
+      if (trim .ne. 0) then
+        n1o=n1
+      else
+        n1o=lfft
+      end if 
+      n2o = nx 
+      d1o = d1
+      d2o = dx
+      o2o  = x0 
+      o1o  = o1
+    else if (option.eq.3) then
+      if (trim  .ne. 0) then
+        n1o=n1
+      else
+        n1o=lfft
+      end if 
+      n2o = nx 
+      d1o = d1
+      d2o = dx
+      o2o  = x0 
+      o1o  = o1
+    end if
+  end if 
+  n2p = min(n2,n2o)
+    if (0.ne. putch('n1','d',n1o )) then
+      call erexit('Trouble writing  n1 to history  ')
+    end if
+    if (0.ne. putch('n2','d',n2o )) then
+      call erexit('Trouble writing  n2 to history  ')
+    end if
+    if (0.ne. putch('n3','d',n3 )) then
+      call erexit('Trouble writing  n3 to history  ')
+    end if
+    if (0.ne. putch('d1','f',d1o )) then
+      call erexit('Trouble writing  d1 to history  ')
+    end if
+    if (0.ne. putch('d2','f',d2o )) then
+      call erexit('Trouble writing  d2 to history  ')
+    end if
+    if (0.ne. putch('o1','f',o1o )) then
+      call erexit('Trouble writing  o1 to history  ')
+    end if
+    if (0.ne. putch('o2','f',o2o )) then
+      call erexit('Trouble writing  o2 to history  ')
+    end if
+! call subroutine to do the actual job
+  call mainsub(n1,n2,n3,lfft,nx,np,n1o,n2o,dp,dx,d1,d1o,d2,d2o,o1,o1o&
+    &,o2o,transp,o2,p0,x0,eps, option,window,noalias, n2p)
+  call sep_end_prog()
+end program 
+subroutine mainsub(n1,n2,n3,lfft,nx,np,n1o,n2o,dp,dx,d1,d1o,d2,d2o,o1&
+  &,o1o,o2o,transp,o2,p0,x0,eps, option,window,noalias, n2p)
+use ft3d_mod
+use sep_mod
+use sep_aux_mod
+  implicit none
+  integer n1,n1o,lfft,n2,n2o,nx,np,option,n3,n2p,transp
+  real    d1,d1o,dx,dp,d2,d2o
+  real	o1,o1o,o2,o2o,x0,p0,eps
+  character*(*) window,noalias
+  integer ip,ix,i2o,i3, i1,i2
+  integer ierr,wmax,nxalias
+  real    data(n1,n2),out(n1o,n2o),xwindow(n2),work(n2)
+  real    om(lfft)
+  real    o2a(nx),rcond(lfft/2+1), tau(n2,n2o)
+  integer ilive(n2),nlive
+  logical changed
+  integer idx0,idxalias,idxstart,idxend,nnalias,npalias
+  real    knyq,tsign,pi,ppar,o2par,dw
+  complex cdata(lfft,n2o),ctrace(lfft,n2)
+  complex*16 aa(n2,n2o),ab(n2),rr(n2p,lfft/2+1),b(n2o)
+  character*40  ofile
+  logical isofile
+    if (0>= getch('ofile','s',ofile )) then
+      ofile = '@'//char(0)
+    end if
+    if (0.ne.putch('Read  from par:  ofile ','s',ofile)) then
+      call erexit('Trouble writing ofile to history')
+    end if
+    write(0,*) 'ofile: from par is obsolete, please replace with from&
+      & param'
+  if (ofile(1:1) .ne. '@') then
+    isofile = ((option.eq.2) .or. ((option.eq.3).and.(n2o<=n2)))
+    if (.not.isofile) then
+      call erexit('offset file and option 3 with n2o>n2')
+    end if
+  end if
+  call hclose()
+  pi = atan(1.)*4.
+  dw = 2.*pi/(lfft*d1)
+  do i1=1,lfft/2+1
+    om(i1) = (i1-1)*dw
+  end do 
+  knyq = pi/d2				! nyquist in radians
+  call time_window(n2,work,xwindow,window)
+
+! determine offsets of the traces in the space domain
+  if (ofile(1:1) .eq. '@') then
+    if ((option.eq.3).and.(np>n2)) then
+      window(1:1) = 'u'//char(0)
+    end if
+    do i2=1,nx
+      o2a(i2) = x0 + (i2-1)*dx 
+    end do
+  else
+    ierr= sreed('ofile',o2a,nx*4) 
+    if (transp .eq. 0) then
+      xwindow(1) = 1.
+      do i2=2,nx
+        xwindow(i2) = (o2a(i2) - o2a(i2-1))/(o2a(2)-o2a(1))
+      end do
+    end if
+  end if 
+  if (transp .eq. 0) then
+    tsign=1.	
+    ! tau = t - px (input traces are shifted in a positive sense)
+  else
+    tsign=-1.	! tau = t + px
+  end if 
+  if (option .eq. 3) then
+    tsign = -tsign   ! we will construct lsq inverse of this
+  end if
+!  the array of shifts tau(n2,n2o)
+!  for transp=0 this is tau(nx,np)
+!  for transp=1 this is tau(np,nx)
+!
+!  Note, insert your own moveout function here!
+!
+  do ip=1,np  
+    ppar = p0 + (ip-1)*dp 
+    if (transp .eq. 0) then
+      do ix=1,nx  
+        tau(ix,ip) = (o1o-o1) + tsign*ppar*o2a(ix)
+      end do
+    else
+      do ix=1,nx  
+        tau(ip,ix) = (o1o-o1) + tsign*ppar*o2a(ix)
+      end do
+    end if
+  end do 
+!  make p,w transform
+  call zero( lfft/2+1 , rcond )
+! has offset range changed ? It is always new first time through!
+  changed = .TRUE.
+  do i2=1,n2  
+    ilive(i2)=0
+  end do 
+! loop over panels
+  do i3=1,n3  
+    ierr= sreed('in',data,n1*n2*4)
+! detect dead traces
+    if (option .eq. 3) then
+      call findlive(n1, n2, data, ilive, nlive, changed)
+      if (changed) then
+        write(0,*) 'Panel number: ',i3,'  Number of live traces: '&
+          &,nlive
+      end if
+      if (nlive < n2o .and. nlive <n2) then
+        write(0,*) 'Panel number: ',i3,'  Number of live traces: '&
+          &,nlive
+        call erexit('Too many dead traces in option 3: nlive<n2o')
+      end if
+    end if
+    call zero(lfft*n2*2, ctrace)
+    do i2=1,n2  
+      do i1=1,n1  
+        ctrace(i1,i2) = cmplx(data(i1,i2), 0.)
+      end do
+    end do 
+    call ft3d_sub(lfft, n2, 1, ctrace, -1., 0., 0., 0.,0.,0.) 
+    call zero(lfft*n2o*2, cdata)
+    if (option <= 2) then
+      do i2o=1,n2o  
+! calculate max frequency to use
+        if (noalias(1:1) .eq. 'y') then
+          o2par=abs((i2o-1)*d2o+o2o)
+          if (o2par >= 1.e-06) then
+            wmax=int(2.*knyq/(dw*o2par))+1
+            wmax=min(wmax,lfft/2+1)
+          else
+            wmax=lfft/2+1
+          end if
+        else
+          wmax=lfft/2+1
+        end if 
+! the actual slant stack !
+        do i2=1,n2  
+          do i1=1,wmax  
+            cdata(i1,i2o) = cdata(i1,i2o)+xwindow(i2)*ctrace(i1,i2)*cexp&
+              &(cmplx(0.,om(i1)*tau(i2,i2o)))
+          end do
+        end do
+      end do 
+! regenerate negative frequencies
+      call r2codeven(cdata,lfft,n2o)
+      if (option .eq. 1) then
+        do i2=1,n2o  
+          do i1=1,n1o  
+            out(i1,i2) = cabs(cdata(i1,i2))
+          end do
+        end do 
+        ierr= srite('out',out,n1o*n2o*4)
+      end if
+      if (option .eq. 2) then
+! inverse FT over time
+        call ft3d_sub(lfft, n2o, 1, cdata, 1., 0., 0., 0.,0.,0.) 
+        do i2o=1,n2o  
+          do i1=1,n1o  
+            out(i1,i2o) = real(cdata(i1,i2o))
+          end do
+        end do 
+        ierr= srite('out',out,n1o*n2o*4)
+      end if
+    else if (option .eq. 3) then
+! least squares inverses
+      do i1=2,lfft/2+1  
+! loop over frequencies
+        call zero8(n2o*2, b)
+        do i2o=1,n2o  
+          do i2=1,n2    
+            aa(i2,i2o)=cexp(cmplx(0.,om(i1)*tau(i2,i2o)))*xwindow(i2)
+          end do
+        end do 
+        do i2=1,n2
+          ab(i2) = ctrace(i1,i2)
+        end do 
+        if (n2o <= n2) then
+!## solve overdetermined problem
+!## matrix A^T A is Toeplitz
+!## solve A^T A x = A^T y
+          if (changed) then
+! the offsets have changed recalculate rr
+            do i2o=1,n2o   
+              rr(i2o,i1) = 0.
+            end do 
+            do i2o=1,n2o  
+              do i2=1,nlive  
+                rr(i2o,i1)=rr(i2o,i1)+conjg(aa(ilive(i2),i2o))*aa(ilive&
+                  &(i2),1)
+              end do
+            end do 
+            rr(1,i1) = rr(1,i1)*1.02 + eps
+          end if
+! conjugate slant stack == A^T y
+          do i2o=1,n2o  
+            do i2=1,nlive  
+              b(i2o)=b(i2o)+conjg(aa(ilive(i2),i2o))*ab(ilive(i2))
+            end do
+          end do 
+          idxalias = int((2.*knyq/abs(om(i1)))/d2o) 
+          idx0 = int(-o2o/d2o)	    ! zero dip (index in n2o)
+          idxstart = max(1, idx0-idxalias+1)  
+          ! the first unaliased dip
+          idxend   = min(n2o, idx0+idxalias-1) 
+          ! the last unaliased dip
+          nnalias = idxend-idxstart+1        
+          ! number of unaliased dips
+! solve A^T A x = b for the unaliased dip range
+! ( x stored back in b )
+          call hermtoep(nnalias-1,real(rr(1,i1)),rr(2,i1),b(idxstart),b&
+            &(idxstart),ierr)
+! for the aliased dips the options are
+! noalias = 'y'   =>  zero them
+! noalias = 'n'   =>  use weighted transpose operator.
+          if (noalias(1:1) .eq. 'y') then
+            do i2o=1,idxstart-1  
+              b(i2o) = 0.
+            end do 
+            do i2o=idxend+1,n2o  
+              b(i2o) = 0.
+            end do
+          else if (noalias(1:1) .eq. 'n') then
+            do i2o=1,idxstart-1  
+              b(i2o) = b(i2o)/rr(1,i1)
+            end do 
+            do i2o=idxend+1,n2o  
+              b(i2o) = b(i2o)/rr(1,i1)
+            end do
+          end if
+          if (ierr .ne. 0) then
+            rcond(i1) = 0.
+          else
+            rcond(i1) = 1.
+          end if
+        else if (n2 < n2o) then
+!## solve underdetermined problem
+!## AA^T is hermitian Toeplitz
+          if (i3 .eq. 1) then
+            do i2=1,n2  
+              do i2o=1,n2o  
+                rr(i2,i1)=rr(i2,i1)+aa(i2,i2o)*conjg(aa(1,i2o))
+              end do
+            end do 
+            rr(1,i1) = rr(1,i1)*1.02 + eps
+          end if
+          nxalias = int( (2.*pi)/(d2o*om(i1)*d2) )
+          nxalias = min( n2, nxalias )
+          call hermtoep(nxalias-1,real(rr(1,i1)),rr(2,i1),ab,ab,ierr)
+          if (noalias(1:1) .eq. 'y') then
+            do i2=nxalias+1,n2
+              ab(i2) = 0.
+            end do
+          else
+            do i2=nxalias+1,n2
+              ab(i2) = ab(i2)/rr(1,i1)
+            end do
+          end if 
+          if (ierr .ne. 0) then
+            rcond(i1) = 0.
+          else
+            rcond(i1) = 1.
+          end if 
+          if (noalias(1:1) .eq. 'y') then
+            npalias = int((2.*knyq/om(i1) - p0)/d2o)
+            npalias = min(n2o, npalias)
+          else
+            npalias = n2o
+          end if 
+          do i2o=1,npalias  
+            do i2=1,n2  
+              b(i2o)=b(i2o)+conjg(aa(i2,i2o))*ab(i2)
+            end do
+          end do
+        end if
+! end of underdetermined problem
+        do i2o=1,n2o  
+          cdata(i1,i2o) = b(i2o)
+        end do
+      end do 
+! end of loop over frequency
+! regenerate negative frequencies
+      call r2codeven(cdata,lfft,n2o)
+! inverse FT over time
+      call ft3d_sub( lfft, n2o, 1, cdata, 1., 0., 0., 0.,0.,0.) 
+      do i2o=1,n2o  
+        do i1=1,n1o  
+          out(i1,i2o) = real(cdata(i1,i2o))
+        end do
+      end do 
+      ierr= srite('out',out,n2o*n1o*4)
+    end if
+! end of option=3
+  end do 
+!# i3 ; the end of loop over panels
+end subroutine 
+integer function pow2(n1)
+  integer n1
+  pow2=1
+  10 continue
+  pow2=pow2*2
+  if (pow2 < n1) then
+    goto 10
+  end if
+  return
+end function 
+subroutine findlive(n1, n2, data, ilive, nlive, changed)
+  integer n1,n2,ilive(n2),nlive
+  real data(n1,n2)
+  logical changed
+  integer i1,i2,idx
+  idx=0
+  changed = .FALSE.
+  do i2=1,n2  
+    do i1=1,n1 
+      if (data(i1,i2) .ne. 0.) then
+        idx=idx+1
+        if (ilive(idx) .ne. i2) then
+          changed = .FALSE.
+        end if
+        ilive(idx) = i2
+        goto 1000
+      end if
+    end do 
+    1000 continue
+  end do 
+  nlive=idx
+  return
+end subroutine  

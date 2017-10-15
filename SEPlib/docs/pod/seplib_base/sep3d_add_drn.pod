@@ -1,0 +1,37 @@
+=head1 NAME
+
+
+sep3d_add_drn - add data record number
+
+=head1 SYNOPSIS
+
+
+C<call sep3d_add_drn(struct,drn)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item struct  -  sep3d
+
+      structure to add drn too
+
+=item drn     -  int*
+
+      drn to add
+
+=back
+
+=head1 DESCRIPTION
+
+
+Add data record number to sep3d structure
+
+=head1 LIBRARY
+
+
+B<supersetf90>
+
+=cut
+

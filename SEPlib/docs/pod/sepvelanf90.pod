@@ -1,0 +1,25 @@
+
+
+=head1 NAME
+
+sepvelanf90 - F90 fFunctions that deal with velocity
+
+=head1 SYNOPSIS
+
+A SEPlib library
+
+=head1 DESCRIPTION
+
+F90 fFunctions that deal with velocity
+
+=head1 FUNCTIONS
+
+
+
+L<nmo_mod> -  Perform nmo
+
+
+
+L<velan_subs_mod> - Do semblance analsysis
+
+=cut 

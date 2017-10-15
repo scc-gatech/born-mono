@@ -1,0 +1,108 @@
+=head1 NAME
+
+
+Taplot,Byte - Convert floats to bytes
+
+=head1 SYNOPSIS
+
+
+Byte  par= < in.H > in.T
+
+=head1 DESCRIPTION
+
+
+Convert data to raster format .
+PLOT = clip{ [ (DATA - bias)*(it*d1+o1)**tpow ]**gpow }
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item tpow - float 
+
+      [0.]  gain(it) = (it*d1+o1)**tpow, it in samples
+
+=item pclip - int   
+
+      [99]  clip percentile
+
+=item clip - float 
+
+      clip value (if not specified defaults to pclip)
+
+=item phalf - int   
+
+      [85]  gpow percentile
+
+=item gpow  - float  
+
+      [1]  if given gpow<=0, sample gain power computed at phalf percentile
+
+=item bias  - float  
+
+      [0.0] plot = data - bias
+
+=item gainpanel - char* 
+
+      [1]-plane(s) where gpow and clip are estimated
+      i- ith plane is used ( i is integer )
+      all-all the planes are used
+      every -calculate gain parameters for every panel
+
+=item gaincube            
+
+      i- ith plane is used ( i is integer ) NOT YET
+      every -calculate gain parameters for every cube
+      all-all the planes are used NOT YET
+
+=item gainstep - float   
+
+      the subsampling rate used in estimating gpow and clip
+      default = max(1,nt/256) (>=1)
+
+=item allpos   - char    
+
+      [n]/y  if yes, map only positive values to 0-255
+
+=item transp   - char    
+
+      [no] if yes, saves Movie the trouble of transposing t and x.
+
+=item n1,n2,n3 - int      
+
+      cube dimensions
+
+=back
+
+
+
+=head1 OUTPUT PARAMETERS
+
+
+=over 4
+
+=item esize    - int    
+
+      [1]  raster data
+
+=item maxval, minval -float   
+
+      maximum and minimum value of data to be displayed 
+      by Ta2vplot. For use by Ta2vplot's wantscalebar
+      option.
+
+=back
+
+=head1 SEE ALSO
+
+
+L<Grey>
+
+=head1 CATEGORY
+
+
+B<sep_graphics>
+
+=cut
+

@@ -1,0 +1,43 @@
+=head1 NAME
+
+
+misinput - find a mask of missing filter inputs
+
+=head1 SYNOPSIS
+
+
+C<call find_mask(known,aa)>
+
+=head1 PARAMETERS
+
+
+=over 4
+
+=item  known - logical(:)
+
+       Known data locations
+
+=item  aa    - type(filter)
+
+       Helix filter
+
+=back
+
+=head1 DESCRIPTION
+
+
+Given known locations of data, mark on filter where convolution
+result is valid.
+
+=head1 SEE ALSO
+
+
+L<lopef>,L<helicon>
+
+=head1 LIBRARY
+
+
+B<geef90>
+
+=cut
+

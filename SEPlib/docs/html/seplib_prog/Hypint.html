@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Hypint - velocity space transform</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Hypint - velocity space transform</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Hypint conj=0 inv=0 vmin=1.4 vmax=3.0 n2= &lt; in.H &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Velocity space transformation using INTEGRATION.
+The conjugate operator is hyperbola superposition.
+pseudo-unitary weighting with offset and velocity.
+includes causal filter sqrt(i omega)
+uniform intervals of slowness.
+nearest neighbor interpolation.</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_conj__2d_integer">conj -   integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]  adjoint</pre>
+</dd>
+<dt><strong><a name="item_inv__2d_integer">inv  -   integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [0]  inverse</pre>
+</dd>
+<dt><strong><a name="item_vmin__2d_real">vmin -   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [1.4]  minimum velocity</pre>
+</dd>
+<dt><strong><a name="item_vmax__2d_real">vmax -   real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      [3.0]  maximum velocity</pre>
+</dd>
+<dt><strong><a name="item_n1_2cn2_2cn3_2dinteger">n1,n2,n3-integer</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard seplib parameters</pre>
+</dd>
+<dt><strong><a name="item_o1_2co2_2co3_2dreal">o1,o2,o3-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard seplib parameters</pre>
+</dd>
+<dt><strong><a name="item_d1_2cd2_2cd3_2dreal">d1,d2,d3-real</a></strong><br />
+</dt>
+<dd>
+<pre>
+      standard seplib parameters</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>conj=0 &amp; inv=0 operator itself
+conj=1 &amp; inv=0 conjugate transpose
+conj=0 &amp; inv=1 pseudoinverse
+conj=1 &amp; inv=1 conjugate-transpose-pseudoinverse</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Hypmovie.html">the Hypmovie manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/velan</strong></p>
+
+</body>
+
+</html>

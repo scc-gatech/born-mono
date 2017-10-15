@@ -1,0 +1,83 @@
+=head1 NAME
+
+
+energy - calculate energy
+
+=head1 SYNOPSIS
+
+
+C<ierr= energy (intag,outtag,data,data2,n1,n2,n3,lwind,j1,n1new,norm,ave)>
+
+=head1 INPUT PARAMETERS
+
+
+=over 4
+
+=item intag- char*       
+
+      Input tag
+
+=item outtag - char*       
+
+      Output tag
+
+=item data - real(n1,n2) 
+
+      Input offset-time gather
+
+=item data2 - real(n1new,n2) 
+
+      Output velocity-time gather
+
+=item n1- integer     
+
+      Input length1
+
+=item n2 - integer     
+
+      Length axis2
+
+=item n3 - integer     
+
+      Length axis3
+
+=item lwind - integer     
+
+      Length of energy window
+
+=item j1- integer     
+
+      Spacing betweew centers of energy windows
+
+=item n1new - integer     
+
+      Output fast axis length
+
+=item norm - integer     
+
+      Flag for normalizing energy (0,1)
+
+=item ave - integer     
+
+      Flag for normalizing window length
+
+=back
+
+=head1 DESCRIPTION
+
+
+  Subroutine to calculate energy in running windows along fast data axis
+
+=head1 SEE ALSO
+
+
+B<Energy>
+
+=head1 LIBRARY
+
+
+B<sepfilter>
+
+
+=cut
+

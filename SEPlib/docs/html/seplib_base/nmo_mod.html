@@ -1,0 +1,133 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>nmo_mod - Perform nmo</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#initializer">INITIALIZER</a></li>
+	<ul>
+
+		<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	</ul>
+
+	<li><a href="#operators">OPERATORS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#library">LIBRARY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>nmo_mod - Perform nmo</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Initializer-<code>call nmo_init(slowness,offset,o1,d1)</code></p>
+<p>operator-<code>call nmo_nearest(adj,tt,zz)</code></p>
+<p>operator-<code>call nmo_linear(adj,tt,zz)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="initializer">INITIALIZER</a></h1>
+<p>
+</p>
+<h2><a name="input_parameters">INPUT PARAMETERS</a></h2>
+<dl>
+<dt><strong><a name="item_real">slowness - <code>real(:)</code></a></strong><br />
+</dt>
+<dd>
+<pre>
+           Slowness(t)</pre>
+</dd>
+<dt><strong>offset   - <code>real(:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+           Offset</pre>
+</dd>
+<dt><strong><a name="item_o1__2d_real">o1       - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+           First sample in time</pre>
+</dd>
+<dt><strong><a name="item_d1__2d_real">d1       - real</a></strong><br />
+</dt>
+<dd>
+<pre>
+           Sampling in time</pre>
+</dd>
+<dt><strong><a name="item_inverse__2d_logical">inverse  - logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+           Wheter or not to do inverse</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="operators">OPERATORS</a></h1>
+<dl>
+<dt><strong><a name="item_adj__2d_logical">adj   - logical</a></strong><br />
+</dt>
+<dd>
+<pre>
+        Whether or not do adjoint</pre>
+</dd>
+<dt><strong>tt    - <code>real(:,:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+        Input</pre>
+</dd>
+<dt><strong>zz    - <code>real(:,:)</code></strong><br />
+</dt>
+<dd>
+<pre>
+        Output</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Nmo by nearest or linear interpolation neighbor for a gather</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<p>NMO, its transpose, inverse, and inverse transpose by nearest neighbor.</p>
+<p>adj=.false. inv=.false.:	<code>zz(iz)</code> = [NMO]                   <code>tt(it)</code></p>
+<p>adj=.true. inv=.false.:	<code>tt(it)</code> = [NMO adj]         <code>zz(iz)</code></p>
+<p>adj=.false. inv=.true.:	<code>tt(it)</code> = [NMO inverse]           <code>zz(iz)</code></p>
+<p>adj=.true. inv=.true.:	<code>zz(iz)</code> = [NMO inverse transpose] <code>tt(it)</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="./../seplib_prog/Nmo3d.html">the Nmo3d manpage</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="library">LIBRARY</a></h1>
+<p><strong>sepvelanf90</strong></p>
+
+</body>
+
+</html>

@@ -1,0 +1,63 @@
+=head1 NAME
+
+
+Pef - Estimate PEF in N dimensions
+
+=head1 SYNOPSIS
+
+
+Pef < data.H a= [center=] [gap=] [maskin=] [maskout=] > pef.H
+
+=head1 DESCRIPTION
+
+
+Estimates PEF by least squares, using helix convolution. 
+Can ignore missing data 
+
+=head1 PARAMETERS
+
+
+=over 3
+
+=item from history
+
+B<integer array> I<n> - reads I<n1>, I<n2>, I<n3>, etc.
+
+=item from par
+
+B<integer array> I<a>= - filter size
+
+B<integer> I<niter>=2*prod(a) (optional) - number of 
+PEF iterations
+
+B<integer array> I<center>=a/2+1 (optional) - zero-lag position (filter centering)
+
+B<integer array> I<gap>=0 (optional) - filter gap
+
+B<filename> I<maskin, maskout> (optional) - data selectors 
+
+=item to history
+
+B<integer array> I<lag> - comma separated list of filter lags
+
+=back
+
+=head1 EXAMPLES
+
+
+F<gee/mda/hole90/>, F<gee/mda/miss390/>, F<gee/mda/morgan/>, 
+F<gee/mda/seab90/>, F<gee/pch/signoi90/>
+
+=head1 MODULES
+
+
+F<shape.r90>, F<bound.r90>, F<misinput.r90>, F<pef.r90>, 
+F<compress.r90>, F<print.r90>, F<helix.r90>
+
+=head1 SEE ALSO
+
+
+L<MSPef>, L<Fillmiss>, L<Helicon>, L<Decon>
+
+=cut
+

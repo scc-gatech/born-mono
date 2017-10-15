@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Wavelet - wavelet generation</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Wavelet - wavelet generation</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Wavelet parameters [ &lt; in.H ] &gt; out.H</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Wavelet generation program usually used for modeling programs</p>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_nt_2cn1__2d_integer">nt,n1  - integer</a></strong><br />
+</dt>
+<dd>
+dimension of time axis
+parameter n1wavelet = n1out also output to header
+</dd>
+<p></p>
+<dt><strong><a name="item_nx_2cn2__2dinteger">nx,n2  -integer</a></strong><br />
+</dt>
+<dd>
+[1] number of input traces to use (see wavelet=data)
+</dd>
+<p></p>
+<dt><strong><a name="item_np_2cn3__2dinteger">np,n3  -integer</a></strong><br />
+</dt>
+<dd>
+[1]  number of input planes to use (see wavelet=data)
+</dd>
+<p></p>
+<dt><strong><a name="item_dt__2dreal">dt     -real</a></strong><br />
+</dt>
+<dd>
+[.004] sample rate
+(parameter d1wavelet = d1out also output to header)
+</dd>
+<p></p>
+<dt><strong><a name="item_domain__2dchar_2a">domain -char*</a></strong><br />
+</dt>
+<dd>
+[time]  domain option: time,ctime,frequency,spectrum
+time      = nt real values representing the wavelet
+ctime     = nt complex values representing the wavelet
+frequency = nt/2+1 complex values representing frequency domain wavelet
+spectrum  = nt+2 real values, first half are normalized
+            spectrum, second half are normalized phase
+            angle which is the phase angle divided by
+            pi. Usually used for quick check plots.
+(parameter domainwavelet = domain also output to header)
+</dd>
+<p></p>
+<dt><strong><a name="item_wavelet__2dchar_2a">wavelet  -char*</a></strong><br />
+</dt>
+<dd>
+[spike]  type of wavelet
+spike   = spike in time domain equals white spectrum
+bandpass= butterworth bandpass filter, sharpness of
+           frequency cutoffs is controlled by the order
+ricker0 = gaussian curve
+ricker1 = first derivative of gaussian curve
+ricker2 = second derivative of gaussian curve
+data    = amplitude spectrum is average of
+          nx*np input traces from the in file
+zero    = null wavelet (ie: all zeroes)
+</dd>
+<p></p>
+<dt><strong><a name="item_phase__2dchar_2a">phase -char*</a></strong><br />
+</dt>
+<dd>
+[none]      phase options: none,minimum,degrees
+none    = no modification of phase
+minimum = minimum phase
+min2zero = minimum to zero phase conversion
+degrees = numerical value representing degrees of
+          constant phase shift from specified wavelet
+</dd>
+<p></p>
+<dt><strong><a name="item_fund__2dreal">fund -real</a></strong><br />
+</dt>
+<dd>
+[40]     fundamental frequency of ricker wavelet
+         (actually relates to gaussian half-width)
+=item  flow -real
+</dd>
+<dd>
+<p>[10]   low  cutoff frequency of butterworth filter</p>
+</dd>
+<p></p>
+<dt><strong><a name="item_fhigh__2dreal">fhigh -real</a></strong><br />
+</dt>
+<dd>
+[60]   high cutoff frequency of butterworth filter
+</dd>
+<p></p>
+<dt><strong><a name="item_order_2dinteger">order-integer</a></strong><br />
+</dt>
+<dd>
+[1]    order of butterworth filter
+       (1 is average sharpness, &gt; 1 is sharper, &lt; 1 is smoother)
+       (sets both high and low frequency cutoffs)
+</dd>
+<p></p>
+<dt><strong><a name="item_orderlow_2dinteger">orderlow-integer</a></strong><br />
+</dt>
+<dd>
+[1] low  cut order of butterworth filter (overrides order)
+</dd>
+<p></p>
+<dt><strong><a name="item_orderhigh_2dinteger">orderhigh-integer</a></strong><br />
+</dt>
+<dd>
+[1] high cut order of butterworth filter (overrides order)
+</dd>
+<p></p>
+<dt><strong><a name="item_tdelay__2d_real">tdelay - real</a></strong><br />
+</dt>
+<dd>
+additional time delay
+</dd>
+<p></p>
+<dt><strong><a name="item_bell__2dreal">bell -real</a></strong><br />
+</dt>
+<dd>
+[nt/4*dt]    bell window half width, &lt; dt/2 for no bell window
+</dd>
+<p></p>
+<dt><strong><a name="item_boxcar__2dinteger">boxcar -integer</a></strong><br />
+</dt>
+<dd>
+[pnt*dt]    boxcar window width
+</dd>
+<p></p></dl>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>seis/model</strong></p>
+
+</body>
+
+</html>

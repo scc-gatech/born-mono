@@ -1,0 +1,207 @@
+/*$
+=head1 NAME
+
+Agc - Automatic gain control with first arrival detection
+
+=head1 SYNOPSIS 
+
+Agc window=200 detect=0 dwind=10 thresh=25. < in.H > out.H
+ 
+=head1 INPUT  PARAMETERS
+
+=over 4
+
+=item window   - integer 
+
+      [200]: length of the window in number of samples
+
+=item dwind    - integer 
+
+       [10]: length of the detection window in number of samples
+
+=item detect   - integer  
+
+        [0]:  detection off (Default value)    1:  detection on
+
+=item thresh   - real     
+
+      [25.]: threshold (see comments below)
+
+=item n1,n2,n3,n4,n5,n6,n7 - integer  
+
+      standard seplib parameters 
+
+=item  normpow - integer
+
+      [1]:  which norm (L1 or L2) to use for gain
+     
+
+=back
+
+=head1 DESCRIPTION 
+
+Gain program with first arrival detection
+ 
+=head1 COMMENTS
+
+        Agc gains seismic traces by normalizing each sample by the
+        power of a window of samples surrounding that point.  
+      
+        When the detect= is set to 1, agc is not applied on a trace
+        until a first arrival is detected. The first arrival is  
+        detected when a moving dwind exceeds an initial dwind by a 
+        threshold factor.
+
+=head1 EXAMPLE
+
+	Agc < in.H window=200 detect=1 dwind=10 thresh=25. > out.H
+
+	Applies agc on a trace based on a trace window of 200 samples. 
+	Agc is only applied after the first arrival has been detected 
+	using a detection window of 10 samples. The detection of the 
+	first arrival is based on an amplitude change between consecutive 
+	detection windows of 25%.
+
+=head1 CATEGORY
+
+B<seis/filter>
+
+=cut
+
+>*/
+
+/*
+ 
+  KEYWORDS agc gain scale : Tpow
+
+  SEE ALSO
+
+  WHERE
+        ./cube/seis/Agc.c
+
+*/ 
+/*
+Martin Karrenbach 11-3-92  changed alloc(sizeof()) and sreed/srite sizeof(xdr)
+Stewart A. Levin 5/6/95 Mobil/SEP corrected erroneous "==" instead of "="
+Stewart A. Levin 21 Feb 2012 (SEP), Added normpow= option for L2 agc and fixed divide-by-zero logic.
+*/
+static int window=200, dwind=10, detect=0;
+float thresh=25.;
+
+ADD_DEF_SEP_DOC
+#include <stdlib.h>
+#include <sep.main>
+int MAIN(void)
+{
+	int ix, nt, nx, n3, esize;
+        int normpow;
+	double initaver, probe, lpnorm, lptemp, oldnorm;
+	float *x, *y, *xp, *yp, *tail, *head, *start, *end;
+
+        sep_begin_prog();
+	/* fetch parameters */
+	if (!fetch("n1","d",&nt))
+		if (fetch("nt","d",&nt)==0) seperr ("n1= missing\n");
+	if (!fetch("n2","d",&nx)) if (!fetch("nx","d",&nx)) nx = 0;
+	if (!fetch("n3","d",&n3)) n3 = 1;
+	if (nx == 0)	nx = ssize ("in") / (nt * 4);
+	else nx *= n3;
+	if (1==hetch("n4","d",&n3)) nx = nx*n3;
+	if (1==hetch("n5","d",&n3)) nx = nx*n3;
+	if (1==hetch("n6","d",&n3)) nx = nx*n3;
+	if (1==hetch("n7","d",&n3)) nx = nx*n3;
+      
+
+	if (!fetch("esize","d",&esize)) esize = sizeof(float);
+	getch("window","d",&window);
+	getch("detect","d",&detect);
+	getch("dwind","d",&dwind);
+	getch("thresh","f",&thresh);
+        if (!getch("normpow","d",&normpow)) normpow = 1;
+        if(normpow !=1 && normpow !=2) seperr("normpow must be 1 or 2.\n");
+	putch ("#normpow","d",&normpow);
+	putch ("#window","d",&window);
+	if (detect)
+		puthead ("dwind=%d thresh=%g\n",dwind,thresh);
+	hclose();
+
+	/* allocate storage */
+	x = (float *) alloc (nt*sizeof(float));
+	y = (float *) alloc (nt*sizeof(float));
+
+	/* gain each trace by l1 norm of moving window */
+	for (ix = 0; ix<nx; ix++) {
+
+		if((nt*esize) != sreed ("in",x,nt*esize)) 
+			seperr("unexpected EOF on input\n");
+		xp = x;
+		yp = y;
+
+		/* detect first significant energy by comparing 
+		   short moving window with an initial average */
+		if (detect) {
+		detects: for (end=y+nt; yp<end;) *yp++ = 0.;
+			for (initaver = 0., end = x + dwind; xp<end;) {
+				if (*xp>0.) initaver += *xp++;
+				else initaver -= *xp++;
+				}
+
+			for (xp=x+dwind/2,yp=y+dwind/2,tail=x,head=x+dwind,end=x+nt-dwind/2, 
+				probe=initaver; ((probe<=(initaver*thresh))&&(xp<end)); xp++,yp++)
+
+				if (*head>0.) probe += *head++;
+				else probe -= *head++;
+				if (*tail>0.) probe -= *tail++;
+				else probe += *tail++;
+
+			if ((xp == end)||(probe == 0.)) {
+				/*fprintf (stderr,"no energy detected in trace %d\n",ix);*/
+				goto right;
+			}
+		}
+
+		/* untaper beginning of trace */
+		for (start=xp, lpnorm=0., end=xp+window; xp<end;) {
+                    if( normpow == 2) {
+			lpnorm += (*xp) * (*xp); xp++;
+                    } else {
+			if (*xp>0.) lpnorm += *xp++;
+			else lpnorm -= *xp++;
+                    }
+		}
+		if (lpnorm == 0.) {
+			xp = x;
+			goto detects;
+		}
+                if (normpow == 2) lptemp = sqrt(lpnorm);
+                else lptemp = lpnorm;
+		for (xp=start, end=start+window/2; xp<end;) *yp++ = *xp++/lptemp;
+
+		/* core routine */
+		for(tail=start,head=start+window,end=x+nt-window/2,oldnorm=lpnorm;xp<end;)
+		{
+                        if(normpow == 2) {
+                            lpnorm += ((*head) * (*head)); head++;
+                            lpnorm -= ((*tail) * (*tail)); head++;
+			    if (lpnorm == 0.) lpnorm = oldnorm;
+			    oldnorm = lpnorm;
+                            lptemp = sqrt(lpnorm);
+                        } else {
+			    if (*head>0.) lpnorm += *head++;
+			    else lpnorm -= *head++;
+			    if (*tail>0.) lpnorm -= *tail++;
+			    else lpnorm += *tail++;
+			    if (lpnorm == 0.) lpnorm = oldnorm;
+			    oldnorm = lpnorm;
+                            lptemp = lpnorm;
+                        }
+			*yp++ = *xp++ / lptemp;
+		}
+
+		/* untaper end of trace */
+		for (end=x+nt; xp<end;) *yp++ = *xp++/lptemp;
+		right: srite ("out",y,nt*esize);
+	}
+  sep_end_prog();
+  return EXIT_SUCCESS;
+}

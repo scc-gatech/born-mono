@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>No Title</title>
+<link rev="made" href="mailto:bob@skagway.stanford.edu" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#input_parameters">INPUT PARAMETERS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#comments">COMMENTS</a></li>
+	<li><a href="#category">CATEGORY</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>Scat , Merge , Cat-  Concatenate SEP77 datasets, 3 names for exactly the same code.</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+  Merge axis=3 space=[y/n] Header1 Header2 Header3 ... &gt; out.H</pre>
+<p>
+</p>
+<hr />
+<h1><a name="input_parameters">INPUT PARAMETERS</a></h1>
+<dl>
+<dt><strong><a name="item_header__2d_files">Header   - files</a></strong><br />
+</dt>
+<dd>
+<pre>
+        seplib history header files to merge.</pre>
+</dd>
+<dt><strong><a name="item_axis__2d_int">axis     - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [3]  axis number to merge (1,2,3)</pre>
+</dd>
+<dt><strong><a name="item_space__2d_char">space    - char</a></strong><br />
+</dt>
+<dd>
+<pre>
+        [y] leave space between merged data to make it easy to tell
+            where one file ends and the next begins in merged movies
+            default: space=y for Merge, space=n for Cat</pre>
+</dd>
+<dt><strong><a name="item_nspace__2d_int">nspace   - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        number of traces in the space
+        (defaults to something reasonable).</pre>
+</dd>
+<dt><strong><a name="item_n1__2d_int">n1       - int</a></strong><br />
+</dt>
+<dd>
+<pre>
+        if n1=-1 this means that the data is simply read 
+        until EOF for each file; this is like using 'cat' on 
+        the individual data files. Note n1=-1 implies axis=3 space=n</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Merge seplib header and data file to stdout. Merge is a modified
+version of Cat (the same code, but with a perl script on the front end to 
+fix some problems). Scat is the same thing.</p>
+<p>
+</p>
+<hr />
+<h1><a name="comments">COMMENTS</a></h1>
+<pre>
+    Note, a header provided on stdin will be used. This was not true
+    in previous versions. I.e. this will work!
+    Myprog &lt;data.H | Merge axis=2 data2.H &gt; out.H</pre>
+<p>
+</p>
+<hr />
+<h1><a name="category">CATEGORY</a></h1>
+<p><strong>util/cube</strong></p>
+
+</body>
+
+</html>

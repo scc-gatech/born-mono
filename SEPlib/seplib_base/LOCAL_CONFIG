@@ -1,0 +1,4 @@
+setenv PPM_LD "-L/usr/lib -lppm -lpbm -lpgm"
+setenv PERL "/usr/bin/perl"
+setenv F90 pgf90
+setenv DEFAULT_DOC_PATH "/usr/local/SEP/src/seplib_base/"

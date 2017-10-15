@@ -1,0 +1,70 @@
+									INSTALLING SEPlib
+
+
+SEPlib uses a GNU-style configure mechanism for installation.
+This installation mechanism has been tested on:
+-  Linux (Redhat 8.0,9)
+-  IRIX6.5
+-  Solaris
+-  MacOs
+-  PC (CYGWIN)
+
+
+Follow the following steps to install SEPlib
+
+-  Download the software, ftp://sepftp.stanford.edu/pub/sep-distr/seplib-5.0.tar.gz
+-  gunzip seplib-6.3z.0 -c |tar xf -
+-  cd seplib-6.3.0
+-  ./configure
+-  gmake install
+
+Following the above procedure should install the core seplib libraries
+and programs into the directory  /usr/local/SEP.
+
+My suggestion is to start from one of the files in doc/config_examples.
+These provide a configuration and compile mechanism for several different
+platforms/options.
+
+
+[--prefix=/other/directory]     Specify another directory to install SEPlib in
+
+[--bindir,--mandir,--includedir,--libdir]
+   Location to put the binaries,  manual pages, include files, and libraries.
+   If you are going to try to compile SEP reports, old SEPlib code, etc. it
+   is important that you set these rather than doing copy or mv commands. 
+   See MAKERULES for more details. The directories default to
+   default to [prefix]/bin, [prefix]/include, [prefix]/man, [prefix]/lib
+  
+
+[--with-local]              Install the less tested, newer portions of SEPlib
+[--with-fftw]               Compile with FFTW3.0 support
+[--with-omp]                Compile codes with OMP support
+[--with-mpi]                Compile with MPI support
+[--with-file-2gb]           Limit files to 2GB 
+[--with-su=/su/directory]       Compile SU support 
+
+[--with-mansupport]            some systems don't include the
+                                packages neqn, tbl, etc.  If your system
+                                does, use this option
+
+
+If you run into problems (for example you need to add an additional library
+path when compiling programs) you can often solve your problem by setting 
+environmental variables that the configure script will then use. For example:
+
+
+[FC]         The Fortran compiler
+[LDFLAGS]    Directories and libraries to link when compiling C programs
+[FCLDFLAGS]  Directories and libraries to link when compiling Fortran programs
+[CFLAGS]     Flags to pass to the C compiler
+[LIBS]       C Libs to include by default
+[FCLIBS]     Fortran libs to include by default
+[CPPFLAGS]   C Processor flags
+[PERL]       Perl location(is /usr/bin isn't before /usr/sbin this is advisable)
+[FFTW_FCLD]  FFTW fortran linking flags
+[OMP_FCFLAGS] Fortran OMP compile flags 
+[OMP_FCLD]    Fortran OMP link flags 
+[MPI_FLAGS]   Mpi compile flags
+[MPI_LD]     Mpi linking flags
+[PPM_FLAGS]  PPM compiling flags
+[PPM_LD]     PPM linking flags
