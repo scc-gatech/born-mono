@@ -1,5 +1,5 @@
 #!/bin/bash
-module load xlc
+module load compiler/xlc
 
 export CMAKE_PREFIX_PATH=/opt/scc/born/hypercube/lib:$CMAKE_PREFIX_PATH
 rm -rf build
