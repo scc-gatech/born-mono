@@ -6,7 +6,7 @@
 #include "rtm_zero_op_3d.h"
 #include "cpu_prop.h"
 
-main(int argc, char **argv){
+int main(int argc, char **argv){
 
 
 	SEP::ioModes modes(argc,argv);
