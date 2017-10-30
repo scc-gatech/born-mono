@@ -7,7 +7,7 @@
 #include "cpu_prop.h"
 #include<iostream>
 
-int main(int argc, char **argv){
+main(int argc, char **argv){
 
 
 	SEP::ioModes modes(argc,argv);
