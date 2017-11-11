@@ -9,8 +9,11 @@ set(genericIO_MINOR_VERSION 2)
 set(genericIO_VERSION_STRING
   ${genericIO_MAJOR_VERSION}.${genericIO_MINOR_VERSION})
 
+set(CMAKE_BUILD_TYPE Release)
 # suppress warnings... sorry Bob!
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ip -ipo")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -qopt-report=1 -qopt-report-phase=vec")
 
 # add the binary tree to the search path for include files
 # so that we will find TutorialConfig.h

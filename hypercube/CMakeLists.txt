@@ -10,8 +10,12 @@ set(hypercube_VERSION_STRING
   ${hypercube_MAJOR_VERSION}.${hypercube_MINOR_VERSION})
 
 # suppress warnings... sorry Bob!
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
- 
+set(CMAKE_BUILD_TYPE Release)
+# suppress warnings... sorry Bob!
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ip -ipo")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -qopt-report=1 -qopt-report-phase=vec")
+
 # add the binary tree to the search path for include files
 # so that we will find TutorialConfig.h
 include_directories("${PROJECT_BINARY_DIR}")
