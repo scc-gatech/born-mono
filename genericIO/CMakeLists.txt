@@ -3,14 +3,15 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
 # configure a header file to pass some of the CMake settings
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 set(genericIO_MAJOR_VERSION 0)
 set(genericIO_MINOR_VERSION 2)
 set(genericIO_VERSION_STRING
   ${genericIO_MAJOR_VERSION}.${genericIO_MINOR_VERSION})
 
-# suppress warnings... sorry Bob!
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+
+
 
 # add the binary tree to the search path for include files
 # so that we will find TutorialConfig.h
